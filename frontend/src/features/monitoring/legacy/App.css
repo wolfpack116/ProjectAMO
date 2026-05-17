@@ -1680,6 +1680,11 @@ body {
   color: var(--ink);
 }
 
+.phone-task-tabs,
+.phone-settings-task {
+  display: none;
+}
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    ⑤ MAP PANEL (right panel, fills remaining)
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -4656,6 +4661,67 @@ tr.row-danger td { background: #ffe9e7; }
 @media (max-width: 719px) {
   .dashboard-root {
     padding: 12px;
+  }
+
+  .left-panel-header .phone-task-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding: 0;
+  }
+
+  .phone-task-tab {
+    min-height: 44px;
+    border: 1px solid rgba(15, 23, 42, 0.16);
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1f2937;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .phone-task-tab.active {
+    background: #111827;
+    color: #ffffff;
+  }
+
+  .dashboard-root[data-phone-task="weather"] .map-panel-wrap,
+  .dashboard-root[data-phone-task="weather"] .right-panel-top {
+    display: none;
+  }
+
+  .dashboard-root[data-phone-task="map"] .monitoring-header-controls,
+  .dashboard-root[data-phone-task="map"] .phone-settings-task,
+  .dashboard-root[data-phone-task="map"] .left-panel-body,
+  .dashboard-root[data-phone-task="map"] .right-panel-top {
+    display: none;
+  }
+
+  .dashboard-root[data-phone-task="map"] .map-panel-wrap {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: calc(100dvh - 86px);
+  }
+
+  .dashboard-root[data-phone-task="settings"] .left-panel-body,
+  .dashboard-root[data-phone-task="settings"] .map-panel-wrap,
+  .dashboard-root[data-phone-task="settings"] .right-panel-top,
+  .dashboard-root[data-phone-task="settings"] .monitoring-header-controls {
+    display: none;
+  }
+
+  .dashboard-root[data-phone-task="settings"] .left-panel-header .phone-settings-task {
+    display: block;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+  }
+
+  .phone-settings-open {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
   }
 }
 

@@ -1481,16 +1481,37 @@
     width: 100vw;
   }
 
+  .airport-panel-head {
+    max-height: 112px;
+    overflow: hidden;
+  }
+
+  .airport-panel-main {
+    flex-direction: column;
+    min-height: 0;
+  }
+
   .airport-panel-tabs {
-    width: 72px;
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.28);
   }
 
   .airport-panel-tab {
-    padding: 13px 2px;
+    flex: 0 0 auto;
+    min-width: 72px;
+    min-height: 44px;
+    padding: 0 12px;
+    justify-content: center;
     font-size: 12px;
+    white-space: nowrap;
   }
 
   .airport-panel-body {
+    min-width: 0;
+    overflow-x: hidden;
     padding: 20px 12px;
   }
 

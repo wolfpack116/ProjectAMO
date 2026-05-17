@@ -176,6 +176,7 @@ export default function MonitoringPage() {
   const [activeAlerts, setActiveAlerts] = useState([])
   const [previewAlerts, setPreviewAlerts] = useState([])
   const [showSettings, setShowSettings] = useState(false)
+  const [phoneTask, setPhoneTask] = useState('weather')
   const [tafVersion, setTafVersion] = useState(() => localStorage.getItem('taf_view_mode') || 'v2')
   const [timeZone, setTimeZone] = useState(() => localStorage.getItem('time_zone') || 'KST')
   const [mapTheme, setMapTheme] = useState(() => localStorage.getItem('map_theme') || 'light')
@@ -525,14 +526,50 @@ export default function MonitoringPage() {
       )}
 
       {data.metar && (
-        <div className="dashboard-root" data-dashboard-mode={dashboardMode}>
+        <div className="dashboard-root" data-dashboard-mode={dashboardMode} data-phone-task={phoneTask}>
           <div className="left-panel-header">
-            <Header
-              airports={airportOptions}
-              selectedAirport={selectedAirport}
-              onAirportChange={setSelectedAirport}
-              airportLabel={airportLabel}
-            />
+            <div className="phone-task-tabs" aria-label="모바일 모니터링 보기">
+              <button
+                type="button"
+                className={`phone-task-tab ${phoneTask === 'weather' ? 'active' : ''}`}
+                onClick={() => setPhoneTask('weather')}
+              >
+                기상정보
+              </button>
+              <button
+                type="button"
+                className={`phone-task-tab ${phoneTask === 'map' ? 'active' : ''}`}
+                onClick={() => setPhoneTask('map')}
+              >
+                지도
+              </button>
+              <button
+                type="button"
+                className={`phone-task-tab ${phoneTask === 'settings' ? 'active' : ''}`}
+                onClick={() => setPhoneTask('settings')}
+              >
+                설정
+              </button>
+            </div>
+            <div className="monitoring-header-controls">
+              <Header
+                airports={airportOptions}
+                selectedAirport={selectedAirport}
+                onAirportChange={setSelectedAirport}
+                airportLabel={airportLabel}
+              />
+            </div>
+            <div className="phone-settings-task">
+              <button
+                type="button"
+                className="settings-icon-btn phone-settings-open"
+                onClick={() => setShowSettings(true)}
+                title="설정"
+                aria-label="설정"
+              >
+                설정 열기
+              </button>
+            </div>
           </div>
 
           <div className="right-panel-top">

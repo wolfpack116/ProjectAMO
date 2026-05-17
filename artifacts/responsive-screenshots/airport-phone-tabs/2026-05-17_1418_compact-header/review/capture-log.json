@@ -1,0 +1,458 @@
+[
+  {
+    "viewport": "390x844",
+    "state": "metar",
+    "screenshot": "phone-metar.png",
+    "bodyScrollWidth": 390,
+    "documentScrollWidth": 390,
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "activeTabText": "METAR",
+    "boxes": {
+      ".airport-panel": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      ".airport-panel-head": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 0,
+        "width": 389,
+        "height": 112
+      },
+      ".airport-panel-main": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 732
+      },
+      ".airport-panel-tabs": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 69
+      },
+      ".airport-panel-body": {
+        "display": "block",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 181,
+        "width": 389,
+        "height": 663
+      }
+    }
+  },
+  {
+    "viewport": "390x844",
+    "state": "taf-timeline",
+    "screenshot": "phone-taf-timeline.png",
+    "bodyScrollWidth": 390,
+    "documentScrollWidth": 390,
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "activeTabText": "TAF",
+    "boxes": {
+      ".airport-panel": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      ".airport-panel-head": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 0,
+        "width": 389,
+        "height": 112
+      },
+      ".airport-panel-main": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 732
+      },
+      ".airport-panel-tabs": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 69
+      },
+      ".airport-panel-body": {
+        "display": "block",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 181,
+        "width": 389,
+        "height": 663
+      }
+    }
+  },
+  {
+    "viewport": "390x844",
+    "state": "taf-table",
+    "screenshot": "phone-taf-table.png",
+    "bodyScrollWidth": 390,
+    "documentScrollWidth": 390,
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "activeTabText": "TAF",
+    "boxes": {
+      ".airport-panel": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      ".airport-panel-head": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 0,
+        "width": 389,
+        "height": 112
+      },
+      ".airport-panel-main": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 732
+      },
+      ".airport-panel-tabs": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 69
+      },
+      ".airport-panel-body": {
+        "display": "block",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 181,
+        "width": 389,
+        "height": 663
+      }
+    }
+  },
+  {
+    "viewport": "390x844",
+    "state": "taf-grid",
+    "screenshot": "phone-taf-grid.png",
+    "bodyScrollWidth": 390,
+    "documentScrollWidth": 390,
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "activeTabText": "TAF",
+    "boxes": {
+      ".airport-panel": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      ".airport-panel-head": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 0,
+        "width": 389,
+        "height": 112
+      },
+      ".airport-panel-main": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 732
+      },
+      ".airport-panel-tabs": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 69
+      },
+      ".airport-panel-body": {
+        "display": "block",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 181,
+        "width": 389,
+        "height": 663
+      }
+    }
+  },
+  {
+    "viewport": "390x844",
+    "state": "amos",
+    "screenshot": "phone-amos.png",
+    "bodyScrollWidth": 390,
+    "documentScrollWidth": 390,
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "activeTabText": "AMOS",
+    "boxes": {
+      ".airport-panel": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      ".airport-panel-head": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 0,
+        "width": 389,
+        "height": 112
+      },
+      ".airport-panel-main": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 732
+      },
+      ".airport-panel-tabs": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 69
+      },
+      ".airport-panel-body": {
+        "display": "block",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 181,
+        "width": 389,
+        "height": 663
+      }
+    }
+  },
+  {
+    "viewport": "390x844",
+    "state": "warning",
+    "screenshot": "phone-warning.png",
+    "bodyScrollWidth": 390,
+    "documentScrollWidth": 390,
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "activeTabText": "공항경보",
+    "boxes": {
+      ".airport-panel": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      ".airport-panel-head": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 0,
+        "width": 389,
+        "height": 112
+      },
+      ".airport-panel-main": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 732
+      },
+      ".airport-panel-tabs": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 69
+      },
+      ".airport-panel-body": {
+        "display": "block",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 181,
+        "width": 389,
+        "height": 663
+      }
+    }
+  },
+  {
+    "viewport": "390x844",
+    "state": "airport-info",
+    "screenshot": "phone-airport-info.png",
+    "bodyScrollWidth": 390,
+    "documentScrollWidth": 390,
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "activeTabText": "기상정보",
+    "boxes": {
+      ".airport-panel": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      ".airport-panel-head": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 0,
+        "width": 389,
+        "height": 112
+      },
+      ".airport-panel-main": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 732
+      },
+      ".airport-panel-tabs": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "x": 1,
+        "y": 112,
+        "width": 389,
+        "height": 69
+      },
+      ".airport-panel-body": {
+        "display": "block",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 1,
+        "y": 181,
+        "width": 389,
+        "height": 663
+      }
+    }
+  },
+  {
+    "viewport": "820x1180",
+    "state": "metar",
+    "screenshot": "tablet-portrait-metar.png",
+    "bodyScrollWidth": 820,
+    "documentScrollWidth": 820,
+    "innerWidth": 820,
+    "innerHeight": 1180,
+    "activeTabText": "METAR",
+    "boxes": {
+      ".airport-panel": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "hidden",
+        "x": 260,
+        "y": 0,
+        "width": 560,
+        "height": 1180
+      },
+      ".airport-panel-head": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 261,
+        "y": 0,
+        "width": 559,
+        "height": 170
+      },
+      ".airport-panel-main": {
+        "display": "flex",
+        "flexDirection": "row",
+        "overflowX": "hidden",
+        "x": 261,
+        "y": 170,
+        "width": 559,
+        "height": 1010
+      },
+      ".airport-panel-tabs": {
+        "display": "flex",
+        "flexDirection": "column",
+        "overflowX": "visible",
+        "x": 261,
+        "y": 170,
+        "width": 80,
+        "height": 1010
+      },
+      ".airport-panel-body": {
+        "display": "block",
+        "flexDirection": "row",
+        "overflowX": "auto",
+        "x": 341,
+        "y": 170,
+        "width": 479,
+        "height": 1010
+      }
+    }
+  }
+]
