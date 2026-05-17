@@ -1,0 +1,538 @@
+[
+  {
+    "viewport": "390x844",
+    "state": "weather-task",
+    "screenshot": "phone-weather-task.png",
+    "metrics": {
+      "innerWidth": 390,
+      "innerHeight": 844,
+      "bodyScrollWidth": 390,
+      "documentScrollWidth": 390,
+      "boxes": {
+        ".dashboard-root": {
+          "display": "grid",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 1274
+        },
+        ".phone-task-tabs": {
+          "display": "grid",
+          "visibility": "visible",
+          "x": 12,
+          "y": 12,
+          "width": 366,
+          "height": 44
+        },
+        ".monitoring-header-controls": {
+          "display": "block",
+          "visibility": "visible",
+          "x": 12,
+          "y": 68,
+          "width": 366,
+          "height": 47
+        },
+        ".phone-settings-task": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".phone-settings-inline": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".left-panel-body": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 12,
+          "y": 127,
+          "width": 366,
+          "height": 1135
+        },
+        ".right-panel-top": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".map-panel-wrap": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".alert-settings-overlay": null,
+        ".alert-settings-modal": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "phoneTask": "weather"
+    }
+  },
+  {
+    "viewport": "390x844",
+    "state": "settings-inline-task",
+    "screenshot": "phone-settings-inline-task.png",
+    "metrics": {
+      "innerWidth": 390,
+      "innerHeight": 844,
+      "bodyScrollWidth": 390,
+      "documentScrollWidth": 390,
+      "boxes": {
+        ".dashboard-root": {
+          "display": "grid",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 844
+        },
+        ".phone-task-tabs": {
+          "display": "grid",
+          "visibility": "visible",
+          "x": 12,
+          "y": 12,
+          "width": 366,
+          "height": 44
+        },
+        ".monitoring-header-controls": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".phone-settings-task": {
+          "display": "block",
+          "visibility": "visible",
+          "x": 12,
+          "y": 68,
+          "width": 366,
+          "height": 364
+        },
+        ".phone-settings-inline": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 12,
+          "y": 68,
+          "width": 366,
+          "height": 364
+        },
+        ".left-panel-body": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".right-panel-top": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".map-panel-wrap": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".alert-settings-overlay": null,
+        ".alert-settings-modal": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 12,
+          "y": 68,
+          "width": 366,
+          "height": 364
+        }
+      },
+      "phoneTask": "settings"
+    }
+  },
+  {
+    "viewport": "390x844",
+    "state": "settings-alert-inline-task",
+    "screenshot": "phone-settings-alert-inline-task.png",
+    "metrics": {
+      "innerWidth": 390,
+      "innerHeight": 844,
+      "bodyScrollWidth": 390,
+      "documentScrollWidth": 390,
+      "boxes": {
+        ".dashboard-root": {
+          "display": "grid",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 850
+        },
+        ".phone-task-tabs": {
+          "display": "grid",
+          "visibility": "visible",
+          "x": 12,
+          "y": 12,
+          "width": 366,
+          "height": 44
+        },
+        ".monitoring-header-controls": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".phone-settings-task": {
+          "display": "block",
+          "visibility": "visible",
+          "x": 12,
+          "y": 68,
+          "width": 366,
+          "height": 758
+        },
+        ".phone-settings-inline": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 12,
+          "y": 68,
+          "width": 366,
+          "height": 758
+        },
+        ".left-panel-body": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".right-panel-top": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".map-panel-wrap": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".alert-settings-overlay": null,
+        ".alert-settings-modal": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 12,
+          "y": 68,
+          "width": 366,
+          "height": 758
+        }
+      },
+      "phoneTask": "settings"
+    }
+  },
+  {
+    "viewport": "820x1180",
+    "state": "monitoring-ops-tablet-sanity",
+    "screenshot": "tablet-portrait-monitoring-ops-sanity.png",
+    "metrics": {
+      "innerWidth": 820,
+      "innerHeight": 1180,
+      "bodyScrollWidth": 820,
+      "documentScrollWidth": 820,
+      "boxes": {
+        ".dashboard-root": {
+          "display": "grid",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 820,
+          "height": 1226
+        },
+        ".phone-task-tabs": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".monitoring-header-controls": {
+          "display": "block",
+          "visibility": "visible",
+          "x": 20,
+          "y": 16,
+          "width": 541,
+          "height": 47
+        },
+        ".phone-settings-task": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".phone-settings-inline": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".left-panel-body": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 20,
+          "y": 75,
+          "width": 541,
+          "height": 1135
+        },
+        ".right-panel-top": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 573,
+          "y": 16,
+          "width": 227,
+          "height": 47
+        },
+        ".map-panel-wrap": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 573,
+          "y": 75,
+          "width": 227,
+          "height": 1135
+        },
+        ".alert-settings-overlay": null,
+        ".alert-settings-modal": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "phoneTask": "weather"
+    }
+  },
+  {
+    "viewport": "820x1180",
+    "state": "monitoring-settings-modal-tablet-sanity",
+    "screenshot": "tablet-portrait-monitoring-settings-modal-sanity.png",
+    "metrics": {
+      "innerWidth": 820,
+      "innerHeight": 1180,
+      "bodyScrollWidth": 820,
+      "documentScrollWidth": 820,
+      "boxes": {
+        ".dashboard-root": {
+          "display": "grid",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 820,
+          "height": 1226
+        },
+        ".phone-task-tabs": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".monitoring-header-controls": {
+          "display": "block",
+          "visibility": "visible",
+          "x": 20,
+          "y": 16,
+          "width": 541,
+          "height": 47
+        },
+        ".phone-settings-task": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".phone-settings-inline": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".left-panel-body": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 20,
+          "y": 75,
+          "width": 541,
+          "height": 1135
+        },
+        ".right-panel-top": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 573,
+          "y": 16,
+          "width": 227,
+          "height": 47
+        },
+        ".map-panel-wrap": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 573,
+          "y": 75,
+          "width": 227,
+          "height": 1135
+        },
+        ".alert-settings-overlay": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 820,
+          "height": 1180
+        },
+        ".alert-settings-modal": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "phoneTask": "weather"
+    }
+  },
+  {
+    "viewport": "1536x864",
+    "state": "monitoring-settings-modal-desktop-sanity",
+    "screenshot": "desktop-monitoring-settings-modal-sanity.png",
+    "metrics": {
+      "innerWidth": 1536,
+      "innerHeight": 864,
+      "bodyScrollWidth": 1536,
+      "documentScrollWidth": 1536,
+      "boxes": {
+        ".dashboard-root": {
+          "display": "grid",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 1536,
+          "height": 920
+        },
+        ".phone-task-tabs": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".monitoring-header-controls": {
+          "display": "block",
+          "visibility": "visible",
+          "x": 20,
+          "y": 16,
+          "width": 805,
+          "height": 47
+        },
+        ".phone-settings-task": {
+          "display": "none",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".phone-settings-inline": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        ".left-panel-body": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 20,
+          "y": 75,
+          "width": 805,
+          "height": 829
+        },
+        ".right-panel-top": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 845,
+          "y": 16,
+          "width": 671,
+          "height": 47
+        },
+        ".map-panel-wrap": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 845,
+          "y": 75,
+          "width": 671,
+          "height": 829
+        },
+        ".alert-settings-overlay": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 1536,
+          "height": 864
+        },
+        ".alert-settings-modal": {
+          "display": "flex",
+          "visibility": "visible",
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "phoneTask": "weather"
+    }
+  }
+]

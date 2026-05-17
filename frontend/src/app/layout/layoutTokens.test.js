@@ -9,6 +9,8 @@ const mapCss = readFileSync(new URL('../../features/map/MapView.css', import.met
 const routeCss = readFileSync(new URL('../../features/route-briefing/RouteBriefing.css', import.meta.url), 'utf8')
 const airportCss = readFileSync(new URL('../../features/airport-panel/AirportPanel.css', import.meta.url), 'utf8')
 const monitoringCss = readFileSync(new URL('../../features/monitoring/legacy/App.css', import.meta.url), 'utf8')
+const monitoringPage = readFileSync(new URL('../../features/monitoring/MonitoringPage.jsx', import.meta.url), 'utf8')
+const monitoringSettings = readFileSync(new URL('../../features/monitoring/legacy/components/alerts/Settings.jsx', import.meta.url), 'utf8')
 
 test('layout tokens define shell and panel sizing contracts', () => {
   for (const token of [
@@ -94,4 +96,13 @@ test('monitoring dashboard documents shared responsive breakpoints', () => {
   assert.match(monitoringCss, /@media \(max-width: 1199px\)/)
   assert.match(monitoringCss, /@media \(max-width: 979px\)/)
   assert.match(monitoringCss, /@media \(max-width: 719px\)/)
+})
+
+test('monitoring phone settings task renders settings inline instead of a modal launcher', () => {
+  assert.match(monitoringSettings, /variant\s*=\s*["']modal["']/)
+  assert.match(monitoringSettings, /isInline/)
+  assert.match(monitoringPage, /className="phone-settings-task"[^]*renderSettingsPanel\('inline'\)/)
+  assert.match(monitoringPage, /<Settings[^]*variant=\{variant\}/)
+  assert.doesNotMatch(monitoringPage, /className="settings-icon-btn phone-settings-open"/)
+  assert.match(monitoringCss, /phone-settings-inline/)
 })

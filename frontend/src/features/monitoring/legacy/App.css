@@ -4712,16 +4712,31 @@ tr.row-danger td { background: #ffe9e7; }
 
   .dashboard-root[data-phone-task="settings"] .left-panel-header .phone-settings-task {
     display: block;
-    padding: 12px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    background: var(--paper);
+    min-height: 0;
   }
 
-  .phone-settings-open {
+  .phone-settings-inline {
     width: 100%;
-    min-height: 44px;
-    justify-content: center;
+    max-width: none;
+    height: auto;
+    max-height: calc(100dvh - 86px);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: none;
+  }
+
+  .phone-settings-inline .alert-settings-layout {
+    min-height: 0;
+  }
+
+  .phone-settings-inline .alert-settings-body {
+    max-height: none;
+  }
+
+  .phone-settings-inline .alert-settings-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--paper);
   }
 }
 

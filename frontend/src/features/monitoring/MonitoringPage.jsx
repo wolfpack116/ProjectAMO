@@ -407,6 +407,35 @@ export default function MonitoringPage() {
     window.location.assign('/')
   }
 
+  function renderSettingsPanel(variant = 'modal') {
+    if (!alertDefaults) return null
+
+    return (
+      <Settings
+        defaults={alertDefaults}
+        onClose={() => setShowSettings(false)}
+        onSettingsChange={handleSettingsChange}
+        timeZone={timeZone}
+        setTimeZone={setTimeZone}
+        mapTheme={mapTheme}
+        setMapTheme={setMapTheme}
+        trafficCallsignFilter={trafficCallsignFilter}
+        setTrafficCallsignFilter={setTrafficCallsignFilter}
+        trafficAltitudeBands={trafficAltitudeBands}
+        setTrafficAltitudeBands={setTrafficAltitudeBands}
+        minimaSettings={airportMinimaSettings}
+        setMinimaSettings={setAirportMinimaSettings}
+        advisoryFilter={advisoryFilter}
+        setAdvisoryFilter={(next) => {
+          setAdvisoryFilter(next || getDefaultAdvisoryFilterSettings())
+          saveAdvisoryFilterSettings(next || getDefaultAdvisoryFilterSettings())
+        }}
+        onPreviewAlert={handlePreviewAlert}
+        variant={variant}
+      />
+    )
+  }
+
   const settings = alertDefaults ? resolveSettings(alertDefaults) : null
   const popupAlerts = [...previewAlerts.filter((alert) => alert.previewChannels?.popup), ...activeAlerts]
   const soundAlerts = [...previewAlerts.filter((alert) => alert.previewChannels?.sound), ...activeAlerts]
@@ -560,15 +589,7 @@ export default function MonitoringPage() {
               />
             </div>
             <div className="phone-settings-task">
-              <button
-                type="button"
-                className="settings-icon-btn phone-settings-open"
-                onClick={() => setShowSettings(true)}
-                title="설정"
-                aria-label="설정"
-              >
-                설정 열기
-              </button>
+              {renderSettingsPanel('inline')}
             </div>
           </div>
 
@@ -620,29 +641,7 @@ export default function MonitoringPage() {
         </div>
       )}
 
-      {showSettings && alertDefaults && (
-        <Settings
-          defaults={alertDefaults}
-          onClose={() => setShowSettings(false)}
-          onSettingsChange={handleSettingsChange}
-          timeZone={timeZone}
-          setTimeZone={setTimeZone}
-          mapTheme={mapTheme}
-          setMapTheme={setMapTheme}
-          trafficCallsignFilter={trafficCallsignFilter}
-          setTrafficCallsignFilter={setTrafficCallsignFilter}
-          trafficAltitudeBands={trafficAltitudeBands}
-          setTrafficAltitudeBands={setTrafficAltitudeBands}
-          minimaSettings={airportMinimaSettings}
-          setMinimaSettings={setAirportMinimaSettings}
-          advisoryFilter={advisoryFilter}
-          setAdvisoryFilter={(next) => {
-            setAdvisoryFilter(next || getDefaultAdvisoryFilterSettings())
-            saveAdvisoryFilterSettings(next || getDefaultAdvisoryFilterSettings())
-          }}
-          onPreviewAlert={handlePreviewAlert}
-        />
-      )}
+      {showSettings && renderSettingsPanel()}
     </>
   )
 }

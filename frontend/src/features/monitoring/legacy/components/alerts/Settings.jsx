@@ -111,7 +111,9 @@ export default function Settings({
   setMinimaSettings,
   advisoryFilter,
   setAdvisoryFilter,
+  variant = "modal",
 }) {
+  const isInline = variant === "inline";
   const current = resolveSettings(defaults);
 
   const [globalEnabled, setGlobalEnabled] = useState(current.global.alerts_enabled);
@@ -236,7 +238,7 @@ export default function Settings({
 
   function handleSave() {
     applySettings();
-    onClose();
+    if (!isInline) onClose?.();
   }
 
   function handleReset() {
@@ -256,7 +258,7 @@ export default function Settings({
     setAdvisoryFilter?.(getDefaultAdvisoryFilterSettings());
 
     onSettingsChange?.(null);
-    onClose();
+    if (!isInline) onClose?.();
   }
 
   function toggleAlertHelp(sectionId) {
@@ -402,12 +404,11 @@ export default function Settings({
     };
   }
 
-  return (
-    <div className="alert-settings-overlay" onClick={onClose}>
-      <div className="alert-settings-modal" onClick={(e) => e.stopPropagation()}>
+  const settingsContent = (
+    <div className={`alert-settings-modal${isInline ? " phone-settings-inline" : ""}`} onClick={(e) => e.stopPropagation()}>
         <div className="alert-settings-header">
           <h2>설정</h2>
-          <button className="alert-popup-close" onClick={onClose}>&times;</button>
+          {!isInline && <button className="alert-popup-close" onClick={onClose}>&times;</button>}
         </div>
 
         <div className="alert-settings-layout">
@@ -666,6 +667,13 @@ export default function Settings({
           <button className="btn-save" onClick={handleSave}>저장</button>
         </div>
       </div>
+  );
+
+  if (isInline) return settingsContent;
+
+  return (
+    <div className="alert-settings-overlay" onClick={onClose}>
+      {settingsContent}
     </div>
   );
 }
