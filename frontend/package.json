@@ -9,6 +9,7 @@
     "smoke:responsive": "node scripts/responsive-smoke.mjs",
     "screenshots:responsive": "node scripts/responsive-screenshots.mjs",
     "test:layout": "node --test src/app/layout/layoutTokens.test.js",
+    "test:airport-panel": "node --test src/features/airport-panel/lib/*.test.js",
     "preview": "vite preview"
   },
   "dependencies": {

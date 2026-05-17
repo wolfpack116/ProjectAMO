@@ -1533,3 +1533,566 @@
     height: 16px;
   }
 }
+
+.ap-amos-console-wrap {
+  container-type: inline-size;
+  gap: 12px;
+}
+
+.ap-amos-priority-summary {
+  display: none;
+}
+
+.ap-amos-priority-card {
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.36);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px 12px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.07);
+}
+
+.ap-amos-priority-card span {
+  display: block;
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.ap-amos-priority-card strong {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ap-amos-priority-card--activeRunway {
+  border-color: rgba(239, 68, 68, 0.48);
+  background: #ef4444;
+}
+
+.ap-amos-priority-card--activeRunway span,
+.ap-amos-priority-card--activeRunway strong {
+  color: #fff;
+}
+
+.ap-amos-console-board {
+  --ap-amos-console-line: rgba(148, 163, 184, 0.45);
+  --ap-amos-console-text: #0f172a;
+  --ap-amos-console-blue: #d9e8fb;
+  --ap-amos-console-accent: #2563eb;
+  --ap-amos-console-red: #ef4444;
+  --ap-amos-console-green: #16a34a;
+  width: min(780px, 100%);
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--ap-amos-console-line);
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--ap-amos-console-text);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+}
+
+.ap-amos-console-top {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 720px;
+  min-height: 38px;
+  border-bottom: 1px solid var(--ap-amos-console-line);
+}
+
+.ap-amos-console-runway-id {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  border-right: 1px solid var(--ap-amos-console-line);
+  color: var(--ap-amos-console-text);
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.ap-amos-console-runway-id:last-child {
+  border-right: 0;
+}
+
+.ap-amos-console-runway-id.is-active {
+  background: var(--ap-amos-console-red);
+  color: #fff;
+}
+
+.ap-amos-console-wind-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(280px, 340px) minmax(180px, 220px);
+  min-width: 720px;
+  min-height: 410px;
+  border-bottom: 1px solid var(--ap-amos-console-line);
+}
+
+.ap-amos-console-wind-metrics {
+  display: grid;
+  grid-template-rows: 28px repeat(3, minmax(0, 1fr));
+  min-width: 0;
+  border-right: 1px solid var(--ap-amos-console-line);
+}
+
+.ap-amos-console-wind-group-title {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  overflow: hidden;
+  border-bottom: 1px solid var(--ap-amos-console-line);
+  background: rgba(219, 234, 254, 0.78);
+  color: var(--ap-amos-console-accent);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ap-amos-console-wind-metrics--right {
+  border-right: 0;
+  border-left: 1px solid var(--ap-amos-console-line);
+}
+
+.ap-amos-console-metric-band {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  border-bottom: 1px solid var(--ap-amos-console-line);
+}
+
+.ap-amos-console-metric-band:last-child {
+  border-bottom: 0;
+}
+
+.ap-amos-console-metric {
+  display: grid;
+  grid-template-rows: 26px minmax(68px, 1fr);
+  min-width: 0;
+  border-right: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.ap-amos-console-metric:last-child {
+  border-right: 0;
+}
+
+.ap-amos-console-label {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--ap-amos-console-blue);
+  color: var(--ap-amos-console-accent);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ap-amos-console-value {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 8px;
+  color: var(--ap-amos-console-text);
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ap-amos-console-dial-panel {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 46px 8px 18px;
+}
+
+.ap-amos-console-component-stack {
+  display: grid;
+  justify-items: center;
+  gap: 40px;
+}
+
+.ap-amos-console-dial {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 222px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, #f8fafc 0 57%, transparent 58%),
+    conic-gradient(
+      from 0deg,
+      #94a3b8 0 var(--ap-amos-arc-start),
+      #4fd6e6 var(--ap-amos-arc-start) var(--ap-amos-arc-end),
+      #94a3b8 var(--ap-amos-arc-end) 360deg
+    );
+  box-shadow:
+    inset 0 0 0 10px rgba(37, 99, 235, 0.08),
+    inset 0 0 0 18px rgba(15, 23, 42, 0.08);
+}
+
+.ap-amos-console-dial.is-arc-wrapped {
+  background:
+    radial-gradient(circle at center, #f8fafc 0 57%, transparent 58%),
+    conic-gradient(
+      from 0deg,
+      #4fd6e6 0 var(--ap-amos-arc-end),
+      #94a3b8 var(--ap-amos-arc-end) var(--ap-amos-arc-start),
+      #4fd6e6 var(--ap-amos-arc-start) 360deg
+    );
+}
+
+.ap-amos-console-dial::before {
+  content: "";
+  position: absolute;
+  inset: 24px;
+  border: 2px solid rgba(15, 23, 42, 0.42);
+  border-radius: 50%;
+}
+
+.ap-amos-console-ticks {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(from 0deg, rgba(15, 23, 42, 0.85) 0 1deg, transparent 1deg 10deg),
+    repeating-conic-gradient(from 0deg, rgba(15, 23, 42, 0.36) 0 0.7deg, transparent 0.7deg 5deg);
+  mask: radial-gradient(circle, transparent 0 70%, #000 71% 78%, transparent 79%);
+}
+
+.ap-amos-console-major-ticks {
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(15, 23, 42, 0.8) 0 2deg, transparent 2deg 30deg);
+  mask: radial-gradient(circle, transparent 0 68%, #000 69% 82%, transparent 83%);
+}
+
+.ap-amos-console-bearing {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  width: 22px;
+  height: 18px;
+  margin: -9px 0 0 -11px;
+  color: var(--ap-amos-console-text);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 18px;
+  text-align: center;
+  transform: rotate(var(--angle)) translateY(-136px) rotate(calc(-1 * var(--angle)));
+  transform-origin: center;
+}
+
+.ap-amos-console-wind-arrow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  width: 22px;
+  height: 18px;
+  margin: -9px 0 0 -11px;
+  background: #25d9ef;
+  clip-path: polygon(50% 0, 0 100%, 100% 100%);
+  transform: rotate(var(--ap-amos-wind-from)) translateY(-70px) rotate(180deg);
+  transform-origin: center;
+}
+
+.ap-amos-console-runway-strip {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 106px;
+  height: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.42);
+  background: #0f172a;
+  transform: rotate(var(--ap-amos-runway-rotation));
+}
+
+.ap-amos-console-active-end {
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  width: 14px;
+  background: var(--ap-amos-console-red);
+}
+
+.ap-amos-console-active-end--start {
+  left: -1px;
+}
+
+.ap-amos-console-active-end--end {
+  right: -1px;
+}
+
+.ap-amos-console-components {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  gap: 8px;
+  padding-bottom: 4px;
+}
+
+.ap-amos-console-component {
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+  gap: 2px;
+}
+
+.ap-amos-console-component span {
+  color: var(--ap-amos-console-accent);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.ap-amos-console-component strong {
+  color: var(--ap-amos-console-text);
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.ap-amos-console-rvr-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 720px;
+  border-bottom: 1px solid var(--ap-amos-console-line);
+}
+
+.ap-amos-console-rvr-cell {
+  display: grid;
+  grid-template-rows: 24px 110px;
+  min-width: 0;
+  border-right: 1px solid var(--ap-amos-console-line);
+}
+
+.ap-amos-console-rvr-cell:last-child {
+  border-right: 0;
+}
+
+.ap-amos-console-rvr-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 6px;
+  color: var(--ap-amos-console-text);
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.ap-amos-console-rvr-value .is-good {
+  color: var(--ap-amos-console-green);
+}
+
+.ap-amos-console-common-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  min-width: 720px;
+}
+
+.ap-amos-console-bottom-cell {
+  display: grid;
+  grid-template-rows: 26px 110px;
+  min-width: 0;
+  border-right: 1px solid var(--ap-amos-console-line);
+}
+
+.ap-amos-console-bottom-cell:last-child {
+  border-right: 0;
+}
+
+.ap-amos-console-bottom-value {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 6px;
+  color: var(--ap-amos-console-text);
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+@container (max-width: 620px) {
+  .ap-amos-priority-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .ap-amos-console-board {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: visible;
+    box-shadow: none;
+  }
+
+  .ap-amos-console-top {
+    display: none;
+  }
+
+  .ap-amos-console-rvr-row {
+    order: 1;
+    grid-template-columns: 1fr;
+    min-width: 0;
+    border-bottom: 1px solid var(--ap-amos-console-line);
+  }
+
+  .ap-amos-console-rvr-cell {
+    grid-template-rows: 24px minmax(58px, auto);
+    border-right: 0;
+    border-bottom: 1px solid var(--ap-amos-console-line);
+  }
+
+  .ap-amos-console-rvr-cell:last-child {
+    border-bottom: 0;
+  }
+
+  .ap-amos-console-rvr-value {
+    min-height: 58px;
+    font-size: 24px;
+  }
+
+  .ap-amos-console-wind-row {
+    order: 2;
+    grid-template-columns: 1fr;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .ap-amos-console-wind-metrics {
+    grid-template-rows: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--ap-amos-console-line);
+  }
+
+  .ap-amos-console-wind-group-title {
+    justify-content: start;
+    min-height: 34px;
+    padding: 0 10px;
+    background: #0f172a;
+    color: #fff;
+  }
+
+  .ap-amos-console-wind-metrics--right {
+    border-left: 0;
+  }
+
+  .ap-amos-console-wind-metrics--left {
+    order: 1;
+  }
+
+  .ap-amos-console-wind-metrics--right {
+    order: 2;
+  }
+
+  .ap-amos-console-dial-panel {
+    order: 3;
+    padding: 26px 8px 18px;
+  }
+
+  .ap-amos-console-metric-band {
+    grid-template-columns: 1fr;
+  }
+
+  .ap-amos-console-metric {
+    grid-template-columns: minmax(0, 1fr) 86px;
+    grid-template-rows: none;
+    min-height: 46px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+  }
+
+  .ap-amos-console-metric:last-child {
+    border-bottom: 0;
+  }
+
+  .ap-amos-console-label {
+    justify-content: start;
+    padding: 0 10px;
+    text-align: left;
+  }
+
+  .ap-amos-console-value {
+    justify-content: end;
+    padding: 0 12px;
+    font-size: 22px;
+  }
+
+  .ap-amos-console-component-stack {
+    gap: 26px;
+  }
+
+  .ap-amos-console-dial {
+    width: min(196px, 62vw);
+  }
+
+  .ap-amos-console-bearing {
+    transform: rotate(var(--angle)) translateY(calc(-1 * min(116px, 36vw))) rotate(calc(-1 * var(--angle)));
+  }
+
+  .ap-amos-console-common-grid {
+    order: 3;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 0;
+  }
+
+  .ap-amos-console-bottom-cell {
+    grid-template-rows: 24px minmax(58px, auto);
+    border-bottom: 1px solid var(--ap-amos-console-line);
+  }
+
+  .ap-amos-console-bottom-cell:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .ap-amos-console-bottom-cell:last-child {
+    grid-column: 1 / -1;
+    border-bottom: 0;
+  }
+
+  .ap-amos-console-bottom-value {
+    min-height: 58px;
+    font-size: 23px;
+  }
+}
+
+@media (max-width: 719px) {
+  .ap-amos-head {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .ap-amos-time {
+    white-space: normal;
+  }
+
+  .ap-amos-priority-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .ap-amos-priority-card strong {
+    font-size: 20px;
+  }
+
+  .ap-amos-console-board {
+    border-radius: 0;
+  }
+}

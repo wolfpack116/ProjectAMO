@@ -1,139 +1,145 @@
-import { MoveUp, Plane } from 'lucide-react'
-import {
-  enrichAmosRunways,
-  formatAmosTime,
-  formatAmosValue,
-  formatMsToKt,
-  pickActiveRunwayLabel,
-  runwayLabelsFromAirport,
-} from '../lib/amosViewModel.js'
+import { buildAmosConsoleModel } from '../lib/amosViewModel.js'
 
-function AmosRunwaySide({ runway, label, align = 'left', showArrow = true }) {
-  const rotation = Number.isFinite(runway?.wind_direction) ? (runway.wind_direction + 180) % 360 : 0
-  const runwayLabel = label || runway?.runway || '-'
+const BEARINGS = [
+  ['36', 0],
+  ['3', 30],
+  ['6', 60],
+  ['9', 90],
+  ['12', 120],
+  ['15', 150],
+  ['18', 180],
+  ['21', 210],
+  ['24', 240],
+  ['27', 270],
+  ['30', 300],
+  ['33', 330],
+]
+
+function WindMetricColumn({ group, side }) {
   return (
-    <section className={`ap-amos-board-side ap-amos-board-side--${align}`}>
-      {showArrow ? (
-        <div className="ap-amos-arrow-only">
-          <MoveUp className="ap-amos-dial-arrow" style={{ transform: `rotate(${rotation}deg)` }} />
+    <aside className={`ap-amos-console-wind-metrics ap-amos-console-wind-metrics--${side}`} aria-label={`${group.label} 바람`}>
+      <div className="ap-amos-console-wind-group-title">{group.label} 바람</div>
+      {group.rows.map((row) => (
+        <div className="ap-amos-console-metric-band" key={`${group.key}-${row.speedLabel}`}>
+          <div className="ap-amos-console-metric">
+            <div className="ap-amos-console-label">{row.speedLabel}</div>
+            <div className="ap-amos-console-value">{row.speedValue}</div>
+          </div>
+          <div className="ap-amos-console-metric">
+            <div className="ap-amos-console-label">{row.directionLabel}</div>
+            <div className="ap-amos-console-value">{row.directionValue}</div>
+          </div>
         </div>
-      ) : null}
+      ))}
+    </aside>
+  )
+}
 
-      <div className="ap-amos-block-title">{runwayLabel} 풍향/풍속</div>
-      <table className="ap-amos-runway-table">
-        <thead>
-          <tr><th>{runwayLabel}</th><th>평균</th><th>최소</th><th>최대</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th>풍향(°)</th>
-            <td>{formatAmosValue(runway?.wind_direction)}</td>
-            <td>{formatAmosValue(runway?.wind_direction_min)}</td>
-            <td>{formatAmosValue(runway?.wind_direction_max)}</td>
-          </tr>
-          <tr>
-            <th>풍속(kt)</th>
-            <td>{formatMsToKt(runway?.wind_speed)}</td>
-            <td>{formatMsToKt(runway?.wind_speed_min)}</td>
-            <td>{formatMsToKt(runway?.wind_speed_max)}</td>
-          </tr>
-        </tbody>
-      </table>
+function WindDial({ dial, activeRunwayIndex }) {
+  const arcStart = Number.isFinite(dial.arcStartDeg) ? dial.arcStartDeg : 310
+  const arcEnd = Number.isFinite(dial.arcEndDeg) ? dial.arcEndDeg : 350
+  const dialStyle = {
+    '--ap-amos-runway-rotation': `${dial.runwayRotationDeg}deg`,
+    '--ap-amos-wind-from': `${dial.windFromDeg ?? 0}deg`,
+    '--ap-amos-arc-start': `${arcStart}deg`,
+    '--ap-amos-arc-end': `${arcEnd}deg`,
+  }
 
-      <div className="ap-amos-block-title ap-amos-block-title--spaced">{runwayLabel} 시정</div>
-      <div className="ap-amos-vis-box">
-        <div><span>{runwayLabel} VIS</span><strong>{formatAmosValue(runway?.visibility_m, ' m')}</strong></div>
-        <div><span>{runwayLabel} RVR</span><strong>{formatAmosValue(runway?.rvr_m, ' m')}</strong></div>
+  return (
+    <section className="ap-amos-console-dial-panel">
+      <div className="ap-amos-console-component-stack">
+        <div className={`ap-amos-console-dial${dial.arcWrapsNorth ? ' is-arc-wrapped' : ''}`} style={dialStyle} aria-label="active runway wind component">
+          <div className="ap-amos-console-major-ticks" aria-hidden="true" />
+          <div className="ap-amos-console-ticks" aria-hidden="true" />
+          {BEARINGS.map(([label, angle]) => (
+            <span className="ap-amos-console-bearing" style={{ '--angle': `${angle}deg` }} key={label}>
+              {label}
+            </span>
+          ))}
+          {Number.isFinite(dial.windFromDeg) ? <div className="ap-amos-console-wind-arrow" aria-hidden="true" /> : null}
+          <div className="ap-amos-console-runway-strip" aria-hidden="true">
+            <span className={`ap-amos-console-active-end ap-amos-console-active-end--${activeRunwayIndex === 1 ? 'end' : 'start'}`} />
+          </div>
+        </div>
+        <div className="ap-amos-console-components">
+          <div className="ap-amos-console-component">
+            <span>H/T-WS(kt)</span>
+            <strong>{dial.headTailLabel} {dial.headTailValue}</strong>
+          </div>
+          <div className="ap-amos-console-component">
+            <span>CROSS-WS(kt)</span>
+            <strong>{dial.crossLabel} {dial.crossValue}</strong>
+          </div>
+        </div>
       </div>
+    </section>
+  )
+}
+
+function PrioritySummary({ items }) {
+  return (
+    <section className="ap-amos-priority-summary" aria-label="AMOS 핵심 상태">
+      {items.map((item) => (
+        <div className={`ap-amos-priority-card ap-amos-priority-card--${item.key}`} key={item.key}>
+          <span>{item.label}</span>
+          <strong>{item.value}</strong>
+        </div>
+      ))}
     </section>
   )
 }
 
 export default function AmosBoardTab({ amos, metar, airportMeta }) {
   if (!amos) return <div className="ap-empty">AMOS 데이터 없음</div>
-  const runways = enrichAmosRunways(amos)
-  const runwayLabels = runwayLabelsFromAirport(airportMeta)
-  const runwayImageSrc = '/amos-runway-generic.png'
-  const rf = amos.daily_rainfall
-  const obs = amos.observation || {}
-  const observedTime = rf?.observed_tm_kst || obs.observed_tm_kst
-  const activeRunwayLabel = pickActiveRunwayLabel(runwayLabels, metar?.observation?.wind)
-  const activeRunwaySide = activeRunwayLabel === runwayLabels[1] ? 'right' : 'left'
-  const activePlaneHeading = activeRunwaySide === 'right' ? -135 : 45
+
+  const model = buildAmosConsoleModel(amos, metar, airportMeta)
 
   return (
-    <div className="ap-amos ap-amos-board-wrap">
+    <div className="ap-amos ap-amos-console-wrap">
       <div className="ap-amos-head">
         <div>
           <h3>공항기상관측장비(AMOS)</h3>
         </div>
-        <span className="ap-amos-time">{formatAmosTime(observedTime)}</span>
+        <span className="ap-amos-time">{model.observedTimeLabel}</span>
       </div>
 
-      <section className="ap-amos-board-hero">
-        <div className="ap-amos-arrow-only">
-          <MoveUp className="ap-amos-dial-arrow" style={{ transform: `rotate(${Number.isFinite(runways[0]?.wind_direction) ? (runways[0].wind_direction + 180) % 360 : 0}deg)` }} />
-        </div>
+      <PrioritySummary items={model.prioritySummary} />
 
-        <section className="ap-amos-board-center">
-          {runwayImageSrc ? (
-            <div className={`ap-amos-runway-hero-wrap ap-amos-runway-hero-wrap--${activeRunwaySide}`}>
-              {activeRunwayLabel ? (
-                <>
-                  <span className={`ap-amos-active-runway-badge ap-amos-active-runway-badge--${activeRunwaySide}`} aria-hidden="true" />
-                  <Plane
-                    className={`ap-amos-active-runway-plane ap-amos-active-runway-plane--${activeRunwaySide}`}
-                    style={{ transform: `rotate(${activePlaneHeading}deg)` }}
-                  />
-                </>
-              ) : null}
-              <span className="ap-amos-runway-overlay-label ap-amos-runway-overlay-label--left">
-                {runwayLabels[0]}
-              </span>
-              <span className="ap-amos-runway-overlay-label ap-amos-runway-overlay-label--right">
-                {runwayLabels[1]}
-              </span>
-              <img className="ap-amos-runway-image" src={runwayImageSrc} alt="RKSI runway diagram" />
+      <section className="ap-amos-console-board" aria-label="AMOS layout">
+        <header className="ap-amos-console-top">
+          {model.runwayLabels.map((label) => (
+            <div className={`ap-amos-console-runway-id${label === model.activeRunwayLabel ? ' is-active' : ''}`} key={label}>
+              {label === model.activeRunwayLabel ? `${label} IN USE` : label}
             </div>
-          ) : (
-            <div className="ap-amos-runway-strip">
-              <span>{runwayLabels[0]}</span>
-              <div className="ap-amos-strip-body" />
-              <span>{runwayLabels[1]}</span>
-            </div>
-          )}
+          ))}
+        </header>
+
+        <section className="ap-amos-console-wind-row">
+          <WindMetricColumn group={model.windGroups[0]} side="left" />
+          <WindDial dial={model.dial} activeRunwayIndex={model.activeRunwayIndex} />
+          <WindMetricColumn group={model.windGroups[1]} side="right" />
         </section>
 
-        <div className="ap-amos-arrow-only">
-          <MoveUp className="ap-amos-dial-arrow" style={{ transform: `rotate(${Number.isFinite(runways[1]?.wind_direction) ? (runways[1].wind_direction + 180) % 360 : 0}deg)` }} />
-        </div>
-      </section>
-
-      <section className="ap-amos-board-grid">
-        <AmosRunwaySide runway={runways[0]} label={runwayLabels[0]} showArrow={false} />
-
-        <section className="ap-amos-board-center">
-          <table className="ap-amos-common-table">
-            <tbody>
-              <tr><th>최저운고(ft)</th><td>{formatAmosValue(amos.weather?.cloud_min_m, 'ft')}</td></tr>
-              <tr><th>기온(°C)</th><td>{formatAmosValue(amos.weather?.temperature_c, '°C')}</td></tr>
-              <tr><th>이슬점(°C)</th><td>{formatAmosValue(amos.weather?.dewpoint_c, '°C')}</td></tr>
-              <tr><th>습도(%)</th><td>{formatAmosValue(amos.weather?.humidity_pct, '%')}</td></tr>
-              <tr><th>해면기압(hPa)</th><td>{formatAmosValue(amos.pressure?.qnh_hpa, 'hPa')}</td></tr>
-              <tr><th>현지기압(hPa)</th><td>{formatAmosValue(amos.pressure?.station_hpa, 'hPa')}</td></tr>
-              <tr><th>강수량(mm)</th><td>{formatAmosValue(amos.weather?.rainfall_mm ?? rf?.mm, 'mm')}</td></tr>
-            </tbody>
-          </table>
+        <section className="ap-amos-console-rvr-row" aria-label="visibility and rvr">
+          {model.visibilityRows.map((row) => (
+            <div className="ap-amos-console-rvr-cell" key={row.label}>
+              <div className="ap-amos-console-label">{row.label}</div>
+              <div className="ap-amos-console-rvr-value">
+                <span className={row.isRvrGood ? 'is-good' : undefined}>{row.rvrValue}</span>/{row.morValue}
+              </div>
+            </div>
+          ))}
         </section>
 
-        <AmosRunwaySide runway={runways[1]} label={runwayLabels[1]} align="right" showArrow={false} />
+        <section className="ap-amos-console-common-grid" aria-label="common weather">
+          {model.commonCells.map((cell) => (
+            <div className="ap-amos-console-bottom-cell" key={cell.label}>
+              <div className="ap-amos-console-label">{cell.label}</div>
+              <div className="ap-amos-console-bottom-value">{cell.value}</div>
+            </div>
+          ))}
+        </section>
       </section>
-
-      {Array.isArray(amos.runways) && amos.runways.length > 0
-        ? null
-        : <div className="ap-amos-note">AMOS 활주로별 직접값이 없습니다.</div>}
     </div>
   )
 }
-
-

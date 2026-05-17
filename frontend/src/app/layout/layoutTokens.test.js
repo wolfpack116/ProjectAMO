@@ -45,7 +45,7 @@ test('layout tokens define shell and panel sizing contracts', () => {
     '--sidebar-expanded: clamp(260px, 16vw, 280px);',
     '--panel-overlay-sm: clamp(260px, 20vw, 320px);',
     '--panel-overlay-md: clamp(320px, 26vw, 420px);',
-    '--panel-drawer-lg: clamp(560px, 42vw, 800px);',
+    '--panel-drawer-lg: clamp(560px, 50vw, 960px);',
   ]) {
     assert.match(css, new RegExp(declaration.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
   }
