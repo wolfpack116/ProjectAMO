@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>반응형 화면 전략 변경 제안서</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #657084;
+      --line: #d8dee8;
+      --panel: #ffffff;
+      --soft: #f4f7fb;
+      --accent: #1d4ed8;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --ok: #047857;
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #eef3f8;
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 24px 56px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 28px;
+      padding-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 38px 0 14px;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 26px 0 10px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 8px 0;
+    }
+
+    ul,
+    ol {
+      margin: 10px 0 0;
+      padding-left: 22px;
+    }
+
+    .meta,
+    .caption,
+    .small {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .notice {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 8px;
+      color: #7c2d12;
+      padding: 12px 14px;
+      margin: 18px 0;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0 10px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .tag-danger {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .tag-warn {
+      background: #fef3c7;
+      color: var(--warn);
+    }
+
+    .tag-info {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .tag-ok {
+      background: #dcfce7;
+      color: var(--ok);
+    }
+
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      align-items: start;
+      margin: 16px 0 26px;
+    }
+
+    .evidence-grid.single {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    figure {
+      margin: 0;
+    }
+
+    .image-frame {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #e5e7eb;
+    }
+
+    .image-frame img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .phone-frame {
+      max-width: 390px;
+    }
+
+    .tablet-frame {
+      max-width: 820px;
+    }
+
+    .callout {
+      position: absolute;
+      border: 3px solid var(--danger);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.78);
+      color: #7f1d1d;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+      padding: 6px 8px;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.22);
+    }
+
+    .callout.warn {
+      border-color: var(--warn);
+      color: #78350f;
+    }
+
+    .callout.info {
+      border-color: var(--accent);
+      color: #1e3a8a;
+    }
+
+    .callout.ok {
+      border-color: var(--ok);
+      color: #065f46;
+    }
+
+    .issue-list {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+      margin: 12px 0 18px;
+    }
+
+    .issue {
+      border-left: 5px solid var(--warn);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    .issue.p1 {
+      border-left-color: var(--danger);
+    }
+
+    .issue.p2 {
+      border-left-color: var(--warn);
+    }
+
+    .issue.p3 {
+      border-left-color: var(--accent);
+    }
+
+    .decision-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .decision-table th,
+    .decision-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .decision-table th {
+      background: #eaf0f8;
+      font-size: 14px;
+    }
+
+    .decision-table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    @media (max-width: 860px) {
+      main {
+        padding: 22px 14px 40px;
+      }
+
+      .summary-grid,
+      .evidence-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>반응형 화면 전략 변경 제안서</h1>
+      <p class="meta">검토용 HTML 리포트 · 2026-05-17 · 브랜치: <code>codex/responsive-layout-system</code></p>
+      <p>이 문서는 기존 캡처 이미지를 함께 보여주면서, 어느 지점이 문제인지와 왜 개선이 필요한지 설명하기 위한 검토용 리포트입니다. 구현 계획이 아니며, 이 문서만으로 CSS/JSX 변경을 시작하지 않습니다.</p>
+    </header>
+
+    <section>
+      <h2>핵심 요약</h2>
+      <div class="summary-grid">
+        <article class="card">
+          <h3>모바일 폰</h3>
+          <p><strong>방향:</strong> task-based 화면.</p>
+          <p>작은 화면에서는 지도, 상세정보, 설정을 억지로 같이 넣기보다 한 번에 하나의 주요 작업을 크게 보여주는 후보를 둡니다.</p>
+        </article>
+        <article class="card">
+          <h3>태블릿</h3>
+          <p><strong>방향:</strong> 별도 surface로 검토.</p>
+          <p>폰처럼 무조건 분리하지 않고, 지도와 핵심 정보의 동시 표시를 중요한 후보로 유지합니다.</p>
+        </article>
+        <article class="card">
+          <h3>데스크탑 웹</h3>
+          <p><strong>방향:</strong> operations dashboard 유지.</p>
+          <p>넓은 화면에서는 다중 패널과 높은 정보 밀도를 허용하되, 빠른 스캔 가능성은 계속 검토합니다.</p>
+        </article>
+      </div>
+      <div class="notice">
+        아직 어느 화면을 1급 타깃으로 확정하지 않습니다. 현재 결정할 것은 "폰, 태블릿, 데스크탑을 분리해서 검토한다"는 정도입니다.
+      </div>
+    </section>
+
+    <section>
+      <h2>1. Monitoring: 폰에서는 정보와 지도가 둘 다 눌림</h2>
+      <div class="issue-list">
+        <div class="issue p1">
+          <span class="tag tag-danger">P1</span>
+          <strong>문제:</strong> 폰 크기에서 기상정보와 지도가 동시에 좁아집니다. 가로 스크롤은 없지만, 정보도 지도도 충분히 강하지 않습니다.
+        </div>
+        <div class="issue p1">
+          <span class="tag tag-danger">P1</span>
+          <strong>추가 리스크:</strong> 리뷰어는 dashboard root가 viewport보다 길어질 수 있는데 document 높이가 viewport에 묶여 있어 하단 콘텐츠 접근성이 위험하다고 지적했습니다.
+        </div>
+      </div>
+
+      <div class="evidence-grid">
+        <figure>
+          <div class="image-frame phone-frame">
+            <img src="../../../artifacts/responsive-screenshots/mobile-ux-review/2026-05-17_0152_review/mobile-monitoring-ops.png" alt="모바일 monitoring ops 화면" />
+            <div class="callout" style="left: 3%; top: 18%; width: 60%;">기상정보 column이 좁아져 핵심값은 보이지만 여유가 없음</div>
+            <div class="callout warn" style="right: 3%; top: 13%; width: 32%;">지도는 너무 좁아 실제 조작/판독 가치가 낮음</div>
+          </div>
+          <figcaption class="caption">모바일 폰: ops 화면. 지도와 정보가 공존하지만 둘 다 좁습니다.</figcaption>
+        </figure>
+
+        <figure>
+          <div class="image-frame phone-frame">
+            <img src="../../../artifacts/responsive-screenshots/mobile-ux-review/2026-05-17_0152_review/mobile-monitoring-ground.png" alt="모바일 monitoring ground 화면" />
+            <div class="callout" style="left: 5%; top: 28%; width: 58%;">ground 정보도 같은 좁은 column에 들어감</div>
+            <div class="callout warn" style="right: 3%; top: 15%; width: 32%;">지도는 유지되지만 읽기보다 배경에 가까움</div>
+          </div>
+          <figcaption class="caption">모바일 폰: ground 화면. 구조적 문제는 ops와 같습니다.</figcaption>
+        </figure>
+      </div>
+
+      <article class="card">
+        <h3>개선안</h3>
+        <p><strong>폰:</strong> `기상정보 / 지도 / 설정`처럼 task 분리를 강한 후보로 둡니다. 기본 진입은 `기상정보`가 적절합니다.</p>
+        <p><strong>태블릿:</strong> 바로 폰 모델을 복사하지 않습니다. 지도와 정보가 함께 보이는 더 나은 tablet layout을 먼저 비교합니다.</p>
+        <p><strong>데스크탑:</strong> dashboard-style을 유지하되 density와 scan speed를 계속 검토합니다.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>2. 태블릿 Monitoring: 공존 가능성은 남겨두되 검토 필요</h2>
+      <div class="evidence-grid single">
+        <figure>
+          <div class="image-frame tablet-frame">
+            <img src="../../../artifacts/responsive-screenshots/mobile-ux-review/2026-05-17_0152_review/tablet-portrait-monitoring-ops.png" alt="태블릿 세로 monitoring ops 화면" />
+            <div class="callout ok" style="left: 3%; top: 8%; width: 64%;">폰보다 정보 영역은 훨씬 나아짐</div>
+            <div class="callout warn" style="right: 3%; top: 8%; width: 25%;">하지만 지도는 아직 세로 strip처럼 느껴질 수 있음</div>
+          </div>
+          <figcaption class="caption">태블릿 세로: 정보와 지도 공존 가능성은 있으나, 지도 영역이 충분한지 별도 검토가 필요합니다.</figcaption>
+        </figure>
+      </div>
+
+      <article class="card">
+        <h3>검토 방향</h3>
+        <p>태블릿은 폰처럼 무조건 분리하지 않습니다. 특히 `1180x820` 가로 화면에서는 지도와 핵심 기상정보가 함께 살아날 수 있는지 먼저 확인해야 합니다.</p>
+        <p>다음 캡처 batch에서는 `1180x820` 태블릿 가로와 `820x1180` 태블릿 세로를 같은 중요도로 비교하는 것이 좋습니다.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>3. 메인 지도: 폰에서 패널이 열리면 지도는 거의 배경이 됨</h2>
+      <div class="evidence-grid">
+        <figure>
+          <div class="image-frame phone-frame">
+            <img src="../../../artifacts/responsive-screenshots/mobile-ux-review/2026-05-17_0152_review/mobile-main-map-met-panel.png" alt="모바일 MET 패널" />
+            <div class="callout" style="left: 20%; top: 7%; width: 73%;">패널은 읽히지만 지도 대부분을 차지함</div>
+            <div class="callout warn" style="right: 2%; bottom: 7%; width: 30%;">지도 컨트롤은 남아 있지만 실제 지도 판독 공간은 약함</div>
+          </div>
+          <figcaption class="caption">모바일 폰: MET/weather panel.</figcaption>
+        </figure>
+
+        <figure>
+          <div class="image-frame phone-frame">
+            <img src="../../../artifacts/responsive-screenshots/mobile-ux-review/2026-05-17_0152_review/mobile-main-map-route-panel.png" alt="모바일 Route Briefing 패널" />
+            <div class="callout" style="left: 20%; top: 10%; width: 73%;">Route form이 주 작업이 됨</div>
+            <div class="callout warn" style="right: 3%; bottom: 7%; width: 32%;">지도는 보이지만 보조 배경에 가까움</div>
+          </div>
+          <figcaption class="caption">모바일 폰: Route Briefing panel.</figcaption>
+        </figure>
+      </div>
+
+      <article class="card">
+        <h3>개선안</h3>
+        <p><strong>폰:</strong> 지도 모드와 상세/설정 모드를 분리하는 후보를 둡니다.</p>
+        <p><strong>태블릿:</strong> 지도와 패널 공존 후보를 유지합니다. 다만 패널이 실제 지도 사용성을 해치면 compact panel, overlay, mode split을 비교합니다.</p>
+        <p><strong>데스크탑:</strong> 현재 multi-panel map workflow를 유지하되 map occlusion을 계속 확인합니다.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>4. Airport Panel: 기계적으로는 개선됐지만 첫 판단 흐름은 더 좋아질 수 있음</h2>
+      <div class="evidence-grid">
+        <figure>
+          <div class="image-frame phone-frame">
+            <img src="../../../artifacts/responsive-screenshots/airport-drawer-tabs/2026-05-17_0026_task5-followup-postfix/mobile-metar.png" alt="모바일 Airport Panel METAR" />
+            <div class="callout ok" style="left: 24%; top: 23%; width: 70%;">METAR 핵심값은 비교적 잘 보임</div>
+            <div class="callout warn" style="left: 1%; top: 20%; width: 22%;">side tab은 모바일에서 읽기 흐름을 끊을 수 있음</div>
+          </div>
+          <figcaption class="caption">모바일 폰: Airport Panel METAR.</figcaption>
+        </figure>
+
+        <figure>
+          <div class="image-frame phone-frame">
+            <img src="../../../artifacts/responsive-screenshots/airport-drawer-tabs/2026-05-17_0026_task5-followup-postfix/mobile-taf-table.png" alt="모바일 Airport Panel TAF table" />
+            <div class="callout" style="left: 23%; top: 20%; width: 72%;">TAF table은 전문가용 세부 확인에는 좋지만 첫 화면으로는 dense함</div>
+            <div class="callout warn" style="left: 1%; top: 17%; width: 21%;">탭 탐색 부담</div>
+          </div>
+          <figcaption class="caption">모바일 폰: Airport Panel TAF table.</figcaption>
+        </figure>
+      </div>
+
+      <article class="card">
+        <h3>개선안</h3>
+        <p><strong>폰:</strong> full-screen step flow를 후보로 둡니다. 추천 순서는 요약 → METAR → TAF → Warnings → supporting info입니다.</p>
+        <p><strong>태블릿:</strong> full-screen flow가 자동 정답은 아닙니다. 지도 맥락을 유지할 수 있는 넓은 drawer 또는 panel 구조도 후보로 둡니다.</p>
+        <p><strong>제외:</strong> 현재 검토에서는 airport bottom tab과 segmented-control 대안은 우선 후보로 보지 않습니다.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>아직 결정하지 말아야 할 것</h2>
+      <table class="decision-table">
+        <thead>
+          <tr>
+            <th>항목</th>
+            <th>현재 상태</th>
+            <th>이유</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>단일 1급 타깃 지정</td>
+            <td>보류</td>
+            <td>폰, 태블릿, 데스크탑의 역할을 더 비교해야 합니다.</td>
+          </tr>
+          <tr>
+            <td>태블릿에 폰식 task tab 적용</td>
+            <td>보류</td>
+            <td>태블릿에서는 지도+정보 동시 표시가 더 나을 수 있습니다.</td>
+          </tr>
+          <tr>
+            <td>Airport full-screen flow 구현</td>
+            <td>보류</td>
+            <td>폰에는 좋아 보이지만 태블릿에는 drawer/panel이 나을 수 있습니다.</td>
+          </tr>
+          <tr>
+            <td>정확한 breakpoint</td>
+            <td>보류</td>
+            <td>추가 태블릿 evidence를 보고 정해야 합니다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>다음 검토 제안</h2>
+      <div class="summary-grid">
+        <article class="card">
+          <h3>Batch 1</h3>
+          <p><strong>태블릿 Monitoring</strong></p>
+          <p>`1180x820`, `820x1180`에서 ops/ground/settings를 비교합니다.</p>
+        </article>
+        <article class="card">
+          <h3>Batch 2</h3>
+          <p><strong>태블릿 Main Map + Panels</strong></p>
+          <p>Aviation, MET/weather, Route Briefing, basemap switcher를 비교합니다.</p>
+        </article>
+        <article class="card">
+          <h3>Batch 3</h3>
+          <p><strong>Airport Panel by Surface</strong></p>
+          <p>폰, 태블릿 세로, 태블릿 가로, 데스크탑에서 현재 drawer가 어디까지 괜찮은지 비교합니다.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
