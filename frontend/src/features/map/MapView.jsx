@@ -158,6 +158,7 @@ function MapView({
   const [adsbData, setAdsbData] = useState(null)
   const [basemapId, setBasemapId] = useState('standard')
   const [basemapMenuOpen, setBasemapMenuOpen] = useState(false)
+  const [routeBriefingMapMode, setRouteBriefingMapMode] = useState(false)
   const routeBriefing = useRouteBriefing({ activePanel, airports, metarData })
   const { routeResult, fitBoundsRequest } = routeBriefing.state
   const { vfrWaypointsRef, hideTimerRef } = routeBriefing.refs
@@ -165,6 +166,10 @@ function MapView({
   const { routePreviewModel } = routeBriefing
 
   useEffect(() => { onSelectRef.current = onAirportSelect }, [onAirportSelect])
+
+  useEffect(() => {
+    if (activePanel !== 'route-check') setRouteBriefingMapMode(false)
+  }, [activePanel])
 
   useEffect(() => {
     const timer = window.setInterval(() => setLightningReferenceTimeMs(Date.now()), 60_000)
@@ -752,7 +757,10 @@ function MapView({
   // ???? Render ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
   return (
-    <div className="map-view-wrapper">
+    <div
+      className="map-view-wrapper"
+      data-route-briefing-map-mode={activePanel === 'route-check' && routeBriefingMapMode ? 'true' : 'false'}
+    >
       <div ref={mapContainerRef} className="map-view" />
 
       {error && <div className="map-view-error" role="alert">{error}</div>}
@@ -823,13 +831,22 @@ function MapView({
       />
 
       {activePanel === 'route-check' && (
-        <RouteBriefingPanel
-          state={routeBriefing.state}
-          refs={routeBriefing.refs}
-          derived={routeBriefing.derived}
-          actions={routeBriefing.actions}
-          airports={airports}
-        />
+        <>
+          <RouteBriefingPanel
+            state={routeBriefing.state}
+            refs={routeBriefing.refs}
+            derived={routeBriefing.derived}
+            actions={routeBriefing.actions}
+            airports={airports}
+          />
+          <button
+            type="button"
+            className="route-briefing-map-mode-toggle"
+            onClick={() => setRouteBriefingMapMode((prev) => !prev)}
+          >
+            {routeBriefingMapMode ? '입력 보기' : '지도 보기'}
+          </button>
+        </>
       )}
 
       <VerticalProfileWindow

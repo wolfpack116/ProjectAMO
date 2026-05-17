@@ -5,6 +5,7 @@ import assert from 'node:assert/strict'
 const css = readFileSync(new URL('./layoutTokens.css', import.meta.url), 'utf8')
 const appCss = readFileSync(new URL('../App.css', import.meta.url), 'utf8')
 const sidebarCss = readFileSync(new URL('./Sidebar.css', import.meta.url), 'utf8')
+const mapView = readFileSync(new URL('../../features/map/MapView.jsx', import.meta.url), 'utf8')
 const mapCss = readFileSync(new URL('../../features/map/MapView.css', import.meta.url), 'utf8')
 const routeCss = readFileSync(new URL('../../features/route-briefing/RouteBriefing.css', import.meta.url), 'utf8')
 const airportCss = readFileSync(new URL('../../features/airport-panel/AirportPanel.css', import.meta.url), 'utf8')
@@ -105,4 +106,11 @@ test('monitoring phone settings task renders settings inline instead of a modal 
   assert.match(monitoringPage, /<Settings[^]*variant=\{variant\}/)
   assert.doesNotMatch(monitoringPage, /className="settings-icon-btn phone-settings-open"/)
   assert.match(monitoringCss, /phone-settings-inline/)
+})
+
+test('route briefing phone map mode is parent-owned and does not use a fake map placeholder', () => {
+  assert.match(mapView, /routeBriefingMapMode/)
+  assert.match(mapView, /data-route-briefing-map-mode/)
+  assert.match(mapCss, /@media \(max-width: 719px\)[^]*data-route-briefing-map-mode/)
+  assert.doesNotMatch(mapView, /route-check-(fake|placeholder|preview-map)/i)
 })
