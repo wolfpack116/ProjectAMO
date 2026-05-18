@@ -59,6 +59,32 @@ test('syncRoutePreviewLayers writes IFR route and procedure waypoint-only previe
   assert.ok(map.sourceData.get(PROC_PREVIEW_SOURCE).features.every((feature) => !feature.properties.role.endsWith('-line')))
 })
 
+test('syncRoutePreviewLayers clears stale route line when route result is removed', () => {
+  const map = createMockMap()
+  const routeLine = { type: 'Feature', properties: { role: 'route-preview-line' }, geometry: { type: 'LineString', coordinates: [[126, 37], [127, 36]] } }
+
+  syncRoutePreviewLayers(map, {
+    routeResult: {
+      flightRule: 'IFR',
+      previewGeojson: { type: 'FeatureCollection', features: [routeLine] },
+      navpointIds: ['A'],
+    },
+    selectedSid: null,
+    selectedStar: null,
+    selectedIap: null,
+  })
+  assert.equal(map.sourceData.get(ROUTE_PREVIEW_SOURCE).features.length, 1)
+
+  syncRoutePreviewLayers(map, {
+    routeResult: null,
+    selectedSid: null,
+    selectedStar: null,
+    selectedIap: null,
+  })
+
+  assert.equal(map.sourceData.get(ROUTE_PREVIEW_SOURCE).features.length, 0)
+})
+
 test('syncVfrWaypointData writes VFR waypoint GeoJSON and clears when fewer than two waypoints exist', () => {
   const map = createMockMap()
 

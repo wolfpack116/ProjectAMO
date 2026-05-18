@@ -111,6 +111,7 @@ export const MET_LAYERS = [
   { id: 'radar', label: 'Radar', color: '#38bdf8' },
   { id: 'satellite', label: 'Satellite', color: '#64748b' },
   { id: 'lightning', label: 'Lightning', color: '#facc15' },
+  { id: 'wind', label: 'Wind', color: '#22c55e' },
   { id: 'sigmet', label: 'SIGMET', color: ADVISORY_LAYER_DEFS.sigmet.color },
   { id: 'airmet', label: 'AIRMET', color: ADVISORY_LAYER_DEFS.airmet.color },
   { id: 'sigwx', label: 'SIGWX', color: '#a78bfa' },

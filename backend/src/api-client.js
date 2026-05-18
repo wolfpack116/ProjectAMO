@@ -139,11 +139,58 @@ export async function fetchAirportInfo(icao, baseDate, baseTime, options = {}) {
   return fetchTextWithRetries(url, 'airport_info', options)
 }
 
+export function buildKimGridUrl({
+  data,
+  name,
+  level,
+  tmfc,
+  hf = 0,
+  sub,
+  map = 'S',
+  disp = 'A',
+  group = 'KIMG',
+  nwp = 'NE57',
+}) {
+  const params = new URLSearchParams({
+    group,
+    nwp,
+    data,
+    name,
+    level: String(level),
+    tmfc,
+    hf: String(hf),
+    map,
+    sub,
+    disp,
+    authKey: api.auth_key,
+  })
+  return `${api.kim_grid_url}?${params.toString()}`
+}
+
+export async function fetchKimGrid(params) {
+  const url = buildKimGridUrl(params)
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), config.kim_surface_wind.timeout_ms || api.timeout_ms)
+
+  try {
+    const response = await fetch(url, { signal: controller.signal })
+    const body = await responseToText(response)
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${body.slice(0, 200)}`)
+    }
+    return body
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 export default {
   fetch: fetchApi,
   fetchSigwxLow,
   fetchAirportInfo,
+  fetchKimGrid,
   buildUrl,
   buildSigwxLowUrl,
   buildAirportInfoUrl,
+  buildKimGridUrl,
 }

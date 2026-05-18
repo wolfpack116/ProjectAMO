@@ -6,9 +6,13 @@ function WeatherOverlayPanel({
   onBlinkLightningChange,
   isLayerDisabled,
   getLayerBadge,
+  showWind = true,
+  windMetaLabel = null,
+  windStatus = 'idle',
+  windLowPower = false,
 }) {
   const groups = [
-    { id: 'weather', title: '기상', ids: ['radar', 'satellite', 'lightning'] },
+    { id: 'weather', title: '기상', ids: showWind ? ['radar', 'satellite', 'lightning', 'wind'] : ['radar', 'satellite', 'lightning'] },
     { id: 'hazards', title: '위험기상', ids: ['sigmet', 'airmet', 'sigwx'] },
     { id: 'traffic', title: '항적', ids: ['adsb'] },
   ]
@@ -16,16 +20,67 @@ function WeatherOverlayPanel({
     radar: '레이더',
     satellite: '위성',
     lightning: '낙뢰',
+    wind: 'Wind',
     sigmet: 'SIGMET',
     airmet: 'AIRMET',
     sigwx: 'SIGWX',
     adsb: 'ADS-B',
   }
-  const activeCount = layers.filter((layer) => visibility[layer.id] && !isLayerDisabled(layer.id)).length
-  const layerById = new Map(layers.map((layer) => [layer.id, layer]))
+  const visibleLayers = layers.filter((layer) => showWind || layer.id !== 'wind')
+  const activeCount = visibleLayers.filter((layer) => visibility[layer.id] && !isLayerDisabled(layer.id)).length
+  const layerById = new Map(visibleLayers.map((layer) => [layer.id, layer]))
   const activeCountForGroup = (group) => (
     group.ids.filter((id) => visibility[id] && !isLayerDisabled(id)).length
   )
+
+  function renderWindControl(layer) {
+    const disabled = isLayerDisabled(layer.id)
+    const showLowPower = visibility.wind && windLowPower && !visibility.windFlow
+    return (
+      <div key={layer.id} className={`wind-toggle-block${disabled ? ' is-disabled' : ''}`}>
+        <label className={`layer-toggle-row${disabled ? ' is-disabled' : ''}`}>
+          <input
+            className="layer-toggle-input"
+            type="checkbox"
+            checked={!!visibility.wind}
+            disabled={disabled}
+            onChange={() => onToggle('wind')}
+          />
+          <span className="layer-toggle-switch" aria-hidden="true" />
+          <span className="layer-toggle-swatch" style={{ background: layer.color }} />
+          <span className="layer-toggle-label">{layerLabels.wind}</span>
+        </label>
+        {visibility.wind && (
+          <div className="wind-toggle-subcontrols">
+            <label className="layer-toggle-row layer-toggle-row--sub">
+              <input
+                className="layer-toggle-input"
+                type="checkbox"
+                checked={!!visibility.windFlow}
+                onChange={() => onToggle('windFlow')}
+              />
+              <span className="layer-toggle-switch" aria-hidden="true" />
+              <span className="layer-toggle-label">Flow</span>
+            </label>
+            <label className="layer-toggle-row layer-toggle-row--sub">
+              <input
+                className="layer-toggle-input"
+                type="checkbox"
+                checked={!!visibility.windSpeed}
+                onChange={() => onToggle('windSpeed')}
+              />
+              <span className="layer-toggle-switch" aria-hidden="true" />
+              <span className="layer-toggle-label">Speed</span>
+            </label>
+            {windMetaLabel && <div className="wind-toggle-meta">{windMetaLabel}</div>}
+            {windStatus === 'loading' && <div className="wind-toggle-meta">바람 자료 로딩 중</div>}
+            {windStatus === 'error' && <div className="wind-toggle-meta">바람 자료 없음</div>}
+            {showLowPower && <div className="wind-toggle-meta">저전력 모드</div>}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   const body = (
     <div className="layer-drawer-body">
@@ -39,6 +94,7 @@ function WeatherOverlayPanel({
             {group.ids.map((id) => {
               const layer = layerById.get(id)
               if (!layer) return null
+              if (layer.id === 'wind') return renderWindControl(layer)
               const disabled = isLayerDisabled(layer.id)
               const badge = getLayerBadge(layer.id)
               return (
@@ -46,7 +102,7 @@ function WeatherOverlayPanel({
                   <input
                     className="layer-toggle-input"
                     type="checkbox"
-                    checked={visibility[layer.id]}
+                    checked={!!visibility[layer.id]}
                     disabled={disabled}
                     onChange={() => onToggle(layer.id)}
                   />

@@ -38,6 +38,7 @@ export const api = {
   radar_url: process.env.RADAR_API_URL || 'https://apihub.kma.go.kr/api/typ04/url/rdr_cmp_file.php',
   airkorea_pm_url: process.env.AIRKOREA_PM_URL || 'https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty',
   kma_uv_url: process.env.KMA_UV_URL || 'https://apihub.kma.go.kr/api/typ01/url/kma_sfctm_uv.php',
+  kim_grid_url: process.env.KIM_GRID_API_URL || 'https://apihub.kma.go.kr/api/typ01/cgi-bin/url/nph-kim_nc_xy_txt2',
   endpoints: {
     metar: '/AmmIwxxmService/getMetar',
     taf: '/AmmIwxxmService/getTaf',
@@ -152,6 +153,19 @@ export const adsb = {
   },
 }
 
+export const kim_surface_wind = {
+  timeout_ms: 30000,
+  sub: process.env.KIM_SURFACE_WIND_SUB || '1429,1441,1633,1609',
+  bounds: {
+    lonMin: Number(process.env.KIM_SURFACE_WIND_LON_MIN || 119),
+    latMin: Number(process.env.KIM_SURFACE_WIND_LAT_MIN || 30),
+    lonMax: Number(process.env.KIM_SURFACE_WIND_LON_MAX || 136),
+    latMax: Number(process.env.KIM_SURFACE_WIND_LAT_MAX || 44),
+    dx: Number(process.env.KIM_SURFACE_WIND_DX || 0.083333),
+    dy: Number(process.env.KIM_SURFACE_WIND_DY || 0.083333),
+  },
+}
+
 export const schedule = {
   metar_interval: '*/10 * * * *',
   taf_interval: '*/30 * * * *',
@@ -164,6 +178,7 @@ export const schedule = {
   radar_echo_interval: '*/5 * * * *',
   satellite_interval: '*/10 * * * *',
   adsb_interval: '*/1 * * * *',
+  kim_surface_wind_interval: '12 * * * *',
   ground_forecast_interval: '30 6,11,18,23 * * *',
   environment_interval: '10 * * * *',
   airport_info_interval: '*/30 * * * *',
@@ -188,6 +203,7 @@ export default {
   radar_echo,
   satellite,
   adsb,
+  kim_surface_wind,
   schedule,
   storage,
 }

@@ -21,6 +21,9 @@ import SigwxLegendDialog from '../weather-overlays/SigwxLegendDialog.jsx'
 import WeatherTimelineBar from '../weather-overlays/WeatherTimelineBar.jsx'
 import WeatherLegends from '../weather-overlays/WeatherLegends.jsx'
 import WeatherOverlayPanel from '../weather-overlays/WeatherOverlayPanel.jsx'
+import { useKimSurfaceWind } from '../weather-overlays/lib/useKimSurfaceWind.js'
+import { destroyWindOverlay, syncWindOverlay } from '../weather-overlays/lib/windOverlaySync.js'
+import { WIND_SPEED_COLOR_RAMP, formatKimWindMetaLabel } from '../weather-overlays/lib/windField.js'
 import {
   LIGHTNING_BLINK_INTERVAL_MS,
 } from '../weather-overlays/lib/lightningLayers.js'
@@ -86,7 +89,10 @@ function initAviationVisibility() {
 }
 
 function initMetVisibility() {
-  return MET_LAYERS.reduce((acc, l) => { acc[l.id] = false; return acc }, {})
+  const visibility = MET_LAYERS.reduce((acc, l) => { acc[l.id] = false; return acc }, {})
+  visibility.windFlow = true
+  visibility.windSpeed = false
+  return visibility
 }
 
 function bindSectorHover(map) {
@@ -129,6 +135,7 @@ function MapView({
   sigwxCloudMeta = null,
   selectedAirport,
   onAirportSelect,
+  enableWindOverlay = true,
 }) {
   const mapContainerRef = useRef(null)
   const mapRef = useRef(null)
@@ -164,6 +171,8 @@ function MapView({
   const { vfrWaypointsRef, hideTimerRef } = routeBriefing.refs
   const { setHoveredWpInfo, setVfrWaypoints } = routeBriefing.actions
   const { routePreviewModel } = routeBriefing
+  const windEnabled = enableWindOverlay && metVisibility.wind
+  const kimSurfaceWind = useKimSurfaceWind(windEnabled)
 
   useEffect(() => { onSelectRef.current = onAirportSelect }, [onAirportSelect])
 
@@ -425,7 +434,18 @@ function MapView({
   }
 
   function toggleMet(id) {
-    setMetVisibility((prev) => ({ ...prev, [id]: !prev[id] }))
+    setMetVisibility((prev) => {
+      if (id === 'wind') {
+        const nextWind = !prev.wind
+        return {
+          ...prev,
+          wind: nextWind,
+          windFlow: nextWind ? !kimSurfaceWind.lowPower : prev.windFlow,
+          windSpeed: nextWind ? false : prev.windSpeed,
+        }
+      }
+      return { ...prev, [id]: !prev[id] }
+    })
   }
 
   // ???? ADS-B Polling ??????????????????????????????????????????????????????????????????????????????????????????????????????????????????
@@ -644,6 +664,36 @@ function MapView({
     syncLightningLayers(map, lightningLayerModel)
   }, [lightningLayerModel, isStyleReady, styleRevision])
 
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !isStyleReady || !enableWindOverlay) return
+    syncWindOverlay(map, {
+      windField: kimSurfaceWind.windField,
+      rendererOptions: kimSurfaceWind.lowPower
+        ? { desktopCap: 1000, mobileCap: 1000, frameCap: 15, sampleStep: 4 }
+        : undefined,
+      visibility: {
+        wind: metVisibility.wind,
+        windFlow: metVisibility.windFlow,
+        windSpeed: metVisibility.windSpeed,
+      },
+    })
+  }, [
+    enableWindOverlay,
+    kimSurfaceWind.windField,
+    kimSurfaceWind.lowPower,
+    metVisibility.wind,
+    metVisibility.windFlow,
+    metVisibility.windSpeed,
+    isStyleReady,
+    styleRevision,
+  ])
+
+  useEffect(() => () => {
+    const map = mapRef.current
+    if (map) destroyWindOverlay(map)
+  }, [])
+
   // ???? Sync geo boundaries ??????????????????????????????????????????????????????????????????????????????????????????????????????
 
   useEffect(() => {
@@ -709,6 +759,7 @@ function MapView({
   }
 
   function isMetLayerDisabled(id) {
+    if (id === 'wind') return !enableWindOverlay || (kimSurfaceWind.status === 'error' && !kimSurfaceWind.windField)
     if (id === 'radar') return radarFrames.length === 0
     if (id === 'satellite') return satelliteFrames.length === 0
     return false
@@ -770,6 +821,8 @@ function MapView({
         lightningLegendVisible={lightningLegendVisible}
         radarRainrateLegend={RADAR_RAINRATE_LEGEND}
         lightningLegendEntries={lightningLegendEntries}
+        windSpeedLegendVisible={!!(enableWindOverlay && metVisibility.wind && metVisibility.windSpeed && kimSurfaceWind.windField)}
+        windSpeedLegendEntries={WIND_SPEED_COLOR_RAMP}
         radarReferenceTimeMs={radarReferenceTimeMs}
         lightningReferenceTimeMs={lightningReferenceTimeMs}
         formatReferenceTimeLabel={formatReferenceTimeLabel}
@@ -871,6 +924,10 @@ function MapView({
           onBlinkLightningChange={setBlinkLightning}
           isLayerDisabled={isMetLayerDisabled}
           getLayerBadge={metLayerBadge}
+          showWind={enableWindOverlay}
+          windMetaLabel={kimSurfaceWind.windField ? formatKimWindMetaLabel(kimSurfaceWind.windField) : null}
+          windStatus={kimSurfaceWind.status}
+          windLowPower={kimSurfaceWind.lowPower}
         />
       )}
 

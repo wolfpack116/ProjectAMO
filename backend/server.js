@@ -166,6 +166,13 @@ function buildSnapshotMeta() {
   const sigwxCloudMeta = buildSigwxOverlaySnapshotEntry('clouds')
   const groundForecast = buildHashEntry('ground_forecast')
   const groundOverview = buildHashEntry('ground_overview')
+  const kimSurfaceWindData = readLatest('kim_surface_wind')
+  const kimSurfaceWind = kimSurfaceWindData ? {
+    hash: kimSurfaceWindData.content_hash || store.canonicalHash(kimSurfaceWindData),
+    tmfc: kimSurfaceWindData.time?.tmfc || null,
+    hf: kimSurfaceWindData.time?.hf ?? null,
+    updated_at: kimSurfaceWindData.fetched_at || null,
+  } : null
 
   return {
     metar: buildHashEntry('metar'),
@@ -178,6 +185,8 @@ function buildSnapshotMeta() {
     amos: buildHashEntry('amos'),
     lightning: buildHashEntry('lightning'),
     adsb: buildHashEntry('adsb'),
+    kimSurfaceWind,
+    kim_surface_wind: kimSurfaceWind,
     groundForecast,
     ground_forecast: groundForecast,
     groundOverview,
@@ -202,6 +211,7 @@ app.get('/api/sigwx-low', (_, res) => sendLatest(res, 'sigwx_low'))
 app.get('/api/lightning', (_, res) => sendLatest(res, 'lightning'))
 app.get('/api/amos', (_, res) => sendLatest(res, 'amos'))
 app.get('/api/adsb', (_, res) => sendLatest(res, 'adsb'))
+app.get('/api/kim/surface-wind', (_, res) => sendLatest(res, 'kim_surface_wind'))
 app.get('/api/ground-forecast', (_, res) => sendLatest(res, 'ground_forecast'))
 app.get('/api/ground-overview', (_, res) => sendLatest(res, 'ground_overview'))
 app.get('/api/environment', (_, res) => sendLatest(res, 'environment'))

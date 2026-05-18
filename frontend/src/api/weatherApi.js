@@ -13,13 +13,33 @@ export const AIRPORT_NAME_KO = {
 
 async function fetchJson(url, { optional = false } = {}) {
   try {
-    const res = await fetch(url)
+    const res = typeof fetch === 'function'
+      ? await fetch(url)
+      : await fetchJsonWithXhr(url)
     if (!res.ok) throw new Error(`${url} ??HTTP ${res.status}`)
     return res.json()
   } catch (error) {
     if (optional) return null
     throw error
   }
+}
+
+function fetchJsonWithXhr(url) {
+  return new Promise((resolve, reject) => {
+    if (typeof XMLHttpRequest !== 'function') {
+      reject(new Error('fetch is unavailable'))
+      return
+    }
+    const xhr = new XMLHttpRequest()
+    xhr.open('GET', url)
+    xhr.onload = () => resolve({
+      ok: xhr.status >= 200 && xhr.status < 300,
+      status: xhr.status,
+      json: () => Promise.resolve(JSON.parse(xhr.responseText || 'null')),
+    })
+    xhr.onerror = () => reject(new Error(`${url} network error`))
+    xhr.send()
+  })
 }
 
 function normalizeAirports(airports) {
@@ -121,6 +141,10 @@ export async function loadWeatherData() {
 
 export async function fetchSnapshotMeta() {
   return fetchJson('/api/snapshot-meta', { optional: true })
+}
+
+export async function fetchKimSurfaceWind() {
+  return fetchJson('/api/kim/surface-wind')
 }
 
 export async function fetchSigwxFrontMeta(tmfc) {

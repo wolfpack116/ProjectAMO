@@ -50,6 +50,7 @@ function MonitoringMap({
         sigwxCloudMeta={weather?.sigwxCloudMeta || weather?.sigwxLowClouds}
         selectedAirport={selectedAirport}
         onAirportSelect={onAirportSelect}
+        enableWindOverlay={false}
       />
     </section>
   )

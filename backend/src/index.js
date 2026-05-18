@@ -12,12 +12,13 @@ import amosProcessor from './processors/amos-processor.js'
 import lightningProcessor from './processors/lightning-processor.js'
 import radarEchoProcessor from './processors/radar-echo-processor.js'
 import adsbProcessor from './processors/adsb-processor.js'
+import kimSurfaceWindProcessor from './processors/kim-surface-wind-processor.js'
 import satelliteProcessor from './processors/satellite-processor.js'
 import groundForecastProcessor from './processors/ground-forecast-processor.js'
 import environmentProcessor from './processors/environment-processor.js'
 import airportInfoProcessor from './processors/airport-info-processor.js'
 
-const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, adsb: false, satellite: false, ground_forecast: false, environment: false, airport_info: false };
+const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, adsb: false, kim_surface_wind: false, satellite: false, ground_forecast: false, environment: false, airport_info: false };
 
 async function runWithLock(type, job) {
   if (locks[type]) {
@@ -55,6 +56,7 @@ async function main() {
   cron.schedule(config.schedule.lightning_interval, () => runWithLock("lightning", lightningProcessor.process));
   cron.schedule(config.schedule.radar_echo_interval, () => runWithLock("radar_echo", radarEchoProcessor.process));
   cron.schedule(config.schedule.adsb_interval, () => runWithLock("adsb", adsbProcessor.process));
+  cron.schedule(config.schedule.kim_surface_wind_interval, () => runWithLock("kim_surface_wind", kimSurfaceWindProcessor.process));
   cron.schedule(config.schedule.satellite_interval, () => runWithLock("satellite", satelliteProcessor.process));
   cron.schedule(config.schedule.ground_forecast_interval, () => runWithLock("ground_forecast", groundForecastProcessor.process));
   cron.schedule(config.schedule.environment_interval, () => runWithLock("environment", environmentProcessor.process));
@@ -73,6 +75,7 @@ async function main() {
     runWithLock("lightning", lightningProcessor.process),
     runWithLock("radar_echo", radarEchoProcessor.process),
     runWithLock("adsb", adsbProcessor.process),
+    runWithLock("kim_surface_wind", kimSurfaceWindProcessor.process),
     runWithLock("satellite", satelliteProcessor.process),
     runWithLock("ground_forecast", groundForecastProcessor.process),
     runWithLock("environment", environmentProcessor.process),

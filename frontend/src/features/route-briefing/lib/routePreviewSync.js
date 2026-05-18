@@ -189,6 +189,7 @@ export function syncRoutePreviewLayers(map, model) {
       feature.geometry.type === 'Point' ? [feature.geometry.coordinates] : feature.geometry.coordinates,
     )
   } else if (!routeResult) {
+    map.getSource(ROUTE_PREVIEW_SOURCE)?.setData(emptyGeoJSON)
     const procGeojson = buildProcedureGeoJSON(selectedSid, selectedStar, selectedIap)
     map.getSource(PROC_PREVIEW_SOURCE)?.setData(procGeojson)
     fitCoordinates = procGeojson.features.flatMap((feature) =>

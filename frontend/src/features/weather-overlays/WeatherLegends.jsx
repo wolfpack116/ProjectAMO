@@ -3,11 +3,13 @@ function WeatherLegends({
   lightningLegendVisible,
   radarRainrateLegend,
   lightningLegendEntries,
+  windSpeedLegendVisible,
+  windSpeedLegendEntries = [],
   radarReferenceTimeMs,
   lightningReferenceTimeMs,
   formatReferenceTimeLabel,
 }) {
-  if (!radarLegendVisible && !lightningLegendVisible) return null
+  if (!radarLegendVisible && !lightningLegendVisible && !windSpeedLegendVisible) return null
 
   return (
     <div className="map-right-legends">
@@ -41,6 +43,23 @@ function WeatherLegends({
                 <span className="lightning-time-legend-label">{entry.label}</span>
                 <span
                   className="lightning-time-legend-swatch"
+                  style={{ backgroundColor: entry.color }}
+                  aria-hidden="true"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {windSpeedLegendVisible && (
+        <div className="wind-speed-legend" aria-label="Wind speed legend">
+          <div className="wind-speed-legend-title">m/s</div>
+          <div className="wind-speed-legend-scale">
+            {windSpeedLegendEntries.map((entry) => (
+              <div key={entry.label} className="wind-speed-legend-row">
+                <span className="wind-speed-legend-label">{entry.label}</span>
+                <span
+                  className="wind-speed-legend-swatch"
                   style={{ backgroundColor: entry.color }}
                   aria-hidden="true"
                 />

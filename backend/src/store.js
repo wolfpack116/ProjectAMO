@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import config from './config.js'
 
-const TYPES = ['metar', 'taf', 'warning', 'lightning', 'sigmet', 'airmet', 'sigwx_low', 'amos', 'adsb', 'ground_forecast', 'ground_overview', 'environment', 'airport_info']
+const TYPES = ['metar', 'taf', 'warning', 'lightning', 'sigmet', 'airmet', 'sigwx_low', 'amos', 'adsb', 'kim_surface_wind', 'ground_forecast', 'ground_overview', 'environment', 'airport_info']
 const FILE_PREFIX = {
   metar: 'METAR',
   taf: 'TAF',
@@ -13,6 +13,7 @@ const FILE_PREFIX = {
   airmet: 'AIRMET',
   sigwx_low: 'SIGWX_LOW',
   amos: 'AMOS',
+  kim_surface_wind: 'KIM_SURFACE_WIND',
   ground_forecast: 'GROUND_FORECAST',
   ground_overview: 'GROUND_OVERVIEW',
   environment: 'ENVIRONMENT',
@@ -29,6 +30,7 @@ const cache = {
   sigwx_low: { hash: null, prev_data: null },
   amos: { hash: null, prev_data: null },
   adsb: { hash: null, prev_data: null },
+  kim_surface_wind: { hash: null, prev_data: null },
   ground_forecast: { hash: null, prev_data: null },
   ground_overview: { hash: null, prev_data: null },
   environment: { hash: null, prev_data: null },
