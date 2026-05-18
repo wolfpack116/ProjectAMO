@@ -1,14 +1,23 @@
-import { createWindFieldSampler, pickWindSpeedColor } from './windField.js'
+import { createWindFieldSampler, getWindFieldMeanSpeed, pickWindSpeedColor } from './windField.js'
 
 const DEFAULTS = {
-  desktopCap: 5000,
-  mobileCap: 1800,
-  lowPowerCap: 1000,
+  desktopCap: 4000,
+  mobileCap: 1400,
+  lowPowerCap: 800,
   maxAge: 80,
   speedFactor: 0.45,
   frameCap: 30,
   speedOpacity: 0.35,
   sampleStep: 3,
+  pixelRatioCap: 2,
+  flowColor: 'rgba(148, 163, 184, 0.66)',
+  flowColorMode: 'neutral',
+  flowOpacity: 0.66,
+  flowWidth: 1.8,
+  trailPersistence: 0.9,
+  particleDensityScale: 0.8,
+  adaptiveParticleDensity: false,
+  zoomAdaptiveDensity: false,
 }
 
 function clamp(value, min, max) {
@@ -17,6 +26,39 @@ function clamp(value, min, max) {
 
 function isMobileViewport(width) {
   return width < 720
+}
+
+function getBackingStorePixelRatio(cap) {
+  const dpr = window.devicePixelRatio || 1
+  return Math.max(1, Math.min(dpr, cap || dpr))
+}
+
+function withAlpha(color, alpha) {
+  const nextAlpha = clamp(Number(alpha), 0.2, 1)
+  const match = String(color).match(/rgba?\(([^)]+)\)/)
+  if (!match) return `rgba(148, 163, 184, ${nextAlpha})`
+  const [r, g, b] = match[1].split(',').map((part) => Number.parseFloat(part.trim()))
+  return `rgba(${r}, ${g}, ${b}, ${nextAlpha})`
+}
+
+function getDensityFactor(windField, enabled) {
+  if (!enabled) return 1
+  const meanSpeed = getWindFieldMeanSpeed(windField)
+  if (meanSpeed == null) return 1
+  if (meanSpeed < 2) return 0.6
+  if (meanSpeed < 5) return 0.75
+  if (meanSpeed < 8) return 0.9
+  return 1
+}
+
+function getZoomDensityFactor(map, enabled) {
+  if (!enabled) return 1
+  const zoom = map.getZoom?.()
+  if (!Number.isFinite(zoom) || zoom <= 5) return 1
+  if (zoom >= 11) return 0.65
+  if (zoom <= 7) return 1 - ((zoom - 5) / 2) * 0.1
+  if (zoom <= 9) return 0.9 - ((zoom - 7) / 2) * 0.15
+  return 0.75 - ((zoom - 9) / 2) * 0.1
 }
 
 function makeParticle(bounds, maxAge) {
@@ -28,6 +70,35 @@ function makeParticle(bounds, maxAge) {
     prevX: null,
     prevY: null,
   }
+}
+
+function getParticleBounds(map, windField) {
+  const mapBounds = map.getBounds()
+  const grid = windField?.grid
+  const west = Math.max(mapBounds.getWest(), grid?.lonMin ?? mapBounds.getWest())
+  const east = Math.min(mapBounds.getEast(), grid?.lonMax ?? mapBounds.getEast())
+  const south = Math.max(mapBounds.getSouth(), grid?.latMin ?? mapBounds.getSouth())
+  const north = Math.min(mapBounds.getNorth(), grid?.latMax ?? mapBounds.getNorth())
+  if (west >= east || south >= north) return null
+  return {
+    getWest: () => west,
+    getEast: () => east,
+    getSouth: () => south,
+    getNorth: () => north,
+  }
+}
+
+function containsPoint(bounds, lon, lat) {
+  return !!bounds
+    && lon >= bounds.getWest()
+    && lon <= bounds.getEast()
+    && lat >= bounds.getSouth()
+    && lat <= bounds.getNorth()
+}
+
+function getParticleAgeAlpha(particle) {
+  const fadeFrames = Math.max(1, particle.maxAge * 0.25)
+  return clamp(Math.max(0, particle.maxAge - particle.age) / fadeFrames, 0, 1)
 }
 
 function createOverlayCanvas(role, zIndex) {
@@ -48,11 +119,8 @@ export class CanvasWindRenderer {
     this.map = map
     this.options = { ...DEFAULTS, ...options }
     this.container = map.getContainer()
-    this.speedCanvas = createOverlayCanvas('speed', '3')
     this.flowCanvas = createOverlayCanvas('flow', '4')
-    this.speedCtx = this.speedCanvas.getContext('2d')
     this.ctx = this.flowCanvas.getContext('2d')
-    this.container.appendChild(this.speedCanvas)
     this.container.appendChild(this.flowCanvas)
     this.particles = []
     this.windField = null
@@ -64,46 +132,51 @@ export class CanvasWindRenderer {
     this.resize()
   }
 
+  setOptions(options = {}) {
+    this.options = { ...DEFAULTS, ...options }
+    this.ensureParticles()
+  }
+
   setData(windField) {
     this.windField = windField
     this.sampler = createWindFieldSampler(windField)
     this.ensureParticles()
-    if (this.visibility.speed) this.drawSpeedLayer()
   }
 
-  setVisibility({ flow = false, speed = false } = {}) {
-    this.visibility = { flow, speed }
+  setVisibility({ flow = false } = {}) {
+    this.visibility = { flow, speed: false }
     this.flowCanvas.style.display = flow ? 'block' : 'none'
-    this.speedCanvas.style.display = speed ? 'block' : 'none'
-    if (speed) this.drawSpeedLayer()
     if (flow) this.start()
     else this.stop()
     if (!flow && this.ctx) this.ctx.clearRect(0, 0, this.width, this.height)
-    if (!speed && this.speedCtx) this.speedCtx.clearRect(0, 0, this.width, this.height)
   }
 
   resize() {
     const rect = this.container.getBoundingClientRect()
-    const dpr = window.devicePixelRatio || 1
+    const dpr = getBackingStorePixelRatio(this.options.pixelRatioCap)
     const width = Math.max(1, Math.round(rect.width))
     const height = Math.max(1, Math.round(rect.height))
     this.flowCanvas.width = Math.round(width * dpr)
     this.flowCanvas.height = Math.round(height * dpr)
-    this.speedCanvas.width = Math.round(width * dpr)
-    this.speedCanvas.height = Math.round(height * dpr)
     if (this.ctx?.setTransform) this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    if (this.speedCtx?.setTransform) this.speedCtx.setTransform(dpr, 0, 0, dpr, 0, 0)
     this.width = width
     this.height = height
     this.ensureParticles()
-    if (this.visibility.speed) this.drawSpeedLayer()
   }
 
   ensureParticles() {
     if (!this.windField) return
-    const cap = isMobileViewport(this.width) ? this.options.mobileCap : this.options.desktopCap
-    const count = clamp(Math.round((this.width * this.height) / 450), 1, cap)
-    const bounds = this.map.getBounds()
+    const densityFactor = getDensityFactor(this.windField, this.options.adaptiveParticleDensity)
+      * getZoomDensityFactor(this.map, this.options.zoomAdaptiveDensity)
+    const baseCap = isMobileViewport(this.width) ? this.options.mobileCap : this.options.desktopCap
+    const densityScale = clamp(this.options.particleDensityScale, 0.2, 1)
+    const cap = Math.max(1, Math.round(baseCap * densityFactor * densityScale))
+    const count = clamp(Math.round((this.width * this.height) / 450 * densityScale), 1, cap)
+    const bounds = getParticleBounds(this.map, this.windField)
+    if (!bounds) {
+      this.particles.length = 0
+      return
+    }
     while (this.particles.length < count) {
       this.particles.push(makeParticle(bounds, this.options.maxAge))
     }
@@ -125,12 +198,9 @@ export class CanvasWindRenderer {
     this.stop()
     this.destroyed = true
     if (this.flowCanvas.parentNode) this.flowCanvas.parentNode.removeChild(this.flowCanvas)
-    if (this.speedCanvas.parentNode) this.speedCanvas.parentNode.removeChild(this.speedCanvas)
   }
 
-  redraw() {
-    if (this.visibility.speed) this.drawSpeedLayer()
-  }
+  redraw() {}
 
   frame(time) {
     this.frameId = null
@@ -143,14 +213,51 @@ export class CanvasWindRenderer {
     this.frameId = window.requestAnimationFrame((nextTime) => this.frame(nextTime))
   }
 
+  redrawForMapInteraction() {
+    if (this.visibility.flow) {
+      this.ensureParticles()
+      this.drawParticleSnapshot()
+    }
+  }
+
+  drawParticleSnapshot() {
+    if (!this.ctx || !this.windField) return
+    this.ctx.clearRect(0, 0, this.width, this.height)
+    this.ctx.globalCompositeOperation = 'source-over'
+    this.ctx.lineWidth = clamp(this.options.flowWidth, 0.6, 2.4)
+    this.ctx.globalAlpha = 0.78
+    const bounds = getParticleBounds(this.map, this.windField)
+    if (!bounds) return
+
+    for (const particle of this.particles) {
+      const vector = this.sampler.sample(particle.lon, particle.lat)
+      if (!vector) continue
+
+      const from = this.map.project([particle.lon, particle.lat])
+      const nextLon = particle.lon + vector.u * this.options.speedFactor * 0.002
+      const nextLat = particle.lat + vector.v * this.options.speedFactor * 0.002
+      if (!containsPoint(bounds, particle.lon, particle.lat) || !containsPoint(bounds, nextLon, nextLat)) continue
+      const to = this.map.project([nextLon, nextLat])
+
+      this.ctx.globalAlpha = 0.78 * getParticleAgeAlpha(particle)
+      this.ctx.strokeStyle = this.getFlowColor(vector)
+      this.ctx.beginPath()
+      this.ctx.moveTo(from.x, from.y)
+      this.ctx.lineTo(to.x, to.y)
+      this.ctx.stroke()
+    }
+    this.ctx.globalAlpha = 1
+  }
+
   stepParticles() {
     if (!this.ctx || !this.windField) return
-    const bounds = this.map.getBounds()
+    const bounds = getParticleBounds(this.map, this.windField)
+    if (!bounds) return
     this.ctx.globalCompositeOperation = 'destination-in'
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.94)'
+    this.ctx.fillStyle = `rgba(0, 0, 0, ${clamp(this.options.trailPersistence, 0.55, 0.94)})`
     this.ctx.fillRect(0, 0, this.width, this.height)
     this.ctx.globalCompositeOperation = 'source-over'
-    this.ctx.lineWidth = isMobileViewport(this.width) ? 1 : 1.2
+    this.ctx.lineWidth = clamp(this.options.flowWidth, 0.6, 2.4)
     this.ctx.globalAlpha = 0.78
 
     for (const particle of this.particles) {
@@ -161,11 +268,18 @@ export class CanvasWindRenderer {
       }
 
       const from = this.map.project([particle.lon, particle.lat])
-      particle.lon += vector.u * this.options.speedFactor * 0.002
-      particle.lat += vector.v * this.options.speedFactor * 0.002
+      const nextLon = particle.lon + vector.u * this.options.speedFactor * 0.002
+      const nextLat = particle.lat + vector.v * this.options.speedFactor * 0.002
+      if (!containsPoint(bounds, nextLon, nextLat)) {
+        Object.assign(particle, makeParticle(bounds, this.options.maxAge))
+        continue
+      }
+      particle.lon = nextLon
+      particle.lat = nextLat
       const to = this.map.project([particle.lon, particle.lat])
 
-      this.ctx.strokeStyle = pickWindSpeedColor(vector.speed).color.replace(/0\.\d+\)$/, '0.82)')
+      this.ctx.globalAlpha = 0.78 * getParticleAgeAlpha(particle)
+      this.ctx.strokeStyle = this.getFlowColor(vector)
       this.ctx.beginPath()
       this.ctx.moveTo(from.x, from.y)
       this.ctx.lineTo(to.x, to.y)
@@ -177,26 +291,13 @@ export class CanvasWindRenderer {
     this.ctx.globalAlpha = 1
   }
 
-  drawSpeedLayer() {
-    if (!this.speedCtx || !this.windField || !this.visibility.speed) return
-    const step = this.width > 1440 ? 2 : this.options.sampleStep
-    this.speedCtx.clearRect(0, 0, this.width, this.height)
-    this.speedCtx.save?.()
-    this.speedCtx.globalAlpha = this.options.speedOpacity
-    for (let y = 0; y < this.height; y += step) {
-      for (let x = 0; x < this.width; x += step) {
-        const lngLat = this.map.unproject ? this.map.unproject([x, y]) : null
-        if (!lngLat) continue
-        const lon = lngLat.lng ?? lngLat.lon
-        const lat = lngLat.lat
-        const vector = this.sampler.sample(lon, lat)
-        if (!vector) continue
-        this.speedCtx.fillStyle = pickWindSpeedColor(vector.speed).color
-        this.speedCtx.fillRect(x, y, step, step)
-      }
+  getFlowColor(vector) {
+    if (this.options.flowColorMode === 'speed' && vector) {
+      return withAlpha(pickWindSpeedColor(vector.speed).color, this.options.flowOpacity)
     }
-    this.speedCtx.restore?.()
+    return withAlpha(this.options.flowColor, this.options.flowOpacity)
   }
+
 }
 
 export default CanvasWindRenderer

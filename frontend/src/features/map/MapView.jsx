@@ -155,6 +155,9 @@ function MapView({
   const [weatherTimelineIndex, setWeatherTimelineIndex] = useState(-1)
   const [weatherTimelinePlaying, setWeatherTimelinePlaying] = useState(false)
   const [weatherTimelineSpeed, setWeatherTimelineSpeed] = useState(1)
+  const [windFlowOpacity, setWindFlowOpacity] = useState(0.66)
+  const [windFlowTrail, setWindFlowTrail] = useState(0.9)
+  const [windFlowWidth, setWindFlowWidth] = useState(1.8)
   const [sigwxHistoryIndex, setSigwxHistoryIndex] = useState(0)
   const [sigwxLegendOpen, setSigwxLegendOpen] = useState(false)
   const [openAdvisoryPanel, setOpenAdvisoryPanel] = useState(null)
@@ -173,6 +176,17 @@ function MapView({
   const { routePreviewModel } = routeBriefing
   const windEnabled = enableWindOverlay && metVisibility.wind
   const kimSurfaceWind = useKimSurfaceWind(windEnabled)
+  const windRendererOptions = useMemo(() => ({
+    ...(kimSurfaceWind.lowPower
+      ? { desktopCap: 800, mobileCap: 800, frameCap: 15, sampleStep: 4, pixelRatioCap: 1.5 }
+      : {}),
+    adaptiveParticleDensity: true,
+    zoomAdaptiveDensity: true,
+    flowColorMode: metVisibility.windSpeed ? 'neutral' : 'speed',
+    flowOpacity: windFlowOpacity,
+    flowWidth: windFlowWidth,
+    trailPersistence: windFlowTrail,
+  }), [kimSurfaceWind.lowPower, metVisibility.windSpeed, windFlowOpacity, windFlowTrail, windFlowWidth])
 
   useEffect(() => { onSelectRef.current = onAirportSelect }, [onAirportSelect])
 
@@ -669,9 +683,7 @@ function MapView({
     if (!map || !isStyleReady || !enableWindOverlay) return
     syncWindOverlay(map, {
       windField: kimSurfaceWind.windField,
-      rendererOptions: kimSurfaceWind.lowPower
-        ? { desktopCap: 1000, mobileCap: 1000, frameCap: 15, sampleStep: 4 }
-        : undefined,
+      rendererOptions: windRendererOptions,
       visibility: {
         wind: metVisibility.wind,
         windFlow: metVisibility.windFlow,
@@ -681,7 +693,7 @@ function MapView({
   }, [
     enableWindOverlay,
     kimSurfaceWind.windField,
-    kimSurfaceWind.lowPower,
+    windRendererOptions,
     metVisibility.wind,
     metVisibility.windFlow,
     metVisibility.windSpeed,
@@ -928,6 +940,12 @@ function MapView({
           windMetaLabel={kimSurfaceWind.windField ? formatKimWindMetaLabel(kimSurfaceWind.windField) : null}
           windStatus={kimSurfaceWind.status}
           windLowPower={kimSurfaceWind.lowPower}
+          windFlowOpacity={windFlowOpacity}
+          windFlowTrail={windFlowTrail}
+          windFlowWidth={windFlowWidth}
+          onWindFlowOpacityChange={setWindFlowOpacity}
+          onWindFlowTrailChange={setWindFlowTrail}
+          onWindFlowWidthChange={setWindFlowWidth}
         />
       )}
 

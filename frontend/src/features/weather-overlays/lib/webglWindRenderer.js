@@ -2,16 +2,27 @@ import {
   WIND_SPEED_COLOR_RAMP,
   createWindFieldSampler,
   decodeWindComponent,
+  getWindFieldMeanSpeed,
 } from './windField.js'
 
 const DEFAULTS = {
-  desktopCap: 5000,
-  mobileCap: 1800,
+  desktopCap: 4000,
+  mobileCap: 1400,
+  lowPowerCap: 800,
   maxAge: 80,
   speedFactor: 0.45,
   frameCap: 30,
   speedOpacity: 0.35,
   sampleStep: 4,
+  pixelRatioCap: 2,
+  flowColor: 'rgba(148, 163, 184, 0.66)',
+  flowColorMode: 'neutral',
+  flowOpacity: 0.66,
+  flowWidth: 1.8,
+  trailPersistence: 0.9,
+  particleDensityScale: 0.8,
+  adaptiveParticleDensity: false,
+  zoomAdaptiveDensity: false,
 }
 
 function clamp(value, min, max) {
@@ -20,6 +31,11 @@ function clamp(value, min, max) {
 
 function isMobileViewport(width) {
   return width < 720
+}
+
+function getBackingStorePixelRatio(cap) {
+  const dpr = window.devicePixelRatio || 1
+  return Math.max(1, Math.min(dpr, cap || dpr))
 }
 
 function createOverlayCanvas(role, zIndex) {
@@ -34,71 +50,51 @@ function createOverlayCanvas(role, zIndex) {
   return canvas
 }
 
-function parseRampColor(color) {
+function parseRgbaColor(color) {
   const match = color.match(/rgba\(([^)]+)\)/)
   if (!match) return [1, 1, 1, 1]
-  const [r, g, b, a] = match[1].split(',').map((part) => Number.parseFloat(part.trim()))
+  const [r, g, b, a = 1] = match[1].split(',').map((part) => Number.parseFloat(part.trim()))
   return [r / 255, g / 255, b / 255, a]
-}
-
-function createSpeedFragmentShader() {
-  const rampBranches = WIND_SPEED_COLOR_RAMP.map((entry, index) => {
-    const color = parseRampColor(entry.color)
-    const rgba = [color[0], color[1], color[2], color[3]]
-    const condition = Number.isFinite(entry.max)
-      ? `if (speed < ${entry.max.toFixed(1)}) return vec4(${rgba.join(', ')});`
-      : `return vec4(${rgba.join(', ')});`
-    if (index === 0) {
-      return `  ${condition}`
-    }
-    return `  ${condition}`
-  }).join('\n')
-
-  return `
-precision mediump float;
-varying float v_speed;
-uniform float u_opacity;
-
-vec4 pickSpeedColor(float speed) {
-${rampBranches}
-}
-
-void main() {
-  vec4 color = pickSpeedColor(v_speed);
-  gl_FragColor = vec4(color.rgb, color.a * u_opacity);
-}
-`
 }
 
 function createParticleFragmentShader() {
   const rampBranches = WIND_SPEED_COLOR_RAMP.map((entry) => {
-    const color = parseRampColor(entry.color)
-    const alpha = Math.min(0.9, Math.max(0.5, color[3] + 0.42))
-    const rgba = [color[0], color[1], color[2], alpha]
+    const color = parseRgbaColor(entry.color)
+    const rgba = [color[0], color[1], color[2]]
     if (Number.isFinite(entry.max)) {
-      return `  if (v_speed < ${entry.max.toFixed(1)}) return vec4(${rgba.join(', ')});`
+      return `  if (speed < ${entry.max.toFixed(1)}) return vec4(${rgba.join(', ')}, alpha);`
     }
-    return `  return vec4(${rgba.join(', ')});`
+    return `  return vec4(${rgba.join(', ')}, alpha);`
   }).join('\n')
 
   return `
 precision mediump float;
 varying float v_speed;
+varying float v_alpha;
+uniform vec4 u_flow_color;
+uniform int u_flow_color_mode;
+uniform float u_flow_opacity;
 
-vec4 pickParticleColor(float speed) {
+vec4 pickSpeedFlowColor(float speed, float alpha) {
 ${rampBranches}
 }
 
 void main() {
-  gl_FragColor = pickParticleColor(v_speed);
+  if (u_flow_color_mode == 1) {
+    vec4 color = pickSpeedFlowColor(v_speed, u_flow_opacity);
+    gl_FragColor = vec4(color.rgb, color.a * v_alpha);
+  } else {
+    gl_FragColor = vec4(u_flow_color.rgb, u_flow_color.a * v_alpha) + vec4(0.0 * v_speed);
+  }
 }
 `
 }
 
 const FADE_FRAGMENT_SHADER = `
 precision mediump float;
+uniform float u_fade_alpha;
 void main() {
-  gl_FragColor = vec4(0.0, 0.0, 0.0, 0.94);
+  gl_FragColor = vec4(0.0, 0.0, 0.0, u_fade_alpha);
 }
 `
 
@@ -153,6 +149,26 @@ function createVectorTextureData(windField) {
   return data
 }
 
+function getDensityFactor(windField, enabled) {
+  if (!enabled) return 1
+  const meanSpeed = getWindFieldMeanSpeed(windField)
+  if (meanSpeed == null) return 1
+  if (meanSpeed < 2) return 0.6
+  if (meanSpeed < 5) return 0.75
+  if (meanSpeed < 8) return 0.9
+  return 1
+}
+
+function getZoomDensityFactor(map, enabled) {
+  if (!enabled) return 1
+  const zoom = map.getZoom?.()
+  if (!Number.isFinite(zoom) || zoom <= 5) return 1
+  if (zoom >= 11) return 0.65
+  if (zoom <= 7) return 1 - ((zoom - 5) / 2) * 0.1
+  if (zoom <= 9) return 0.9 - ((zoom - 7) / 2) * 0.15
+  return 0.75 - ((zoom - 9) / 2) * 0.1
+}
+
 function makeParticle(bounds, maxAge) {
   return {
     lon: bounds.getWest() + Math.random() * (bounds.getEast() - bounds.getWest()),
@@ -163,6 +179,35 @@ function makeParticle(bounds, maxAge) {
     prevLat: null,
     speed: 0,
   }
+}
+
+function getParticleBounds(map, windField) {
+  const mapBounds = map.getBounds()
+  const grid = windField?.grid
+  const west = Math.max(mapBounds.getWest(), grid?.lonMin ?? mapBounds.getWest())
+  const east = Math.min(mapBounds.getEast(), grid?.lonMax ?? mapBounds.getEast())
+  const south = Math.max(mapBounds.getSouth(), grid?.latMin ?? mapBounds.getSouth())
+  const north = Math.min(mapBounds.getNorth(), grid?.latMax ?? mapBounds.getNorth())
+  if (west >= east || south >= north) return null
+  return {
+    getWest: () => west,
+    getEast: () => east,
+    getSouth: () => south,
+    getNorth: () => north,
+  }
+}
+
+function containsPoint(bounds, lon, lat) {
+  return !!bounds
+    && lon >= bounds.getWest()
+    && lon <= bounds.getEast()
+    && lat >= bounds.getSouth()
+    && lat <= bounds.getNorth()
+}
+
+function getParticleAgeAlpha(particle) {
+  const fadeFrames = Math.max(1, particle.maxAge * 0.25)
+  return clamp(Math.max(0, particle.maxAge - particle.age) / fadeFrames, 0, 1)
 }
 
 const QUAD_VERTICES = new Float32Array([
@@ -179,28 +224,20 @@ void main() {
 }
 `
 
-const SPEED_VERTEX_SHADER = `
-attribute vec2 a_position;
-attribute float a_speed;
-uniform vec2 u_resolution;
-varying float v_speed;
-void main() {
-  vec2 clip = ((a_position / u_resolution) * 2.0) - 1.0;
-  gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
-  v_speed = a_speed;
-}
-`
-
 const PARTICLE_VERTEX_SHADER = `
 attribute vec2 a_position;
 attribute float a_speed;
+attribute float a_alpha;
 uniform vec2 u_resolution;
+uniform float u_point_size;
 varying float v_speed;
+varying float v_alpha;
 void main() {
   vec2 clip = ((a_position / u_resolution) * 2.0) - 1.0;
   gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
-  gl_PointSize = 1.8;
+  gl_PointSize = u_point_size;
   v_speed = a_speed;
+  v_alpha = a_alpha;
 }
 `
 
@@ -209,9 +246,10 @@ export class WebGLWindRenderer {
     this.type = 'webgl'
     this.map = map
     this.options = { ...DEFAULTS, ...options }
+    this.flowColor = parseRgbaColor(this.options.flowColor)
+    this.flowColor[3] = clamp(this.options.flowOpacity, 0.2, 1)
     this.onFailure = options.onFailure
     this.container = map.getContainer()
-    this.speedCanvas = createOverlayCanvas('webgl-speed', '3')
     this.flowCanvas = createOverlayCanvas('webgl', '4')
     this.canvas = this.flowCanvas
     this.visibility = { flow: false, speed: false }
@@ -233,13 +271,10 @@ export class WebGLWindRenderer {
     }
 
     try {
-      this.container.appendChild(this.speedCanvas)
       this.container.appendChild(this.flowCanvas)
       const contextOptions = { alpha: true, preserveDrawingBuffer: true }
-      this.speedGl = this.speedCanvas.getContext('webgl', contextOptions) || this.speedCanvas.getContext('experimental-webgl', contextOptions)
       this.gl = this.flowCanvas.getContext('webgl', contextOptions) || this.flowCanvas.getContext('experimental-webgl', contextOptions)
-      if (!this.speedGl || !this.gl) throw new Error('WebGL unavailable')
-      this.speedCanvas.addEventListener('webglcontextlost', this.handleContextLost)
+      if (!this.gl) throw new Error('WebGL unavailable')
       this.flowCanvas.addEventListener('webglcontextlost', this.handleContextLost)
       this.initResources()
       this.resize()
@@ -247,6 +282,15 @@ export class WebGLWindRenderer {
       this.destroy()
       throw error
     }
+  }
+
+  setOptions(options = {}) {
+    this.options = { ...DEFAULTS, ...options }
+    this.flowColor = parseRgbaColor(this.options.flowColor)
+    this.flowColor[3] = clamp(this.options.flowOpacity, 0.2, 1)
+    this.ensureParticles()
+    this.buildParticleGeometry()
+    this.redraw()
   }
 
   initResources() {
@@ -266,11 +310,6 @@ export class WebGLWindRenderer {
     gl.enable?.(gl.BLEND)
     gl.blendFunc?.(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-    const speedGl = this.speedGl
-    this.speedProgram = createProgram(speedGl, SPEED_VERTEX_SHADER, createSpeedFragmentShader())
-    this.speedBuffer = speedGl.createBuffer()
-    speedGl.enable?.(speedGl.BLEND)
-    speedGl.blendFunc?.(speedGl.SRC_ALPHA, speedGl.ONE_MINUS_SRC_ALPHA)
   }
 
   setData(windField, commit = {}) {
@@ -303,15 +342,13 @@ export class WebGLWindRenderer {
     this.sampler = createWindFieldSampler(windField)
     this.ensureParticles()
     this.buildParticleGeometry()
-    this.buildSpeedGeometry()
     this.redraw()
     return Promise.resolve(true)
   }
 
-  setVisibility({ flow = false, speed = false } = {}) {
-    this.visibility = { flow, speed }
+  setVisibility({ flow = false } = {}) {
+    this.visibility = { flow, speed: false }
     this.flowCanvas.style.display = flow ? 'block' : 'none'
-    this.speedCanvas.style.display = speed ? 'block' : 'none'
     if (flow) this.start()
     else this.stop()
     this.redraw()
@@ -319,26 +356,30 @@ export class WebGLWindRenderer {
 
   resize() {
     const rect = this.container.getBoundingClientRect()
-    const dpr = window.devicePixelRatio || 1
+    const dpr = getBackingStorePixelRatio(this.options.pixelRatioCap)
     this.width = Math.max(1, Math.round(rect.width))
     this.height = Math.max(1, Math.round(rect.height))
     this.flowCanvas.width = Math.round(this.width * dpr)
     this.flowCanvas.height = Math.round(this.height * dpr)
-    this.speedCanvas.width = this.flowCanvas.width
-    this.speedCanvas.height = this.flowCanvas.height
     this.gl.viewport(0, 0, this.flowCanvas.width, this.flowCanvas.height)
-    this.speedGl.viewport(0, 0, this.speedCanvas.width, this.speedCanvas.height)
     this.ensureParticles()
     this.buildParticleGeometry()
-    this.buildSpeedGeometry()
     this.redraw()
   }
 
   ensureParticles() {
     if (!this.windField || !this.width || !this.height) return
-    const cap = isMobileViewport(this.width) ? this.options.mobileCap : this.options.desktopCap
-    const count = clamp(Math.round((this.width * this.height) / 450), 64, cap)
-    const bounds = this.map.getBounds()
+    const densityFactor = getDensityFactor(this.windField, this.options.adaptiveParticleDensity)
+      * getZoomDensityFactor(this.map, this.options.zoomAdaptiveDensity)
+    const baseCap = isMobileViewport(this.width) ? this.options.mobileCap : this.options.desktopCap
+    const densityScale = clamp(this.options.particleDensityScale, 0.2, 1)
+    const cap = Math.max(64, Math.round(baseCap * densityFactor * densityScale))
+    const count = clamp(Math.round((this.width * this.height) / 450 * densityScale), 64, cap)
+    const bounds = getParticleBounds(this.map, this.windField)
+    if (!bounds) {
+      this.particles.length = 0
+      return
+    }
     while (this.particles.length < count) {
       this.particles.push(makeParticle(bounds, this.options.maxAge))
     }
@@ -374,16 +415,14 @@ export class WebGLWindRenderer {
 
   stepParticles() {
     if (!this.windField) return
-    const bounds = this.map.getBounds()
+    const bounds = getParticleBounds(this.map, this.windField)
+    if (!bounds) return
     for (const particle of this.particles) {
       const vector = this.sampler.sample(particle.lon, particle.lat)
       if (
         !vector
         || particle.age >= particle.maxAge
-        || particle.lon < bounds.getWest()
-        || particle.lon > bounds.getEast()
-        || particle.lat < bounds.getSouth()
-        || particle.lat > bounds.getNorth()
+        || !containsPoint(bounds, particle.lon, particle.lat)
       ) {
         this.reseedParticle(particle, bounds)
         continue
@@ -392,8 +431,14 @@ export class WebGLWindRenderer {
       particle.prevLon = particle.lon
       particle.prevLat = particle.lat
       particle.speed = vector.speed
-      particle.lon += vector.u * this.options.speedFactor * 0.002
-      particle.lat += vector.v * this.options.speedFactor * 0.002
+      const nextLon = particle.lon + vector.u * this.options.speedFactor * 0.002
+      const nextLat = particle.lat + vector.v * this.options.speedFactor * 0.002
+      if (!containsPoint(bounds, nextLon, nextLat)) {
+        this.reseedParticle(particle, bounds)
+        continue
+      }
+      particle.lon = nextLon
+      particle.lat = nextLat
       particle.age += 1
     }
     this.buildParticleGeometry()
@@ -401,7 +446,13 @@ export class WebGLWindRenderer {
 
   buildParticleGeometry() {
     if (!this.windField || !this.width || !this.height) return
-    const segmentData = []
+    const requiredLength = this.particles.length * 8
+    const needsAllocation = !this.particleVertexData || this.particleVertexData.length !== requiredLength
+    if (needsAllocation) {
+      this.particleVertexData = new Float32Array(requiredLength)
+    }
+
+    let offset = 0
     for (const particle of this.particles) {
       const from = this.map.project([
         Number.isFinite(particle.prevLon) ? particle.prevLon : particle.lon,
@@ -409,56 +460,48 @@ export class WebGLWindRenderer {
       ])
       const to = this.map.project([particle.lon, particle.lat])
       const speed = particle.speed ?? 0
-      segmentData.push(from.x, from.y, speed)
-      segmentData.push(to.x, to.y, speed)
+      const alpha = getParticleAgeAlpha(particle)
+      this.particleVertexData[offset++] = from.x
+      this.particleVertexData[offset++] = from.y
+      this.particleVertexData[offset++] = speed
+      this.particleVertexData[offset++] = alpha
+      this.particleVertexData[offset++] = to.x
+      this.particleVertexData[offset++] = to.y
+      this.particleVertexData[offset++] = speed
+      this.particleVertexData[offset++] = alpha
     }
 
-    this.particleVertexData = new Float32Array(segmentData)
-    this.segmentVertexCount = this.particleVertexData.length / 3
+    this.segmentVertexCount = offset / 4
     this.pointVertexCount = this.segmentVertexCount
 
     const gl = this.gl
     gl.bindBuffer(gl.ARRAY_BUFFER, this.particleBuffer)
-    gl.bufferData(gl.ARRAY_BUFFER, this.particleVertexData, gl.STATIC_DRAW)
-  }
-
-  buildSpeedGeometry() {
-    if (!this.windField || !this.width || !this.height || !this.map.unproject) return
-    const step = this.width > 1440 ? 2 : this.options.sampleStep
-    const speedData = []
-    for (let y = 0; y < this.height; y += step) {
-      for (let x = 0; x < this.width; x += step) {
-        const lngLat = this.map.unproject([x, y])
-        const lon = lngLat.lng ?? lngLat.lon
-        const vector = this.sampler.sample(lon, lngLat.lat)
-        if (!vector) continue
-        const x1 = Math.min(this.width, x + step)
-        const y1 = Math.min(this.height, y + step)
-        speedData.push(x, y, vector.speed)
-        speedData.push(x1, y, vector.speed)
-        speedData.push(x, y1, vector.speed)
-        speedData.push(x1, y, vector.speed)
-        speedData.push(x1, y1, vector.speed)
-        speedData.push(x, y1, vector.speed)
-      }
+    if (needsAllocation) {
+      gl.bufferData(gl.ARRAY_BUFFER, this.particleVertexData, gl.DYNAMIC_DRAW ?? gl.STATIC_DRAW)
+    } else {
+      gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.particleVertexData)
     }
-
-    this.speedVertexData = new Float32Array(speedData)
-    this.speedVertexCount = this.speedVertexData.length / 3
-    const gl = this.speedGl
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.speedBuffer)
-    gl.bufferData(gl.ARRAY_BUFFER, this.speedVertexData, gl.STATIC_DRAW)
   }
 
   redraw() {
     if (this.failed || this.destroyed) return
-    if (this.visibility.speed) this.drawSpeedLayer()
-    else this.clearSpeedLayer()
     if (!this.visibility.flow) {
-      this.gl.clear(this.gl.COLOR_BUFFER_BIT)
+      this.clearFlowLayer()
       return
     }
     this.drawFrame()
+  }
+
+  redrawForMapInteraction() {
+    if (this.failed || this.destroyed) return
+    if (!this.visibility.flow) {
+      this.clearFlowLayer()
+      return
+    }
+    this.ensureParticles()
+    this.buildParticleGeometry()
+    this.clearFlowLayer()
+    this.drawParticles()
   }
 
   drawFrame() {
@@ -473,28 +516,8 @@ export class WebGLWindRenderer {
     }
   }
 
-  drawSpeedLayer() {
-    if (!this.speedVertexCount) return
-    const gl = this.speedGl
-    gl.clearColor(0, 0, 0, 0)
-    gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.useProgram(this.speedProgram)
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.speedBuffer)
-    const positionLocation = gl.getAttribLocation(this.speedProgram, 'a_position')
-    gl.enableVertexAttribArray(positionLocation)
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 12, 0)
-    const speedLocation = gl.getAttribLocation(this.speedProgram, 'a_speed')
-    gl.enableVertexAttribArray(speedLocation)
-    gl.vertexAttribPointer(speedLocation, 1, gl.FLOAT, false, 12, 8)
-    const resolutionLocation = gl.getUniformLocation(this.speedProgram, 'u_resolution')
-    gl.uniform2f(resolutionLocation, this.width, this.height)
-    const opacityLocation = gl.getUniformLocation(this.speedProgram, 'u_opacity')
-    gl.uniform1f(opacityLocation, this.options.speedOpacity ?? 1)
-    gl.drawArrays(gl.TRIANGLES, 0, this.speedVertexCount)
-  }
-
-  clearSpeedLayer() {
-    const gl = this.speedGl
+  clearFlowLayer() {
+    const gl = this.gl
     gl.clearColor(0, 0, 0, 0)
     gl.clear(gl.COLOR_BUFFER_BIT)
   }
@@ -507,6 +530,8 @@ export class WebGLWindRenderer {
     const positionLocation = gl.getAttribLocation(this.fadeProgram, 'a_position')
     gl.enableVertexAttribArray(positionLocation)
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+    const fadeAlphaLocation = gl.getUniformLocation(this.fadeProgram, 'u_fade_alpha')
+    gl.uniform1f(fadeAlphaLocation, clamp(this.options.trailPersistence, 0.55, 0.94))
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     gl.blendFunc?.(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
   }
@@ -517,12 +542,25 @@ export class WebGLWindRenderer {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.particleBuffer)
     const positionLocation = gl.getAttribLocation(this.particleProgram, 'a_position')
     gl.enableVertexAttribArray(positionLocation)
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 12, 0)
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 16, 0)
     const speedLocation = gl.getAttribLocation(this.particleProgram, 'a_speed')
     gl.enableVertexAttribArray(speedLocation)
-    gl.vertexAttribPointer(speedLocation, 1, gl.FLOAT, false, 12, 8)
+    gl.vertexAttribPointer(speedLocation, 1, gl.FLOAT, false, 16, 8)
+    const alphaLocation = gl.getAttribLocation(this.particleProgram, 'a_alpha')
+    gl.enableVertexAttribArray(alphaLocation)
+    gl.vertexAttribPointer(alphaLocation, 1, gl.FLOAT, false, 16, 12)
     const resolutionLocation = gl.getUniformLocation(this.particleProgram, 'u_resolution')
     gl.uniform2f(resolutionLocation, this.width, this.height)
+    const flowWidth = clamp(this.options.flowWidth, 0.6, 2.4)
+    gl.lineWidth?.(flowWidth)
+    const pointSizeLocation = gl.getUniformLocation(this.particleProgram, 'u_point_size')
+    gl.uniform1f(pointSizeLocation, flowWidth * 1.5)
+    const flowColorLocation = gl.getUniformLocation(this.particleProgram, 'u_flow_color')
+    gl.uniform4fv(flowColorLocation, this.flowColor)
+    const colorModeLocation = gl.getUniformLocation(this.particleProgram, 'u_flow_color_mode')
+    gl.uniform1i(colorModeLocation, this.options.flowColorMode === 'speed' ? 1 : 0)
+    const opacityLocation = gl.getUniformLocation(this.particleProgram, 'u_flow_opacity')
+    gl.uniform1f(opacityLocation, clamp(this.options.flowOpacity, 0.2, 1))
     gl.drawArrays(gl.LINES, 0, this.segmentVertexCount)
     gl.drawArrays(gl.POINTS, 0, this.pointVertexCount)
   }
@@ -530,17 +568,13 @@ export class WebGLWindRenderer {
   destroy() {
     this.stop()
     this.destroyed = true
-    this.speedCanvas?.removeEventListener?.('webglcontextlost', this.handleContextLost)
     this.flowCanvas?.removeEventListener?.('webglcontextlost', this.handleContextLost)
     this.gl?.deleteProgram?.(this.particleProgram)
     this.gl?.deleteProgram?.(this.fadeProgram)
     this.gl?.deleteBuffer?.(this.quadBuffer)
     this.gl?.deleteBuffer?.(this.particleBuffer)
     this.gl?.deleteTexture?.(this.windTexture)
-    this.speedGl?.deleteProgram?.(this.speedProgram)
-    this.speedGl?.deleteBuffer?.(this.speedBuffer)
     if (this.flowCanvas?.parentNode) this.flowCanvas.parentNode.removeChild(this.flowCanvas)
-    if (this.speedCanvas?.parentNode) this.speedCanvas.parentNode.removeChild(this.speedCanvas)
   }
 }
 

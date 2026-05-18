@@ -10,6 +10,12 @@ function WeatherOverlayPanel({
   windMetaLabel = null,
   windStatus = 'idle',
   windLowPower = false,
+  windFlowOpacity = 0.66,
+  windFlowTrail = 0.9,
+  windFlowWidth = 1.8,
+  onWindFlowOpacityChange,
+  onWindFlowTrailChange,
+  onWindFlowWidthChange,
 }) {
   const groups = [
     { id: 'weather', title: '기상', ids: showWind ? ['radar', 'satellite', 'lightning', 'wind'] : ['radar', 'satellite', 'lightning'] },
@@ -62,6 +68,54 @@ function WeatherOverlayPanel({
               <span className="layer-toggle-switch" aria-hidden="true" />
               <span className="layer-toggle-label">Flow</span>
             </label>
+            {visibility.windFlow && (
+              <label className="wind-flow-control">
+                <span className="wind-flow-control-label">Tone</span>
+                <input
+                  className="wind-flow-control-slider"
+                  type="range"
+                  min="0.35"
+                  max="0.9"
+                  step="0.01"
+                  value={windFlowOpacity}
+                  onChange={(event) => onWindFlowOpacityChange?.(Number(event.target.value))}
+                  aria-label="Wind flow tone"
+                />
+                <span className="wind-flow-control-value">{Math.round(windFlowOpacity * 100)}%</span>
+              </label>
+            )}
+            {visibility.windFlow && (
+              <label className="wind-flow-control">
+                <span className="wind-flow-control-label">Trail</span>
+                <input
+                  className="wind-flow-control-slider"
+                  type="range"
+                  min="0.55"
+                  max="0.94"
+                  step="0.01"
+                  value={windFlowTrail}
+                  onChange={(event) => onWindFlowTrailChange?.(Number(event.target.value))}
+                  aria-label="Wind flow trail"
+                />
+                <span className="wind-flow-control-value">{Math.round(windFlowTrail * 100)}%</span>
+              </label>
+            )}
+            {visibility.windFlow && (
+              <label className="wind-flow-control">
+                <span className="wind-flow-control-label">Width</span>
+                <input
+                  className="wind-flow-control-slider"
+                  type="range"
+                  min="0.6"
+                  max="2.4"
+                  step="0.1"
+                  value={windFlowWidth}
+                  onChange={(event) => onWindFlowWidthChange?.(Number(event.target.value))}
+                  aria-label="Wind flow width"
+                />
+                <span className="wind-flow-control-value">{windFlowWidth.toFixed(1)}</span>
+              </label>
+            )}
             <label className="layer-toggle-row layer-toggle-row--sub">
               <input
                 className="layer-toggle-input"

@@ -1,8 +1,11 @@
 import CanvasWindRenderer from './canvasWindRenderer.js'
 import WebGLWindRenderer from './webglWindRenderer.js'
+import { decodeWindComponent, pickWindSpeedColor } from './windField.js'
 
 const overlays = new WeakMap()
 const canvasFallbackMaps = new WeakSet()
+const WIND_SPEED_SOURCE_ID = 'kim-wind-speed-image-source'
+const WIND_SPEED_LAYER_ID = 'kim-wind-speed-image-layer'
 
 const defaultFactories = {
   createCanvasRenderer(map, options) {
@@ -20,18 +23,31 @@ function windVisible(visibility = {}) {
 }
 
 function bindMapEvents(map, renderer) {
+  let interactionFrameId = null
   const resize = () => renderer.resize()
   const redraw = () => {
     renderer.resize()
     renderer.redraw?.()
   }
+  const redrawInteraction = () => {
+    if (interactionFrameId != null) return
+    interactionFrameId = window.requestAnimationFrame(() => {
+      interactionFrameId = null
+      renderer.redrawForMapInteraction?.()
+    })
+  }
   map.on?.('resize', resize)
-  map.on?.('moveend', redraw)
-  map.on?.('zoomend', redraw)
+  map.on?.('move', redrawInteraction)
+  map.on?.('zoom', redrawInteraction)
+  map.on?.('zoomend', redrawInteraction)
+  map.on?.('moveend', redrawInteraction)
   return () => {
     map.off?.('resize', resize)
-    map.off?.('moveend', redraw)
-    map.off?.('zoomend', redraw)
+    map.off?.('move', redrawInteraction)
+    map.off?.('zoom', redrawInteraction)
+    map.off?.('zoomend', redrawInteraction)
+    map.off?.('moveend', redrawInteraction)
+    if (interactionFrameId != null) window.cancelAnimationFrame(interactionFrameId)
   }
 }
 
@@ -58,13 +74,122 @@ function createRenderer(map, options) {
 function applyVisibility(renderer, visibility = {}) {
   renderer.setVisibility({
     flow: !!(visibility.wind && visibility.windFlow),
-    speed: !!(visibility.wind && visibility.windSpeed),
+    speed: false,
   })
+}
+
+function parseRgba(color) {
+  const match = color.match(/rgba\(([^)]+)\)/)
+  if (!match) return [255, 255, 255, 0]
+  const [r, g, b, a] = match[1].split(',').map((part) => Number.parseFloat(part.trim()))
+  return [r, g, b, Math.round((a ?? 1) * 255)]
+}
+
+function buildSpeedImageCoordinates(grid) {
+  if (!grid) return null
+  const { lonMin, lonMax, latMin, latMax } = grid
+  if (![lonMin, lonMax, latMin, latMax].every(Number.isFinite)) return null
+  return [[lonMin, latMax], [lonMax, latMax], [lonMax, latMin], [lonMin, latMin]]
+}
+
+function buildWindSpeedImage(windField) {
+  const grid = windField?.grid
+  if (!grid?.nx || !grid?.ny || !Array.isArray(windField.u) || !Array.isArray(windField.v)) return null
+  const canvas = document.createElement('canvas')
+  canvas.width = grid.nx
+  canvas.height = grid.ny
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const imageData = ctx.createImageData?.(grid.nx, grid.ny)
+  if (imageData?.data) {
+    for (let y = 0; y < grid.ny; y += 1) {
+      const sourceY = grid.ny - 1 - y
+      for (let x = 0; x < grid.nx; x += 1) {
+        const sourceIndex = sourceY * grid.nx + x
+        const u = decodeWindComponent(windField.u[sourceIndex], windField)
+        const v = decodeWindComponent(windField.v[sourceIndex], windField)
+        const [r, g, b, a] = u == null || v == null
+          ? [0, 0, 0, 0]
+          : parseRgba(pickWindSpeedColor(Math.hypot(u, v)).color)
+        const targetIndex = (y * grid.nx + x) * 4
+        imageData.data[targetIndex] = r
+        imageData.data[targetIndex + 1] = g
+        imageData.data[targetIndex + 2] = b
+        imageData.data[targetIndex + 3] = a
+      }
+    }
+    ctx.putImageData(imageData, 0, 0)
+  } else {
+    for (let y = 0; y < grid.ny; y += 1) {
+      const sourceY = grid.ny - 1 - y
+      for (let x = 0; x < grid.nx; x += 1) {
+        const sourceIndex = sourceY * grid.nx + x
+        const u = decodeWindComponent(windField.u[sourceIndex], windField)
+        const v = decodeWindComponent(windField.v[sourceIndex], windField)
+        if (u == null || v == null) continue
+        ctx.fillStyle = pickWindSpeedColor(Math.hypot(u, v)).color
+        ctx.fillRect(x, y, 1, 1)
+      }
+    }
+  }
+
+  return canvas.toDataURL?.('image/png') || canvas
+}
+
+function removeWindSpeedImageLayer(map) {
+  if (map.getLayer?.(WIND_SPEED_LAYER_ID)) map.removeLayer?.(WIND_SPEED_LAYER_ID)
+  if (map.getSource?.(WIND_SPEED_SOURCE_ID)) map.removeSource?.(WIND_SPEED_SOURCE_ID)
+}
+
+function setWindSpeedImageVisible(map, visible) {
+  if (map.getLayer?.(WIND_SPEED_LAYER_ID)) {
+    map.setLayoutProperty?.(WIND_SPEED_LAYER_ID, 'visibility', visible ? 'visible' : 'none')
+  }
+}
+
+function syncWindSpeedImageLayer(map, state, windField, visibility = {}) {
+  const visible = !!(visibility.wind && visibility.windSpeed)
+  if (!visible) {
+    setWindSpeedImageVisible(map, false)
+    return
+  }
+
+  const coordinates = buildSpeedImageCoordinates(windField?.grid)
+  if (!coordinates) return
+
+  const source = map.getSource?.(WIND_SPEED_SOURCE_ID)
+  const layer = map.getLayer?.(WIND_SPEED_LAYER_ID)
+  const imageChanged = state.speedImageField !== windField || !source
+  if (imageChanged) {
+    const url = buildWindSpeedImage(windField)
+    if (!url) return
+    const image = { url, coordinates }
+    if (source?.updateImage) {
+      source.updateImage(image)
+    } else if (!source) {
+      map.addSource?.(WIND_SPEED_SOURCE_ID, { type: 'image', ...image })
+    }
+    state.speedImageField = windField
+  }
+
+  if (!layer) {
+    map.addLayer?.({
+      id: WIND_SPEED_LAYER_ID,
+      type: 'raster',
+      source: WIND_SPEED_SOURCE_ID,
+      slot: 'middle',
+      layout: { visibility: 'visible' },
+      paint: { 'raster-opacity': 1, 'raster-fade-duration': 0 },
+    })
+  }
+  setWindSpeedImageVisible(map, true)
 }
 
 function destroyState(map, state) {
   state.cleanup?.()
   state.renderer.destroy()
+  removeWindSpeedImageLayer(map)
   overlays.delete(map)
 }
 
@@ -85,6 +210,7 @@ function replaceFailedRendererWithCanvas(map) {
     pendingWindField: null,
     renderer,
     rendererOptions: state.rendererOptions,
+    speedImageField: null,
     visibility,
     windField: null,
   }
@@ -110,6 +236,7 @@ function ensureRenderer(map, model, state) {
     pendingWindField: null,
     renderer,
     rendererOptions: model.rendererOptions,
+    speedImageField: null,
     visibility: model.visibility,
     windField: null,
   }
@@ -159,9 +286,11 @@ export function syncWindOverlay(map, model = {}) {
   }
   if (!state) return null
 
+  state.renderer.setOptions?.(model.rendererOptions || {})
+  state.rendererOptions = model.rendererOptions
   syncWindField(map, state, model.windField)
   state.visibility = model.visibility
-  state.rendererOptions = model.rendererOptions
+  syncWindSpeedImageLayer(map, state, model.windField, model.visibility)
   applyVisibility(state.renderer, model.visibility)
   return state
 }
@@ -184,3 +313,6 @@ export default {
   syncWindOverlay,
   destroyWindOverlay,
 }
+
+export const WIND_SPEED_IMAGE_LAYER_IDS = [WIND_SPEED_LAYER_ID]
+export const WIND_SPEED_IMAGE_SOURCE_IDS = [WIND_SPEED_SOURCE_ID]

@@ -374,6 +374,34 @@
   gap: 2px;
 }
 
+.wind-flow-control {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  margin: 0 8px 0 56px;
+  color: #64748b;
+}
+
+.wind-flow-control-label,
+.wind-flow-control-value {
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.wind-flow-control-value {
+  text-align: right;
+}
+
+.wind-flow-control-slider {
+  width: 100%;
+  min-width: 0;
+  accent-color: #64748b;
+}
+
 .wind-toggle-meta {
   margin: 1px 8px 4px 56px;
   color: #64748b;

@@ -78,6 +78,21 @@ export function pickWindSpeedColor(speed) {
   return WIND_SPEED_COLOR_RAMP.find((entry) => speed >= entry.min && speed < entry.max) || WIND_SPEED_COLOR_RAMP[0]
 }
 
+export function getWindFieldMeanSpeed(field) {
+  if (!field || !Array.isArray(field.u) || !Array.isArray(field.v)) return null
+  const count = Math.min(field.u.length, field.v.length)
+  let total = 0
+  let samples = 0
+  for (let index = 0; index < count; index += 1) {
+    const u = decodeWindComponent(field.u[index], field)
+    const v = decodeWindComponent(field.v[index], field)
+    if (u == null || v == null) continue
+    total += Math.hypot(u, v)
+    samples += 1
+  }
+  return samples > 0 ? total / samples : null
+}
+
 export function formatKimWindMetaLabel(field) {
   const validTime = Date.parse(field?.time?.validTime)
   if (!Number.isFinite(validTime)) return 'KIM 8km · 10m'
@@ -94,5 +109,6 @@ export default {
   createWindFieldSampler,
   decodeWindComponent,
   formatKimWindMetaLabel,
+  getWindFieldMeanSpeed,
   pickWindSpeedColor,
 }
