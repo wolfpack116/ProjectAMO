@@ -53,7 +53,7 @@ function WeatherLegends({
       )}
       {windSpeedLegendVisible && (
         <div className="wind-speed-legend" aria-label="Wind speed legend">
-          <div className="wind-speed-legend-title">m/s</div>
+          <div className="wind-speed-legend-title">kt</div>
           <div className="wind-speed-legend-scale">
             {windSpeedLegendEntries.map((entry) => (
               <div key={entry.label} className="wind-speed-legend-row">

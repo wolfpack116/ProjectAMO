@@ -346,6 +346,7 @@ function createMap(container = createContainer(), { zoom, bounds } = {}) {
   const sources = new Map()
   const layers = new Map()
   const layout = []
+  let currentZoom = zoom
   return {
     container,
     events: new Map(),
@@ -356,7 +357,10 @@ function createMap(container = createContainer(), { zoom, bounds } = {}) {
       return container
     },
     getZoom() {
-      return zoom
+      return currentZoom
+    },
+    setZoom(nextZoom) {
+      currentZoom = nextZoom
     },
     on(eventName, handler) {
       this.events.set(eventName, handler)
@@ -558,6 +562,7 @@ test('speed layer installs a map-anchored image overlay and does not redraw on m
     assert.equal(source.type, 'image')
     assert.deepEqual(source.coordinates, [[126, 37], [127, 37], [127, 36], [126, 36]])
     assert.equal(map.getLayer('kim-wind-speed-image-layer').type, 'raster')
+    assert.equal(map.getLayer('kim-wind-speed-image-layer').paint['raster-resampling'], 'linear')
     const initialUrl = source.url
 
     map.events.get('moveend')()
@@ -739,7 +744,7 @@ test('WebGL renderer uses neutral gray flow color over the speed layer', () => {
     const modeUniform = state.renderer.gl.__calls.find(
       (call) => call.method === 'uniform1i' && call.args[0]?.name === 'u_flow_color_mode',
     )
-    assert.deepEqual(colorUniform?.args[1], [148 / 255, 163 / 255, 184 / 255, 0.62])
+    assert.deepEqual(colorUniform?.args[1], [208 / 255, 216 / 255, 226 / 255, 0.62])
     assert.equal(modeUniform?.args[1], 0)
   } finally {
     dom.restore()
@@ -806,7 +811,7 @@ test('Canvas renderer uses speed-colored flow when the speed layer is off', () =
     const strokeCall = dom.createdCanvases
       .flatMap((canvas) => canvas.__calls)
       .find((call) => call.method === 'strokeStyle')
-    assert.notEqual(strokeCall?.args[0], 'rgba(148, 163, 184, 0.7)')
+    assert.notEqual(strokeCall?.args[0], 'rgba(208, 216, 226, 0.7)')
     assert.match(strokeCall?.args[0] || '', /^rgba\(/)
   } finally {
     dom.restore()
@@ -997,6 +1002,72 @@ test('WebGL renderer uploads wind data and updates backing-store viewport size',
   }
 })
 
+test('WebGL renderer uses a downsampled sampler at low zoom', () => {
+  const dom = installDom({ webgl: true })
+  try {
+    const map = createMap(createContainer({ width: 640, height: 360 }), { zoom: 5 })
+    const field = {
+      ...FIELD_A,
+      grid: { nx: 5, ny: 5, lonMin: 126, latMin: 36, lonMax: 130, latMax: 40, dx: 1, dy: 1 },
+      u: Array.from({ length: 25 }, (_, index) => index),
+      v: Array.from({ length: 25 }, () => 0),
+    }
+
+    const state = syncWindOverlay(map, {
+      windField: field,
+      rendererOptions: { samplerLod: true },
+      visibility: { wind: true, windFlow: true, windSpeed: false },
+    })
+
+    assert.equal(state.renderer.samplerField.grid.nx, 3)
+    assert.equal(state.renderer.samplerField.grid.ny, 3)
+  } finally {
+    dom.restore()
+  }
+})
+
+test('WebGL renderer keeps the original sampler at close zoom', () => {
+  const dom = installDom({ webgl: true })
+  try {
+    const map = createMap(createContainer({ width: 640, height: 360 }), { zoom: 9 })
+    const state = syncWindOverlay(map, {
+      windField: FIELD_A,
+      rendererOptions: { samplerLod: true },
+      visibility: { wind: true, windFlow: true, windSpeed: false },
+    })
+
+    assert.equal(state.renderer.samplerField, FIELD_A)
+  } finally {
+    dom.restore()
+  }
+})
+
+test('WebGL renderer updates sampler LOD after zoom changes', () => {
+  const dom = installDom({ webgl: true })
+  try {
+    const map = createMap(createContainer({ width: 640, height: 360 }), { zoom: 5 })
+    const field = {
+      ...FIELD_A,
+      grid: { nx: 5, ny: 5, lonMin: 126, latMin: 36, lonMax: 130, latMax: 40, dx: 1, dy: 1 },
+      u: Array.from({ length: 25 }, (_, index) => index),
+      v: Array.from({ length: 25 }, () => 0),
+    }
+    const state = syncWindOverlay(map, {
+      windField: field,
+      rendererOptions: { samplerLod: true },
+      visibility: { wind: true, windFlow: true, windSpeed: false },
+    })
+    assert.equal(state.renderer.samplerField.grid.nx, 3)
+
+    map.setZoom(9)
+    state.renderer.redrawForMapInteraction()
+
+    assert.equal(state.renderer.samplerField, field)
+  } finally {
+    dom.restore()
+  }
+})
+
 test('WebGL renderer reuses particle vertex storage and updates GPU buffers incrementally', () => {
   const dom = installDom({ webgl: true })
   try {
@@ -1035,7 +1106,7 @@ test('WebGL renderer draws flow particles with default neutral gray color', () =
     const colorUniform = state.renderer.gl.__calls.find(
       (call) => call.method === 'uniform4fv' && call.args[0]?.name === 'u_flow_color',
     )
-    assert.deepEqual(colorUniform?.args[1], [148 / 255, 163 / 255, 184 / 255, 0.66])
+    assert.deepEqual(colorUniform?.args[1], [208 / 255, 216 / 255, 226 / 255, 0.66])
   } finally {
     dom.restore()
   }
@@ -1056,7 +1127,7 @@ test('Canvas renderer draws flow particles with default neutral gray color', () 
     const strokeCall = dom.createdCanvases
       .flatMap((canvas) => canvas.__calls)
       .find((call) => call.method === 'strokeStyle')
-    assert.equal(strokeCall?.args[0], 'rgba(148, 163, 184, 0.66)')
+    assert.equal(strokeCall?.args[0], 'rgba(208, 216, 226, 0.66)')
   } finally {
     dom.restore()
   }

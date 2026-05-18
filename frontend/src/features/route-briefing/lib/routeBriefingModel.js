@@ -78,8 +78,12 @@ export function chooseIapKeyForRunway(entry, iapData, runwayGroup) {
   if (candidateKeys.length === 0) return null
   if (!runwayGroup) return entry?.defaultIapKey ?? candidateKeys[0]
   return candidateKeys.find((key) =>
-    (iapData?.iapRoutes?.[key]?.representativeFor?.runwayGroup ?? []).includes(runwayGroup),
+    getIapRunwayGroups(iapData?.iapRoutes?.[key]).includes(runwayGroup),
   ) ?? entry?.defaultIapKey ?? candidateKeys[0]
+}
+
+function getIapRunwayGroups(iapRoute) {
+  return iapRoute?.representativeFor?.runwayGroup ?? iapRoute?.runways ?? []
 }
 
 export function formatBoundaryFixLabel(fix) {
@@ -120,7 +124,7 @@ export function buildIapCandidates(selectedStar, iapData, currentSelectedIapKey 
 
   const candidates = entry.candidateIapKeys.map((key) => ({
     key,
-    label: `RWY ${iapData.iapRoutes[key]?.representativeFor?.runwayGroup?.join(', ') ?? key}`,
+    label: `RWY ${getIapRunwayGroups(iapData.iapRoutes[key]).join(', ') || key}`,
   }))
 
   return {

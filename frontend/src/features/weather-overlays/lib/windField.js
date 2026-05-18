@@ -1,11 +1,11 @@
 export const WIND_SPEED_COLOR_RAMP = [
-  { min: 0, max: 2, label: '0-2 m/s', color: 'rgba(100, 116, 139, 0.35)' },
-  { min: 2, max: 5, label: '2-5 m/s', color: 'rgba(37, 99, 235, 0.35)' },
-  { min: 5, max: 8, label: '5-8 m/s', color: 'rgba(20, 184, 166, 0.35)' },
-  { min: 8, max: 12, label: '8-12 m/s', color: 'rgba(190, 242, 100, 0.35)' },
-  { min: 12, max: 16, label: '12-16 m/s', color: 'rgba(249, 115, 22, 0.35)' },
-  { min: 16, max: 22, label: '16-22 m/s', color: 'rgba(239, 68, 68, 0.35)' },
-  { min: 22, max: Infinity, label: '22+ m/s', color: 'rgba(244, 114, 182, 0.38)' },
+  { min: 0, max: 2, label: '0-4 kt', color: 'rgba(0, 126, 255, 0.38)' },
+  { min: 2, max: 5, label: '4-10 kt', color: 'rgba(0, 220, 165, 0.38)' },
+  { min: 5, max: 8, label: '10-16 kt', color: 'rgba(42, 220, 42, 0.38)' },
+  { min: 8, max: 12, label: '16-23 kt', color: 'rgba(220, 230, 0, 0.38)' },
+  { min: 12, max: 16, label: '23-31 kt', color: 'rgba(255, 150, 0, 0.38)' },
+  { min: 16, max: 22, label: '31-43 kt', color: 'rgba(240, 45, 20, 0.38)' },
+  { min: 22, max: Infinity, label: '43+ kt', color: 'rgba(222, 0, 190, 0.38)' },
 ]
 
 export function decodeWindComponent(value, field) {
@@ -20,6 +20,18 @@ function mix(a, b, t) {
   return a + (b - a) * t
 }
 
+function parseRgba(color) {
+  const match = String(color).match(/rgba\(([^)]+)\)/)
+  if (!match) return [255, 255, 255, 0]
+  const [r, g, b, a] = match[1].split(',').map((part) => Number.parseFloat(part.trim()))
+  return [r, g, b, a ?? 1]
+}
+
+function formatRgba([r, g, b, a]) {
+  const alpha = Math.round(a * 100) / 100
+  return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${alpha})`
+}
+
 function componentAt(values, field, index) {
   return decodeWindComponent(values[index], field)
 }
@@ -30,6 +42,8 @@ function gridStep(min, max, count, fallback) {
   }
   return fallback
 }
+
+const downsampleCache = new WeakMap()
 
 export function createWindFieldSampler(field) {
   const grid = field?.grid
@@ -74,8 +88,86 @@ export function createWindFieldSampler(field) {
   return { sample }
 }
 
+export function createDownsampledWindField(field, factor = 1) {
+  const grid = field?.grid
+  const step = Math.max(1, Math.round(factor))
+  if (step <= 1 || !grid || grid.nx <= 2 || grid.ny <= 2) return field
+
+  let byFactor = downsampleCache.get(field)
+  if (!byFactor) {
+    byFactor = new Map()
+    downsampleCache.set(field, byFactor)
+  }
+  if (byFactor.has(step)) return byFactor.get(step)
+
+  const nx = Math.max(2, Math.floor((grid.nx - 1) / step) + 1)
+  const ny = Math.max(2, Math.floor((grid.ny - 1) / step) + 1)
+  const lonMin = grid.lonMin
+  const lonMax = grid.lonMax
+  const latMin = grid.latMin
+  const latMax = grid.latMax
+  const dx = gridStep(lonMin, lonMax, nx, grid.dx * step)
+  const dy = gridStep(latMin, latMax, ny, grid.dy * step)
+  const sampler = createWindFieldSampler(field)
+  const u = []
+  const v = []
+
+  for (let y = 0; y < ny; y += 1) {
+    const lat = latMin + dy * y
+    for (let x = 0; x < nx; x += 1) {
+      const lon = lonMin + dx * x
+      const vector = sampler.sample(lon, lat)
+      u.push(vector?.u ?? Number.NaN)
+      v.push(vector?.v ?? Number.NaN)
+    }
+  }
+
+  const downsampled = {
+    ...field,
+    encoding: undefined,
+    scale: undefined,
+    offset: undefined,
+    grid: { nx, ny, lonMin, latMin, lonMax, latMax, dx, dy },
+    u,
+    v,
+  }
+  byFactor.set(step, downsampled)
+  return downsampled
+}
+
 export function pickWindSpeedColor(speed) {
   return WIND_SPEED_COLOR_RAMP.find((entry) => speed >= entry.min && speed < entry.max) || WIND_SPEED_COLOR_RAMP[0]
+}
+
+export function interpolateWindSpeedColor(speed, transitionFraction = 0.4) {
+  const value = Number(speed)
+  if (!Number.isFinite(value)) return 'rgba(0, 0, 0, 0)'
+  const stops = WIND_SPEED_COLOR_RAMP
+  if (value <= stops[0].min) return stops[0].color
+  const current = pickWindSpeedColor(value)
+  const transitionScale = Math.max(0, Math.min(1, Number(transitionFraction) || 0))
+
+  for (let index = 1; index < stops.length; index += 1) {
+    const previous = stops[index - 1]
+    const next = stops[index]
+    const boundary = next.min
+    const previousWidth = previous.max - previous.min
+    const nextWidth = Number.isFinite(next.max) ? next.max - next.min : previousWidth
+    const blendWidth = Math.min(previousWidth, nextWidth) * transitionScale
+    const halfWidth = blendWidth / 2
+    if (halfWidth <= 0 || value < boundary - halfWidth || value > boundary + halfWidth) continue
+
+    const t = (value - (boundary - halfWidth)) / blendWidth
+    const a = parseRgba(previous.color)
+    const b = parseRgba(next.color)
+    return formatRgba([
+      mix(a[0], b[0], t),
+      mix(a[1], b[1], t),
+      mix(a[2], b[2], t),
+      mix(a[3], b[3], t),
+    ])
+  }
+  return current.color
 }
 
 export function getWindFieldMeanSpeed(field) {
@@ -106,9 +198,11 @@ export function formatKimWindMetaLabel(field) {
 
 export default {
   WIND_SPEED_COLOR_RAMP,
+  createDownsampledWindField,
   createWindFieldSampler,
   decodeWindComponent,
   formatKimWindMetaLabel,
   getWindFieldMeanSpeed,
+  interpolateWindSpeedColor,
   pickWindSpeedColor,
 }

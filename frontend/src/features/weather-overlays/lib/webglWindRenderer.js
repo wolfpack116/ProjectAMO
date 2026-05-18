@@ -1,5 +1,6 @@
 import {
   WIND_SPEED_COLOR_RAMP,
+  createDownsampledWindField,
   createWindFieldSampler,
   decodeWindComponent,
   getWindFieldMeanSpeed,
@@ -15,14 +16,15 @@ const DEFAULTS = {
   speedOpacity: 0.35,
   sampleStep: 4,
   pixelRatioCap: 2,
-  flowColor: 'rgba(148, 163, 184, 0.66)',
+  flowColor: 'rgba(208, 216, 226, 0.66)',
   flowColorMode: 'neutral',
   flowOpacity: 0.66,
-  flowWidth: 1.8,
-  trailPersistence: 0.9,
+  flowWidth: 1.25,
+  trailPersistence: 0.87,
   particleDensityScale: 0.8,
   adaptiveParticleDensity: false,
   zoomAdaptiveDensity: false,
+  samplerLod: false,
 }
 
 function clamp(value, min, max) {
@@ -169,6 +171,16 @@ function getZoomDensityFactor(map, enabled) {
   return 0.75 - ((zoom - 9) / 2) * 0.1
 }
 
+function getSamplerLodFactor(map, options) {
+  if (!options.samplerLod) return 1
+  if (Number.isFinite(options.samplerLodFactor)) return Math.max(1, Math.round(options.samplerLodFactor))
+  const zoom = map.getZoom?.()
+  if (!Number.isFinite(zoom)) return 1
+  if (zoom <= 4) return 4
+  if (zoom <= 6) return 2
+  return 1
+}
+
 function makeParticle(bounds, maxAge) {
   return {
     lon: bounds.getWest() + Math.random() * (bounds.getEast() - bounds.getWest()),
@@ -254,6 +266,7 @@ export class WebGLWindRenderer {
     this.canvas = this.flowCanvas
     this.visibility = { flow: false, speed: false }
     this.windField = null
+    this.samplerField = null
     this.sampler = { sample: () => null }
     this.particles = []
     this.segmentVertexCount = 0
@@ -288,6 +301,7 @@ export class WebGLWindRenderer {
     this.options = { ...DEFAULTS, ...options }
     this.flowColor = parseRgbaColor(this.options.flowColor)
     this.flowColor[3] = clamp(this.options.flowOpacity, 0.2, 1)
+    if (this.windField) this.setSamplerField(this.windField)
     this.ensureParticles()
     this.buildParticleGeometry()
     this.redraw()
@@ -339,11 +353,20 @@ export class WebGLWindRenderer {
 
     this.windField = windField
     this.pendingWindField = null
-    this.sampler = createWindFieldSampler(windField)
+    this.setSamplerField(windField)
     this.ensureParticles()
     this.buildParticleGeometry()
     this.redraw()
     return Promise.resolve(true)
+  }
+
+  setSamplerField(windField) {
+    const factor = getSamplerLodFactor(this.map, this.options)
+    if (this.samplerSourceField === windField && this.samplerLodFactor === factor) return
+    this.samplerSourceField = windField
+    this.samplerLodFactor = factor
+    this.samplerField = createDownsampledWindField(windField, factor)
+    this.sampler = createWindFieldSampler(this.samplerField)
   }
 
   setVisibility({ flow = false } = {}) {
@@ -498,6 +521,7 @@ export class WebGLWindRenderer {
       this.clearFlowLayer()
       return
     }
+    this.setSamplerField(this.windField)
     this.ensureParticles()
     this.buildParticleGeometry()
     this.clearFlowLayer()

@@ -9,15 +9,29 @@
     "HAEGU|36": "RKPU-IAP-HAEGU-RWY36-REP"
   },
   "starToIapCandidates": {
-    "RKPU-STAR-MAKKY-REP": {
-      "starName": "MAKKY ARRIVAL",
+    "RKPU-STAR-LAPAL2D": {
+      "starName": "LAPAL 2D",
       "endFix": "MAKKY",
       "runways": ["18"],
       "candidateIapKeys": ["RKPU-IAP-MAKKY-RWY18-REP"],
       "defaultIapKey": "RKPU-IAP-MAKKY-RWY18-REP"
     },
-    "RKPU-STAR-HAEGU-REP": {
-      "starName": "HAEGU ARRIVAL",
+    "RKPU-STAR-APARU2D": {
+      "starName": "APARU 2D",
+      "endFix": "MAKKY",
+      "runways": ["18"],
+      "candidateIapKeys": ["RKPU-IAP-MAKKY-RWY18-REP"],
+      "defaultIapKey": "RKPU-IAP-MAKKY-RWY18-REP"
+    },
+    "RKPU-STAR-LAPAL2C": {
+      "starName": "LAPAL 2C",
+      "endFix": "HAEGU",
+      "runways": ["36"],
+      "candidateIapKeys": ["RKPU-IAP-HAEGU-RWY36-REP"],
+      "defaultIapKey": "RKPU-IAP-HAEGU-RWY36-REP"
+    },
+    "RKPU-STAR-APARU2C": {
+      "starName": "APARU 2C",
       "endFix": "HAEGU",
       "runways": ["36"],
       "candidateIapKeys": ["RKPU-IAP-HAEGU-RWY36-REP"],

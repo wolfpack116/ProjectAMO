@@ -4,7 +4,7 @@ export const AIRPORT_SOURCE_ID = 'kma-weather-airports'
 export const AIRPORT_CIRCLE_LAYER = 'kma-weather-airports-circle'
 export const AIRPORT_LABEL_LAYER = 'kma-weather-airports-label'
 
-export const GEO_BOUNDARY_COLOR = '#facc15'
+export const GEO_BOUNDARY_COLOR = '#111827'
 export const GEO_BOUNDARY_WIDTH = 1
 export const GEO_SIGUNGU_MIN_ZOOM = 9
 export const GEO_LAYERS = [

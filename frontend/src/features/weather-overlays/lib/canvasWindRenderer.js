@@ -1,4 +1,9 @@
-import { createWindFieldSampler, getWindFieldMeanSpeed, pickWindSpeedColor } from './windField.js'
+import {
+  createDownsampledWindField,
+  createWindFieldSampler,
+  getWindFieldMeanSpeed,
+  pickWindSpeedColor,
+} from './windField.js'
 
 const DEFAULTS = {
   desktopCap: 4000,
@@ -10,14 +15,15 @@ const DEFAULTS = {
   speedOpacity: 0.35,
   sampleStep: 3,
   pixelRatioCap: 2,
-  flowColor: 'rgba(148, 163, 184, 0.66)',
+  flowColor: 'rgba(208, 216, 226, 0.66)',
   flowColorMode: 'neutral',
   flowOpacity: 0.66,
-  flowWidth: 1.8,
-  trailPersistence: 0.9,
+  flowWidth: 1.25,
+  trailPersistence: 0.87,
   particleDensityScale: 0.8,
   adaptiveParticleDensity: false,
   zoomAdaptiveDensity: false,
+  samplerLod: false,
 }
 
 function clamp(value, min, max) {
@@ -36,7 +42,7 @@ function getBackingStorePixelRatio(cap) {
 function withAlpha(color, alpha) {
   const nextAlpha = clamp(Number(alpha), 0.2, 1)
   const match = String(color).match(/rgba?\(([^)]+)\)/)
-  if (!match) return `rgba(148, 163, 184, ${nextAlpha})`
+  if (!match) return `rgba(208, 216, 226, ${nextAlpha})`
   const [r, g, b] = match[1].split(',').map((part) => Number.parseFloat(part.trim()))
   return `rgba(${r}, ${g}, ${b}, ${nextAlpha})`
 }
@@ -59,6 +65,16 @@ function getZoomDensityFactor(map, enabled) {
   if (zoom <= 7) return 1 - ((zoom - 5) / 2) * 0.1
   if (zoom <= 9) return 0.9 - ((zoom - 7) / 2) * 0.15
   return 0.75 - ((zoom - 9) / 2) * 0.1
+}
+
+function getSamplerLodFactor(map, options) {
+  if (!options.samplerLod) return 1
+  if (Number.isFinite(options.samplerLodFactor)) return Math.max(1, Math.round(options.samplerLodFactor))
+  const zoom = map.getZoom?.()
+  if (!Number.isFinite(zoom)) return 1
+  if (zoom <= 4) return 4
+  if (zoom <= 6) return 2
+  return 1
 }
 
 function makeParticle(bounds, maxAge) {
@@ -124,6 +140,7 @@ export class CanvasWindRenderer {
     this.container.appendChild(this.flowCanvas)
     this.particles = []
     this.windField = null
+    this.samplerField = null
     this.sampler = { sample: () => null }
     this.visibility = { flow: false, speed: false }
     this.frameId = null
@@ -134,13 +151,23 @@ export class CanvasWindRenderer {
 
   setOptions(options = {}) {
     this.options = { ...DEFAULTS, ...options }
+    if (this.windField) this.setSamplerField(this.windField)
     this.ensureParticles()
   }
 
   setData(windField) {
     this.windField = windField
-    this.sampler = createWindFieldSampler(windField)
+    this.setSamplerField(windField)
     this.ensureParticles()
+  }
+
+  setSamplerField(windField) {
+    const factor = getSamplerLodFactor(this.map, this.options)
+    if (this.samplerSourceField === windField && this.samplerLodFactor === factor) return
+    this.samplerSourceField = windField
+    this.samplerLodFactor = factor
+    this.samplerField = createDownsampledWindField(windField, factor)
+    this.sampler = createWindFieldSampler(this.samplerField)
   }
 
   setVisibility({ flow = false } = {}) {
@@ -215,6 +242,7 @@ export class CanvasWindRenderer {
 
   redrawForMapInteraction() {
     if (this.visibility.flow) {
+      this.setSamplerField(this.windField)
       this.ensureParticles()
       this.drawParticleSnapshot()
     }

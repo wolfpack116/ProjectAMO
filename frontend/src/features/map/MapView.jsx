@@ -91,7 +91,7 @@ function initAviationVisibility() {
 function initMetVisibility() {
   const visibility = MET_LAYERS.reduce((acc, l) => { acc[l.id] = false; return acc }, {})
   visibility.windFlow = true
-  visibility.windSpeed = false
+  visibility.windSpeed = true
   return visibility
 }
 
@@ -155,9 +155,9 @@ function MapView({
   const [weatherTimelineIndex, setWeatherTimelineIndex] = useState(-1)
   const [weatherTimelinePlaying, setWeatherTimelinePlaying] = useState(false)
   const [weatherTimelineSpeed, setWeatherTimelineSpeed] = useState(1)
-  const [windFlowOpacity, setWindFlowOpacity] = useState(0.66)
+  const [windFlowOpacity, setWindFlowOpacity] = useState(0.8)
   const [windFlowTrail, setWindFlowTrail] = useState(0.9)
-  const [windFlowWidth, setWindFlowWidth] = useState(1.8)
+  const [windFlowWidth, setWindFlowWidth] = useState(1.5)
   const [sigwxHistoryIndex, setSigwxHistoryIndex] = useState(0)
   const [sigwxLegendOpen, setSigwxLegendOpen] = useState(false)
   const [openAdvisoryPanel, setOpenAdvisoryPanel] = useState(null)
@@ -182,6 +182,7 @@ function MapView({
       : {}),
     adaptiveParticleDensity: true,
     zoomAdaptiveDensity: true,
+    samplerLod: true,
     flowColorMode: metVisibility.windSpeed ? 'neutral' : 'speed',
     flowOpacity: windFlowOpacity,
     flowWidth: windFlowWidth,
@@ -455,7 +456,7 @@ function MapView({
           ...prev,
           wind: nextWind,
           windFlow: nextWind ? !kimSurfaceWind.lowPower : prev.windFlow,
-          windSpeed: nextWind ? false : prev.windSpeed,
+          windSpeed: nextWind ? true : prev.windSpeed,
         }
       }
       return { ...prev, [id]: !prev[id] }
@@ -711,8 +712,8 @@ function MapView({
   useEffect(() => {
     const map = mapRef.current
     if (!map || !isStyleReady) return
-    setGeoBoundaryVisibility(map, metVisibility.satellite || metVisibility.radar)
-  }, [metVisibility.satellite, metVisibility.radar, isStyleReady, styleRevision])
+    setGeoBoundaryVisibility(map, basemapId === 'dark' || metVisibility.satellite || metVisibility.radar)
+  }, [basemapId, metVisibility.satellite, metVisibility.radar, isStyleReady, styleRevision])
 
   // ???? Sync ADS-B ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 

@@ -1,6 +1,6 @@
 import CanvasWindRenderer from './canvasWindRenderer.js'
 import WebGLWindRenderer from './webglWindRenderer.js'
-import { decodeWindComponent, pickWindSpeedColor } from './windField.js'
+import { decodeWindComponent, interpolateWindSpeedColor } from './windField.js'
 
 const overlays = new WeakMap()
 const canvasFallbackMaps = new WeakSet()
@@ -111,7 +111,7 @@ function buildWindSpeedImage(windField) {
         const v = decodeWindComponent(windField.v[sourceIndex], windField)
         const [r, g, b, a] = u == null || v == null
           ? [0, 0, 0, 0]
-          : parseRgba(pickWindSpeedColor(Math.hypot(u, v)).color)
+          : parseRgba(interpolateWindSpeedColor(Math.hypot(u, v)))
         const targetIndex = (y * grid.nx + x) * 4
         imageData.data[targetIndex] = r
         imageData.data[targetIndex + 1] = g
@@ -128,7 +128,7 @@ function buildWindSpeedImage(windField) {
         const u = decodeWindComponent(windField.u[sourceIndex], windField)
         const v = decodeWindComponent(windField.v[sourceIndex], windField)
         if (u == null || v == null) continue
-        ctx.fillStyle = pickWindSpeedColor(Math.hypot(u, v)).color
+        ctx.fillStyle = interpolateWindSpeedColor(Math.hypot(u, v))
         ctx.fillRect(x, y, 1, 1)
       }
     }
@@ -180,7 +180,7 @@ function syncWindSpeedImageLayer(map, state, windField, visibility = {}) {
       source: WIND_SPEED_SOURCE_ID,
       slot: 'middle',
       layout: { visibility: 'visible' },
-      paint: { 'raster-opacity': 1, 'raster-fade-duration': 0 },
+      paint: { 'raster-opacity': 1, 'raster-fade-duration': 0, 'raster-resampling': 'linear' },
     })
   }
   setWindSpeedImageVisible(map, true)

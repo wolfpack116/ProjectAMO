@@ -5,6 +5,7 @@ import {
   buildIfrDistanceBreakdown,
   buildIfrSequenceTokens,
   buildInitialVfrWaypoints,
+  buildIapCandidates,
   chooseIapKeyForRunway,
   getCurrentRouteLineString,
   pickBestRunwayGroup,
@@ -26,6 +27,28 @@ test('chooseIapKeyForRunway preserves default behavior when runway is missing', 
 
   assert.equal(chooseIapKeyForRunway(entry, iapData, null), 'ILS33')
   assert.equal(chooseIapKeyForRunway(entry, iapData, '15'), 'ILS15')
+})
+
+test('buildIapCandidates matches RKPU STAR ids to representative IAP routes', () => {
+  const selectedStar = { id: 'RKPU-STAR-LAPAL2D' }
+  const iapData = {
+    starToIapCandidates: {
+      'RKPU-STAR-LAPAL2D': {
+        candidateIapKeys: ['RKPU-IAP-MAKKY-RWY18-REP'],
+        defaultIapKey: 'RKPU-IAP-MAKKY-RWY18-REP',
+      },
+    },
+    iapRoutes: {
+      'RKPU-IAP-MAKKY-RWY18-REP': {
+        runways: ['18'],
+      },
+    },
+  }
+
+  assert.deepEqual(buildIapCandidates(selectedStar, iapData), {
+    candidates: [{ key: 'RKPU-IAP-MAKKY-RWY18-REP', label: 'RWY 18' }],
+    selectedIapKey: 'RKPU-IAP-MAKKY-RWY18-REP',
+  })
 })
 
 test('buildBoundaryFixOptions filters and labels FIR IN and FIR EXIT fixes', () => {
