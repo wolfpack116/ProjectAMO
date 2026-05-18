@@ -79,6 +79,10 @@ ProjectAMO/
 - `frontend/src/features/weather-overlays/AdvisoryBadges.jsx` -> SIGMET/AIRMET advisory badges.
 - `frontend/src/features/weather-overlays/lib/weatherOverlayModel.js` -> weather overlay derived model for timeline, SIGWX history/filter state, advisory panel data, badge counts, and legend labels.
 - `frontend/src/features/weather-overlays/lib/weatherOverlayLayers.js` -> MET panel layer definitions, weather overlay source/layer ownership IDs, static weather overlay installation, and radar/satellite/SIGWX/advisory/lightning Mapbox sync helpers.
+- `frontend/src/features/weather-overlays/lib/windField.js` -> KIM surface wind decoding, interpolation sampler, color ramp, and metadata label helpers.
+- `frontend/src/features/weather-overlays/lib/windOverlaySync.js` -> wind overlay renderer lifecycle adapter, WebGL-first selection, Canvas fallback, and Mapbox event sync.
+- `frontend/src/features/weather-overlays/lib/canvasWindRenderer.js` -> Canvas 2D fallback renderer for KIM wind flow and speed overlays.
+- `frontend/src/features/weather-overlays/lib/webglWindRenderer.js` -> WebGL wind renderer for KIM wind flow particles and speed color cells.
 - `frontend/src/features/weather-overlays/lib/lightningLayers.js` -> lightning GeoJSON, icon, layer, visibility, and blink helpers.
 - `frontend/src/features/weather-overlays/lib/advisoryLayers.js` -> SIGMET/AIRMET GeoJSON and layer helpers.
 - `frontend/src/features/weather-overlays/lib/sigwxData.js` -> SIGWX_LOW GeoJSON/icon mapping helpers.

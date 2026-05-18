@@ -44,6 +44,7 @@ function createOverlayCanvas(role, zIndex) {
 
 export class CanvasWindRenderer {
   constructor(map, options = {}) {
+    this.type = 'canvas'
     this.map = map
     this.options = { ...DEFAULTS, ...options }
     this.container = map.getContainer()
@@ -59,6 +60,7 @@ export class CanvasWindRenderer {
     this.visibility = { flow: false, speed: false }
     this.frameId = null
     this.lastFrameAt = 0
+    this.destroyed = false
     this.resize()
   }
 
@@ -121,8 +123,13 @@ export class CanvasWindRenderer {
 
   destroy() {
     this.stop()
+    this.destroyed = true
     if (this.flowCanvas.parentNode) this.flowCanvas.parentNode.removeChild(this.flowCanvas)
     if (this.speedCanvas.parentNode) this.speedCanvas.parentNode.removeChild(this.speedCanvas)
+  }
+
+  redraw() {
+    if (this.visibility.speed) this.drawSpeedLayer()
   }
 
   frame(time) {

@@ -809,7 +809,7 @@ React state로 animation frame마다 값을 밀어 넣지 않는다. renderer는
 
 ### Canvas to WebGL 전환 경계
 
-Canvas 2D에서 WebGL로 넘어갈 때 바꾸는 대상은 renderer 내부뿐이어야 한다.
+Canvas 2D에서 WebGL로 넘어갈 때 바꾸는 대상은 renderer 내부뿐이어야 한다. Phase 1 `CanvasWindRenderer`는 삭제하지 않고 WebGL 미지원 또는 실패 환경의 fallback renderer로 유지한다.
 
 공유해야 하는 것:
 
@@ -834,6 +834,7 @@ WebGL 전환 시 새로 구현할 것:
 - advection shader
 - trail framebuffer
 - color ramp shader
+- WebGL context 생성 실패, shader 초기화 실패, runtime context lost 시 `CanvasWindRenderer` fallback
 
 ### cleanup
 
@@ -933,7 +934,17 @@ Canvas 2D 1차 구현 후 다음 조건 중 하나 이상이면 WebGL 전환을 
 - wind speed color pass와 particle pass를 함께 켰을 때 CPU 사용량이 높다.
 - 사용자가 Windy에 가까운 밀도와 trail 품질을 명확히 요구한다.
 
-WebGL 전환 시에도 백엔드 API와 MET panel UI는 유지한다. 교체 대상은 `CanvasWindRenderer`에서 `WebGLWindRenderer`로 한정한다.
+WebGL 전환 시에도 백엔드 API와 MET panel UI는 유지한다. 교체 대상은 기본 renderer 선택을 `CanvasWindRenderer` 단독에서 `WebGLWindRenderer` 우선으로 바꾸는 것에 한정한다.
+
+renderer 선택 정책:
+
+```text
+WebGL 사용 가능 -> WebGLWindRenderer 사용
+WebGL context 생성 실패, shader 초기화 실패, runtime context lost -> CanvasWindRenderer fallback
+Canvas fallback도 실패 -> Wind overlay만 cleanup/disabled, 지도와 나머지 UI는 유지
+```
+
+`windOverlaySync.js`는 이 선택과 fallback을 weather overlay 경계 안에서 처리한다. `MapView.jsx`는 renderer 종류를 알지 않아야 하며, 기존처럼 wind field, visibility, styleRevision에 따른 high-level sync 호출만 맡는다.
 
 ## 확정 결정과 후속 검토
 
