@@ -10,6 +10,17 @@ import warningTypes from '../shared/warning-types.js'
 import alertDefaults from '../shared/alert-defaults.js'
 import { buildVerticalProfile } from './src/briefing/vertical-profile.js'
 import { createDefaultTerrainSampler } from './src/terrain/terrain-sampler.js'
+import {
+  buildKimTemperatureFieldFromGrid,
+  buildKimSurfaceWindFieldFromWindGrid,
+  filterKimNwpIndexForVariables,
+} from './src/processors/kim-nwp-model.js'
+import {
+  readKimNwpGrid,
+  readKimNwpIndex,
+  readKimNwpLatest,
+  validateKimNwpSelection,
+} from './src/processors/kim-nwp-store.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -140,6 +151,23 @@ function buildHashEntry(type) {
   return { hash: data.content_hash || store.canonicalHash(data) }
 }
 
+function buildKimNwpSnapshotEntry() {
+  const latest = readKimNwpLatest(DATA_ROOT)
+  if (!latest) return null
+  const index = readKimNwpIndex(DATA_ROOT)
+  const uvIndex = index ? filterKimNwpIndexForVariables(index, ['u', 'v']) : null
+  const tempIndex = index ? filterKimNwpIndexForVariables(index, ['T']) : null
+  return {
+    hash: latest.content_hash || store.canonicalHash(latest),
+    tmfc: latest.latestRun || null,
+    updated_at: latest.updated_at || null,
+    variables: {
+      uv: { hash: uvIndex ? store.canonicalHash(uvIndex) : null },
+      T: { hash: tempIndex ? store.canonicalHash(tempIndex) : null },
+    },
+  }
+}
+
 function buildFrameEntry(filePath) {
   const payload = readJsonFileSafe(filePath)
   if (!payload?.tm) return null
@@ -173,6 +201,7 @@ function buildSnapshotMeta() {
     hf: kimSurfaceWindData.time?.hf ?? null,
     updated_at: kimSurfaceWindData.fetched_at || null,
   } : null
+  const kimNwp = buildKimNwpSnapshotEntry()
 
   return {
     metar: buildHashEntry('metar'),
@@ -185,6 +214,10 @@ function buildSnapshotMeta() {
     amos: buildHashEntry('amos'),
     lightning: buildHashEntry('lightning'),
     adsb: buildHashEntry('adsb'),
+    kimNwp,
+    kim_nwp: kimNwp,
+    kimWind: kimNwp || kimSurfaceWind,
+    kim_wind: kimNwp || kimSurfaceWind,
     kimSurfaceWind,
     kim_surface_wind: kimSurfaceWind,
     groundForecast,
@@ -202,6 +235,81 @@ function buildSnapshotMeta() {
   }
 }
 
+export function filterKimNwpIndexForMap(index, nowMs = Date.now()) {
+  const exposedTimes = (index?.times || []).filter((time) => {
+    const validMs = Date.parse(time.validTime)
+    return Number.isFinite(validMs) && validMs >= nowMs
+  })
+  const exposedHfs = new Set(exposedTimes.map((time) => String(time.hf)))
+  const availability = {}
+  for (const [levelId, byHf] of Object.entries(index?.availability || {})) {
+    for (const [hf, entry] of Object.entries(byHf || {})) {
+      if (!exposedHfs.has(String(hf))) continue
+      availability[levelId] ||= {}
+      availability[levelId][String(hf)] = entry
+    }
+  }
+  const levels = (index?.levels || []).filter((level) => availability[level.id])
+  return { ...index, levels, times: exposedTimes, availability }
+}
+
+function selectDefaultKimNwpField(index) {
+  const preferredLevel = index?.levels?.find((level) => level.id === '10m') || index?.levels?.[0]
+  if (!preferredLevel) return null
+  const time = (index.times || []).find((candidate) =>
+    index.availability?.[preferredLevel.id]?.[String(candidate.hf)])
+  if (!time) return null
+  return { tmfc: index.latestRun, hf: time.hf, level: preferredLevel.id }
+}
+
+function readSelectedKimNwpField(selection) {
+  validateKimNwpSelection({ tmfc: selection.tmfc, hf: selection.hf, levelId: selection.level })
+  const grid = readKimNwpGrid({
+    root: DATA_ROOT,
+    model: 'KIMG/NE57',
+    tmfc: selection.tmfc,
+    hf: Number(selection.hf),
+    levelId: selection.level,
+  })
+  return buildKimSurfaceWindFieldFromWindGrid(grid)
+}
+
+function readSelectedKimTempField(selection) {
+  validateKimNwpSelection({ tmfc: selection.tmfc, hf: selection.hf, levelId: selection.level })
+  const grid = readKimNwpGrid({
+    root: DATA_ROOT,
+    model: 'KIMG/NE57',
+    tmfc: selection.tmfc,
+    hf: Number(selection.hf),
+    levelId: selection.level,
+  })
+  return buildKimTemperatureFieldFromGrid(grid)
+}
+
+function sendKimWindField(req, res, { allowDefault = false } = {}) {
+  try {
+    let selection = {
+      tmfc: String(req.query.tmfc || ''),
+      hf: Number(req.query.hf),
+      level: String(req.query.level || ''),
+    }
+
+    if (allowDefault && (!selection.tmfc || !selection.level || !Number.isFinite(selection.hf))) {
+      const index = readKimNwpIndex(DATA_ROOT)
+      selection = index ? selectDefaultKimNwpField(filterKimNwpIndexForMap(index)) : null
+    }
+
+    if (!selection) {
+      res.status(503).json({ error: 'kim wind field unavailable' })
+      return
+    }
+
+    res.json(readSelectedKimNwpField(selection))
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'invalid kim wind selection' })
+  }
+}
+
 app.get('/api/metar', (_, res) => sendLatest(res, 'metar'))
 app.get('/api/taf', (_, res) => sendLatest(res, 'taf'))
 app.get('/api/warning', (_, res) => sendLatest(res, 'warning'))
@@ -211,7 +319,47 @@ app.get('/api/sigwx-low', (_, res) => sendLatest(res, 'sigwx_low'))
 app.get('/api/lightning', (_, res) => sendLatest(res, 'lightning'))
 app.get('/api/amos', (_, res) => sendLatest(res, 'amos'))
 app.get('/api/adsb', (_, res) => sendLatest(res, 'adsb'))
-app.get('/api/kim/surface-wind', (_, res) => sendLatest(res, 'kim_surface_wind'))
+app.get('/api/kim/surface-wind', (req, res) => {
+  const hasSelection = req.query.tmfc || req.query.hf || req.query.level
+  const index = readKimNwpIndex(DATA_ROOT)
+  if (index) {
+    sendKimWindField(req, res, { allowDefault: !hasSelection })
+    return
+  }
+  sendLatest(res, 'kim_surface_wind')
+})
+app.get('/api/kim/wind/index', (_req, res) => {
+  const index = readKimNwpIndex(DATA_ROOT)
+  if (index) {
+    res.json(filterKimNwpIndexForVariables(filterKimNwpIndexForMap(index), ['u', 'v']))
+    return
+  }
+  res.status(503).json({ error: 'kim wind index unavailable' })
+})
+app.get('/api/kim/wind/field', (req, res) => sendKimWindField(req, res))
+app.get('/api/kim/temp/index', (_req, res) => {
+  const index = readKimNwpIndex(DATA_ROOT)
+  if (index) {
+    res.json({
+      ...filterKimNwpIndexForVariables(filterKimNwpIndexForMap(index), ['T']),
+      type: 'kim_nwp_temp_index',
+    })
+    return
+  }
+  res.status(503).json({ error: 'kim temp index unavailable' })
+})
+app.get('/api/kim/temp/field', (req, res) => {
+  try {
+    const selection = {
+      tmfc: String(req.query.tmfc || ''),
+      hf: Number(req.query.hf),
+      level: String(req.query.level || ''),
+    }
+    res.json(readSelectedKimTempField(selection))
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'invalid kim temp selection' })
+  }
+})
 app.get('/api/ground-forecast', (_, res) => sendLatest(res, 'ground_forecast'))
 app.get('/api/ground-overview', (_, res) => sendLatest(res, 'ground_overview'))
 app.get('/api/environment', (_, res) => sendLatest(res, 'environment'))

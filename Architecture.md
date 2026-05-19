@@ -73,14 +73,21 @@ ProjectAMO/
 - `frontend/src/features/weather-overlays/WeatherOverlayPanel.jsx` -> MET overlay toggle panel.
 - `frontend/src/features/weather-overlays/WeatherTimelineBar.jsx` -> shared bottom playback timeline for radar, satellite, and lightning overlay frames.
 - `frontend/src/features/weather-overlays/AdsbTimestamp.jsx` -> ADS-B reference-time display pill.
-- `frontend/src/features/weather-overlays/WeatherLegends.jsx` -> radar/satellite/weather legend UI.
+- `frontend/src/features/weather-overlays/WeatherLegends.jsx` -> radar/satellite/weather/wind/temperature legend UI.
 - `frontend/src/features/weather-overlays/SigwxLegendDialog.jsx` -> SIGWX legend dialog.
 - `frontend/src/features/weather-overlays/SigwxHistoryBar.jsx` -> SIGWX history controls.
 - `frontend/src/features/weather-overlays/AdvisoryBadges.jsx` -> SIGMET/AIRMET advisory badges.
 - `frontend/src/features/weather-overlays/lib/weatherOverlayModel.js` -> weather overlay derived model for timeline, SIGWX history/filter state, advisory panel data, badge counts, and legend labels.
 - `frontend/src/features/weather-overlays/lib/weatherOverlayLayers.js` -> MET panel layer definitions, weather overlay source/layer ownership IDs, static weather overlay installation, and radar/satellite/SIGWX/advisory/lightning Mapbox sync helpers.
-- `frontend/src/features/weather-overlays/lib/windField.js` -> KIM surface wind decoding, interpolation sampler, color ramp, and metadata label helpers.
+- `frontend/src/features/weather-overlays/NwpSliderBar.jsx` -> shared KIM NWP bottom time slider and right-side level slider UI.
+- `frontend/src/features/weather-overlays/NwpSliderBarModel.js` -> pure KIM NWP slider option and time tick formatting helpers.
+- `frontend/src/features/weather-overlays/lib/useKimSurfaceWind.js` -> KIM wind index/field selection hook with shared selection support, field cache, request cancellation, and stale response guards.
+- `frontend/src/features/weather-overlays/lib/useKimSurfaceWind.test.js` -> KIM wind selection/index helper tests.
+- `frontend/src/features/weather-overlays/lib/useKimTemperature.js` -> KIM temperature index/field hook with selected-field cache, request cancellation, and variable-hash refresh.
+- `frontend/src/features/weather-overlays/lib/windField.js` -> KIM selected wind field decoding, interpolation sampler, shared kt color ramp, and metadata label helpers.
 - `frontend/src/features/weather-overlays/lib/windOverlaySync.js` -> wind overlay renderer lifecycle adapter, WebGL-first selection, Canvas fallback, and Mapbox event sync.
+- `frontend/src/features/weather-overlays/lib/temperatureField.js` -> KIM temperature field decoding, Kelvin-to-Celsius display conversion, sampler, and fixed Celsius color ramp.
+- `frontend/src/features/weather-overlays/lib/temperatureOverlaySync.js` -> temperature Canvas raster generation and Mapbox image overlay lifecycle sync.
 - `frontend/src/features/weather-overlays/lib/canvasWindRenderer.js` -> Canvas 2D fallback renderer for KIM wind flow and speed overlays.
 - `frontend/src/features/weather-overlays/lib/webglWindRenderer.js` -> WebGL wind renderer for KIM wind flow particles and speed color cells.
 - `frontend/src/features/weather-overlays/lib/lightningLayers.js` -> lightning GeoJSON, icon, layer, visibility, and blink helpers.
@@ -126,6 +133,11 @@ ProjectAMO/
 - `backend/src/store.js` -> in-memory cache and SHA-256 change detection.
 - `backend/src/parsers/*` -> per-type raw response parsers.
 - `backend/src/processors/*` -> per-type normalized data processors.
+- `backend/src/processors/kim-surface-wind-processor.js` -> existing KIM scheduled job/lock orchestrator for multi-level NWP wind plus serial Temp collection, publishing canonical `DATA_PATH/kim_nwp/` while preserving the legacy surface-wind cache.
+- `backend/src/processors/kim-nwp-store.js` -> canonical `DATA_PATH/kim_nwp/` store helpers for safe path resolution, atomic manifest/grid/index/latest writes, reads, usable-run manifest checks, and run retention.
+- `backend/src/processors/kim-nwp-model.js` -> KIM NWP levels/forecast hours, normalized variable grid builder, compact index filtering, and wind/temperature renderer-compatible field conversion.
+- `backend/test/kim-nwp-store.test.js` -> KIM NWP store path validation, atomic write/read, compact index, and retention tests.
+- `backend/test/kim-nwp-model.test.js` -> KIM NWP wind grid, index, and compatibility field model tests.
 - `backend/collect.js` -> manual one-shot collector.
 - `scripts/prepare-terrain-tiles.js` -> converts decompressed Korea 3-second DEM into 1-degree terrain tiles.
 

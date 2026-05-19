@@ -25,7 +25,12 @@
       "Bash(python -c \"import pdfplumber; print\\('ok'\\)\")",
       "Bash(python parse_rksi_star.py)",
       "Bash(python -c \"from pdf2image import convert_from_path; print\\('ok'\\)\")",
-      "Bash(xargs grep -l \"route-check\\\\|RouteCheck\\\\|routeCheck\\\\|routePlanner\\\\|ROUTE_PREVIEW\")"
+      "Bash(xargs grep -l \"route-check\\\\|RouteCheck\\\\|routeCheck\\\\|routePlanner\\\\|ROUTE_PREVIEW\")",
+      "WebSearch",
+      "WebFetch(domain:claude.com)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const p='C:\\\\\\\\\\\\\\\\Users\\\\\\\\\\\\\\\\Jond Doe\\\\\\\\\\\\\\\\Desktop\\\\\\\\\\\\\\\\Project\\\\\\\\\\\\\\\\ProjectAMO\\\\\\\\\\\\\\\\CLAUDE.md';const t=fs.readFileSync\\(p,'utf8'\\).replace\\(/\\\\r\\\\n/g,'\\\\n'\\).replace\\(/\\\\n/g,'\\\\r\\\\n'\\);fs.writeFileSync\\(p,t,'utf8'\\);console.log\\('Converted to CRLF'\\)\")",
+      "Bash(node \"C:\\\\Users\\\\Jond Doe\\\\Desktop\\\\Project\\\\ProjectAMO\\\\_normalize_crlf.cjs\")",
+      "Bash(node -e \"const fs=require\\('fs'\\);const f='C:/Users/Jond Doe/Desktop/Project/ProjectAMO/CLAUDE.md';fs.writeFileSync\\(f,fs.readFileSync\\(f,'utf8'\\).replace\\(/\\\\r\\\\n/g,'\\\\n'\\).replace\\(/\\\\n/g,'\\\\r\\\\n'\\),'utf8'\\)\")"
     ]
   }
 }

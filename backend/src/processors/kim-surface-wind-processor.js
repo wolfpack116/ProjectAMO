@@ -1,42 +1,34 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import config from '../config.js'
 import { fetchKimGrid } from '../api-client.js'
 import { parseKimGridText } from '../parsers/kim-grid-parser.js'
 import store from '../store.js'
+import {
+  KIM_NWP_FORECAST_HOURS,
+  KIM_NWP_LEVELS,
+  KIM_NWP_MODEL,
+  buildKimNwpGrid,
+  buildKimNwpIndex,
+  buildKimWindGrid,
+  buildKimSurfaceWindFieldFromWindGrid,
+} from './kim-nwp-model.js'
+import {
+  buildKimNwpRunId,
+  cleanupKimNwpRuns,
+  readKimNwpGrid,
+  resolveKimNwpGridPath,
+  resolveKimNwpRunDir,
+  writeKimNwpGrid,
+  writeKimNwpIndex,
+  writeKimNwpLatest,
+  writeKimNwpManifest,
+} from './kim-nwp-store.js'
 
 const TYPE = 'kim_surface_wind'
 const MODEL = 'KIMG/NE57'
-const SCALE = 0.01
-const OFFSET = 0
 const SYNOPTIC_HOURS = [0, 6, 12, 18]
-
-function round(value, digits = 3) {
-  const factor = 10 ** digits
-  return Math.round(value * factor) / factor
-}
-
-function encodeComponent(values) {
-  return values.map((value) => Math.round((value - OFFSET) / SCALE))
-}
-
-function parseTmfc(tmfc) {
-  const raw = String(tmfc || '')
-  if (!/^\d{10}$/.test(raw)) return null
-  return Date.UTC(
-    Number(raw.slice(0, 4)),
-    Number(raw.slice(4, 6)) - 1,
-    Number(raw.slice(6, 8)),
-    Number(raw.slice(8, 10)),
-    0,
-    0,
-    0,
-  )
-}
-
-function addForecastHours(tmfc, hf) {
-  const baseMs = parseTmfc(tmfc)
-  if (!Number.isFinite(baseMs)) return null
-  return new Date(baseMs + Number(hf || 0) * 60 * 60 * 1000).toISOString()
-}
 
 function formatTmfc(date) {
   const y = date.getUTCFullYear()
@@ -94,61 +86,151 @@ export function buildKimSurfaceWindField({ uGrid, vGrid, tmfc, hf, fetchedAt = n
   validateGridPair(uGrid, vGrid)
   validateGridBounds(uGrid)
 
-  let minSpeed = Infinity
-  let maxSpeed = -Infinity
-  let totalSpeed = 0
-  for (let index = 0; index < uGrid.values.length; index += 1) {
-    const speed = Math.hypot(uGrid.values[index], vGrid.values[index])
-    minSpeed = Math.min(minSpeed, speed)
-    maxSpeed = Math.max(maxSpeed, speed)
-    totalSpeed += speed
-  }
-
-  return {
-    type: TYPE,
+  const grid = buildKimNwpGrid({
     model: MODEL,
-    grid: {
-      nx: uGrid.nx,
-      ny: uGrid.ny,
-      ...uGrid.bounds,
-    },
-    time: {
-      tmfc,
-      hf,
-      validTime: addForecastHours(tmfc, hf),
-    },
-    units: { u: 'm/s', v: 'm/s', speed: 'm/s' },
-    stats: {
-      minSpeed: round(minSpeed),
-      maxSpeed: round(maxSpeed),
-      meanSpeed: round(totalSpeed / uGrid.values.length),
-    },
-    encoding: 'int16-scaled-json-v1',
-    scale: SCALE,
-    offset: OFFSET,
-    u: encodeComponent(uGrid.values),
-    v: encodeComponent(vGrid.values),
-    fetched_at: fetchedAt,
-  }
+    tmfc,
+    hf,
+    level: KIM_NWP_LEVELS[0],
+    components: [
+      { ...uGrid, variable: 'u' },
+      { ...vGrid, variable: 'v' },
+    ],
+    fetchedAt,
+  })
+  return buildKimSurfaceWindFieldFromWindGrid(grid)
 }
 
-async function fetchComponent({ name, tmfc, hf }) {
+export function resolveKimTemperatureComponentRequest({ level }) {
+  if (level?.id === '10m') {
+    return { data: 'U', name: 't2m', level: 0, variable: 'T', unit: 'K' }
+  }
+  return { data: 'P', name: 'T', level: level.level, variable: 'T', unit: 'K' }
+}
+
+function rawComponentFileName({ level, name, variable }) {
+  if (variable === 'T') return 'T.txt'
+  return `${name === level.uName ? 'u' : 'v'}.txt`
+}
+
+function writeRawComponent({ level, tmfc, hf, name, variable, text }) {
+  if (config.kim_nwp?.keep_raw === false) return
+  const runDir = resolveKimNwpRunDir({ root: config.storage.base_path, model: KIM_NWP_MODEL, tmfc })
+  const rawPath = path.join(runDir, 'raw', `hf${String(Number(hf)).padStart(3, '0')}`, level.id, rawComponentFileName({ level, name, variable }))
+  fs.mkdirSync(path.dirname(rawPath), { recursive: true })
+  fs.writeFileSync(rawPath, text, 'utf8')
+}
+
+async function fetchComponentForLevel({ name, level, tmfc, hf }) {
   const kim = config.kim_surface_wind
   const text = await fetchKimGrid({
-    data: 'U',
+    data: level.kind === 'pressure' ? 'P' : 'U',
     name,
-    level: 0,
+    level: level.level,
     tmfc,
     hf,
     sub: kim.sub,
     map: 'S',
     disp: 'A',
   })
+  writeRawComponent({ level, tmfc, hf, name, variable: name, text })
   return parseKimGridText(text, {
     variable: name,
-    level: 0,
+    level: level.level,
     bounds: kim.bounds,
   })
+}
+
+async function fetchTemperatureComponent({ level, tmfc, hf }) {
+  const kim = config.kim_surface_wind
+  const request = resolveKimTemperatureComponentRequest({ level })
+  const text = await fetchKimGrid({
+    data: request.data,
+    name: request.name,
+    level: request.level,
+    tmfc,
+    hf,
+    sub: kim.sub,
+    map: 'S',
+    disp: 'A',
+  })
+  writeRawComponent({ level, tmfc, hf, name: request.name, variable: 'T', text })
+  const grid = parseKimGridText(text, {
+    variable: request.name,
+    level: request.level,
+    bounds: kim.bounds,
+  })
+  return { ...grid, variable: request.variable, unit: request.unit }
+}
+
+async function fetchWindGrid({ level, tmfc, hf }) {
+  const [uComponent, vComponent] = await Promise.all([
+    fetchComponentForLevel({ name: level.uName, level, tmfc, hf }),
+    fetchComponentForLevel({ name: level.vName, level, tmfc, hf }),
+  ])
+  validateGridBounds(uComponent)
+  return buildKimWindGrid({
+    model: KIM_NWP_MODEL,
+    tmfc,
+    hf,
+    level,
+    components: [
+      { ...uComponent, variable: 'u' },
+      { ...vComponent, variable: 'v' },
+    ],
+  })
+}
+
+async function addTemperatureToGrid({ grid, level, tmfc, hf }) {
+  const tempComponent = await fetchTemperatureComponent({ level, tmfc, hf })
+  validateGridBounds(tempComponent)
+  return {
+    ...grid,
+    variables: {
+      ...grid.variables,
+      T: buildKimNwpGrid({
+        model: KIM_NWP_MODEL,
+        tmfc,
+        hf,
+        level,
+        components: [tempComponent],
+        fetchedAt: grid.fetched_at,
+      }).variables.T,
+    },
+    fetched_at: new Date().toISOString(),
+  }
+}
+
+export async function mapKimNwpTasksWithConcurrency(items, concurrency, worker) {
+  const results = []
+  let nextIndex = 0
+  let firstError = null
+  async function run() {
+    while (!firstError && nextIndex < items.length) {
+      const index = nextIndex
+      nextIndex += 1
+      try {
+        results[index] = await worker(items[index])
+      } catch (error) {
+        firstError ||= error
+        break
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(Number(concurrency) || 1, items.length) }, run))
+  if (firstError) throw firstError
+  return results
+}
+
+export function shouldPublishKimNwpRun({ grids, expectedGridCount }) {
+  if (!Array.isArray(grids) || grids.length !== expectedGridCount) return false
+  return grids.every((grid) => grid?.variables?.u && grid?.variables?.v)
+}
+
+export function selectLegacySurfaceWindGrid(grids = []) {
+  return grids.find((grid) => grid?.level?.id === '10m' && Number(grid?.hf) === 0)
+    || grids.find((grid) => grid?.level?.id === '10m')
+    || grids[0]
+    || null
 }
 
 export async function process() {
@@ -156,28 +238,112 @@ export async function process() {
   let lastError = null
 
   for (const candidate of candidates) {
-    try {
-      const [uGrid, vGrid] = await Promise.all([
-        fetchComponent({ name: 'u10m', ...candidate }),
-        fetchComponent({ name: 'v10m', ...candidate }),
-      ])
-      const field = buildKimSurfaceWindField({
-        uGrid,
-        vGrid,
-        tmfc: candidate.tmfc,
-        hf: candidate.hf,
-      })
-      return store.save(TYPE, field)
-    } catch (error) {
-      lastError = error
+    const grids = []
+    const tasks = []
+    for (const hf of (config.kim_nwp?.forecast_hours || KIM_NWP_FORECAST_HOURS)) {
+      for (const level of KIM_NWP_LEVELS) tasks.push({ level, tmfc: candidate.tmfc, hf })
     }
+
+    const latestRunId = buildKimNwpRunId({ model: KIM_NWP_MODEL, tmfc: candidate.tmfc })
+    const expectedGridCount = (config.kim_nwp?.forecast_hours || KIM_NWP_FORECAST_HOURS).length * KIM_NWP_LEVELS.length
+    let fatalWindError = null
+
+    await mapKimNwpTasksWithConcurrency(tasks, config.kim_nwp?.concurrency || 4, async (task) => {
+      try {
+        const windGrid = await fetchWindGrid(task)
+        writeKimNwpGrid({ root: config.storage.base_path, grid: windGrid })
+        let grid = windGrid
+        try {
+          grid = await addTemperatureToGrid({ grid: windGrid, ...task })
+          writeKimNwpGrid({ root: config.storage.base_path, grid })
+        } catch (error) {
+          lastError = error
+        }
+        grids.push(grid)
+      } catch (error) {
+        lastError = error
+        throw error
+      }
+    }).catch((error) => {
+      fatalWindError = error
+    })
+
+    if (fatalWindError || !shouldPublishKimNwpRun({ grids, expectedGridCount })) {
+      writeKimNwpManifest(config.storage.base_path, {
+        type: 'kim_nwp_manifest',
+        model: KIM_NWP_MODEL,
+        tmfc: candidate.tmfc,
+        runId: latestRunId,
+        usable: false,
+        gridCount: grids.length,
+        expectedGridCount,
+        updated_at: new Date().toISOString(),
+      })
+      continue
+    }
+    const index = buildKimNwpIndex({
+      model: KIM_NWP_MODEL,
+      tmfc: candidate.tmfc,
+      grids,
+      pathForGrid: (grid) => path.relative(
+        config.storage.base_path,
+        resolveKimNwpGridPath({
+          root: config.storage.base_path,
+          model: grid.model,
+          tmfc: grid.tmfc,
+          hf: grid.hf,
+          levelId: grid.level.id,
+        }),
+      ).replace(/\\/g, '/'),
+    })
+    writeKimNwpManifest(config.storage.base_path, {
+      type: 'kim_nwp_manifest',
+      model: KIM_NWP_MODEL,
+      tmfc: candidate.tmfc,
+      runId: latestRunId,
+      usable: true,
+      gridCount: grids.length,
+      expectedGridCount,
+      updated_at: new Date().toISOString(),
+    })
+    writeKimNwpIndex(config.storage.base_path, index)
+    writeKimNwpLatest(config.storage.base_path, {
+      type: 'kim_nwp_latest',
+      model: KIM_NWP_MODEL,
+      latestRun: candidate.tmfc,
+      latestRunId,
+      indexPath: 'kim_nwp/index.json',
+      updated_at: new Date().toISOString(),
+      content_hash: store.canonicalHash(index),
+    })
+    cleanupKimNwpRuns({ root: config.storage.base_path, maxRuns: config.kim_nwp?.max_runs || 2, latestRunId })
+
+    const surfaceGrid = selectLegacySurfaceWindGrid(grids)
+    const field = buildKimSurfaceWindFieldFromWindGrid(surfaceGrid)
+    return store.save(TYPE, field)
   }
 
   throw lastError || new Error('KIM surface wind collection failed')
 }
 
+export function readSelectedKimNwpField({ tmfc, hf, level }) {
+  const grid = readKimNwpGrid({
+    root: config.storage.base_path,
+    model: KIM_NWP_MODEL,
+    tmfc,
+    hf,
+    levelId: level,
+  })
+  return buildKimSurfaceWindFieldFromWindGrid(grid)
+}
+
 export default {
   process,
   buildKimSurfaceWindField,
+  readSelectedKimNwpField,
+  resolveKimTemperatureComponentRequest,
   resolveKimSurfaceWindCandidates,
+  mapKimNwpTasksWithConcurrency,
+  selectLegacySurfaceWindGrid,
+  shouldPublishKimNwpRun,
 }

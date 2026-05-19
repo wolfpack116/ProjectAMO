@@ -1,5 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
-import { fetchKimSurfaceWind, fetchSnapshotMeta } from '../../../api/weatherApi.js'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  fetchKimNwpField,
+  fetchKimNwpIndex,
+  fetchKimSurfaceWind,
+  fetchSnapshotMeta,
+} from '../../../api/weatherApi.js'
 
 const REFRESH_INTERVAL_MS = 60_000
 
@@ -10,12 +15,80 @@ function getLowPowerState() {
   return !!(reducedMotion || saveData)
 }
 
-export function useKimSurfaceWind(enabled) {
+export function selectKimNwpAvailability(index, selection) {
+  if (!index || !selection?.level || !Number.isFinite(Number(selection.hf))) return null
+  return index.availability?.[selection.level]?.[String(selection.hf)] || null
+}
+
+function isNonPastTime(time, nowMs) {
+  if (!Number.isFinite(nowMs)) return true
+  const validMs = Date.parse(time?.validTime)
+  return Number.isFinite(validMs) && validMs >= nowMs
+}
+
+export function selectDefaultKimNwp(index, nowMs = null) {
+  const preferredLevel = index?.levels?.find((level) => level.id === '10m') || index?.levels?.[0]
+  if (!preferredLevel) return null
+  const time = (index.times || []).find((candidate) =>
+    isNonPastTime(candidate, nowMs) && selectKimNwpAvailability(index, { level: preferredLevel.id, hf: candidate.hf }))
+  return time ? { tmfc: index.latestRun, level: preferredLevel.id, hf: time.hf } : null
+}
+
+export function selectFallbackKimNwpSelection(index, currentSelection, nowMs = null) {
+  if (!index) return null
+  if (selectKimNwpAvailability(index, currentSelection)) {
+    const currentTime = (index.times || []).find((time) => Number(time.hf) === Number(currentSelection.hf))
+    if (isNonPastTime(currentTime, nowMs)) return { ...currentSelection, tmfc: index.latestRun }
+  }
+  const currentLevel = currentSelection?.level
+  if (currentLevel) {
+    const time = (index.times || []).find((candidate) =>
+      isNonPastTime(candidate, nowMs) && selectKimNwpAvailability(index, { level: currentLevel, hf: candidate.hf }))
+    if (time) return { tmfc: index.latestRun, level: currentLevel, hf: time.hf }
+  }
+  return selectDefaultKimNwp(index, nowMs)
+}
+
+export function normalizeKimNwpIndex(index, nowMs = null) {
+  return {
+    windIndex: index || null,
+    availableLevels: index?.levels || [],
+    availableTimes: index?.times || [],
+    defaultSelection: selectDefaultKimNwp(index, nowMs),
+  }
+}
+
+function selectionKey(selection) {
+  if (!selection?.tmfc || !selection?.level || !Number.isFinite(Number(selection.hf))) return null
+  return `${selection.tmfc}:${Number(selection.hf)}:${selection.level}`
+}
+
+export function getKimNwpFieldForSelection(field, fieldKey, selection, suffix = '') {
+  if (!field) return null
+  const key = selectionKey(selection)
+  const expectedKey = suffix ? `${key}:${suffix}` : key
+  return expectedKey && fieldKey === expectedKey ? field : null
+}
+
+function isAbortError(error) {
+  return error?.name === 'AbortError'
+}
+
+export function useKimSurfaceWind(enabled, controlledSelection = null, onSelectionChange = null) {
   const [windField, setWindField] = useState(null)
+  const [windIndex, setWindIndex] = useState(null)
+  const [internalSelection, setInternalSelection] = useState(null)
+  const [windFieldKey, setWindFieldKey] = useState(null)
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState(null)
   const [meta, setMeta] = useState(null)
+  const [refreshToken, setRefreshToken] = useState(0)
   const lowPower = useMemo(() => getLowPowerState(), [])
+  const cacheRef = useRef(new Map())
+  const requestTokenRef = useRef(0)
+  const metaHashRef = useRef(null)
+  const selection = controlledSelection || internalSelection
+  const setSelection = onSelectionChange || setInternalSelection
 
   useEffect(() => {
     if (!enabled) {
@@ -23,39 +96,125 @@ export function useKimSurfaceWind(enabled) {
       return undefined
     }
 
+    const controller = new AbortController()
     let cancelled = false
-    let currentHash = meta?.hash || null
 
-    async function loadWindField() {
+    async function loadIndex() {
       setStatus((prev) => (prev === 'ready' ? 'refreshing' : 'loading'))
       try {
-        const field = await fetchKimSurfaceWind()
+        const index = await fetchKimNwpIndex({ signal: controller.signal })
         if (cancelled) return
-        setWindField(field)
+        const normalized = normalizeKimNwpIndex(index)
+        setWindIndex(index)
         setMeta({
-          hash: field?.content_hash || null,
+          hash: index?.content_hash || null,
+          tmfc: index?.latestRun || null,
+          updated_at: index?.updated_at || null,
+        })
+        metaHashRef.current = index?.content_hash || metaHashRef.current
+        setSelection((prev) => {
+          const nextSelection = selectFallbackKimNwpSelection(index, prev) || normalized.defaultSelection
+          if (!nextSelection) setStatus('error')
+          return nextSelection
+        })
+        setError(null)
+      } catch (loadError) {
+        if (cancelled || isAbortError(loadError)) return
+        try {
+          const field = await fetchKimSurfaceWind()
+          if (cancelled) return
+          setWindField(field)
+          setWindFieldKey(null)
+          setWindIndex(null)
+          setSelection(null)
+          setMeta({
+            hash: field?.content_hash || null,
+            tmfc: field?.time?.tmfc || null,
+            hf: field?.time?.hf ?? null,
+            updated_at: field?.fetched_at || null,
+          })
+          metaHashRef.current = field?.content_hash || metaHashRef.current
+          setError(null)
+          setStatus('ready')
+        } catch (fallbackError) {
+          if (cancelled || isAbortError(fallbackError)) return
+          setError(fallbackError)
+          setStatus('error')
+        }
+      }
+    }
+
+    loadIndex()
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
+  }, [enabled, refreshToken])
+
+  useEffect(() => {
+    if (!enabled || !selection) return undefined
+    const key = selectionKey(selection)
+    if (!key) return undefined
+
+    const token = requestTokenRef.current + 1
+    requestTokenRef.current = token
+
+    if (cacheRef.current.has(key)) {
+      setWindField(cacheRef.current.get(key))
+      setWindFieldKey(key)
+      setStatus('ready')
+      return undefined
+    }
+
+    const controller = new AbortController()
+
+    async function loadField() {
+      setStatus((prev) => (prev === 'ready' ? 'refreshing' : 'loading'))
+      setWindFieldKey(null)
+      try {
+        const field = await fetchKimNwpField(selection, { signal: controller.signal })
+        if (requestTokenRef.current !== token || controller.signal.aborted) return
+        cacheRef.current.set(key, field)
+        setWindField(field)
+        setWindFieldKey(key)
+        setMeta({
+          hash: field?.content_hash || meta?.hash || null,
           tmfc: field?.time?.tmfc || null,
           hf: field?.time?.hf ?? null,
           updated_at: field?.fetched_at || null,
         })
-        currentHash = field?.content_hash || null
         setError(null)
         setStatus('ready')
       } catch (loadError) {
-        if (cancelled) return
+        if (isAbortError(loadError) || requestTokenRef.current !== token) return
+        setWindField(null)
+        setWindFieldKey(null)
         setError(loadError)
         setStatus('error')
       }
     }
 
+    loadField()
+    return () => controller.abort()
+  }, [enabled, selection?.tmfc, selection?.hf, selection?.level])
+
+  useEffect(() => {
+    if (!enabled) return undefined
+    let cancelled = false
+
     async function pollMeta() {
       try {
         const snapshot = await fetchSnapshotMeta()
         if (cancelled) return
-        const nextMeta = snapshot?.kimSurfaceWind || snapshot?.kim_surface_wind || null
+        const baseMeta = snapshot?.kimNwp || snapshot?.kim_nwp || snapshot?.kimSurfaceWind || snapshot?.kim_surface_wind || null
+        const nextMeta = baseMeta?.variables?.uv?.hash
+          ? { ...baseMeta, hash: baseMeta.variables.uv.hash }
+          : baseMeta
         if (!nextMeta?.hash) return
-        if (nextMeta.hash !== currentHash) {
-          await loadWindField()
+        if (nextMeta.hash !== metaHashRef.current) {
+          metaHashRef.current = nextMeta.hash
+          cacheRef.current.clear()
+          setRefreshToken((value) => value + 1)
         } else {
           setMeta(nextMeta)
         }
@@ -64,15 +223,27 @@ export function useKimSurfaceWind(enabled) {
       }
     }
 
-    loadWindField()
     const timer = window.setInterval(pollMeta, REFRESH_INTERVAL_MS)
     return () => {
       cancelled = true
       window.clearInterval(timer)
     }
-  }, [enabled])
+  }, [enabled, windField])
 
-  return { windField, status, error, meta, lowPower }
+  const normalized = normalizeKimNwpIndex(windIndex)
+
+  return {
+    windField: windIndex ? getKimNwpFieldForSelection(windField, windFieldKey, selection) : windField,
+    windIndex: normalized.windIndex,
+    selection,
+    setSelection,
+    availableLevels: normalized.availableLevels,
+    availableTimes: normalized.availableTimes,
+    status,
+    error,
+    meta,
+    lowPower,
+  }
 }
 
 export default useKimSurfaceWind

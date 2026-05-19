@@ -1,0 +1,148 @@
+import { useEffect, useRef, useState } from 'react'
+import {
+  fetchKimTemperatureField,
+  fetchKimTemperatureIndex,
+  fetchSnapshotMeta,
+} from '../../../api/weatherApi.js'
+import {
+  normalizeKimNwpIndex,
+  getKimNwpFieldForSelection,
+  selectFallbackKimNwpSelection,
+  selectKimNwpAvailability,
+} from './useKimSurfaceWind.js'
+
+const REFRESH_INTERVAL_MS = 60_000
+
+function selectionKey(selection) {
+  if (!selection?.tmfc || !selection?.level || !Number.isFinite(Number(selection.hf))) return null
+  return `${selection.tmfc}:${Number(selection.hf)}:${selection.level}:T`
+}
+
+function isAbortError(error) {
+  return error?.name === 'AbortError'
+}
+
+export function useKimTemperature(enabled, selection, setSelection) {
+  const [temperatureField, setTemperatureField] = useState(null)
+  const [temperatureFieldKey, setTemperatureFieldKey] = useState(null)
+  const [temperatureIndex, setTemperatureIndex] = useState(null)
+  const [status, setStatus] = useState('idle')
+  const [error, setError] = useState(null)
+  const cacheRef = useRef(new Map())
+  const requestTokenRef = useRef(0)
+  const metaHashRef = useRef(null)
+  const [refreshToken, setRefreshToken] = useState(0)
+
+  useEffect(() => {
+    if (!enabled) {
+      setStatus('idle')
+      return undefined
+    }
+    const controller = new AbortController()
+    let cancelled = false
+
+    async function loadIndex() {
+      setStatus((prev) => (prev === 'ready' ? 'refreshing' : 'loading'))
+      try {
+        const index = await fetchKimTemperatureIndex({ signal: controller.signal })
+        if (cancelled) return
+        setTemperatureIndex(index)
+        setSelection?.((prev) => selectFallbackKimNwpSelection(index, prev) || null)
+        if (!normalizeKimNwpIndex(index).defaultSelection && !selectFallbackKimNwpSelection(index, selection)) {
+          setTemperatureField(null)
+          setStatus('unavailable')
+        }
+        setError(null)
+      } catch (loadError) {
+        if (cancelled || isAbortError(loadError)) return
+        setError(loadError)
+        setStatus('error')
+      }
+    }
+
+    loadIndex()
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
+  }, [enabled, refreshToken])
+
+  useEffect(() => {
+    if (!enabled || !selection) return undefined
+    if (temperatureIndex && !selectKimNwpAvailability(temperatureIndex, selection)) {
+      setTemperatureField(null)
+      setStatus('unavailable')
+      return undefined
+    }
+    const key = selectionKey(selection)
+    if (!key) return undefined
+    const token = requestTokenRef.current + 1
+    requestTokenRef.current = token
+    if (cacheRef.current.has(key)) {
+      setTemperatureField(cacheRef.current.get(key))
+      setTemperatureFieldKey(key)
+      setStatus('ready')
+      return undefined
+    }
+    const controller = new AbortController()
+
+    async function loadField() {
+      setStatus((prev) => (prev === 'ready' ? 'refreshing' : 'loading'))
+      setTemperatureFieldKey(null)
+      try {
+        const field = await fetchKimTemperatureField(selection, { signal: controller.signal })
+        if (requestTokenRef.current !== token || controller.signal.aborted) return
+        cacheRef.current.set(key, field)
+        setTemperatureField(field)
+        setTemperatureFieldKey(key)
+        setError(null)
+        setStatus('ready')
+      } catch (loadError) {
+        if (isAbortError(loadError) || requestTokenRef.current !== token) return
+        setTemperatureField(null)
+        setTemperatureFieldKey(null)
+        setError(loadError)
+        setStatus('error')
+      }
+    }
+
+    loadField()
+    return () => controller.abort()
+  }, [enabled, selection?.tmfc, selection?.hf, selection?.level, temperatureIndex])
+
+  useEffect(() => {
+    if (!enabled) return undefined
+    let cancelled = false
+    async function pollMeta() {
+      try {
+        const snapshot = await fetchSnapshotMeta()
+        if (cancelled) return
+        const baseMeta = snapshot?.kimNwp || snapshot?.kim_nwp || null
+        const nextHash = baseMeta?.variables?.T?.hash || baseMeta?.hash || null
+        if (!nextHash) return
+        if (nextHash !== metaHashRef.current) {
+          metaHashRef.current = nextHash
+          cacheRef.current.clear()
+          setRefreshToken((value) => value + 1)
+        }
+      } catch {
+        if (!cancelled && !temperatureField) setStatus('error')
+      }
+    }
+    const timer = window.setInterval(pollMeta, REFRESH_INTERVAL_MS)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
+  }, [enabled, temperatureField])
+
+  const normalized = normalizeKimNwpIndex(temperatureIndex)
+  return {
+    temperatureField: getKimNwpFieldForSelection(temperatureField, temperatureFieldKey, selection, 'T'),
+    temperatureIndex: normalized.windIndex,
+    availableLevels: normalized.availableLevels,
+    availableTimes: normalized.availableTimes,
+    status,
+    error,
+  }
+}

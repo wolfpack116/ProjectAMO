@@ -75,35 +75,11 @@ For UI, CSS, layout, and responsive work:
 
 ## 6. Encoding Safety
 
-**Never let shell writes corrupt UTF-8 source files.**
-
-- Do not rewrite source files with PowerShell `Set-Content`, `Out-File`, or `>` when files may contain Korean or other non-ASCII text.
-- Prefer `apply_patch` for manual edits.
-- For mechanical rewrites, use Node `fs.readFileSync(path, 'utf8')` and `fs.writeFileSync(path, text, 'utf8')`.
-- Do not trust PowerShell console output to verify Korean text; it may display mojibake even when file bytes are correct.
-- Verify non-ASCII text with Node by reading as UTF-8 and, when needed, checking code points.
+Do not overwrite UTF-8 files with PowerShell `Set-Content`/`Out-File`/`>`. Use `apply_patch` for edits and Node `fs.writeFileSync(... 'utf8')` for mechanical rewrites. See `docs/policies/encoding-safety.md` for details.
 
 ## 7. Code Review Graph
 
-**Use graph context for broad changes, not for trivial edits.**
-
-- Codex hooks are configured in `.codex/hooks.json` to check graph status on session start and refresh the graph after edits or shell activity when `code-review-graph` is installed.
-- The same hook auto-allows only safe direct `code-review-graph status`, `update`, `update --skip-flows`, and `detect-changes` shell commands so subagents can use graph context without repeated approval prompts.
-- For non-trivial refactors, reviews, dependency changes, or impact analysis, check `code-review-graph` before reading broad parts of the codebase.
-- Prefer graph impact queries to discover related files, then inspect only the relevant source files.
-- Do not treat graph results as a replacement for build, runtime, or browser verification.
-- On a new computer, install and initialize the local graph before relying on hooks:
-```
-python -m pip install code-review-graph
-code-review-graph build
-code-review-graph status
-```
-- If MCP tools are unavailable, use CLI fallback:
-```
-code-review-graph update
-code-review-graph detect-changes
-code-review-graph status
-```
+For non-trivial refactors, reviews, dependency changes, or impact analysis, narrow scope with `code-review-graph` before reading broad parts of the codebase. See `docs/policies/code-review-graph.md` for install, CLI commands, and hook behavior.
 
 ## 8. Superpowers Subagent Orchestration
 
@@ -116,6 +92,21 @@ When using Superpowers workflows, the main agent must act as the orchestrator an
 - Use parallel subagents primarily for read-heavy exploration, tests, triage, log analysis, QA, security review, architecture review, and summarization.
 - Keep write-heavy implementation sequential unless file ownership is clearly disjoint and integration ownership is explicit.
 - Subagents must still follow this file, `Architecture.md`, and `EntryPoints.md` when present.
+
+## 9. Long Context Tasks
+
+If a task matches **two or more** of the following, follow `docs/policies/long-context-handoff.md`:
+
+- Estimated time 1 hour+
+- 10+ files to touch or explore
+- 3+ independent work units
+- Both backend and frontend
+- New API endpoint, DB schema, or directory structure
+- Unlikely to finish in one session
+- Security, auth, payments, or migrations
+- Context utilization already at 40%+
+
+When it applies, read the policy first and follow its procedure. When it does not, ignore this section and proceed with a short prompt.
 
 ---
 

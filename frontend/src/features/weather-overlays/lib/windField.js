@@ -1,11 +1,20 @@
+const KT_TO_MS = 0.514444
+
+function kt(value) {
+  return value * KT_TO_MS
+}
+
 export const WIND_SPEED_COLOR_RAMP = [
-  { min: 0, max: 2, label: '0-4 kt', color: 'rgba(0, 126, 255, 0.38)' },
-  { min: 2, max: 5, label: '4-10 kt', color: 'rgba(0, 220, 165, 0.38)' },
-  { min: 5, max: 8, label: '10-16 kt', color: 'rgba(42, 220, 42, 0.38)' },
-  { min: 8, max: 12, label: '16-23 kt', color: 'rgba(220, 230, 0, 0.38)' },
-  { min: 12, max: 16, label: '23-31 kt', color: 'rgba(255, 150, 0, 0.38)' },
-  { min: 16, max: 22, label: '31-43 kt', color: 'rgba(240, 45, 20, 0.38)' },
-  { min: 22, max: Infinity, label: '43+ kt', color: 'rgba(222, 0, 190, 0.38)' },
+  { min: kt(0), max: kt(5), label: '0-5 kt', color: 'rgba(0, 126, 255, 0.38)' },
+  { min: kt(5), max: kt(10), label: '5-10 kt', color: 'rgba(0, 190, 210, 0.38)' },
+  { min: kt(10), max: kt(20), label: '10-20 kt', color: 'rgba(0, 220, 165, 0.38)' },
+  { min: kt(20), max: kt(30), label: '20-30 kt', color: 'rgba(42, 220, 42, 0.38)' },
+  { min: kt(30), max: kt(40), label: '30-40 kt', color: 'rgba(180, 225, 0, 0.38)' },
+  { min: kt(40), max: kt(60), label: '40-60 kt', color: 'rgba(255, 205, 0, 0.38)' },
+  { min: kt(60), max: kt(80), label: '60-80 kt', color: 'rgba(255, 150, 0, 0.38)' },
+  { min: kt(80), max: kt(100), label: '80-100 kt', color: 'rgba(240, 45, 20, 0.38)' },
+  { min: kt(100), max: kt(130), label: '100-130 kt', color: 'rgba(222, 0, 190, 0.38)' },
+  { min: kt(130), max: Infinity, label: '130+ kt', color: 'rgba(126, 34, 206, 0.38)' },
 ]
 
 export function decodeWindComponent(value, field) {
@@ -186,16 +195,24 @@ export function getWindFieldMeanSpeed(field) {
 }
 
 export function formatKimWindMetaLabel(field) {
+  const levelLabel = formatWindLevelLabel(field)
   const validTime = Date.parse(field?.time?.validTime)
-  if (!Number.isFinite(validTime)) return 'KIM 8km · 10m'
+  if (!Number.isFinite(validTime)) return `KIM 8km \u00b7 ${levelLabel}`
   const kst = new Date(validTime + 9 * 60 * 60 * 1000)
   const month = String(kst.getUTCMonth() + 1).padStart(2, '0')
   const day = String(kst.getUTCDate()).padStart(2, '0')
   const hour = String(kst.getUTCHours()).padStart(2, '0')
   const minute = String(kst.getUTCMinutes()).padStart(2, '0')
-  return `KIM 8km · 10m · ${month}/${day} ${hour}:${minute} KST`
+  return `KIM 8km \u00b7 ${levelLabel} \u00b7 ${month}/${day} ${hour}:${minute} KST`
 }
 
+function formatWindLevelLabel(field) {
+  const level = field?.level
+  if (!level?.id) return '10m'
+  if (level.unit === 'hPa') return `${level.value}hPa`
+  if (level.unit === 'm') return `${level.value}m`
+  return level.label || level.id
+}
 export default {
   WIND_SPEED_COLOR_RAMP,
   createDownsampledWindField,

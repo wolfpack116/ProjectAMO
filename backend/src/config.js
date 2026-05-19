@@ -166,6 +166,13 @@ export const kim_surface_wind = {
   },
 }
 
+export const kim_nwp = {
+  max_runs: Number(process.env.KIM_NWP_MAX_RUNS || 2),
+  keep_raw: process.env.KIM_NWP_KEEP_RAW !== '0',
+  concurrency: Number(process.env.KIM_NWP_CONCURRENCY || 4),
+  forecast_hours: [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36],
+}
+
 export const schedule = {
   metar_interval: '*/10 * * * *',
   taf_interval: '*/30 * * * *',
@@ -204,6 +211,7 @@ export default {
   satellite,
   adsb,
   kim_surface_wind,
+  kim_nwp,
   schedule,
   storage,
 }

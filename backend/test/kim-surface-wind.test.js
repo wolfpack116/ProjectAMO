@@ -3,7 +3,14 @@ import test from 'node:test'
 
 import { parseKimGridText } from '../src/parsers/kim-grid-parser.js'
 import { buildKimGridUrl } from '../src/api-client.js'
-import { buildKimSurfaceWindField, resolveKimSurfaceWindCandidates } from '../src/processors/kim-surface-wind-processor.js'
+import {
+  buildKimSurfaceWindField,
+  mapKimNwpTasksWithConcurrency,
+  resolveKimSurfaceWindCandidates,
+  selectLegacySurfaceWindGrid,
+  shouldPublishKimNwpRun,
+  resolveKimTemperatureComponentRequest,
+} from '../src/processors/kim-surface-wind-processor.js'
 
 const BOUNDS = {
   lonMin: 119,
@@ -152,4 +159,66 @@ test('buildKimGridUrl uses the KMA APIHub KIM cgi endpoint', () => {
   assert.ok(url.includes('nwp=NE57'))
   assert.ok(url.includes('name=u10m'))
   assert.ok(url.includes('map=S'))
+})
+
+test('resolveKimTemperatureComponentRequest uses pressure T and verified single-level t2m params', () => {
+  assert.deepEqual(resolveKimTemperatureComponentRequest({ level: { id: '925hPa', kind: 'pressure', level: 925 } }), {
+    data: 'P',
+    name: 'T',
+    level: 925,
+    variable: 'T',
+    unit: 'K',
+  })
+  assert.deepEqual(resolveKimTemperatureComponentRequest({ level: { id: '10m', kind: 'height', level: 0 } }), {
+    data: 'U',
+    name: 't2m',
+    level: 0,
+    variable: 'T',
+    unit: 'K',
+  })
+})
+
+test('shouldPublishKimNwpRun rejects incomplete wind grid runs but allows temp-missing wind grids', () => {
+  const expectedGridCount = 2
+  const completeWindOnlyRun = [
+    { variables: { u: {}, v: {} } },
+    { variables: { u: {}, v: {} } },
+  ]
+  const incompleteWindRun = [
+    { variables: { u: {}, v: {} } },
+  ]
+  const tempOnlyRun = [
+    { variables: { T: {} } },
+    { variables: { T: {} } },
+  ]
+
+  assert.equal(shouldPublishKimNwpRun({ grids: completeWindOnlyRun, expectedGridCount }), true)
+  assert.equal(shouldPublishKimNwpRun({ grids: incompleteWindRun, expectedGridCount }), false)
+  assert.equal(shouldPublishKimNwpRun({ grids: tempOnlyRun, expectedGridCount }), false)
+})
+
+test('selectLegacySurfaceWindGrid prefers 10m hf0 regardless of collection order', () => {
+  const surface = { level: { id: '10m' }, hf: 0 }
+  const shuffled = [
+    { level: { id: '10m' }, hf: 12 },
+    { level: { id: '925hPa' }, hf: 0 },
+    surface,
+  ]
+
+  assert.equal(selectLegacySurfaceWindGrid(shuffled), surface)
+})
+
+test('mapKimNwpTasksWithConcurrency stops scheduling after a required task failure', async () => {
+  const started = []
+
+  await assert.rejects(
+    () => mapKimNwpTasksWithConcurrency([1, 2, 3, 4, 5], 1, async (item) => {
+      started.push(item)
+      if (item === 2) throw new Error('wind failed')
+      return item
+    }),
+    /wind failed/,
+  )
+
+  assert.deepEqual(started, [1, 2])
 })

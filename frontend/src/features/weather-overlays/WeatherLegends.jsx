@@ -5,11 +5,13 @@ function WeatherLegends({
   lightningLegendEntries,
   windSpeedLegendVisible,
   windSpeedLegendEntries = [],
+  temperatureLegendVisible,
+  temperatureLegendEntries = [],
   radarReferenceTimeMs,
   lightningReferenceTimeMs,
   formatReferenceTimeLabel,
 }) {
-  if (!radarLegendVisible && !lightningLegendVisible && !windSpeedLegendVisible) return null
+  if (!radarLegendVisible && !lightningLegendVisible && !windSpeedLegendVisible && !temperatureLegendVisible) return null
 
   return (
     <div className="map-right-legends">
@@ -60,6 +62,23 @@ function WeatherLegends({
                 <span className="wind-speed-legend-label">{entry.label}</span>
                 <span
                   className="wind-speed-legend-swatch"
+                  style={{ backgroundColor: entry.color }}
+                  aria-hidden="true"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {temperatureLegendVisible && (
+        <div className="temperature-legend" aria-label="Temperature legend">
+          <div className="temperature-legend-title">C</div>
+          <div className="temperature-legend-scale">
+            {temperatureLegendEntries.map((entry) => (
+              <div key={entry.label} className="temperature-legend-row">
+                <span className="temperature-legend-label">{entry.label}</span>
+                <span
+                  className="temperature-legend-swatch"
                   style={{ backgroundColor: entry.color }}
                   aria-hidden="true"
                 />

@@ -11,10 +11,10 @@ export const AIRPORT_NAME_KO = {
   RKJY: 'Yeosu Airport',
 }
 
-async function fetchJson(url, { optional = false } = {}) {
+async function fetchJson(url, { optional = false, signal } = {}) {
   try {
     const res = typeof fetch === 'function'
-      ? await fetch(url)
+      ? await fetch(url, { signal })
       : await fetchJsonWithXhr(url)
     if (!res.ok) throw new Error(`${url} ??HTTP ${res.status}`)
     return res.json()
@@ -145,6 +145,24 @@ export async function fetchSnapshotMeta() {
 
 export async function fetchKimSurfaceWind() {
   return fetchJson('/api/kim/surface-wind')
+}
+
+export async function fetchKimNwpIndex(options = {}) {
+  return fetchJson('/api/kim/wind/index', options)
+}
+
+export async function fetchKimNwpField({ tmfc, hf, level }, options = {}) {
+  const params = new URLSearchParams({ tmfc, hf: String(hf), level })
+  return fetchJson(`/api/kim/wind/field?${params.toString()}`, options)
+}
+
+export async function fetchKimTemperatureIndex(options = {}) {
+  return fetchJson('/api/kim/temp/index', options)
+}
+
+export async function fetchKimTemperatureField({ tmfc, hf, level }, options = {}) {
+  const params = new URLSearchParams({ tmfc, hf: String(hf), level })
+  return fetchJson(`/api/kim/temp/field?${params.toString()}`, options)
 }
 
 export async function fetchSigwxFrontMeta(tmfc) {

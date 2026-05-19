@@ -21,9 +21,14 @@ import SigwxLegendDialog from '../weather-overlays/SigwxLegendDialog.jsx'
 import WeatherTimelineBar from '../weather-overlays/WeatherTimelineBar.jsx'
 import WeatherLegends from '../weather-overlays/WeatherLegends.jsx'
 import WeatherOverlayPanel from '../weather-overlays/WeatherOverlayPanel.jsx'
+import NwpSliderBar from '../weather-overlays/NwpSliderBar.jsx'
 import { useKimSurfaceWind } from '../weather-overlays/lib/useKimSurfaceWind.js'
+import { useKimTemperature } from '../weather-overlays/lib/useKimTemperature.js'
 import { destroyWindOverlay, syncWindOverlay } from '../weather-overlays/lib/windOverlaySync.js'
-import { WIND_SPEED_COLOR_RAMP, formatKimWindMetaLabel } from '../weather-overlays/lib/windField.js'
+import { WIND_SPEED_COLOR_RAMP } from '../weather-overlays/lib/windField.js'
+import { CELSIUS_TEMPERATURE_COLOR_RAMP } from '../weather-overlays/lib/temperatureField.js'
+import { destroyTemperatureOverlay, syncTemperatureOverlay } from '../weather-overlays/lib/temperatureOverlaySync.js'
+import { getNextMetVisibility } from '../weather-overlays/lib/metLayerVisibility.js'
 import {
   LIGHTNING_BLINK_INTERVAL_MS,
 } from '../weather-overlays/lib/lightningLayers.js'
@@ -158,6 +163,7 @@ function MapView({
   const [windFlowOpacity, setWindFlowOpacity] = useState(0.8)
   const [windFlowTrail, setWindFlowTrail] = useState(0.9)
   const [windFlowWidth, setWindFlowWidth] = useState(1.5)
+  const [nwpSelection, setNwpSelection] = useState(null)
   const [sigwxHistoryIndex, setSigwxHistoryIndex] = useState(0)
   const [sigwxLegendOpen, setSigwxLegendOpen] = useState(false)
   const [openAdvisoryPanel, setOpenAdvisoryPanel] = useState(null)
@@ -175,7 +181,9 @@ function MapView({
   const { setHoveredWpInfo, setVfrWaypoints } = routeBriefing.actions
   const { routePreviewModel } = routeBriefing
   const windEnabled = enableWindOverlay && metVisibility.wind
-  const kimSurfaceWind = useKimSurfaceWind(windEnabled)
+  const tempEnabled = enableWindOverlay && metVisibility.temp
+  const kimSurfaceWind = useKimSurfaceWind(windEnabled, nwpSelection, setNwpSelection)
+  const kimTemperature = useKimTemperature(tempEnabled, nwpSelection, setNwpSelection)
   const windRendererOptions = useMemo(() => ({
     ...(kimSurfaceWind.lowPower
       ? { desktopCap: 800, mobileCap: 800, frameCap: 15, sampleStep: 4, pixelRatioCap: 1.5 }
@@ -450,16 +458,7 @@ function MapView({
 
   function toggleMet(id) {
     setMetVisibility((prev) => {
-      if (id === 'wind') {
-        const nextWind = !prev.wind
-        return {
-          ...prev,
-          wind: nextWind,
-          windFlow: nextWind ? !kimSurfaceWind.lowPower : prev.windFlow,
-          windSpeed: nextWind ? true : prev.windSpeed,
-        }
-      }
-      return { ...prev, [id]: !prev[id] }
+      return getNextMetVisibility(prev, id, { lowPower: kimSurfaceWind.lowPower })
     })
   }
 
@@ -702,9 +701,27 @@ function MapView({
     styleRevision,
   ])
 
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !isStyleReady || !enableWindOverlay) return
+    syncTemperatureOverlay(map, {
+      temperatureField: kimTemperature.temperatureField,
+      isVisible: metVisibility.temp,
+    })
+  }, [
+    enableWindOverlay,
+    kimTemperature.temperatureField,
+    metVisibility.temp,
+    isStyleReady,
+    styleRevision,
+  ])
+
   useEffect(() => () => {
     const map = mapRef.current
-    if (map) destroyWindOverlay(map)
+    if (map) {
+      destroyWindOverlay(map)
+      destroyTemperatureOverlay(map)
+    }
   }, [])
 
   // ???? Sync geo boundaries ??????????????????????????????????????????????????????????????????????????????????????????????????????
@@ -773,6 +790,7 @@ function MapView({
 
   function isMetLayerDisabled(id) {
     if (id === 'wind') return !enableWindOverlay || (kimSurfaceWind.status === 'error' && !kimSurfaceWind.windField)
+    if (id === 'temp') return !enableWindOverlay || ((kimTemperature.status === 'error' || kimTemperature.status === 'unavailable') && !kimTemperature.temperatureField)
     if (id === 'radar') return radarFrames.length === 0
     if (id === 'satellite') return satelliteFrames.length === 0
     return false
@@ -836,6 +854,8 @@ function MapView({
         lightningLegendEntries={lightningLegendEntries}
         windSpeedLegendVisible={!!(enableWindOverlay && metVisibility.wind && metVisibility.windSpeed && kimSurfaceWind.windField)}
         windSpeedLegendEntries={WIND_SPEED_COLOR_RAMP}
+        temperatureLegendVisible={!!(enableWindOverlay && metVisibility.temp && kimTemperature.temperatureField)}
+        temperatureLegendEntries={CELSIUS_TEMPERATURE_COLOR_RAMP}
         radarReferenceTimeMs={radarReferenceTimeMs}
         lightningReferenceTimeMs={lightningReferenceTimeMs}
         formatReferenceTimeLabel={formatReferenceTimeLabel}
@@ -875,6 +895,16 @@ function MapView({
           setWeatherTimelineIndex(value)
         }}
         onPlaybackSpeedChange={setWeatherTimelineSpeed}
+      />
+
+      <NwpSliderBar
+        isVisible={enableWindOverlay && (metVisibility.wind || metVisibility.temp)}
+        levels={metVisibility.temp ? kimTemperature.availableLevels : kimSurfaceWind.availableLevels}
+        times={metVisibility.temp ? kimTemperature.availableTimes : kimSurfaceWind.availableTimes}
+        selection={nwpSelection}
+        availability={(metVisibility.temp ? kimTemperature.temperatureIndex : kimSurfaceWind.windIndex)?.availability}
+        isElevated={weatherTimelineVisible}
+        onSelectionChange={setNwpSelection}
       />
 
       <AdsbTimestamp
@@ -938,8 +968,8 @@ function MapView({
           isLayerDisabled={isMetLayerDisabled}
           getLayerBadge={metLayerBadge}
           showWind={enableWindOverlay}
-          windMetaLabel={kimSurfaceWind.windField ? formatKimWindMetaLabel(kimSurfaceWind.windField) : null}
           windStatus={kimSurfaceWind.status}
+          tempStatus={kimTemperature.status}
           windLowPower={kimSurfaceWind.lowPower}
           windFlowOpacity={windFlowOpacity}
           windFlowTrail={windFlowTrail}

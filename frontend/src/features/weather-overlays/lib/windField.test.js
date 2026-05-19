@@ -115,22 +115,40 @@ test('createDownsampledWindField keeps bounds and samples a coarser grid', () =>
 })
 
 test('wind speed ramp keeps fixed thresholds with kt display labels', () => {
-  assert.equal(WIND_SPEED_COLOR_RAMP.length, 7)
-  assert.equal(pickWindSpeedColor(1).label, '0-4 kt')
-  assert.equal(pickWindSpeedColor(23).label, '43+ kt')
+  assert.deepEqual(WIND_SPEED_COLOR_RAMP.map((entry) => entry.label), [
+    '0-5 kt',
+    '5-10 kt',
+    '10-20 kt',
+    '20-30 kt',
+    '30-40 kt',
+    '40-60 kt',
+    '60-80 kt',
+    '80-100 kt',
+    '100-130 kt',
+    '130+ kt',
+  ])
+  assert.equal(pickWindSpeedColor(1).label, '0-5 kt')
+  assert.equal(pickWindSpeedColor(70).label, '130+ kt')
 })
 
 test('interpolateWindSpeedColor only blends near speed bin boundaries', () => {
   assert.equal(interpolateWindSpeedColor(0), 'rgba(0, 126, 255, 0.38)')
   assert.equal(interpolateWindSpeedColor(1), 'rgba(0, 126, 255, 0.38)')
-  assert.equal(interpolateWindSpeedColor(2), 'rgba(0, 173, 210, 0.38)')
-  assert.equal(interpolateWindSpeedColor(2.25), 'rgba(0, 202, 182, 0.38)')
-  assert.equal(interpolateWindSpeedColor(2.4), 'rgba(0, 220, 165, 0.38)')
-  assert.equal(interpolateWindSpeedColor(3.5), 'rgba(0, 220, 165, 0.38)')
-  assert.equal(interpolateWindSpeedColor(23), 'rgba(224, 4, 176, 0.38)')
-  assert.equal(interpolateWindSpeedColor(24), 'rgba(222, 0, 190, 0.38)')
+  assert.equal(interpolateWindSpeedColor(2.57222), 'rgba(0, 158, 233, 0.38)')
+  assert.equal(interpolateWindSpeedColor(8), 'rgba(0, 220, 165, 0.38)')
+  assert.equal(interpolateWindSpeedColor(70), 'rgba(126, 34, 206, 0.38)')
 })
 
 test('formatKimWindMetaLabel renders a compact model height and valid time label', () => {
   assert.equal(formatKimWindMetaLabel(FIELD), 'KIM 8km · 10m · 05/18 12:00 KST')
+})
+
+
+test('formatKimWindMetaLabel renders selected pressure level', () => {
+  const field = {
+    ...FIELD,
+    level: { id: '925hPa', label: '925', kind: 'pressure', value: 925, unit: 'hPa' },
+  }
+
+  assert.equal(formatKimWindMetaLabel(field), 'KIM 8km \u00b7 925hPa \u00b7 05/18 12:00 KST')
 })

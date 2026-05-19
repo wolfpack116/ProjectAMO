@@ -65,8 +65,48 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 **Start at `Architecture.md`. Update it when reality drifts.**
 
 - Before any task: read `Architecture.md`. If Task Patterns lists a match, follow that number in `EntryPoints.md`.
+- Before any UI, CSS, layout, or responsive task: also read `docs/ui-responsive-guidelines.md` and follow it as the operational UX standard.
 - After any task: update if files moved, a role memo is stale, a new non-obvious rule appeared, or a task flow changed. Otherwise don't touch.
 - Before adding a line, check if a line can be removed. Both files must stay scannable in seconds.
+
+For UI, CSS, layout, and responsive work:
+- Treat `docs/ui-responsive-guidelines.md` as the detailed working guide.
+- Do not implement major mobile/tablet structure changes by default; capture evidence and write proposals first unless the user explicitly approves implementation.
+
+## 6. Encoding Safety
+
+Do not overwrite UTF-8 files with PowerShell `Set-Content`/`Out-File`/`>`. Use `apply_patch` for edits and Node `fs.writeFileSync(... 'utf8')` for mechanical rewrites. See `docs/policies/encoding-safety.md` for details.
+
+## 7. Code Review Graph
+
+For non-trivial refactors, reviews, dependency changes, or impact analysis, narrow scope with `code-review-graph` before reading broad parts of the codebase. See `docs/policies/code-review-graph.md` for install, CLI commands, and hook behavior.
+
+## 8. Superpowers Subagent Orchestration
+
+For this repository, any user request to execute a Superpowers workflow, follow a Superpowers plan, or work from `docs/superpowers/plans/*` is an explicit user request to use subagents/delegation where the workflow calls for it.
+
+When using Superpowers workflows, the main agent must act as the orchestrator and assign suitable subagents from `.codex/agents/` whenever the task has cleanly separable planning, investigation, implementation, review, QA, security, or architecture work.
+
+- Prefer the workflow-support roles: `task-distributor`, `code-mapper`, `implementer`, `spec-reviewer`, `reviewer`, `test-gap-finder`, `debugger`, `security-auditor`, `ui-qa-reviewer`, `architect-reviewer`, and `design-reviewer`.
+- Keep review, mapping, QA, security, and architecture agents read-only. Use `implementer` for file edits.
+- Use parallel subagents primarily for read-heavy exploration, tests, triage, log analysis, QA, security review, architecture review, and summarization.
+- Keep write-heavy implementation sequential unless file ownership is clearly disjoint and integration ownership is explicit.
+- Subagents must still follow this file, `Architecture.md`, and `EntryPoints.md` when present.
+
+## 9. Long Context Tasks
+
+If a task matches **two or more** of the following, follow `docs/policies/long-context-handoff.md`:
+
+- Estimated time 1 hour+
+- 10+ files to touch or explore
+- 3+ independent work units
+- Both backend and frontend
+- New API endpoint, DB schema, or directory structure
+- Unlikely to finish in one session
+- Security, auth, payments, or migrations
+- Context utilization already at 40%+
+
+When it applies, read the policy first and follow its procedure. When it does not, ignore this section and proceed with a short prompt.
 
 ---
 
