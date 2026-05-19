@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev:serve": "node scripts/projectamo-dev.mjs serve",
+    "dev:verify": "node scripts/projectamo-dev.mjs verify",
+    "dev:smoke": "node scripts/projectamo-dev.mjs smoke",
+    "dev:screenshots": "node scripts/projectamo-dev.mjs screenshots",
     "build": "npm run build --prefix frontend",
     "preview": "npm run preview --prefix frontend"
   },
