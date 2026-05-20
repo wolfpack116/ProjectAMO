@@ -96,3 +96,12 @@ export function addGeoBoundaryLayers(map) {
 export function setGeoBoundaryVisibility(map, show) {
   GEO_LAYERS.forEach(({ layerId }) => setMapLayerVisible(map, layerId, show))
 }
+
+export function shouldShowGeoBoundaries({ basemapId, metVisibility = {}, enableWindOverlay = true } = {}) {
+  const hasRasterWeather = !!(metVisibility.radar || metVisibility.satellite)
+  const hasNwpOverlay = !!(
+    enableWindOverlay
+    && (metVisibility.wind || metVisibility.temp || metVisibility.cloud || metVisibility.icing)
+  )
+  return basemapId === 'dark' || hasRasterWeather || hasNwpOverlay
+}

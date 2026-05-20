@@ -72,11 +72,9 @@ export const WEATHER_OVERLAY_LAYER_IDS = [
   LIGHTNING_CLOUD_LAYER,
   ADVISORY_LAYER_DEFS.sigmet.fillLayerId,
   ADVISORY_LAYER_DEFS.sigmet.lineLayerId,
-  ADVISORY_LAYER_DEFS.sigmet.labelLayerId,
   ADVISORY_LAYER_DEFS.sigmet.iconLayerId,
   ADVISORY_LAYER_DEFS.airmet.fillLayerId,
   ADVISORY_LAYER_DEFS.airmet.lineLayerId,
-  ADVISORY_LAYER_DEFS.airmet.labelLayerId,
   ADVISORY_LAYER_DEFS.airmet.iconLayerId,
 ]
 
@@ -114,6 +112,7 @@ export const MET_LAYERS = [
   { id: 'wind', label: 'Wind', color: '#22c55e' },
   { id: 'temp', label: 'Temp', color: '#ef4444' },
   { id: 'cloud', label: 'Moisture', color: 'rgba(49, 124, 62, 0.7)' },
+  { id: 'icing', label: 'Icing Potential (K-FIP-inspired)', color: 'rgba(220, 75, 116, 0.74)' },
   { id: 'sigmet', label: 'SIGMET', color: ADVISORY_LAYER_DEFS.sigmet.color },
   { id: 'airmet', label: 'AIRMET', color: ADVISORY_LAYER_DEFS.airmet.color },
   { id: 'sigwx', label: 'SIGWX', color: '#a78bfa' },
@@ -121,12 +120,47 @@ export const MET_LAYERS = [
 ]
 
 const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] }
+const pendingMapImages = new WeakMap()
+const addedMapImages = new WeakMap()
+const loadedMapImages = new Map()
 
 export function ensureMapImage(map, { id, url }) {
   if (!id || !url || map.hasImage(id)) return
+  const cachedImage = loadedMapImages.get(url)
+  if (cachedImage) {
+    map.addImage(id, cachedImage)
+    let addedImages = addedMapImages.get(map)
+    if (!addedImages) {
+      addedImages = new Map()
+      addedMapImages.set(map, addedImages)
+    }
+    addedImages.set(id, url)
+    return
+  }
+
+  let addedImages = addedMapImages.get(map)
+  if (!addedImages) {
+    addedImages = new Map()
+    addedMapImages.set(map, addedImages)
+  }
+  if (addedImages.get(id) === url) return
+
+  let pendingImages = pendingMapImages.get(map)
+  if (!pendingImages) {
+    pendingImages = new Map()
+    pendingMapImages.set(map, pendingImages)
+  }
+  if (pendingImages.get(id) === url) return
+
+  pendingImages.set(id, url)
   map.loadImage(url, (error, image) => {
+    if (pendingImages.get(id) === url) {
+      pendingImages.delete(id)
+    }
     if (error || !image || map.hasImage(id)) return
+    loadedMapImages.set(url, image)
     map.addImage(id, image)
+    addedImages.set(id, url)
   })
 }
 
@@ -195,7 +229,7 @@ export function buildSigwxDashArrayExpression() {
   ]
 }
 
-export function addOrUpdateSigwxLowLayers(map, data) {
+export function addOrUpdateSigwxLowLayers(map, data, { loadIcons = true } = {}) {
   ensureSigwxChipImages(map)
   addOrUpdateGeoJsonSource(map, SIGWX_POLYGON_SOURCE, data?.polygons || EMPTY_GEOJSON)
   addOrUpdateGeoJsonSource(map, SIGWX_LINE_SOURCE, data?.lines || EMPTY_GEOJSON)
@@ -204,7 +238,9 @@ export function addOrUpdateSigwxLowLayers(map, data) {
   addOrUpdateGeoJsonSource(map, SIGWX_ARROW_LABEL_SOURCE, data?.arrowLabels || EMPTY_GEOJSON)
   addOrUpdateGeoJsonSource(map, SIGWX_TEXT_CHIP_SOURCE, data?.textChips || EMPTY_GEOJSON)
 
-  data?.iconImages?.forEach((image) => ensureMapImage(map, image))
+  if (loadIcons) {
+    data?.iconImages?.forEach((image) => ensureMapImage(map, image))
+  }
 
   if (!map.getLayer(SIGWX_POLYGON_LAYER)) {
     map.addLayer({
@@ -373,7 +409,7 @@ export function syncRasterAndSigwxLayers(map, model) {
     opacity: 0.65,
   })
 
-  addOrUpdateSigwxLowLayers(map, model.sigwxLowMapData)
+  addOrUpdateSigwxLowLayers(map, model.sigwxLowMapData, { loadIcons: model.visibility.sigwx })
   setMapLayerVisible(map, SATELLITE_LAYER, hasSat && model.visibility.satellite)
   setMapLayerVisible(map, RADAR_LAYER, hasRadar && model.visibility.radar)
   setMapLayerVisible(map, SIGWX_LAYER, hasSigwx && model.visibility.sigwx && model.showVisibleSigwxFrontOverlay)

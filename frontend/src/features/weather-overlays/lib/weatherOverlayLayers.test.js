@@ -10,6 +10,7 @@ import {
   SIGWX_CLOUD_LAYER,
   WEATHER_OVERLAY_LAYER_IDS,
   WEATHER_OVERLAY_SOURCE_IDS,
+  ensureMapImage,
   installWeatherOverlayLayers,
   syncAdvisoryLayers,
   syncLightningLayers,
@@ -91,6 +92,68 @@ test('syncRasterAndSigwxLayers installs raster overlays and visibility from the 
   assert.ok(map.layoutCalls.some(([id, prop, value]) => id === SIGWX_CLOUD_LAYER && prop === 'visibility' && value === 'none'))
 })
 
+test('syncRasterAndSigwxLayers does not load SIGWX icons when the SIGWX layer is hidden', () => {
+  const map = createMockMap()
+  const loadedUrls = []
+  map.hasImage = (id) => String(id).startsWith('sigwx-chip-')
+  map.loadImage = (url, callback) => {
+    loadedUrls.push(url)
+    callback(null, { url })
+  }
+
+  syncRasterAndSigwxLayers(map, {
+    satelliteFrame: { path: '/sat.png', bounds: [[30, 120], [40, 130]] },
+    radarFrame: { path: '/radar.png', bounds: [[30, 120], [40, 130]] },
+    selectedSigwxFrontMeta: null,
+    selectedSigwxCloudMeta: null,
+    sigwxLowMapData: {
+      polygons: { type: 'FeatureCollection', features: [] },
+      lines: { type: 'FeatureCollection', features: [] },
+      labels: { type: 'FeatureCollection', features: [] },
+      icons: { type: 'FeatureCollection', features: [] },
+      arrowLabels: { type: 'FeatureCollection', features: [] },
+      textChips: { type: 'FeatureCollection', features: [] },
+      iconImages: [{ id: 'sigwx-test-mist.png', url: '/Symbols/Reference%20Symbols/icon_sigwx/test-mist.png' }],
+    },
+    visibility: { satellite: true, radar: true, sigwx: false },
+    showVisibleSigwxFrontOverlay: false,
+    showVisibleSigwxCloudOverlay: false,
+  })
+
+  assert.deepEqual(loadedUrls, [])
+})
+
+test('syncRasterAndSigwxLayers loads SIGWX icons when the SIGWX layer is visible', () => {
+  const map = createMockMap()
+  const loadedUrls = []
+  map.hasImage = (id) => String(id).startsWith('sigwx-chip-')
+  map.loadImage = (url, callback) => {
+    loadedUrls.push(url)
+    callback(null, { url })
+  }
+
+  syncRasterAndSigwxLayers(map, {
+    satelliteFrame: null,
+    radarFrame: null,
+    selectedSigwxFrontMeta: null,
+    selectedSigwxCloudMeta: null,
+    sigwxLowMapData: {
+      polygons: { type: 'FeatureCollection', features: [] },
+      lines: { type: 'FeatureCollection', features: [] },
+      labels: { type: 'FeatureCollection', features: [] },
+      icons: { type: 'FeatureCollection', features: [] },
+      arrowLabels: { type: 'FeatureCollection', features: [] },
+      textChips: { type: 'FeatureCollection', features: [] },
+      iconImages: [{ id: 'sigwx-test-visible-mist.png', url: '/Symbols/Reference%20Symbols/icon_sigwx/test-visible-mist.png' }],
+    },
+    visibility: { satellite: false, radar: false, sigwx: true },
+    showVisibleSigwxFrontOverlay: false,
+    showVisibleSigwxCloudOverlay: false,
+  })
+
+  assert.deepEqual(loadedUrls, ['/Symbols/Reference%20Symbols/icon_sigwx/test-visible-mist.png'])
+})
+
 test('syncAdvisoryLayers and syncLightningLayers update installed sources and visibility', () => {
   const map = createMockMap()
   const empty = { type: 'FeatureCollection', features: [] }
@@ -131,4 +194,44 @@ test('installWeatherOverlayLayers can run with empty data', () => {
   for (const layerId of map.layers.keys()) {
     assert.ok(WEATHER_OVERLAY_LAYER_IDS.includes(layerId), `${layerId} is missing from WEATHER_OVERLAY_LAYER_IDS`)
   }
+})
+
+test('ensureMapImage avoids duplicate loads while a SIGWX icon is pending', () => {
+  const images = new Map()
+  const loadCalls = []
+  const map = {
+    hasImage(id) {
+      return images.has(id)
+    },
+    addImage(id, image) {
+      images.set(id, image)
+    },
+    loadImage(url, callback) {
+      loadCalls.push({ url, callback })
+    },
+  }
+
+  ensureMapImage(map, { id: 'sigwx-widespread_mist.png', url: '/Symbols/Reference%20Symbols/icon_sigwx/widespread_mist.png' })
+  ensureMapImage(map, { id: 'sigwx-widespread_mist.png', url: '/Symbols/Reference%20Symbols/icon_sigwx/widespread_mist.png' })
+
+  assert.equal(loadCalls.length, 1)
+})
+
+test('ensureMapImage avoids reloading a SIGWX icon after it was already added for the map', () => {
+  const loadCalls = []
+  const map = {
+    hasImage() {
+      return false
+    },
+    addImage() {},
+    loadImage(url, callback) {
+      loadCalls.push({ url, callback })
+    },
+  }
+
+  ensureMapImage(map, { id: 'sigwx-widespread_mist.png', url: '/Symbols/Reference%20Symbols/icon_sigwx/widespread_mist.png' })
+  loadCalls[0].callback(null, { url: loadCalls[0].url })
+  ensureMapImage(map, { id: 'sigwx-widespread_mist.png', url: '/Symbols/Reference%20Symbols/icon_sigwx/widespread_mist.png' })
+
+  assert.equal(loadCalls.length, 1)
 })

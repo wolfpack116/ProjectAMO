@@ -48,6 +48,27 @@ function scheduleKimNwpJob(scheduler = cron) {
   )
 }
 
+function buildInitialCollectionJobs({ includeKimNwp = config.kim_nwp?.collect_on_startup !== false } = {}) {
+  const jobs = [
+    ["metar", metarProcessor.processAll],
+    ["taf", tafProcessor.processAll],
+    ["warning", warningProcessor.process],
+    ["sigmet", sigmetProcessor.process],
+    ["airmet", airmetProcessor.process],
+    ["sigwx_low", sigwxLowProcessor.process],
+    ["amos", amosProcessor.process],
+    ["lightning", lightningProcessor.process],
+    ["radar_echo", radarEchoProcessor.process],
+    ["adsb", adsbProcessor.process],
+    ["satellite", satelliteProcessor.process],
+    ["ground_forecast", groundForecastProcessor.process],
+    ["environment", environmentProcessor.process],
+    ["airport_info", airportInfoProcessor.process],
+  ]
+  if (includeKimNwp) jobs.splice(10, 0, ["kim_surface_wind", kimSurfaceWindProcessor.process])
+  return jobs
+}
+
 async function main() {
   store.ensureDirectories(config.storage.base_path);
   store.initFromFiles(config.storage.base_path);
@@ -73,23 +94,9 @@ async function main() {
 
   // 서버 시작 직후 1회 즉시 수집
   console.log("Running initial data collection...");
-  await Promise.allSettled([
-    runWithLock("metar", metarProcessor.processAll),
-    runWithLock("taf", tafProcessor.processAll),
-    runWithLock("warning", warningProcessor.process),
-    runWithLock("sigmet", sigmetProcessor.process),
-    runWithLock("airmet", airmetProcessor.process),
-    runWithLock("sigwx_low", sigwxLowProcessor.process),
-    runWithLock("amos", amosProcessor.process),
-    runWithLock("lightning", lightningProcessor.process),
-    runWithLock("radar_echo", radarEchoProcessor.process),
-    runWithLock("adsb", adsbProcessor.process),
-    runWithLock("kim_surface_wind", kimSurfaceWindProcessor.process),
-    runWithLock("satellite", satelliteProcessor.process),
-    runWithLock("ground_forecast", groundForecastProcessor.process),
-    runWithLock("environment", environmentProcessor.process),
-    runWithLock("airport_info", airportInfoProcessor.process),
-  ]);
+  await Promise.allSettled(
+    buildInitialCollectionJobs().map(([type, job]) => runWithLock(type, job)),
+  );
   console.log("Initial data collection complete.");
 }
 
@@ -101,5 +108,5 @@ if (process.argv[1] && (__filename === process.argv[1] || __filename.endsWith(pr
   });
 }
 
-export { KIM_NWP_CRON_OPTIONS, main, runWithLock, scheduleKimNwpJob }
-export default { KIM_NWP_CRON_OPTIONS, main, runWithLock, scheduleKimNwpJob }
+export { KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleKimNwpJob }
+export default { KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleKimNwpJob }

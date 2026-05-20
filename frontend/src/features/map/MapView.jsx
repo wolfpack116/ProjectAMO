@@ -25,12 +25,15 @@ import NwpSliderBar from '../weather-overlays/NwpSliderBar.jsx'
 import { useKimSurfaceWind } from '../weather-overlays/lib/useKimSurfaceWind.js'
 import { useKimTemperature } from '../weather-overlays/lib/useKimTemperature.js'
 import { useKimCloudPotential } from '../weather-overlays/lib/useKimCloudPotential.js'
+import { useKimIcing } from '../weather-overlays/lib/useKimIcing.js'
 import { destroyWindOverlay, syncWindOverlay } from '../weather-overlays/lib/windOverlaySync.js'
 import { WIND_SPEED_COLOR_RAMP } from '../weather-overlays/lib/windField.js'
 import { CELSIUS_TEMPERATURE_COLOR_RAMP } from '../weather-overlays/lib/temperatureField.js'
 import { destroyTemperatureOverlay, syncTemperatureOverlay } from '../weather-overlays/lib/temperatureOverlaySync.js'
 import { CLOUD_POTENTIAL_COLOR_RAMP, getCloudPotentialMaxSpread } from '../weather-overlays/lib/cloudPotentialField.js'
 import { destroyCloudPotentialOverlay, syncCloudPotentialOverlay } from '../weather-overlays/lib/cloudPotentialOverlaySync.js'
+import { ICING_COLOR_RAMP } from '../weather-overlays/lib/icingPotentialField.js'
+import { destroyIcingPotentialOverlay, syncIcingPotentialOverlay } from '../weather-overlays/lib/icingPotentialOverlaySync.js'
 import { getNextMetVisibility } from '../weather-overlays/lib/metLayerVisibility.js'
 import {
   LIGHTNING_BLINK_INTERVAL_MS,
@@ -60,6 +63,7 @@ import {
   addGeoBoundaryLayers,
   createAirportGeoJSON,
   setGeoBoundaryVisibility,
+  shouldShowGeoBoundaries,
 } from './lib/baseMapLayers.js'
 import {
   VFR_WP_CIRCLE,
@@ -186,9 +190,11 @@ function MapView({
   const windEnabled = enableWindOverlay && metVisibility.wind
   const tempEnabled = enableWindOverlay && metVisibility.temp
   const cloudEnabled = enableWindOverlay && metVisibility.cloud
+  const icingEnabled = enableWindOverlay && metVisibility.icing
   const kimSurfaceWind = useKimSurfaceWind(windEnabled, nwpSelection, setNwpSelection)
   const kimTemperature = useKimTemperature(tempEnabled, nwpSelection, setNwpSelection)
   const kimCloudPotential = useKimCloudPotential(cloudEnabled, nwpSelection, setNwpSelection)
+  const kimIcing = useKimIcing(icingEnabled, nwpSelection, setNwpSelection)
   const windRendererOptions = useMemo(() => ({
     ...(kimSurfaceWind.lowPower
       ? { desktopCap: 800, mobileCap: 800, frameCap: 15, sampleStep: 4, pixelRatioCap: 1.5 }
@@ -201,12 +207,16 @@ function MapView({
     flowWidth: windFlowWidth,
     trailPersistence: windFlowTrail,
   }), [kimSurfaceWind.lowPower, metVisibility.windSpeed, windFlowOpacity, windFlowTrail, windFlowWidth])
-  const nwpSliderSource = metVisibility.cloud
+  const nwpSliderSource = metVisibility.icing
+    ? kimIcing
+    : metVisibility.cloud
     ? kimCloudPotential
     : metVisibility.temp
       ? kimTemperature
       : kimSurfaceWind
-  const nwpSliderIndex = metVisibility.cloud
+  const nwpSliderIndex = metVisibility.icing
+    ? kimIcing.icingIndex
+    : metVisibility.cloud
     ? kimCloudPotential.cloudIndex
     : metVisibility.temp
       ? kimTemperature.temperatureIndex
@@ -746,12 +756,28 @@ function MapView({
     styleRevision,
   ])
 
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !isStyleReady || !enableWindOverlay) return
+    syncIcingPotentialOverlay(map, {
+      icingField: kimIcing.icingField,
+      isVisible: metVisibility.icing,
+    })
+  }, [
+    enableWindOverlay,
+    kimIcing.icingField,
+    metVisibility.icing,
+    isStyleReady,
+    styleRevision,
+  ])
+
   useEffect(() => () => {
     const map = mapRef.current
     if (map) {
       destroyWindOverlay(map)
       destroyTemperatureOverlay(map)
       destroyCloudPotentialOverlay(map)
+      destroyIcingPotentialOverlay(map)
     }
   }, [])
 
@@ -760,8 +786,19 @@ function MapView({
   useEffect(() => {
     const map = mapRef.current
     if (!map || !isStyleReady) return
-    setGeoBoundaryVisibility(map, basemapId === 'dark' || metVisibility.satellite || metVisibility.radar)
-  }, [basemapId, metVisibility.satellite, metVisibility.radar, isStyleReady, styleRevision])
+    setGeoBoundaryVisibility(map, shouldShowGeoBoundaries({ basemapId, metVisibility, enableWindOverlay }))
+  }, [
+    basemapId,
+    enableWindOverlay,
+    metVisibility.satellite,
+    metVisibility.radar,
+    metVisibility.wind,
+    metVisibility.temp,
+    metVisibility.cloud,
+    metVisibility.icing,
+    isStyleReady,
+    styleRevision,
+  ])
 
   // ???? Sync ADS-B ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
@@ -824,6 +861,9 @@ function MapView({
     if (id === 'temp') return !enableWindOverlay || ((kimTemperature.status === 'error' || kimTemperature.status === 'unavailable') && !kimTemperature.temperatureField)
     if (id === 'cloud') {
       return !enableWindOverlay || (!metVisibility.cloud && (kimCloudPotential.status === 'error' || kimCloudPotential.status === 'unavailable') && !kimCloudPotential.cloudField)
+    }
+    if (id === 'icing') {
+      return !enableWindOverlay || (!metVisibility.icing && (kimIcing.status === 'error' || kimIcing.status === 'unavailable') && !kimIcing.icingField)
     }
     if (id === 'radar') return radarFrames.length === 0
     if (id === 'satellite') return satelliteFrames.length === 0
@@ -892,6 +932,8 @@ function MapView({
         temperatureLegendEntries={CELSIUS_TEMPERATURE_COLOR_RAMP}
         cloudLegendVisible={!!(enableWindOverlay && metVisibility.cloud && kimCloudPotential.cloudField)}
         cloudLegendEntries={CLOUD_POTENTIAL_COLOR_RAMP.filter((entry) => entry.max <= getCloudPotentialMaxSpread(kimCloudPotential.cloudField))}
+        icingLegendVisible={!!(enableWindOverlay && metVisibility.icing && kimIcing.icingField)}
+        icingLegendEntries={ICING_COLOR_RAMP}
         radarReferenceTimeMs={radarReferenceTimeMs}
         lightningReferenceTimeMs={lightningReferenceTimeMs}
         formatReferenceTimeLabel={formatReferenceTimeLabel}
@@ -934,7 +976,7 @@ function MapView({
       />
 
       <NwpSliderBar
-        isVisible={enableWindOverlay && (metVisibility.wind || metVisibility.temp || metVisibility.cloud)}
+        isVisible={enableWindOverlay && (metVisibility.wind || metVisibility.temp || metVisibility.cloud || metVisibility.icing)}
         levels={nwpSliderSource.availableLevels}
         times={nwpSliderSource.availableTimes}
         selection={nwpSelection}
@@ -1007,6 +1049,7 @@ function MapView({
           windStatus={kimSurfaceWind.status}
           tempStatus={kimTemperature.status}
           cloudStatus={kimCloudPotential.status}
+          icingStatus={kimIcing.status}
           windLowPower={kimSurfaceWind.lowPower}
           windFlowOpacity={windFlowOpacity}
           windFlowTrail={windFlowTrail}

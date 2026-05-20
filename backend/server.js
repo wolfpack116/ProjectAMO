@@ -1,4 +1,6 @@
 import express from 'express'
+import compression from 'compression'
+import crypto from 'node:crypto'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -12,6 +14,8 @@ import { buildVerticalProfile } from './src/briefing/vertical-profile.js'
 import { createDefaultTerrainSampler } from './src/terrain/terrain-sampler.js'
 import {
   buildKimCloudPotentialFieldFromGrid,
+  buildKimIcingFieldFromGrid,
+  KIM_NWP_ICING_LEVEL_IDS,
   KIM_NWP_MOISTURE_LEVEL_IDS,
   buildKimTemperatureFieldFromGrid,
   buildKimSurfaceWindFieldFromWindGrid,
@@ -30,10 +34,14 @@ const PORT = process.env.BACKEND_PORT || 3001
 const HOST = process.env.BACKEND_HOST || '127.0.0.1'
 const DATA_ROOT = config.storage.base_path
 const terrainSampler = createDefaultTerrainSampler(DATA_ROOT)
+const KIM_ICING_REQUIRED_VARIABLES = ['T', 'rh_liq', 'w', 'tqc', 'tqi', 'tqr', 'tqs', 'cld']
+const SNAPSHOT_META_CACHE_TTL_MS = 5000
+const snapshotMetaCache = { key: null, value: null, expiresAt: 0 }
 
 app.disable('x-powered-by')
 app.set('trust proxy', true)
 app.use(express.json({ limit: '1mb' }))
+app.use(compression())
 
 function readJsonFileSafe(filePath) {
   try {
@@ -74,8 +82,14 @@ function setGeneratedDataCacheHeaders(res, filePath) {
 }
 
 app.use('/data', express.static(DATA_ROOT, { setHeaders: setGeneratedDataCacheHeaders }))
-app.use('/api', (_req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store')
+function isImmutableKimFieldRequest(req) {
+  return /^\/kim\/(?:wind|temp|cloud|icing)\/field$/i.test(req.path)
+}
+
+app.use('/api', (req, res, next) => {
+  if (!isImmutableKimFieldRequest(req)) {
+    res.setHeader('Cache-Control', 'no-store')
+  }
   next()
 })
 
@@ -107,6 +121,18 @@ function sendJsonFile(res, filePath) {
   const payload = readJsonFileSafe(filePath)
   if (payload) return res.json(payload)
   res.status(503).json({ error: 'data unavailable' })
+}
+
+function sendImmutableJson(res, payload, etagSeed) {
+  const etag = `"${crypto.createHash('sha256').update(etagSeed).digest('hex')}"`
+  res.setHeader('Cache-Control', 'public, max-age=86400, immutable')
+  res.setHeader('ETag', etag)
+  res.setHeader('Vary', 'Accept-Encoding')
+  if (res.req?.headers?.['if-none-match'] === etag) {
+    res.status(304).end()
+    return
+  }
+  res.json(payload)
 }
 
 function readRecent(type, limit = 10) {
@@ -162,6 +188,9 @@ function buildKimNwpSnapshotEntry() {
   const cloudIndex = index
     ? filterKimNwpIndexForLevels(filterKimNwpIndexForVariables(index, ['T', 'rh']), KIM_NWP_MOISTURE_LEVEL_IDS)
     : null
+  const icingIndex = index
+    ? filterKimNwpIndexForLevels(filterKimNwpIndexForVariables(index, KIM_ICING_REQUIRED_VARIABLES), KIM_NWP_ICING_LEVEL_IDS)
+    : null
   return {
     hash: latest.content_hash || store.canonicalHash(latest),
     tmfc: latest.latestRun || null,
@@ -170,6 +199,7 @@ function buildKimNwpSnapshotEntry() {
       uv: { hash: uvIndex ? store.canonicalHash(uvIndex) : null },
       T: { hash: tempIndex ? store.canonicalHash(tempIndex) : null },
       cloud: { hash: cloudIndex ? store.canonicalHash(cloudIndex) : null },
+      icing: { hash: icingIndex ? store.canonicalHash(icingIndex) : null },
     },
   }
 }
@@ -190,6 +220,50 @@ function buildSigwxOverlaySnapshotEntry(kind) {
     updated_at: meta.updated_at || null,
     render_version: meta.render_version || null,
   }
+}
+
+function fileMtimeMs(filePath) {
+  try {
+    return fs.statSync(filePath).mtimeMs
+  } catch {
+    return 0
+  }
+}
+
+function buildSnapshotMetaCacheKey() {
+  const files = [
+    path.join(DATA_ROOT, 'kim_nwp', 'index.json'),
+    path.join(DATA_ROOT, 'kim_nwp', 'latest.json'),
+    path.join(DATA_ROOT, 'kim_surface_wind', 'latest.json'),
+    path.join(DATA_ROOT, 'metar', 'latest.json'),
+    path.join(DATA_ROOT, 'taf', 'latest.json'),
+    path.join(DATA_ROOT, 'warning', 'latest.json'),
+    path.join(DATA_ROOT, 'sigmet', 'latest.json'),
+    path.join(DATA_ROOT, 'airmet', 'latest.json'),
+    path.join(DATA_ROOT, 'sigwx_low', 'latest.json'),
+    path.join(DATA_ROOT, 'amos', 'latest.json'),
+    path.join(DATA_ROOT, 'lightning', 'latest.json'),
+    path.join(DATA_ROOT, 'adsb', 'latest.json'),
+    path.join(DATA_ROOT, 'ground_forecast', 'latest.json'),
+    path.join(DATA_ROOT, 'ground_overview', 'latest.json'),
+    path.join(DATA_ROOT, 'environment', 'latest.json'),
+    path.join(DATA_ROOT, 'airport_info', 'latest.json'),
+    path.join(DATA_ROOT, 'radar', 'echo_meta.json'),
+    path.join(DATA_ROOT, 'satellite', 'sat_meta.json'),
+  ]
+  return files.map((filePath) => `${filePath}:${fileMtimeMs(filePath)}`).join('|')
+}
+
+function getCachedSnapshotMeta(nowMs = Date.now()) {
+  const key = buildSnapshotMetaCacheKey()
+  if (snapshotMetaCache.value && snapshotMetaCache.key === key && snapshotMetaCache.expiresAt > nowMs) {
+    return snapshotMetaCache.value
+  }
+  const value = buildSnapshotMeta()
+  snapshotMetaCache.key = key
+  snapshotMetaCache.value = value
+  snapshotMetaCache.expiresAt = nowMs + SNAPSHOT_META_CACHE_TTL_MS
+  return value
 }
 
 function buildSnapshotMeta() {
@@ -295,6 +369,13 @@ export function filterKimCloudIndexForMap(index, nowMs = Date.now()) {
   )
 }
 
+export function filterKimIcingIndexForMap(index, nowMs = Date.now()) {
+  return filterKimNwpIndexForMap(
+    filterKimNwpIndexForLevels(filterKimNwpIndexForVariables(index, KIM_ICING_REQUIRED_VARIABLES), KIM_NWP_ICING_LEVEL_IDS),
+    nowMs,
+  )
+}
+
 function selectDefaultKimNwpField(index) {
   const preferredLevel = index?.levels?.find((level) => level.id === '10m') || index?.levels?.[0]
   if (!preferredLevel) return null
@@ -340,6 +421,18 @@ function readSelectedKimCloudField(selection) {
   return buildKimCloudPotentialFieldFromGrid(grid)
 }
 
+function readSelectedKimIcingField(selection) {
+  validateKimNwpSelection({ tmfc: selection.tmfc, hf: selection.hf, levelId: selection.level })
+  const grid = readKimNwpGrid({
+    root: DATA_ROOT,
+    model: 'KIMG/NE57',
+    tmfc: selection.tmfc,
+    hf: Number(selection.hf),
+    levelId: selection.level,
+  })
+  return buildKimIcingFieldFromGrid(grid)
+}
+
 function sendKimWindField(req, res, { allowDefault = false } = {}) {
   try {
     let selection = {
@@ -358,7 +451,8 @@ function sendKimWindField(req, res, { allowDefault = false } = {}) {
       return
     }
 
-    res.json(readSelectedKimNwpField(selection))
+    const field = readSelectedKimNwpField(selection)
+    sendImmutableJson(res, field, `kim-wind:${selection.tmfc}:${selection.hf}:${selection.level}:${field?.fetched_at || ''}`)
   } catch (error) {
     res.status(400).json({ error: error.message || 'invalid kim wind selection' })
   }
@@ -409,7 +503,8 @@ app.get('/api/kim/temp/field', (req, res) => {
       hf: Number(req.query.hf),
       level: String(req.query.level || ''),
     }
-    res.json(readSelectedKimTempField(selection))
+    const field = readSelectedKimTempField(selection)
+    sendImmutableJson(res, field, `kim-temp:${selection.tmfc}:${selection.hf}:${selection.level}:${field?.fetched_at || ''}`)
   } catch (error) {
     res.status(400).json({ error: error.message || 'invalid kim temp selection' })
   }
@@ -432,16 +527,44 @@ app.get('/api/kim/cloud/field', (req, res) => {
       hf: Number(req.query.hf),
       level: String(req.query.level || ''),
     }
-    res.json(readSelectedKimCloudField(selection))
+    const field = readSelectedKimCloudField(selection)
+    sendImmutableJson(res, field, `kim-cloud:${selection.tmfc}:${selection.hf}:${selection.level}:${field?.fetched_at || ''}`)
   } catch (error) {
     res.status(400).json({ error: error.message || 'invalid kim cloud selection' })
+  }
+})
+app.get('/api/kim/icing/index', (_req, res) => {
+  const index = readKimNwpIndex(DATA_ROOT)
+  if (index) {
+    res.json({
+      ...filterKimIcingIndexForMap(index),
+      type: 'kim_nwp_icing_index',
+    })
+    return
+  }
+  res.status(503).json({ error: 'kim icing index unavailable' })
+})
+app.get('/api/kim/icing/field', (req, res) => {
+  try {
+    const selection = {
+      tmfc: String(req.query.tmfc || ''),
+      hf: Number(req.query.hf),
+      level: String(req.query.level || ''),
+    }
+    const field = readSelectedKimIcingField(selection)
+    sendImmutableJson(res, field, `kim-icing:${selection.tmfc}:${selection.hf}:${selection.level}:${field?.fetched_at || ''}`)
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'invalid kim icing selection' })
   }
 })
 app.get('/api/ground-forecast', (_, res) => sendLatest(res, 'ground_forecast'))
 app.get('/api/ground-overview', (_, res) => sendLatest(res, 'ground_overview'))
 app.get('/api/environment', (_, res) => sendLatest(res, 'environment'))
 app.get('/api/airport-info', (_, res) => sendLatest(res, 'airport_info'))
-app.get('/api/snapshot-meta', (_req, res) => res.json(buildSnapshotMeta()))
+app.get('/api/snapshot-meta', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-cache')
+  res.json(getCachedSnapshotMeta())
+})
 app.get('/api/sigwx-low-history', (_req, res) => {
   try {
     res.json(readRecent('sigwx_low', 10))
@@ -481,7 +604,7 @@ app.post('/api/vertical-profile', (req, res) => {
   }
 })
 
-export { app, buildSnapshotMeta, readSelectedKimCloudField }
+export { app, buildSnapshotMeta, getCachedSnapshotMeta, readSelectedKimCloudField, readSelectedKimIcingField }
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, HOST, () => console.log(`[server] Backend running on ${HOST}:${PORT}`))

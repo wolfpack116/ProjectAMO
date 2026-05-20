@@ -46,7 +46,7 @@ test('cloud API exposes filtered index, field payload, invalid selection, and sn
   process.env.DATA_PATH = root
 
   const level = KIM_NWP_LEVELS[2]
-  const upperLevel = KIM_NWP_LEVELS[5]
+  const upperLevel = KIM_NWP_LEVELS.find((entry) => entry.id === '300hPa')
   const tmfc = '2099010100'
   const hf = 0
   const grid = buildKimNwpGrid({

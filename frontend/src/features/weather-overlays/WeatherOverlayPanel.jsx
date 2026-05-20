@@ -14,12 +14,13 @@ function WeatherOverlayPanel({
   windFlowWidth = 1.5,
   tempStatus = 'idle',
   cloudStatus = 'idle',
+  icingStatus = 'idle',
   onWindFlowOpacityChange,
   onWindFlowTrailChange,
   onWindFlowWidthChange,
 }) {
   const groups = [
-    { id: 'weather', title: '기상', ids: showWind ? ['radar', 'satellite', 'lightning', 'wind', 'temp', 'cloud'] : ['radar', 'satellite', 'lightning'] },
+    { id: 'weather', title: '기상', ids: showWind ? ['radar', 'satellite', 'lightning', 'wind', 'temp', 'cloud', 'icing'] : ['radar', 'satellite', 'lightning'] },
     { id: 'hazards', title: '위험기상', ids: ['sigmet', 'airmet', 'sigwx'] },
     { id: 'traffic', title: '항적', ids: ['adsb'] },
   ]
@@ -30,12 +31,13 @@ function WeatherOverlayPanel({
     wind: 'Wind',
     temp: 'Temp',
     cloud: 'Moisture',
+    icing: 'Icing Potential (K-FIP-inspired)',
     sigmet: 'SIGMET',
     airmet: 'AIRMET',
     sigwx: 'SIGWX',
     adsb: 'ADS-B',
   }
-  const visibleLayers = layers.filter((layer) => showWind || !['wind', 'temp', 'cloud'].includes(layer.id))
+  const visibleLayers = layers.filter((layer) => showWind || !['wind', 'temp', 'cloud', 'icing'].includes(layer.id))
   const activeCount = visibleLayers.filter((layer) => visibility[layer.id] && !isLayerDisabled(layer.id)).length
   const layerById = new Map(visibleLayers.map((layer) => [layer.id, layer]))
   const activeCountForGroup = (group) => (
@@ -182,6 +184,28 @@ function WeatherOverlayPanel({
     )
   }
 
+  function renderIcingControl(layer) {
+    const disabled = isLayerDisabled(layer.id)
+    return (
+      <div key={layer.id} className={`wind-toggle-block${disabled ? ' is-disabled' : ''}`}>
+        <label className={`layer-toggle-row${disabled ? ' is-disabled' : ''}`}>
+          <input
+            className="layer-toggle-input"
+            type="checkbox"
+            checked={!!visibility.icing}
+            disabled={disabled}
+            onChange={() => onToggle('icing')}
+          />
+          <span className="layer-toggle-switch" aria-hidden="true" />
+          <span className="layer-toggle-swatch" style={{ background: layer.color }} />
+          <span className="layer-toggle-label">{layerLabels.icing}</span>
+        </label>
+        {visibility.icing && icingStatus === 'loading' && <div className="wind-toggle-meta">Icing loading</div>}
+        {visibility.icing && (icingStatus === 'error' || icingStatus === 'unavailable') && <div className="wind-toggle-meta">Icing unavailable</div>}
+      </div>
+    )
+  }
+
   const body = (
     <div className="layer-drawer-body">
       {groups.map((group) => (
@@ -197,6 +221,7 @@ function WeatherOverlayPanel({
               if (layer.id === 'wind') return renderWindControl(layer)
               if (layer.id === 'temp') return renderTempControl(layer)
               if (layer.id === 'cloud') return renderCloudControl(layer)
+              if (layer.id === 'icing') return renderIcingControl(layer)
               const disabled = isLayerDisabled(layer.id)
               const badge = getLayerBadge(layer.id)
               return (

@@ -56,11 +56,12 @@ ProjectAMO/
 - `frontend/src/api/weatherApi.js` -> weather bundle, changed dataset, static airport/navdata fetch helpers.
 - `frontend/src/api/adsbApi.js` -> ADS-B fetch helper.
 - `frontend/src/api/briefingApi.js` -> route briefing and vertical profile API helpers.
-- `frontend/src/features/map/MapView.jsx` -> Mapbox instance owner, style readiness/basemap switching coordinator, `styleRevision` sync trigger, high-level feature panel composition, and current-state sync orchestration. Feature-specific data shaping and layer adapters live in their owning feature modules.
+- `frontend/src/features/map/MapView.jsx` -> Mapbox instance owner, style readiness/basemap switching coordinator, `styleRevision` sync trigger, high-level feature panel composition, and current-state sync orchestration, including base geo-boundary visibility for dark/raster/NWP overlay contrast. Feature-specific data shaping and layer adapters live in their owning feature modules.
 - `frontend/src/features/map/MapView.css` -> map, overlay panel, and route briefing style entry.
 - `frontend/src/features/map/mapConfig.js` -> map bounds, initial camera, basemap options.
 - `frontend/src/features/map/imageOverlay.js` -> shared Mapbox image overlay helpers for raster/SIGWX frames.
 - `frontend/src/features/map/lib/mapStyleSync.js` -> Mapbox style-reload helpers for cleanup-aware layer event binding, cleanup collections, and source/layer ownership tests.
+- `frontend/src/features/map/lib/baseMapLayers.js` -> airport and geo-boundary source/layer install helpers, plus geo-boundary visibility policy for basemap and weather/NWP overlay contrast.
 - `frontend/src/features/map/basemapSwitcher/BasemapSwitcher.jsx` -> basemap switcher UI.
 - `frontend/src/features/monitoring/MonitoringPage.jsx` -> standalone `/monitoring` legacy-style ops/ground screen.
 - `frontend/src/features/monitoring/MonitoringMap.jsx` -> monitoring wrapper around the main MapView with local Aviation/MET icon toggles.
@@ -92,6 +93,9 @@ ProjectAMO/
 - `frontend/src/features/weather-overlays/lib/temperatureOverlaySync.js` -> temperature Canvas raster generation and Mapbox image overlay lifecycle sync.
 - `frontend/src/features/weather-overlays/lib/cloudPotentialField.js` -> KIM dewpoint-spread decoding and green stepped moist-area display ramp.
 - `frontend/src/features/weather-overlays/lib/cloudPotentialOverlaySync.js` -> dewpoint-spread Canvas raster generation and Mapbox image overlay lifecycle sync.
+- `frontend/src/features/weather-overlays/lib/useKimIcing.js` -> KIM icing-potential index/field hook with shared NWP selection, field cache, icing variable-hash refresh, and stale-selection guards.
+- `frontend/src/features/weather-overlays/lib/icingPotentialField.js` -> KIM icing-potential score/grade decoding, sampler, potential-class color ramp, and conservative K-FIP-inspired labels.
+- `frontend/src/features/weather-overlays/lib/icingPotentialOverlaySync.js` -> icing-potential Canvas raster generation and Mapbox image overlay lifecycle sync.
 - `frontend/src/features/weather-overlays/lib/canvasWindRenderer.js` -> Canvas 2D fallback renderer for KIM wind flow and speed overlays.
 - `frontend/src/features/weather-overlays/lib/webglWindRenderer.js` -> WebGL wind renderer for KIM wind flow particles and speed color cells.
 - `frontend/src/features/weather-overlays/lib/lightningLayers.js` -> lightning GeoJSON, icon, layer, visibility, and blink helpers.
@@ -137,13 +141,16 @@ ProjectAMO/
 - `backend/src/store.js` -> in-memory cache and SHA-256 change detection.
 - `backend/src/parsers/*` -> per-type raw response parsers.
 - `backend/src/processors/*` -> per-type normalized data processors.
-- `backend/src/processors/kim-surface-wind-processor.js` -> existing KIM scheduled job/lock orchestrator for multi-level NWP wind plus serial Temp/moisture-level RH collection, complete-run skip checks, publishing canonical `DATA_PATH/kim_nwp/` while preserving the legacy surface-wind cache.
+- `backend/src/processors/kim-surface-wind-processor.js` -> KIM scheduled job/lock orchestrator for multi-level NWP wind, Temp, moisture-level RH, and config-gated icing-variable collection with complete-run skip checks; publishes partial successful runs to canonical `DATA_PATH/kim_nwp/` while preserving the legacy surface-wind cache, then retries incompleteness on later schedules.
 - `backend/src/processors/kim-nwp-store.js` -> canonical `DATA_PATH/kim_nwp/` store helpers for safe path resolution, atomic manifest/grid/index/latest writes, reads, usable-run manifest checks, and run retention.
-- `backend/src/processors/kim-nwp-model.js` -> KIM NWP levels/forecast hours/moisture-analysis levels, normalized variable grid builder, compact index filtering, and wind/temperature/dewpoint-spread renderer-compatible field conversion.
-- `backend/test/kim-scheduler.test.js` -> scheduler wiring tests for UTC KIM NWP release-window cron behavior.
-- `backend/test/kim-nwp-store.test.js` -> KIM NWP store path validation, atomic write/read, compact index, and retention tests.
+- `backend/src/processors/kim-nwp-model.js` -> KIM NWP levels/forecast hours/moisture/icing levels, per-variable scaled grid builder, compact index filtering with per-variable hashes, and wind/temperature/dewpoint-spread/icing renderer-compatible field conversion.
+- `backend/test/kim-scheduler.test.js` -> scheduler wiring tests for UTC KIM NWP release-window cron behavior and startup KIM collection gating.
+- `backend/test/kim-nwp-store.test.js` -> KIM NWP store path validation, atomic write/read, compact index, and retention tests, including partial-run retention safety.
 - `backend/test/kim-nwp-model.test.js` -> KIM NWP wind grid, index, and compatibility field model tests.
 - `backend/test/kim-server-index.test.js` -> KIM NWP map index filtering tests for nearest-past plus future time exposure.
+- `backend/test/kim-field-cache.test.js` -> KIM field route immutable cache header and ETag revalidation tests.
+- `backend/test/snapshot-meta-cache.test.js` -> `/api/snapshot-meta` backend memoization and mtime invalidation tests.
+- `backend/test/compression.test.js` -> Express gzip compression smoke test for large JSON KIM field responses.
 - `backend/collect.js` -> manual one-shot collector.
 - `scripts/prepare-terrain-tiles.js` -> converts decompressed Korea 3-second DEM into 1-degree terrain tiles.
 

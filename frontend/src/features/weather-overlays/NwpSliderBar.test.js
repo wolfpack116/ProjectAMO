@@ -4,6 +4,7 @@ import test from 'node:test'
 import {
   formatNwpTimeTick,
   getNwpSliderOptions,
+  shouldCommitNwpSelection,
 } from './NwpSliderBarModel.js'
 
 const levels = [
@@ -37,4 +38,13 @@ test('getNwpSliderOptions keeps level slider visible with one future time', () =
   assert.equal(options.showTimeSlider, false)
   assert.equal(options.showLevelSlider, true)
   assert.deepEqual(options.availableLevels.map((level) => level.id), ['10m', '925hPa'])
+})
+
+test('NWP slider commits selection on final interaction events', () => {
+  assert.equal(shouldCommitNwpSelection('input'), false)
+  assert.equal(shouldCommitNwpSelection('pointermove'), false)
+  assert.equal(shouldCommitNwpSelection('change'), true)
+  assert.equal(shouldCommitNwpSelection('pointerup'), true)
+  assert.equal(shouldCommitNwpSelection('keyup'), true)
+  assert.equal(shouldCommitNwpSelection('blur'), true)
 })

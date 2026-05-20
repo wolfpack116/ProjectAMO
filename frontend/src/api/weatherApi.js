@@ -174,6 +174,15 @@ export async function fetchKimCloudPotentialField({ tmfc, hf, level }, options =
   return fetchJson(`/api/kim/cloud/field?${params.toString()}`, options)
 }
 
+export async function fetchKimIcingIndex(options = {}) {
+  return fetchJson('/api/kim/icing/index', options)
+}
+
+export async function fetchKimIcingField({ tmfc, hf, level }, options = {}) {
+  const params = new URLSearchParams({ tmfc, hf: String(hf), level })
+  return fetchJson(`/api/kim/icing/field?${params.toString()}`, options)
+}
+
 export async function fetchSigwxFrontMeta(tmfc) {
   if (!tmfc) return null
   return fetchJson(`/api/sigwx-front-meta?tmfc=${encodeURIComponent(tmfc)}`, { optional: true })

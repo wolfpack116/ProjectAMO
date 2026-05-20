@@ -374,15 +374,6 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     autoRecommendRequested,
   ])
 
-  useEffect(() => {
-    if (activePanel === 'route-check') return
-    clearRouteDisplay()
-    setSelectedSid(null)
-    setSelectedStar(null)
-    setIapCandidates([])
-    setSelectedIapKey(null)
-  }, [activePanel])
-
   function updateRouteField(field, value) {
     setRouteForm((prev) => ({ ...prev, [field]: value }))
   }

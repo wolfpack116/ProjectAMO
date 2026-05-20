@@ -10,7 +10,7 @@ test('getNextMetVisibility makes wind and temp mutually exclusive', () => {
       'wind',
       { lowPower: false },
     ),
-    { wind: true, temp: false, cloud: false, windFlow: true, windSpeed: true },
+    { wind: true, temp: false, cloud: false, icing: false, windFlow: true, windSpeed: true },
   )
 
   assert.deepEqual(
@@ -19,7 +19,7 @@ test('getNextMetVisibility makes wind and temp mutually exclusive', () => {
       'temp',
       { lowPower: false },
     ),
-    { wind: false, temp: true, cloud: false, windFlow: false, windSpeed: true },
+    { wind: false, temp: true, cloud: false, icing: false, windFlow: false, windSpeed: true },
   )
 
   assert.deepEqual(
@@ -28,7 +28,7 @@ test('getNextMetVisibility makes wind and temp mutually exclusive', () => {
       'cloud',
       { lowPower: false },
     ),
-    { wind: false, temp: false, cloud: true, windFlow: false, windSpeed: true },
+    { wind: false, temp: false, cloud: true, icing: false, windFlow: false, windSpeed: true },
   )
 })
 
@@ -39,6 +39,26 @@ test('getNextMetVisibility keeps wind flow off in low power mode', () => {
       'wind',
       { lowPower: true },
     ).windFlow,
+    false,
+  )
+})
+
+test('getNextMetVisibility adds icing to NWP mutual exclusion', () => {
+  assert.deepEqual(
+    getNextMetVisibility(
+      { wind: true, temp: true, cloud: true, icing: false, windFlow: true, windSpeed: true },
+      'icing',
+      { lowPower: false },
+    ),
+    { wind: false, temp: false, cloud: false, icing: true, windFlow: false, windSpeed: true },
+  )
+
+  assert.equal(
+    getNextMetVisibility(
+      { wind: false, temp: false, cloud: false, icing: true, windFlow: false, windSpeed: true },
+      'wind',
+      { lowPower: false },
+    ).icing,
     false,
   )
 })

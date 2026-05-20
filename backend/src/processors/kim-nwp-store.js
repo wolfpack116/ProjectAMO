@@ -97,6 +97,14 @@ export function readKimNwpGrid({ root, model, tmfc, hf, levelId }) {
   return readJson(resolveKimNwpGridPath({ root, model, tmfc, hf, levelId }))
 }
 
+export function readKimNwpGridSafe({ root, model, tmfc, hf, levelId }) {
+  try {
+    return readKimNwpGrid({ root, model, tmfc, hf, levelId })
+  } catch {
+    return null
+  }
+}
+
 export function readKimNwpIndex(root) {
   const filePath = path.join(resolveKimNwpRoot(root), 'index.json')
   if (!fs.existsSync(filePath)) return null
@@ -128,8 +136,11 @@ export function cleanupKimNwpRuns({ root, maxRuns, latestRunId }) {
   const limit = Number(maxRuns)
   if (!Number.isFinite(limit) || limit <= 0) return
   const runsDir = path.join(resolveKimNwpRoot(root), 'runs')
-  const usableRuns = listKimNwpRuns(root).filter((runId) => readKimNwpManifest(root, runId)?.usable === true)
-  const keep = new Set(usableRuns.slice(0, limit))
+  const completeRuns = listKimNwpRuns(root).filter((runId) => {
+    const manifest = readKimNwpManifest(root, runId)
+    return manifest?.usable === true && manifest.complete !== false
+  })
+  const keep = new Set(completeRuns.slice(0, limit))
   if (latestRunId) keep.add(latestRunId)
   for (const runId of listKimNwpRuns(root)) {
     if (keep.has(runId)) continue
@@ -142,6 +153,7 @@ export default {
   cleanupKimNwpRuns,
   listKimNwpRuns,
   readKimNwpGrid,
+  readKimNwpGridSafe,
   readKimNwpIndex,
   readKimNwpLatest,
   readKimNwpManifest,

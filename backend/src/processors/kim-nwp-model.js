@@ -1,3 +1,5 @@
+import crypto from 'node:crypto'
+
 export const KIM_NWP_MODEL = 'KIMG/NE57'
 export const KIM_NWP_FORECAST_HOURS = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36]
 export const KIM_NWP_LEVELS = [
@@ -5,14 +7,33 @@ export const KIM_NWP_LEVELS = [
   { id: '925hPa', label: '925', kind: 'pressure', value: 925, unit: 'hPa', level: 925, uName: 'u', vName: 'v' },
   { id: '850hPa', label: '850', kind: 'pressure', value: 850, unit: 'hPa', level: 850, uName: 'u', vName: 'v' },
   { id: '700hPa', label: '700', kind: 'pressure', value: 700, unit: 'hPa', level: 700, uName: 'u', vName: 'v' },
+  { id: '600hPa', label: '600', kind: 'pressure', value: 600, unit: 'hPa', level: 600, uName: 'u', vName: 'v' },
   { id: '500hPa', label: '500', kind: 'pressure', value: 500, unit: 'hPa', level: 500, uName: 'u', vName: 'v' },
+  { id: '400hPa', label: '400', kind: 'pressure', value: 400, unit: 'hPa', level: 400, uName: 'u', vName: 'v' },
   { id: '300hPa', label: '300', kind: 'pressure', value: 300, unit: 'hPa', level: 300, uName: 'u', vName: 'v' },
 ]
 export const KIM_NWP_MOISTURE_LEVEL_IDS = ['925hPa', '850hPa', '700hPa', '500hPa']
 export const KIM_NWP_MOISTURE_LEVELS = KIM_NWP_LEVELS.filter((level) => KIM_NWP_MOISTURE_LEVEL_IDS.includes(level.id))
+export const KIM_NWP_ICING_LEVEL_IDS = ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa']
+export const KIM_NWP_ICING_LEVELS = KIM_NWP_LEVELS.filter((level) => KIM_NWP_ICING_LEVEL_IDS.includes(level.id))
 
-const SCALE = 0.01
+const SCALE_BY_VARIABLE = {
+  u: 0.01,
+  v: 0.01,
+  T: 0.01,
+  rh: 0.01,
+  rh_liq: 0.01,
+  w: 0.001,
+  cld: 0.0001,
+  tqc: 2e-7,
+  tqi: 2e-7,
+  tqr: 2e-7,
+  tqs: 2e-7,
+}
+const DEFAULT_SCALE = 0.01
 const OFFSET = 0
+const INT16_MIN = -32767
+const INT16_MAX = 32767
 const MISSING_ENCODED = -32768
 
 function round(value, digits = 3) {
@@ -20,8 +41,16 @@ function round(value, digits = 3) {
   return Math.round(value * factor) / factor
 }
 
-function encodeComponent(values) {
-  return values.map((value) => (Number.isFinite(value) ? Math.round((value - OFFSET) / SCALE) : MISSING_ENCODED))
+function scaleFor(variable) {
+  return SCALE_BY_VARIABLE[variable] ?? DEFAULT_SCALE
+}
+
+function encodeComponent(values, scale = DEFAULT_SCALE) {
+  return values.map((value) => {
+    if (!Number.isFinite(value)) return MISSING_ENCODED
+    const encoded = Math.round((value - OFFSET) / scale)
+    return Math.max(INT16_MIN, Math.min(INT16_MAX, encoded))
+  })
 }
 
 function decodeComponent(values, variable = {}) {
@@ -128,6 +157,10 @@ export function isKimNwpMoistureLevel(level) {
   return KIM_NWP_MOISTURE_LEVEL_IDS.includes(level?.id)
 }
 
+export function isKimNwpIcingLevel(level) {
+  return KIM_NWP_ICING_LEVEL_IDS.includes(level?.id)
+}
+
 export function cloudPotentialThresholdForLevel(level) {
   return level?.id === '500hPa' ? 6 : 4
 }
@@ -155,6 +188,156 @@ function statsForSpread(values) {
     : { minSpread: null, maxSpread: null, meanSpread: null }
 }
 
+function clamp01(value) {
+  return Math.max(0, Math.min(1, value))
+}
+
+function interpolatePoints(value, points) {
+  if (!Number.isFinite(value)) return Number.NaN
+  if (value <= points[0][0]) return points[0][1]
+  for (let index = 1; index < points.length; index += 1) {
+    const [x1, y1] = points[index]
+    if (value <= x1) {
+      const [x0, y0] = points[index - 1]
+      const ratio = (value - x0) / (x1 - x0)
+      return y0 + ratio * (y1 - y0)
+    }
+  }
+  return points[points.length - 1][1]
+}
+
+function interpolateLogPoints(value, points) {
+  if (!Number.isFinite(value) || value <= 0) return 0
+  return interpolatePoints(
+    Math.log10(value),
+    points.map(([x, y]) => [Math.log10(x), y]),
+  )
+}
+
+function mTemp(tempC) {
+  return interpolatePoints(tempC, [[-35, 0], [-30, 0.2], [-20, 0.7], [-15, 1], [-8, 1], [-4, 0.8], [0, 0.3], [1, 0]])
+}
+
+function mRh(rhLiq) {
+  return interpolatePoints(rhLiq, [[60, 0], [75, 0.25], [85, 0.65], [92, 0.9], [98, 1]])
+}
+
+function mVerticalVelocity(w) {
+  return interpolatePoints(w, [[-0.1, 0], [0, 0.05], [0.05, 0.25], [0.2, 0.7], [0.5, 1]])
+}
+
+function mCloudLiquid(tqc) {
+  return interpolateLogPoints(tqc, [[1e-7, 0], [1e-6, 0.2], [1e-5, 0.5], [1e-4, 0.85], [5e-4, 1]])
+}
+
+function mLiquidRatio(ratio) {
+  return interpolatePoints(ratio, [[0.1, 0], [0.3, 0.25], [0.5, 0.55], [0.7, 0.85], [0.9, 1]])
+}
+
+function mCloudFraction(cld) {
+  return interpolatePoints(cld, [[0.1, 0], [0.3, 0.25], [0.6, 0.7], [0.8, 1]])
+}
+
+export function calcIcingMemberships({ tempC, rhLiq, w, tqc, liquidRatio, cld }) {
+  return {
+    mT: mTemp(tempC),
+    mRh: mRh(rhLiq),
+    mW: mVerticalVelocity(w),
+    mCl: mCloudLiquid(tqc),
+    mLq: mLiquidRatio(liquidRatio),
+    mCc: mCloudFraction(cld),
+  }
+}
+
+export function icingHardGate({ tempC, rhLiq }) {
+  return Number.isFinite(tempC) && Number.isFinite(rhLiq) && tempC >= -35 && tempC <= 0 && rhLiq >= 60
+}
+
+export function calcLiquidRatio({ tqc = 0, tqr = 0, tqi = 0, tqs = 0 } = {}) {
+  const liquid = Math.max(0, tqc) + Math.max(0, tqr)
+  const total = liquid + Math.max(0, tqi) + Math.max(0, tqs)
+  if (total <= 0) return 0
+  return liquid / total
+}
+
+export function calcPhasePenalty(liquidRatio) {
+  if (!Number.isFinite(liquidRatio)) return Number.NaN
+  return clamp01((0.6 - liquidRatio) / 0.6)
+}
+
+export function calcFreezingBonus({ tempC, rhLiq, tqr }) {
+  if (!Number.isFinite(tempC) || !Number.isFinite(rhLiq) || !Number.isFinite(tqr)) return Number.NaN
+  if (tempC < -8 || tempC > 0.5 || rhLiq < 85) return 0
+  return Math.min(1, Math.max(0, tqr) / 2e-4)
+}
+
+export function calcSfipBaseScore({ tempC, rhLiq, w, tqc }) {
+  if (!icingHardGate({ tempC, rhLiq })) return 0
+  return clamp01(mTemp(tempC) * (0.35 * mRh(rhLiq) + 0.20 * mVerticalVelocity(w) + 0.45 * mCloudLiquid(tqc)))
+}
+
+export function calcKFipLiteScore({ tempC, rhLiq, w, tqc, tqi, tqr, tqs, cld }) {
+  if (!icingHardGate({ tempC, rhLiq })) return { score: 0, mCl: mCloudLiquid(tqc), bFrz: 0 }
+  const liquidRatio = calcLiquidRatio({ tqc, tqr, tqi, tqs })
+  const phasePenalty = calcPhasePenalty(liquidRatio)
+  const bFrz = calcFreezingBonus({ tempC, rhLiq, tqr })
+  const mCl = mCloudLiquid(tqc)
+  const score = clamp01(
+    mTemp(tempC)
+      * (0.20 * mRh(rhLiq)
+        + 0.15 * mVerticalVelocity(w)
+        + 0.25 * mCl
+        + 0.20 * mLiquidRatio(liquidRatio)
+        + 0.20 * mCloudFraction(cld))
+      * (1 - 0.30 * phasePenalty)
+      + 0.10 * bFrz,
+  )
+  return { score, mCl, bFrz }
+}
+
+export function icingGradeFor(score, { mCl, bFrz } = {}) {
+  if (!Number.isFinite(score)) return MISSING_ENCODED
+  if (score < 0.15) return 0
+  if (score < 0.40) return 1
+  if (score < 0.70) return 2
+  return mCl >= 0.7 || bFrz >= 0.5 ? 3 : 2
+}
+
+function statsForIcing(scores, grades) {
+  let maxScore = -Infinity
+  let totalScore = 0
+  let validCount = 0
+  let possibleCount = 0
+  for (let index = 0; index < scores.length; index += 1) {
+    const score = scores[index]
+    if (!Number.isFinite(score)) continue
+    maxScore = Math.max(maxScore, score)
+    totalScore += score
+    validCount += 1
+    if (grades[index] > 0) possibleCount += 1
+  }
+  return validCount > 0
+    ? {
+        maxScore: round(maxScore, 4),
+        meanScore: round(totalScore / validCount, 4),
+        possibleFraction: round(possibleCount / validCount, 4),
+      }
+    : { maxScore: null, meanScore: null, possibleFraction: null }
+}
+
+function variableContentHash(variable) {
+  return crypto
+    .createHash('sha256')
+    .update(JSON.stringify({
+      encoding: variable?.encoding || null,
+      scale: variable?.scale ?? null,
+      offset: variable?.offset ?? null,
+      unit: variable?.unit || null,
+      values: variable?.values || [],
+    }))
+    .digest('hex')
+}
+
 export function buildKimNwpGrid({ model = KIM_NWP_MODEL, tmfc, hf, level, components, fetchedAt = new Date().toISOString() }) {
   validateComponentShape(components)
   const [firstComponent] = components
@@ -171,17 +354,83 @@ export function buildKimNwpGrid({ model = KIM_NWP_MODEL, tmfc, hf, level, compon
       ny: firstComponent.ny,
       ...firstComponent.bounds,
     },
-    variables: Object.fromEntries(components.map((component) => [
-      component.variable,
-      {
-        unit: component.unit || (component.variable === 'T' ? 'K' : 'm/s'),
-        encoding: 'int16-scaled-json-v1',
-        scale: SCALE,
-        offset: OFFSET,
-        values: encodeComponent(component.values || []),
-      },
-    ])),
+    variables: Object.fromEntries(components.map((component) => {
+      const scale = scaleFor(component.variable)
+      return [
+        component.variable,
+        {
+          unit: component.unit || (component.variable === 'T' ? 'K' : 'm/s'),
+          encoding: 'int16-scaled-json-v1',
+          scale,
+          offset: OFFSET,
+          values: encodeComponent(component.values || [], scale),
+        },
+      ]
+    })),
     fetched_at: fetchedAt,
+  }
+}
+
+export function buildKimIcingFieldFromGrid(grid) {
+  const variables = grid?.variables || {}
+  const required = ['T', 'rh_liq', 'w', 'tqc', 'tqi', 'tqr', 'tqs', 'cld']
+  for (const name of required) {
+    if (!variables[name]) throw new Error(`KIM NWP grid is missing ${name} variable`)
+  }
+
+  const decoded = Object.fromEntries(required.map((name) => [name, decodeComponent(variables[name].values || [], variables[name])]))
+  const rawScores = []
+  const icingScore = []
+  const icingGrade = []
+
+  for (let index = 0; index < decoded.T.length; index += 1) {
+    const values = {
+      tempC: decoded.T[index] - 273.15,
+      rhLiq: decoded.rh_liq[index],
+      w: decoded.w[index],
+      tqc: decoded.tqc[index],
+      tqi: decoded.tqi[index],
+      tqr: decoded.tqr[index],
+      tqs: decoded.tqs[index],
+      cld: decoded.cld[index],
+    }
+    if (!Object.values(values).every(Number.isFinite)) {
+      rawScores.push(Number.NaN)
+      icingScore.push(MISSING_ENCODED)
+      icingGrade.push(MISSING_ENCODED)
+      continue
+    }
+    const { score, mCl, bFrz } = calcKFipLiteScore(values)
+    const grade = icingGradeFor(score, { mCl, bFrz })
+    rawScores.push(score)
+    icingScore.push(encodeComponent([score], 0.0001)[0])
+    icingGrade.push(grade)
+  }
+
+  return {
+    type: 'kim_nwp_icing_potential',
+    variant: 'k-fip-lite',
+    model: grid.model,
+    grid: grid.grid,
+    time: {
+      tmfc: grid.tmfc,
+      hf: grid.hf,
+      validTime: grid.validTime,
+    },
+    level: grid.level,
+    units: { icingScore: '0..1', icingGrade: 'ordinal' },
+    thresholds: { gateTempMinC: -35, gateTempMaxC: 0, gateRhLiqMin: 60 },
+    stats: statsForIcing(rawScores, icingGrade),
+    encoding: 'int16-scaled-json-v1',
+    scale: 0.0001,
+    offset: OFFSET,
+    fieldEncoding: {
+      icingScore: { encoding: 'int16-scaled-json-v1', scale: 0.0001, offset: OFFSET, missing: MISSING_ENCODED },
+      icingGrade: { encoding: 'ordinal-json-v1', scale: 1, offset: 0, missing: MISSING_ENCODED },
+    },
+    icingScore,
+    icingGrade,
+    fetched_at: grid.fetched_at,
   }
 }
 
@@ -276,7 +525,7 @@ export function buildKimCloudPotentialFieldFromGrid(grid, { thresholdC = cloudPo
     units: { spread: 'C', cloudPotential: '%' },
     stats: statsForSpread(spread),
     encoding: 'int16-scaled-json-v1',
-    scale: SCALE,
+    scale: DEFAULT_SCALE,
     offset: OFFSET,
     spread: encodeComponent(spread),
     cloudPotential: encodeComponent(cloudPotential),
@@ -300,6 +549,7 @@ export function buildKimNwpIndex({ model = KIM_NWP_MODEL, tmfc, grids, pathForGr
     availability[levelId] ||= {}
     availability[levelId][String(grid.hf)] = {
       variables: Object.keys(grid.variables || {}),
+      hashes: Object.fromEntries(Object.entries(grid.variables || {}).map(([name, variable]) => [name, variableContentHash(variable)])),
       path: pathForGrid(grid),
     }
   }
@@ -326,6 +576,9 @@ export function filterKimNwpIndexForVariables(index, requiredVariables = []) {
         variables: requiredVariables.length
           ? requiredVariables.filter((name) => variables.includes(name))
           : variables,
+        hashes: requiredVariables.length && entry.hashes
+          ? Object.fromEntries(requiredVariables.filter((name) => variables.includes(name)).map((name) => [name, entry.hashes[name]]))
+          : entry.hashes,
       }
     }
   }
@@ -340,6 +593,8 @@ export function filterKimNwpIndexForVariables(index, requiredVariables = []) {
 
 export default {
   KIM_NWP_FORECAST_HOURS,
+  KIM_NWP_ICING_LEVEL_IDS,
+  KIM_NWP_ICING_LEVELS,
   KIM_NWP_LEVELS,
   KIM_NWP_MOISTURE_LEVEL_IDS,
   KIM_NWP_MOISTURE_LEVELS,
@@ -348,10 +603,20 @@ export default {
   buildKimNwpGrid,
   buildKimNwpIndex,
   buildKimCloudPotentialFieldFromGrid,
+  buildKimIcingFieldFromGrid,
   buildKimTemperatureFieldFromGrid,
   buildKimWindGrid,
   buildKimSurfaceWindFieldFromWindGrid,
+  calcFreezingBonus,
+  calcIcingMemberships,
+  calcKFipLiteScore,
+  calcLiquidRatio,
+  calcPhasePenalty,
+  calcSfipBaseScore,
   cloudPotentialThresholdForLevel,
   filterKimNwpIndexForVariables,
+  icingGradeFor,
+  icingHardGate,
+  isKimNwpIcingLevel,
   isKimNwpMoistureLevel,
 }

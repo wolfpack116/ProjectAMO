@@ -131,3 +131,24 @@ test('cleanupKimNwpRuns keeps latest usable runs and removes failed run director
 
   assert.deepEqual(listKimNwpRuns(root), ['KIMG_NE57_2026051906', 'KIMG_NE57_2026051900'])
 })
+
+test('cleanupKimNwpRuns keeps previous complete run when latest run is partial', () => {
+  const root = tempRoot()
+  const manifests = [
+    { runId: 'KIMG_NE57_2026051818', usable: true, complete: true },
+    { runId: 'KIMG_NE57_2026051900', usable: true, complete: true },
+    { runId: 'KIMG_NE57_2026051906', usable: true, complete: false },
+  ]
+  for (const manifest of manifests) {
+    fs.mkdirSync(path.join(root, 'kim_nwp', 'runs', manifest.runId), { recursive: true })
+    fs.writeFileSync(
+      path.join(root, 'kim_nwp', 'runs', manifest.runId, 'manifest.json'),
+      JSON.stringify({ type: 'kim_nwp_manifest', ...manifest }),
+      'utf8',
+    )
+  }
+
+  cleanupKimNwpRuns({ root, maxRuns: 1, latestRunId: 'KIMG_NE57_2026051906' })
+
+  assert.deepEqual(listKimNwpRuns(root), ['KIMG_NE57_2026051906', 'KIMG_NE57_2026051900'])
+})

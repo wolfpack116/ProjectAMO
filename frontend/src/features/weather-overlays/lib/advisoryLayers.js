@@ -3,7 +3,6 @@ export const ADVISORY_LAYER_DEFS = {
     sourceId: 'kma-sigmet-advisories',
     fillLayerId: 'kma-sigmet-advisories-fill',
     lineLayerId: 'kma-sigmet-advisories-line',
-    labelLayerId: 'kma-sigmet-advisories-label',
     iconLayerId: 'kma-sigmet-advisories-icon',
     color: '#dc2626',
     label: 'SIGMET',
@@ -12,7 +11,6 @@ export const ADVISORY_LAYER_DEFS = {
     sourceId: 'kma-airmet-advisories',
     fillLayerId: 'kma-airmet-advisories-fill',
     lineLayerId: 'kma-airmet-advisories-line',
-    labelLayerId: 'kma-airmet-advisories-label',
     iconLayerId: 'kma-airmet-advisories-icon',
     color: '#f59e0b',
     label: 'AIRMET',
@@ -232,26 +230,6 @@ export function addAdvisoryLayers(map, kind, featureData, labelData) {
     })
   }
 
-  if (!map.getLayer(def.labelLayerId)) {
-    map.addLayer({
-      id: def.labelLayerId,
-      type: 'symbol',
-      source: labelSourceId,
-      slot: 'top',
-      layout: {
-        'text-field': ['get', 'label'],
-        'text-font': ['Noto Sans CJK JP Bold', 'Arial Unicode MS Bold'],
-        'text-size': 12,
-        'text-allow-overlap': true,
-      },
-      paint: {
-        'text-color': '#111827',
-        'text-halo-color': '#ffffff',
-        'text-halo-width': 1.8,
-      },
-    })
-  }
-
   labelData.features.forEach((feature) => {
     ensureMapImage(map, feature.properties?.iconKey, feature.properties?.iconUrl)
   })
@@ -294,7 +272,7 @@ export function setAdvisoryVisibility(map, kind, isVisible) {
 
   const visibility = isVisible ? 'visible' : 'none'
 
-  for (const layerId of [def.fillLayerId, def.lineLayerId, def.iconLayerId, def.labelLayerId]) {
+  for (const layerId of [def.fillLayerId, def.lineLayerId, def.iconLayerId]) {
     if (map.getLayer(layerId)) {
       map.setLayoutProperty(layerId, 'visibility', visibility)
     }

@@ -17,6 +17,10 @@ export function formatNwpTimeTick(time, previousTime = null) {
   return !previousTime || datePart !== previousDatePart ? label : timePart || label
 }
 
+export function shouldCommitNwpSelection(eventType) {
+  return ['change', 'pointerup', 'keyup', 'blur'].includes(eventType)
+}
+
 export function getNwpSliderOptions({ levels = [], times = [], selection = null, availability = null }) {
   const availableTimes = selection
     ? times.filter((time) => availability?.[selection.level]?.[String(time.hf)])

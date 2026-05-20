@@ -1,5 +1,6 @@
 import { Pause, Play } from 'lucide-react'
-import { formatKstMinute } from './lib/weatherTimeline.js'
+
+import { formatKstMinute, shouldUpdateWeatherTimelineSelection } from './lib/weatherTimeline.js'
 
 const PLAYBACK_SPEEDS = [0.5, 1, 2, 4]
 
@@ -15,7 +16,12 @@ function WeatherTimelineBar({
   onPlaybackSpeedChange,
 }) {
   if (!isVisible || tickCount <= 0) return null
-  const handleSliderInput = (event) => onIndexChange(Number(event.target.value))
+
+  const handleSliderInput = (event) => {
+    if (shouldUpdateWeatherTimelineSelection(event.type)) {
+      onIndexChange(Number(event.currentTarget.value))
+    }
+  }
 
   return (
     <section className="weather-timeline-bar" aria-label="Weather playback timeline">

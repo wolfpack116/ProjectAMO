@@ -6,6 +6,7 @@ export function getNextMetVisibility(prev, id, { lowPower = false } = {}) {
       wind: nextWind,
       temp: false,
       cloud: false,
+      icing: false,
       windFlow: nextWind ? !lowPower : prev.windFlow,
       windSpeed: nextWind ? true : prev.windSpeed,
     }
@@ -17,6 +18,7 @@ export function getNextMetVisibility(prev, id, { lowPower = false } = {}) {
       temp: nextTemp,
       wind: false,
       cloud: false,
+      icing: false,
       windFlow: false,
     }
   }
@@ -27,6 +29,18 @@ export function getNextMetVisibility(prev, id, { lowPower = false } = {}) {
       cloud: nextCloud,
       wind: false,
       temp: false,
+      icing: false,
+      windFlow: false,
+    }
+  }
+  if (id === 'icing') {
+    const nextIcing = !prev.icing
+    return {
+      ...prev,
+      icing: nextIcing,
+      wind: false,
+      temp: false,
+      cloud: false,
       windFlow: false,
     }
   }

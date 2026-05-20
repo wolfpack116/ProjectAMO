@@ -52,3 +52,7 @@ export function getPlaybackDelayMs(speed) {
   const value = Number(speed)
   return Number.isFinite(value) && value > 0 ? Math.round(800 / value) : 800
 }
+
+export function shouldUpdateWeatherTimelineSelection(eventType) {
+  return ['input', 'change'].includes(eventType)
+}
