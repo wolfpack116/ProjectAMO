@@ -29,10 +29,17 @@ const TABS = [
 
 function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherData }) {
   const [tab, setTab] = useState('metar')
+  const icao = airport?.icao
+  const airportInfo = weatherData?.airportInfo?.airports?.[icao] || null
+
+  useEffect(() => {
+    if (airport && tab === 'info' && !airportInfo) {
+      onRequestDeferredWeatherData?.(['airportInfo'])
+    }
+  }, [airport, tab, airportInfo, onRequestDeferredWeatherData])
 
   if (!airport) return null
 
-  const icao = airport.icao
   const headerNameKo = AIRPORT_HEADER_NAME_KO[icao] || airport.nameKo || airport.name || icao
   const headerNameEn = airport.name || AIRPORT_NAME_KO[icao] || icao
   const headerImageSrc = `/images/${String(icao || 'RKSI').toLowerCase()}_banner.webp`
@@ -41,14 +48,7 @@ function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherD
   const taf        = weatherData?.taf?.airports?.[icao] || null
   const amos       = weatherData?.amos?.airports?.[icao] || null
   const warning    = weatherData?.warning?.airports?.[icao] || null
-  const airportInfo = weatherData?.airportInfo?.airports?.[icao] || null
   const warnCount  = warning?.warnings?.length || 0
-
-  useEffect(() => {
-    if (tab === 'info' && !airportInfo) {
-      onRequestDeferredWeatherData?.(['airportInfo'])
-    }
-  }, [tab, airportInfo, onRequestDeferredWeatherData])
 
   return (
     <aside className="airport-panel">
