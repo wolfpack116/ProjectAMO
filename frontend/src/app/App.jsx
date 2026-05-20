@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import AirportPanel from '../features/airport-panel/AirportPanel.jsx'
 import MapView from '../features/map/MapView.jsx'
-import MonitoringPage from '../features/monitoring/MonitoringPage.jsx'
 import useWeatherPolling from './useWeatherPolling.js'
 import Sidebar from './layout/Sidebar.jsx'
+
+const MonitoringPage = lazy(() => import('../features/monitoring/MonitoringPage.jsx'))
 
 function formatUtcTime(date) {
   const year  = date.getUTCFullYear()
@@ -19,7 +20,7 @@ function MainAppShell() {
   const [activePanel, setActivePanel] = useState(null)
   const [selectedAirport, setSelectedAirport] = useState(null)
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
-  const weatherData = useWeatherPolling()
+  const { weatherData, requestDeferredWeatherData } = useWeatherPolling()
 
   // UTC clock
   useEffect(() => {
@@ -60,12 +61,14 @@ function MainAppShell() {
           sigwxCloudMeta={weatherData?.sigwxCloudMeta || null}
           selectedAirport={selectedAirport}
           onAirportSelect={setSelectedAirport}
+          onRequestDeferredWeatherData={requestDeferredWeatherData}
         />
       </main>
       <AirportPanel
         airport={selectedAirportMeta}
         weatherData={weatherData}
         onClose={() => setSelectedAirport(null)}
+        onRequestDeferredWeatherData={requestDeferredWeatherData}
       />
       <div className="utc-bar">{utcTime}</div>
     </div>
@@ -73,7 +76,9 @@ function MainAppShell() {
 }
 
 function App() {
-  return window.location.pathname === '/monitoring' ? <MonitoringPage /> : <MainAppShell />
+  return window.location.pathname === '/monitoring'
+    ? <Suspense fallback={null}><MonitoringPage /></Suspense>
+    : <MainAppShell />
 }
 
 export default App

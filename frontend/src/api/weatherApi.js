@@ -92,8 +92,8 @@ export async function loadWeatherData() {
   const [
     airports, metar, taf, amos, warning,
     sigmet, airmet, lightning,
-    echoMeta, satMeta, sigwxLow, sigwxLowHistory, sigwxFrontMeta, sigwxCloudMeta,
-    adsb, groundForecast, groundOverview, environment, airportInfo,
+    echoMeta, satMeta, sigwxLow, sigwxFrontMeta, sigwxCloudMeta,
+    groundForecast,
   ] = await Promise.all([
     fetchJson('/api/airports', { optional: true }),
     fetchJson('/api/metar', { optional: true }),
@@ -106,14 +106,9 @@ export async function loadWeatherData() {
     fetchJson('/data/radar/echo_meta.json', { optional: true }),
     fetchJson('/data/satellite/sat_meta.json', { optional: true }),
     fetchJson('/api/sigwx-low', { optional: true }),
-    fetchJson('/api/sigwx-low-history', { optional: true }),
     fetchJson('/api/sigwx-front-meta', { optional: true }),
     fetchJson('/api/sigwx-cloud-meta', { optional: true }),
-    fetchJson('/api/adsb', { optional: true }),
     fetchJson('/api/ground-forecast', { optional: true }),
-    fetchJson('/api/ground-overview', { optional: true }),
-    fetchJson('/api/environment', { optional: true }),
-    fetchJson('/api/airport-info', { optional: true }),
   ])
 
   return {
@@ -128,15 +123,29 @@ export async function loadWeatherData() {
     echoMeta,
     satMeta,
     sigwxLow,
-    sigwxLowHistory,
+    sigwxLowHistory: null,
     sigwxFrontMeta,
     sigwxCloudMeta,
-    adsb,
+    adsb: null,
     groundForecast,
-    groundOverview,
-    environment,
-    airportInfo,
+    groundOverview: null,
+    environment: null,
+    airportInfo: null,
   }
+}
+
+const DEFERRED_WEATHER_FETCHERS = {
+  sigwxLowHistory: () => fetchJson('/api/sigwx-low-history', { optional: true }),
+  groundOverview: () => fetchJson('/api/ground-overview', { optional: true }),
+  environment: () => fetchJson('/api/environment', { optional: true }),
+  airportInfo: () => fetchJson('/api/airport-info', { optional: true }),
+  adsb: () => fetchJson('/api/adsb', { optional: true }),
+}
+
+export async function loadDeferredWeatherData(keys = []) {
+  const uniqueKeys = [...new Set(keys)].filter((key) => DEFERRED_WEATHER_FETCHERS[key])
+  const values = await Promise.all(uniqueKeys.map((key) => DEFERRED_WEATHER_FETCHERS[key]()))
+  return Object.fromEntries(uniqueKeys.map((key, index) => [key, values[index]]))
 }
 
 export async function fetchSnapshotMeta() {
@@ -193,7 +202,13 @@ export async function fetchSigwxCloudMeta(tmfc) {
   return fetchJson(`/api/sigwx-cloud-meta?tmfc=${encodeURIComponent(tmfc)}`, { optional: true })
 }
 
-export async function loadChangedWeatherData(changes) {
+function includesDeferredKey(deferredKeys, key) {
+  if (!deferredKeys) return true
+  if (deferredKeys === 'all') return true
+  return deferredKeys.has?.(key) || false
+}
+
+export async function loadChangedWeatherData(changes, { deferredKeys = 'all' } = {}) {
   const fetches = []
   const keys = []
 
@@ -205,8 +220,10 @@ export async function loadChangedWeatherData(changes) {
   if (changes.sigwxLow) {
     fetches.push(fetchJson('/api/sigwx-low', { optional: true }))
     keys.push('sigwxLow')
-    fetches.push(fetchJson('/api/sigwx-low-history', { optional: true }))
-    keys.push('sigwxLowHistory')
+    if (includesDeferredKey(deferredKeys, 'sigwxLowHistory')) {
+      fetches.push(fetchJson('/api/sigwx-low-history', { optional: true }))
+      keys.push('sigwxLowHistory')
+    }
     fetches.push(fetchJson('/api/sigwx-front-meta', { optional: true }))
     keys.push('sigwxFrontMeta')
     fetches.push(fetchJson('/api/sigwx-cloud-meta', { optional: true }))
@@ -222,13 +239,13 @@ export async function loadChangedWeatherData(changes) {
   }
   if (changes.amos) { fetches.push(fetchJson('/api/amos', { optional: true })); keys.push('amos') }
   if (changes.lightning) { fetches.push(fetchJson('/api/lightning', { optional: true })); keys.push('lightning') }
-  if (changes.adsb) { fetches.push(fetchJson('/api/adsb', { optional: true })); keys.push('adsb') }
+  if (changes.adsb && includesDeferredKey(deferredKeys, 'adsb')) { fetches.push(fetchJson('/api/adsb', { optional: true })); keys.push('adsb') }
   if (changes.groundForecast) { fetches.push(fetchJson('/api/ground-forecast', { optional: true })); keys.push('groundForecast') }
-  if (changes.groundOverview) { fetches.push(fetchJson('/api/ground-overview', { optional: true })); keys.push('groundOverview') }
-  if (changes.environment) { fetches.push(fetchJson('/api/environment', { optional: true })); keys.push('environment') }
+  if (changes.groundOverview && includesDeferredKey(deferredKeys, 'groundOverview')) { fetches.push(fetchJson('/api/ground-overview', { optional: true })); keys.push('groundOverview') }
+  if (changes.environment && includesDeferredKey(deferredKeys, 'environment')) { fetches.push(fetchJson('/api/environment', { optional: true })); keys.push('environment') }
   if (changes.echoMeta) { fetches.push(fetchJson('/data/radar/echo_meta.json', { optional: true })); keys.push('echoMeta') }
   if (changes.satMeta) { fetches.push(fetchJson('/data/satellite/sat_meta.json', { optional: true })); keys.push('satMeta') }
-  if (changes.airportInfo) { fetches.push(fetchJson('/api/airport-info', { optional: true })); keys.push('airportInfo') }
+  if (changes.airportInfo && includesDeferredKey(deferredKeys, 'airportInfo')) { fetches.push(fetchJson('/api/airport-info', { optional: true })); keys.push('airportInfo') }
 
   const results = await Promise.all(fetches)
   const out = {}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAP_CONFIG, BASEMAP_OPTIONS } from './mapConfig.js'
@@ -11,8 +11,6 @@ import { fetchAdsbData } from '../../api/adsbApi.js'
 import { fetchSigwxCloudMeta, fetchSigwxFrontMeta } from '../../api/weatherApi.js'
 import { addAdsbLayers, bindAdsbHover, createAdsbGeoJSON, syncAdsbLayer } from '../aviation-layers/addAdsbLayer.js'
 import AviationLayerPanel from '../aviation-layers/AviationLayerPanel.jsx'
-import RouteBriefingPanel from '../route-briefing/RouteBriefingPanel.jsx'
-import VerticalProfileWindow from '../route-briefing/VerticalProfileWindow.jsx'
 import { SIGWX_FILTER_OPTIONS } from '../weather-overlays/lib/sigwxData.js'
 import AdvisoryBadges from '../weather-overlays/AdvisoryBadges.jsx'
 import AdsbTimestamp from '../weather-overlays/AdsbTimestamp.jsx'
@@ -78,6 +76,9 @@ import {
 } from '../route-briefing/lib/routePreviewSync.js'
 import { useRouteBriefing } from '../route-briefing/useRouteBriefing.js'
 import './MapView.css'
+
+const RouteBriefingPanel = lazy(() => import('../route-briefing/RouteBriefingPanel.jsx'))
+const VerticalProfileWindow = lazy(() => import('../route-briefing/VerticalProfileWindow.jsx'))
 
 // ???? Constants ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
@@ -147,6 +148,7 @@ function MapView({
   sigwxCloudMeta = null,
   selectedAirport,
   onAirportSelect,
+  onRequestDeferredWeatherData,
   enableWindOverlay = true,
 }) {
   const mapContainerRef = useRef(null)
@@ -421,6 +423,12 @@ function MapView({
     if (openAdvisoryPanel === 'sigmet' && !metVisibility.sigmet) setOpenAdvisoryPanel(null)
     if (openAdvisoryPanel === 'airmet' && !metVisibility.airmet) setOpenAdvisoryPanel(null)
   }, [openAdvisoryPanel, metVisibility.sigwx, metVisibility.sigmet, metVisibility.airmet])
+
+  useEffect(() => {
+    if (metVisibility.sigwx) {
+      onRequestDeferredWeatherData?.(['sigwxLowHistory'])
+    }
+  }, [metVisibility.sigwx, onRequestDeferredWeatherData])
   const rasterAndSigwxModel = useMemo(() => ({
     satelliteFrame: weatherOverlayModel.satelliteFrame,
     radarFrame: weatherOverlayModel.radarFrame,
@@ -1006,13 +1014,15 @@ function MapView({
 
       {activePanel === 'route-check' && (
         <>
-          <RouteBriefingPanel
-            state={routeBriefing.state}
-            refs={routeBriefing.refs}
-            derived={routeBriefing.derived}
-            actions={routeBriefing.actions}
-            airports={airports}
-          />
+          <Suspense fallback={null}>
+            <RouteBriefingPanel
+              state={routeBriefing.state}
+              refs={routeBriefing.refs}
+              derived={routeBriefing.derived}
+              actions={routeBriefing.actions}
+              airports={airports}
+            />
+          </Suspense>
           <button
             type="button"
             className="route-briefing-map-mode-toggle"
@@ -1023,11 +1033,15 @@ function MapView({
         </>
       )}
 
-      <VerticalProfileWindow
-        profile={routeBriefing.state.verticalProfile}
-        isOpen={routeBriefing.state.verticalProfileWindowOpen}
-        onClose={() => routeBriefing.actions.setVerticalProfileWindowOpen(false)}
-      />
+      {routeBriefing.state.verticalProfileWindowOpen && (
+        <Suspense fallback={null}>
+          <VerticalProfileWindow
+            profile={routeBriefing.state.verticalProfile}
+            isOpen={routeBriefing.state.verticalProfileWindowOpen}
+            onClose={() => routeBriefing.actions.setVerticalProfileWindowOpen(false)}
+          />
+        </Suspense>
+      )}
 
       {activePanel === 'aviation' && (
         <AviationLayerPanel

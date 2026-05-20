@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import {
   fetchKimTemperatureField,
   fetchKimTemperatureIndex,
-  fetchSnapshotMeta,
 } from '../../../api/weatherApi.js'
 import {
   normalizeKimNwpIndex,
@@ -10,8 +9,7 @@ import {
   selectFallbackKimNwpSelection,
   selectKimNwpAvailability,
 } from './useKimSurfaceWind.js'
-
-const REFRESH_INTERVAL_MS = 60_000
+import { useKimSnapshotMeta } from './useKimSnapshotMeta.js'
 
 function selectionKey(selection) {
   if (!selection?.tmfc || !selection?.level || !Number.isFinite(Number(selection.hf))) return null
@@ -31,6 +29,7 @@ export function useKimTemperature(enabled, selection, setSelection) {
   const cacheRef = useRef(new Map())
   const requestTokenRef = useRef(0)
   const metaHashRef = useRef(null)
+  const snapshotMeta = useKimSnapshotMeta(enabled)
   const [refreshToken, setRefreshToken] = useState(0)
 
   useEffect(() => {
@@ -111,30 +110,16 @@ export function useKimTemperature(enabled, selection, setSelection) {
   }, [enabled, selection?.tmfc, selection?.hf, selection?.level, temperatureIndex])
 
   useEffect(() => {
-    if (!enabled) return undefined
-    let cancelled = false
-    async function pollMeta() {
-      try {
-        const snapshot = await fetchSnapshotMeta()
-        if (cancelled) return
-        const baseMeta = snapshot?.kimNwp || snapshot?.kim_nwp || null
-        const nextHash = baseMeta?.variables?.T?.hash || baseMeta?.hash || null
-        if (!nextHash) return
-        if (nextHash !== metaHashRef.current) {
-          metaHashRef.current = nextHash
-          cacheRef.current.clear()
-          setRefreshToken((value) => value + 1)
-        }
-      } catch {
-        if (!cancelled && !temperatureField) setStatus('error')
-      }
+    if (!enabled || !snapshotMeta) return
+    const baseMeta = snapshotMeta?.kimNwp || snapshotMeta?.kim_nwp || null
+    const nextHash = baseMeta?.variables?.T?.hash || baseMeta?.hash || null
+    if (!nextHash) return
+    if (nextHash !== metaHashRef.current) {
+      metaHashRef.current = nextHash
+      cacheRef.current.clear()
+      setRefreshToken((value) => value + 1)
     }
-    const timer = window.setInterval(pollMeta, REFRESH_INTERVAL_MS)
-    return () => {
-      cancelled = true
-      window.clearInterval(timer)
-    }
-  }, [enabled, temperatureField])
+  }, [enabled, snapshotMeta])
 
   const normalized = normalizeKimNwpIndex(temperatureIndex)
   return {

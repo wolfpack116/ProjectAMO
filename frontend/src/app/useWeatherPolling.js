@@ -1,5 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
-import { buildSnapshotMetaFromData, fetchSnapshotMeta, loadChangedWeatherData, loadWeatherData } from '../api/weatherApi.js'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  buildSnapshotMetaFromData,
+  fetchSnapshotMeta,
+  loadChangedWeatherData,
+  loadDeferredWeatherData,
+  loadWeatherData,
+} from '../api/weatherApi.js'
 import { detectSnapshotChanges, hasSnapshotChanges } from './snapshotMeta.js'
 
 const REFRESH_INTERVAL_MS = 60_000
@@ -7,6 +13,7 @@ const REFRESH_INTERVAL_MS = 60_000
 function useWeatherPolling() {
   const [weatherData, setWeatherData] = useState(null)
   const snapshotMetaRef = useRef(null)
+  const loadedDeferredKeysRef = useRef(new Set())
 
   useEffect(() => {
     let mounted = true
@@ -38,7 +45,9 @@ function useWeatherPolling() {
         const changes = detectSnapshotChanges(snapshotMetaRef.current, latestMeta)
         if (!hasSnapshotChanges(changes)) return
 
-        const changedData = await loadChangedWeatherData(changes)
+        const changedData = await loadChangedWeatherData(changes, {
+          deferredKeys: loadedDeferredKeysRef.current,
+        })
         if (!mounted) return
 
         setWeatherData((prev) => {
@@ -58,7 +67,25 @@ function useWeatherPolling() {
     return () => { mounted = false; window.clearInterval(timer) }
   }, [])
 
-  return weatherData
+  const requestDeferredWeatherData = useCallback(async (keys = []) => {
+    const missingKeys = keys.filter((key) => !loadedDeferredKeysRef.current.has(key))
+    if (missingKeys.length === 0) return
+    missingKeys.forEach((key) => loadedDeferredKeysRef.current.add(key))
+
+    try {
+      const deferredData = await loadDeferredWeatherData(missingKeys)
+      setWeatherData((prev) => {
+        const nextData = { ...(prev || {}), ...deferredData }
+        snapshotMetaRef.current = buildSnapshotMetaFromData(nextData)
+        return nextData
+      })
+    } catch (err) {
+      missingKeys.forEach((key) => loadedDeferredKeysRef.current.delete(key))
+      console.warn('[App] Weather deferred fetch failed:', err.message)
+    }
+  }, [])
+
+  return { weatherData, requestDeferredWeatherData }
 }
 
 export default useWeatherPolling

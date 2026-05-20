@@ -86,8 +86,22 @@ function isImmutableKimFieldRequest(req) {
   return /^\/kim\/(?:wind|temp|cloud|icing)\/field$/i.test(req.path)
 }
 
+function isRevalidatedApiRequest(req) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return false
+  return (
+    /^\/(?:airports|warning-types|alert-defaults)$/i.test(req.path)
+    || /^\/(?:metar|taf|warning|sigmet|airmet|sigwx-low|lightning|amos|adsb|ground-forecast|ground-overview|environment|airport-info)$/i.test(req.path)
+    || /^\/sigwx-low-history$/i.test(req.path)
+    || /^\/radar\/echo-meta$/i.test(req.path)
+    || /^\/satellite\/meta$/i.test(req.path)
+    || /^\/sigwx-(?:front|cloud)-meta$/i.test(req.path)
+    || /^\/sigwx-low-(?:fronts|clouds)$/i.test(req.path)
+    || /^\/kim\/(?:wind|temp|cloud|icing)\/index$/i.test(req.path)
+  )
+}
+
 app.use('/api', (req, res, next) => {
-  if (!isImmutableKimFieldRequest(req)) {
+  if (!isImmutableKimFieldRequest(req) && !isRevalidatedApiRequest(req)) {
     res.setHeader('Cache-Control', 'no-store')
   }
   next()
@@ -111,15 +125,39 @@ function readLatest(type) {
   return latest
 }
 
+function requestHasMatchingEtag(req, etag) {
+  const value = req?.headers?.['if-none-match']
+  if (!value) return false
+  return value.split(',').map((candidate) => candidate.trim()).includes(etag)
+}
+
+function setNoStore(res) {
+  res.setHeader('Cache-Control', 'no-store')
+}
+
+function sendRevalidatedJson(res, payload, etagSeed, { staticConfig = false } = {}) {
+  const etag = `"${crypto.createHash('sha256').update(String(etagSeed)).digest('hex')}"`
+  res.setHeader('Cache-Control', staticConfig ? 'no-cache' : 'no-cache, must-revalidate')
+  res.setHeader('ETag', etag)
+  res.setHeader('Vary', 'Accept-Encoding')
+  if (requestHasMatchingEtag(res.req, etag)) {
+    res.status(304).end()
+    return
+  }
+  res.json(payload)
+}
+
 function sendLatest(res, type) {
   const data = readLatest(type)
-  if (data) return res.json(data)
+  if (data) return sendRevalidatedJson(res, data, data.content_hash || store.canonicalHash(data))
+  setNoStore(res)
   res.status(503).json({ error: `${type} data unavailable` })
 }
 
 function sendJsonFile(res, filePath) {
   const payload = readJsonFileSafe(filePath)
-  if (payload) return res.json(payload)
+  if (payload) return sendRevalidatedJson(res, payload, store.canonicalHash(payload))
+  setNoStore(res)
   res.status(503).json({ error: 'data unavailable' })
 }
 
@@ -128,11 +166,15 @@ function sendImmutableJson(res, payload, etagSeed) {
   res.setHeader('Cache-Control', 'public, max-age=86400, immutable')
   res.setHeader('ETag', etag)
   res.setHeader('Vary', 'Accept-Encoding')
-  if (res.req?.headers?.['if-none-match'] === etag) {
+  if (requestHasMatchingEtag(res.req, etag)) {
     res.status(304).end()
     return
   }
   res.json(payload)
+}
+
+function sendStaticConfigJson(res, payload, name) {
+  sendRevalidatedJson(res, payload, `${name}:${store.canonicalHash(payload)}`, { staticConfig: true })
 }
 
 function readRecent(type, limit = 10) {
@@ -170,7 +212,8 @@ function readSigwxOverlayMeta(kind, tmfc) {
 
 function sendSigwxOverlayMeta(req, res, kind) {
   const tmfc = resolveSigwxTmfc(req.query.tmfc)
-  res.json(readSigwxOverlayMeta(kind, tmfc))
+  const payload = readSigwxOverlayMeta(kind, tmfc)
+  sendRevalidatedJson(res, payload, `${kind}:${tmfc}:${store.canonicalHash(payload)}`)
 }
 
 function buildHashEntry(type) {
@@ -479,21 +522,25 @@ app.get('/api/kim/surface-wind', (req, res) => {
 app.get('/api/kim/wind/index', (_req, res) => {
   const index = readKimNwpIndex(DATA_ROOT)
   if (index) {
-    res.json(filterKimNwpIndexForMapVariables(index, ['u', 'v']))
+    const payload = filterKimNwpIndexForMapVariables(index, ['u', 'v'])
+    sendRevalidatedJson(res, payload, store.canonicalHash(payload))
     return
   }
+  setNoStore(res)
   res.status(503).json({ error: 'kim wind index unavailable' })
 })
 app.get('/api/kim/wind/field', (req, res) => sendKimWindField(req, res))
 app.get('/api/kim/temp/index', (_req, res) => {
   const index = readKimNwpIndex(DATA_ROOT)
   if (index) {
-    res.json({
+    const payload = {
       ...filterKimNwpIndexForMapVariables(index, ['T']),
       type: 'kim_nwp_temp_index',
-    })
+    }
+    sendRevalidatedJson(res, payload, store.canonicalHash(payload))
     return
   }
+  setNoStore(res)
   res.status(503).json({ error: 'kim temp index unavailable' })
 })
 app.get('/api/kim/temp/field', (req, res) => {
@@ -512,12 +559,14 @@ app.get('/api/kim/temp/field', (req, res) => {
 app.get('/api/kim/cloud/index', (_req, res) => {
   const index = readKimNwpIndex(DATA_ROOT)
   if (index) {
-    res.json({
+    const payload = {
       ...filterKimCloudIndexForMap(index),
       type: 'kim_nwp_cloud_index',
-    })
+    }
+    sendRevalidatedJson(res, payload, store.canonicalHash(payload))
     return
   }
+  setNoStore(res)
   res.status(503).json({ error: 'kim cloud index unavailable' })
 })
 app.get('/api/kim/cloud/field', (req, res) => {
@@ -536,12 +585,14 @@ app.get('/api/kim/cloud/field', (req, res) => {
 app.get('/api/kim/icing/index', (_req, res) => {
   const index = readKimNwpIndex(DATA_ROOT)
   if (index) {
-    res.json({
+    const payload = {
       ...filterKimIcingIndexForMap(index),
       type: 'kim_nwp_icing_index',
-    })
+    }
+    sendRevalidatedJson(res, payload, store.canonicalHash(payload))
     return
   }
+  setNoStore(res)
   res.status(503).json({ error: 'kim icing index unavailable' })
 })
 app.get('/api/kim/icing/field', (req, res) => {
@@ -567,8 +618,10 @@ app.get('/api/snapshot-meta', (_req, res) => {
 })
 app.get('/api/sigwx-low-history', (_req, res) => {
   try {
-    res.json(readRecent('sigwx_low', 10))
+    const payload = readRecent('sigwx_low', 10)
+    sendRevalidatedJson(res, payload, store.canonicalHash(payload))
   } catch {
+    setNoStore(res)
     res.status(503).json({ error: 'sigwx history unavailable' })
   }
 })
@@ -580,9 +633,9 @@ app.get('/api/satellite/meta', (_req, res) =>
   sendJsonFile(res, path.join(DATA_ROOT, 'satellite', 'sat_meta.json')),
 )
 
-app.get('/api/airports', (_req, res) => res.json(config.airports))
-app.get('/api/warning-types', (_req, res) => res.json(warningTypes))
-app.get('/api/alert-defaults', (_req, res) => res.json(alertDefaults))
+app.get('/api/airports', (_req, res) => sendStaticConfigJson(res, config.airports, 'airports'))
+app.get('/api/warning-types', (_req, res) => sendStaticConfigJson(res, warningTypes, 'warning-types'))
+app.get('/api/alert-defaults', (_req, res) => sendStaticConfigJson(res, alertDefaults, 'alert-defaults'))
 
 app.get('/api/sigwx-front-meta', (req, res) => sendSigwxOverlayMeta(req, res, 'fronts'))
 app.get('/api/sigwx-cloud-meta', (req, res) => sendSigwxOverlayMeta(req, res, 'clouds'))

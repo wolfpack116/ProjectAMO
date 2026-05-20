@@ -1,6 +1,6 @@
 # KIM Icing Potential Status
 
-Updated: 2026-05-20 18:40 KST
+Updated: 2026-05-20 19:15 KST
 Spec: docs/superpowers/specs/2026-05-20-kim-icing-potential-layer.md
 Plan: docs/superpowers/plans/2026-05-20-kim-icing-potential-layer.md
 
@@ -81,6 +81,14 @@ Plan: docs/superpowers/plans/2026-05-20-kim-icing-potential-layer.md
 - Route preview persistence PASS: closing the route-check panel no longer clears `routeResult`/route preview
   state; route input changes and the Reset button still call the existing clear path
   (`node --test frontend/src/features/route-briefing/lib/routeBriefingModel.test.js frontend/src/features/route-briefing/lib/routePreviewSync.test.js`;
+  `npm.cmd run build --prefix frontend`, existing large chunk warning remains).
+- Network/request optimization follow-up PASS: static config APIs and mutable weather GET APIs now use
+  ETag revalidation instead of broad `no-store`; KIM field routes remain immutable; KIM NWP overlay hooks
+  share one snapshot-meta poller; initial main weather load defers panel-only datasets; monitoring and
+  route/vertical UI chunks are lazy-loaded.
+  (`node --test backend/test/api-cache-policy.test.js backend/test/kim-field-cache.test.js backend/test/snapshot-meta-cache.test.js`;
+  `npm.cmd test --prefix backend`;
+  `$files = Get-ChildItem -Path 'frontend\src' -Recurse -Filter '*.test.js' | ForEach-Object { $_.FullName }; node --test $files`;
   `npm.cmd run build --prefix frontend`, existing large chunk warning remains).
 - Final backend KIM/API suite PASS: node --test backend/test/kim-nwp-store.test.js backend/test/kim-nwp-model.test.js backend/test/kim-surface-wind.test.js backend/test/kim-icing-api.test.js backend/test/kim-cloud-api.test.js backend/test/kim-server-index.test.js
 - Final frontend helper/overlay suite PASS: node --test useKimIcing/useKimCloudPotential/icing field+sync/metLayerVisibility/cloud field+sync tests.

@@ -1,31 +1,81 @@
-import test from 'node:test'
 import assert from 'node:assert/strict'
+import test from 'node:test'
 
-import { fetchKimSurfaceWind } from './weatherApi.js'
+import { loadChangedWeatherData, loadDeferredWeatherData, loadWeatherData } from './weatherApi.js'
 
-test('fetchKimSurfaceWind falls back to XMLHttpRequest when fetch is unavailable', async () => {
-  const originalFetch = globalThis.fetch
-  const originalXhr = globalThis.XMLHttpRequest
-
-  globalThis.fetch = undefined
-  globalThis.XMLHttpRequest = class {
-    open(method, url) {
-      this.method = method
-      this.url = url
-    }
-
-    send() {
-      this.status = 200
-      this.responseText = JSON.stringify({ type: 'kim_surface_wind' })
-      this.onload()
+function installFetchRecorder() {
+  const calls = []
+  const previousFetch = globalThis.fetch
+  globalThis.fetch = async (url) => {
+    calls.push(String(url))
+    return {
+      ok: true,
+      status: 200,
+      json: async () => {
+        if (String(url) === '/api/airports') return [{ icao: 'RKSI', name: 'Incheon' }]
+        return { content_hash: `${url}-hash` }
+      },
     }
   }
+  return {
+    calls,
+    restore: () => { globalThis.fetch = previousFetch },
+  }
+}
 
+test('loadWeatherData skips deferred panel-only datasets on first entry', async () => {
+  const recorder = installFetchRecorder()
   try {
-    const data = await fetchKimSurfaceWind()
-    assert.equal(data.type, 'kim_surface_wind')
+    const data = await loadWeatherData()
+    assert.equal(data.airports.length, 1)
+    assert.equal(recorder.calls.includes('/api/sigwx-low-history'), false)
+    assert.equal(recorder.calls.includes('/api/ground-overview'), false)
+    assert.equal(recorder.calls.includes('/api/environment'), false)
+    assert.equal(recorder.calls.includes('/api/airport-info'), false)
+    assert.equal(recorder.calls.includes('/api/adsb'), false)
   } finally {
-    globalThis.fetch = originalFetch
-    globalThis.XMLHttpRequest = originalXhr
+    recorder.restore()
+  }
+})
+
+test('loadDeferredWeatherData fetches panel-only datasets when requested', async () => {
+  const recorder = installFetchRecorder()
+  try {
+    const data = await loadDeferredWeatherData(['sigwxLowHistory', 'groundOverview', 'environment', 'airportInfo', 'adsb'])
+    assert.ok(data.sigwxLowHistory)
+    assert.ok(data.groundOverview)
+    assert.ok(data.environment)
+    assert.ok(data.airportInfo)
+    assert.ok(data.adsb)
+    assert.deepEqual(
+      recorder.calls,
+      ['/api/sigwx-low-history', '/api/ground-overview', '/api/environment', '/api/airport-info', '/api/adsb'],
+    )
+  } finally {
+    recorder.restore()
+  }
+})
+
+test('loadChangedWeatherData does not fetch deferred datasets until they are loaded', async () => {
+  const recorder = installFetchRecorder()
+  try {
+    const data = await loadChangedWeatherData(
+      { sigwxLow: true, adsb: true, groundOverview: true, environment: true, airportInfo: true },
+      { deferredKeys: new Set() },
+    )
+
+    assert.ok(data.sigwxLow)
+    assert.equal(data.sigwxLowHistory, undefined)
+    assert.equal(data.adsb, undefined)
+    assert.equal(data.groundOverview, undefined)
+    assert.equal(data.environment, undefined)
+    assert.equal(data.airportInfo, undefined)
+    assert.equal(recorder.calls.includes('/api/sigwx-low-history'), false)
+    assert.equal(recorder.calls.includes('/api/adsb'), false)
+    assert.equal(recorder.calls.includes('/api/ground-overview'), false)
+    assert.equal(recorder.calls.includes('/api/environment'), false)
+    assert.equal(recorder.calls.includes('/api/airport-info'), false)
+  } finally {
+    recorder.restore()
   }
 })

@@ -46,14 +46,14 @@ ProjectAMO/
 ### Frontend
 
 - `frontend/src/main.jsx` -> React root bootstrap; imports app entry CSS.
-- `frontend/src/app/App.jsx` -> app shell state, sidebar/panel composition, selected airport state.
+- `frontend/src/app/App.jsx` -> app shell state, sidebar/panel composition, selected airport state, and route-level lazy loading for non-main app routes.
 - `frontend/src/app/App.css` -> app shell and layout CSS entry.
-- `frontend/src/app/useWeatherPolling.js` -> initial full weather load plus snapshot-meta incremental polling.
+- `frontend/src/app/useWeatherPolling.js` -> initial weather load, deferred panel-data loading, plus snapshot-meta incremental polling.
 - `frontend/src/app/snapshotMeta.js` -> snapshot-meta comparison helpers.
 - `frontend/src/app/layout/Sidebar.jsx` -> sidebar item definitions and panel toggle UI.
 - `frontend/src/app/layout/Sidebar.css` -> sidebar styles.
 - `frontend/src/app/layout/layoutTokens.css` -> shared responsive layout tokens for shell widths, panel widths, breakpoint policy, spacing, and minimum control sizes.
-- `frontend/src/api/weatherApi.js` -> weather bundle, changed dataset, static airport/navdata fetch helpers.
+- `frontend/src/api/weatherApi.js` -> initial weather bundle, deferred weather dataset, changed dataset, static airport/navdata fetch helpers.
 - `frontend/src/api/adsbApi.js` -> ADS-B fetch helper.
 - `frontend/src/api/briefingApi.js` -> route briefing and vertical profile API helpers.
 - `frontend/src/features/map/MapView.jsx` -> Mapbox instance owner, style readiness/basemap switching coordinator, `styleRevision` sync trigger, high-level feature panel composition, and current-state sync orchestration, including base geo-boundary visibility for dark/raster/NWP overlay contrast. Feature-specific data shaping and layer adapters live in their owning feature modules.
@@ -84,6 +84,7 @@ ProjectAMO/
 - `frontend/src/features/weather-overlays/NwpSliderBarModel.js` -> pure KIM NWP slider option and time tick formatting helpers.
 - `frontend/src/features/weather-overlays/lib/useKimSurfaceWind.js` -> KIM wind index/field selection hook with shared selection support, nearest-past time fallback, field cache, request cancellation, and stale response guards.
 - `frontend/src/features/weather-overlays/lib/useKimSurfaceWind.test.js` -> KIM wind selection/index helper tests.
+- `frontend/src/features/weather-overlays/lib/useKimSnapshotMeta.js` -> shared KIM snapshot-meta polling subscription used by KIM NWP overlay hooks.
 - `frontend/src/features/weather-overlays/lib/useKimTemperature.js` -> KIM temperature index/field hook with selected-field cache, request cancellation, and variable-hash refresh.
 - `frontend/src/features/weather-overlays/lib/useKimCloudPotential.js` -> KIM cloud-potential index/field hook using shared pressure-level selection, field cache, cloud variable-hash refresh, and stale-selection guards.
 - `frontend/src/features/weather-overlays/lib/useKimCloudPotential.test.js` -> KIM cloud-potential selection, cache-key, snapshot-hash, and request-guard helper tests.
@@ -151,6 +152,7 @@ ProjectAMO/
 - `backend/test/kim-field-cache.test.js` -> KIM field route immutable cache header and ETag revalidation tests.
 - `backend/test/snapshot-meta-cache.test.js` -> `/api/snapshot-meta` backend memoization and mtime invalidation tests.
 - `backend/test/compression.test.js` -> Express gzip compression smoke test for large JSON KIM field responses.
+- `backend/test/api-cache-policy.test.js` -> static/revalidating API cache header and ETag regression tests.
 - `backend/collect.js` -> manual one-shot collector.
 - `scripts/prepare-terrain-tiles.js` -> converts decompressed Korea 3-second DEM into 1-degree terrain tiles.
 

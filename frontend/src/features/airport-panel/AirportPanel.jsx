@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AIRPORT_NAME_KO } from '../../api/weatherApi.js'
 import MetarTab from './tabs/MetarTab.jsx'
 import EnhancedTafTab from './tabs/TafTab.jsx'
@@ -27,7 +27,7 @@ const TABS = [
 ]
 
 
-function AirportPanel({ airport, weatherData, onClose }) {
+function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherData }) {
   const [tab, setTab] = useState('metar')
 
   if (!airport) return null
@@ -43,6 +43,12 @@ function AirportPanel({ airport, weatherData, onClose }) {
   const warning    = weatherData?.warning?.airports?.[icao] || null
   const airportInfo = weatherData?.airportInfo?.airports?.[icao] || null
   const warnCount  = warning?.warnings?.length || 0
+
+  useEffect(() => {
+    if (tab === 'info' && !airportInfo) {
+      onRequestDeferredWeatherData?.(['airportInfo'])
+    }
+  }, [tab, airportInfo, onRequestDeferredWeatherData])
 
   return (
     <aside className="airport-panel">

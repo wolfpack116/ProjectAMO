@@ -3,10 +3,8 @@ import {
   fetchKimNwpField,
   fetchKimNwpIndex,
   fetchKimSurfaceWind,
-  fetchSnapshotMeta,
 } from '../../../api/weatherApi.js'
-
-const REFRESH_INTERVAL_MS = 60_000
+import { useKimSnapshotMeta } from './useKimSnapshotMeta.js'
 
 function getLowPowerState() {
   if (typeof window === 'undefined') return false
@@ -99,6 +97,7 @@ export function useKimSurfaceWind(enabled, controlledSelection = null, onSelecti
   const cacheRef = useRef(new Map())
   const requestTokenRef = useRef(0)
   const metaHashRef = useRef(null)
+  const snapshotMeta = useKimSnapshotMeta(enabled)
   const selection = controlledSelection || internalSelection
   const setSelection = onSelectionChange || setInternalSelection
 
@@ -211,36 +210,20 @@ export function useKimSurfaceWind(enabled, controlledSelection = null, onSelecti
   }, [enabled, selection?.tmfc, selection?.hf, selection?.level])
 
   useEffect(() => {
-    if (!enabled) return undefined
-    let cancelled = false
-
-    async function pollMeta() {
-      try {
-        const snapshot = await fetchSnapshotMeta()
-        if (cancelled) return
-        const baseMeta = snapshot?.kimNwp || snapshot?.kim_nwp || snapshot?.kimSurfaceWind || snapshot?.kim_surface_wind || null
-        const nextMeta = baseMeta?.variables?.uv?.hash
-          ? { ...baseMeta, hash: baseMeta.variables.uv.hash }
-          : baseMeta
-        if (!nextMeta?.hash) return
-        if (nextMeta.hash !== metaHashRef.current) {
-          metaHashRef.current = nextMeta.hash
-          cacheRef.current.clear()
-          setRefreshToken((value) => value + 1)
-        } else {
-          setMeta(nextMeta)
-        }
-      } catch {
-        if (!cancelled && !windField) setStatus('error')
-      }
+    if (!enabled || !snapshotMeta) return
+    const baseMeta = snapshotMeta?.kimNwp || snapshotMeta?.kim_nwp || snapshotMeta?.kimSurfaceWind || snapshotMeta?.kim_surface_wind || null
+    const nextMeta = baseMeta?.variables?.uv?.hash
+      ? { ...baseMeta, hash: baseMeta.variables.uv.hash }
+      : baseMeta
+    if (!nextMeta?.hash) return
+    if (nextMeta.hash !== metaHashRef.current) {
+      metaHashRef.current = nextMeta.hash
+      cacheRef.current.clear()
+      setRefreshToken((value) => value + 1)
+    } else {
+      setMeta(nextMeta)
     }
-
-    const timer = window.setInterval(pollMeta, REFRESH_INTERVAL_MS)
-    return () => {
-      cancelled = true
-      window.clearInterval(timer)
-    }
-  }, [enabled, windField])
+  }, [enabled, snapshotMeta])
 
   const normalized = normalizeKimNwpIndex(windIndex)
 

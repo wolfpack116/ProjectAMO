@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import {
   fetchKimIcingField,
   fetchKimIcingIndex,
-  fetchSnapshotMeta,
 } from '../../../api/weatherApi.js'
 import {
   getKimNwpFieldForSelection,
@@ -10,8 +9,7 @@ import {
   selectFallbackKimNwpSelection,
   selectKimNwpAvailability,
 } from './useKimSurfaceWind.js'
-
-const REFRESH_INTERVAL_MS = 60_000
+import { useKimSnapshotMeta } from './useKimSnapshotMeta.js'
 
 function isAbortError(error) {
   return error?.name === 'AbortError'
@@ -48,6 +46,7 @@ export function useKimIcing(enabled, selection, setSelection) {
   const cacheRef = useRef(new Map())
   const requestTokenRef = useRef(0)
   const metaHashRef = useRef(null)
+  const snapshotMeta = useKimSnapshotMeta(enabled)
   const [refreshToken, setRefreshToken] = useState(0)
 
   useEffect(() => {
@@ -132,29 +131,15 @@ export function useKimIcing(enabled, selection, setSelection) {
   }, [enabled, selection?.tmfc, selection?.hf, selection?.level, icingIndex])
 
   useEffect(() => {
-    if (!enabled) return undefined
-    let cancelled = false
-    async function pollMeta() {
-      try {
-        const snapshot = await fetchSnapshotMeta()
-        if (cancelled) return
-        const nextHash = getKimIcingSnapshotHash(snapshot)
-        if (!nextHash) return
-        if (nextHash !== metaHashRef.current) {
-          metaHashRef.current = nextHash
-          cacheRef.current.clear()
-          setRefreshToken((value) => value + 1)
-        }
-      } catch {
-        if (!cancelled && !icingField) setStatus('error')
-      }
+    if (!enabled || !snapshotMeta) return
+    const nextHash = getKimIcingSnapshotHash(snapshotMeta)
+    if (!nextHash) return
+    if (nextHash !== metaHashRef.current) {
+      metaHashRef.current = nextHash
+      cacheRef.current.clear()
+      setRefreshToken((value) => value + 1)
     }
-    const timer = window.setInterval(pollMeta, REFRESH_INTERVAL_MS)
-    return () => {
-      cancelled = true
-      window.clearInterval(timer)
-    }
-  }, [enabled, icingField])
+  }, [enabled, snapshotMeta])
 
   const normalized = normalizeKimNwpIndex(icingIndex)
   return {

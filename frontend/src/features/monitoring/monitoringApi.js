@@ -1,6 +1,7 @@
 import {
   fetchSnapshotMeta as fetchCurrentSnapshotMeta,
   loadChangedWeatherData,
+  loadDeferredWeatherData,
   loadWeatherData,
 } from '../../api/weatherApi.js'
 
@@ -26,7 +27,8 @@ export async function loadMonitoringStaticData() {
 
 export async function loadMonitoringData() {
   const data = await loadWeatherData()
-  const [warningTypes, sigwxLowFronts, sigwxLowClouds] = await Promise.all([
+  const [deferredData, warningTypes, sigwxLowFronts, sigwxLowClouds] = await Promise.all([
+    loadDeferredWeatherData(['sigwxLowHistory', 'groundOverview', 'environment', 'airportInfo', 'adsb']),
     fetchJson('/api/warning-types', { optional: true }),
     fetchJson('/api/sigwx-low-fronts', { optional: true }),
     fetchJson('/api/sigwx-low-clouds', { optional: true }),
@@ -34,6 +36,7 @@ export async function loadMonitoringData() {
 
   return {
     ...data,
+    ...deferredData,
     warningTypes: warningTypes || {},
     sigwxLowFronts,
     sigwxLowClouds,
