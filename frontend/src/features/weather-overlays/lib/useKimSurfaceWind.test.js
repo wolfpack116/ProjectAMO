@@ -42,14 +42,24 @@ test('normalizeKimNwpIndex exposes levels and times', () => {
   assert.deepEqual(normalized.defaultSelection, { tmfc: '2026051900', level: '10m', hf: 0 })
 })
 
-test('selectDefaultKimNwp skips past valid times when now is provided', () => {
+test('selectDefaultKimNwp keeps nearest past valid time when now is provided', () => {
   const selection = selectDefaultKimNwp(INDEX, Date.parse('2026-05-19T01:00:00.000Z'))
-  assert.equal(selection, null)
+  assert.deepEqual(selection, { tmfc: '2026051900', level: '10m', hf: 0 })
 })
 
-test('normalizeKimNwpIndex returns no default selection when all valid times are past', () => {
-  const normalized = normalizeKimNwpIndex(INDEX, Date.parse('2026-05-19T04:00:00.000Z'))
-  assert.equal(normalized.defaultSelection, null)
+test('normalizeKimNwpIndex keeps nearest available past default when all valid times are past', () => {
+  const index = {
+    ...INDEX,
+    availability: {
+      ...INDEX.availability,
+      '10m': {
+        ...INDEX.availability['10m'],
+        3: { variables: ['u', 'v'] },
+      },
+    },
+  }
+  const normalized = normalizeKimNwpIndex(index, Date.parse('2026-05-19T04:00:00.000Z'))
+  assert.deepEqual(normalized.defaultSelection, { tmfc: '2026051900', level: '10m', hf: 3 })
 })
 
 test('selectFallbackKimNwpSelection keeps selection when available in the next active layer', () => {
@@ -64,9 +74,9 @@ test('selectFallbackKimNwpSelection keeps level and chooses earliest non-past hf
   assert.deepEqual(selection, { tmfc: '2026051900', level: '925hPa', hf: 3 })
 })
 
-test('selectFallbackKimNwpSelection clears selection when no future times are available', () => {
-  const selection = selectFallbackKimNwpSelection(INDEX, { tmfc: '2026051900', level: '10m', hf: 0 }, Date.parse('2026-05-19T04:00:00.000Z'))
-  assert.equal(selection, null)
+test('selectFallbackKimNwpSelection keeps nearest past selection when no future times are available', () => {
+  const selection = selectFallbackKimNwpSelection(INDEX, { tmfc: '2026051900', level: '925hPa', hf: 3 }, Date.parse('2026-05-19T04:00:00.000Z'))
+  assert.deepEqual(selection, { tmfc: '2026051900', level: '925hPa', hf: 3 })
 })
 
 test('getKimNwpFieldForSelection hides stale fields from previous selections', () => {

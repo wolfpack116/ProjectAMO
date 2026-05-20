@@ -185,7 +185,7 @@ export const schedule = {
   radar_echo_interval: '*/5 * * * *',
   satellite_interval: '*/10 * * * *',
   adsb_interval: '*/1 * * * *',
-  kim_surface_wind_interval: '12 * * * *',
+  kim_surface_wind_interval: '12 0,1,2,6,7,8,12,13,14,18,19,20 * * *',
   ground_forecast_interval: '30 6,11,18,23 * * *',
   environment_interval: '10 * * * *',
   airport_info_interval: '*/30 * * * *',

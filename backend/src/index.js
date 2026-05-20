@@ -19,6 +19,7 @@ import environmentProcessor from './processors/environment-processor.js'
 import airportInfoProcessor from './processors/airport-info-processor.js'
 
 const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, adsb: false, kim_surface_wind: false, satellite: false, ground_forecast: false, environment: false, airport_info: false };
+const KIM_NWP_CRON_OPTIONS = { timezone: 'Etc/UTC' }
 
 async function runWithLock(type, job) {
   if (locks[type]) {
@@ -39,6 +40,14 @@ async function runWithLock(type, job) {
   }
 }
 
+function scheduleKimNwpJob(scheduler = cron) {
+  return scheduler.schedule(
+    config.schedule.kim_surface_wind_interval,
+    () => runWithLock("kim_surface_wind", kimSurfaceWindProcessor.process),
+    KIM_NWP_CRON_OPTIONS,
+  )
+}
+
 async function main() {
   store.ensureDirectories(config.storage.base_path);
   store.initFromFiles(config.storage.base_path);
@@ -56,7 +65,7 @@ async function main() {
   cron.schedule(config.schedule.lightning_interval, () => runWithLock("lightning", lightningProcessor.process));
   cron.schedule(config.schedule.radar_echo_interval, () => runWithLock("radar_echo", radarEchoProcessor.process));
   cron.schedule(config.schedule.adsb_interval, () => runWithLock("adsb", adsbProcessor.process));
-  cron.schedule(config.schedule.kim_surface_wind_interval, () => runWithLock("kim_surface_wind", kimSurfaceWindProcessor.process));
+  scheduleKimNwpJob();
   cron.schedule(config.schedule.satellite_interval, () => runWithLock("satellite", satelliteProcessor.process));
   cron.schedule(config.schedule.ground_forecast_interval, () => runWithLock("ground_forecast", groundForecastProcessor.process));
   cron.schedule(config.schedule.environment_interval, () => runWithLock("environment", environmentProcessor.process));
@@ -92,5 +101,5 @@ if (process.argv[1] && (__filename === process.argv[1] || __filename.endsWith(pr
   });
 }
 
-export { main, runWithLock }
-export default { main, runWithLock }
+export { KIM_NWP_CRON_OPTIONS, main, runWithLock, scheduleKimNwpJob }
+export default { KIM_NWP_CRON_OPTIONS, main, runWithLock, scheduleKimNwpJob }

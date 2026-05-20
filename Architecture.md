@@ -81,13 +81,17 @@ ProjectAMO/
 - `frontend/src/features/weather-overlays/lib/weatherOverlayLayers.js` -> MET panel layer definitions, weather overlay source/layer ownership IDs, static weather overlay installation, and radar/satellite/SIGWX/advisory/lightning Mapbox sync helpers.
 - `frontend/src/features/weather-overlays/NwpSliderBar.jsx` -> shared KIM NWP bottom time slider and right-side level slider UI.
 - `frontend/src/features/weather-overlays/NwpSliderBarModel.js` -> pure KIM NWP slider option and time tick formatting helpers.
-- `frontend/src/features/weather-overlays/lib/useKimSurfaceWind.js` -> KIM wind index/field selection hook with shared selection support, field cache, request cancellation, and stale response guards.
+- `frontend/src/features/weather-overlays/lib/useKimSurfaceWind.js` -> KIM wind index/field selection hook with shared selection support, nearest-past time fallback, field cache, request cancellation, and stale response guards.
 - `frontend/src/features/weather-overlays/lib/useKimSurfaceWind.test.js` -> KIM wind selection/index helper tests.
 - `frontend/src/features/weather-overlays/lib/useKimTemperature.js` -> KIM temperature index/field hook with selected-field cache, request cancellation, and variable-hash refresh.
+- `frontend/src/features/weather-overlays/lib/useKimCloudPotential.js` -> KIM cloud-potential index/field hook using shared pressure-level selection, field cache, cloud variable-hash refresh, and stale-selection guards.
+- `frontend/src/features/weather-overlays/lib/useKimCloudPotential.test.js` -> KIM cloud-potential selection, cache-key, snapshot-hash, and request-guard helper tests.
 - `frontend/src/features/weather-overlays/lib/windField.js` -> KIM selected wind field decoding, interpolation sampler, shared kt color ramp, and metadata label helpers.
 - `frontend/src/features/weather-overlays/lib/windOverlaySync.js` -> wind overlay renderer lifecycle adapter, WebGL-first selection, Canvas fallback, and Mapbox event sync.
 - `frontend/src/features/weather-overlays/lib/temperatureField.js` -> KIM temperature field decoding, Kelvin-to-Celsius display conversion, sampler, and fixed Celsius color ramp.
 - `frontend/src/features/weather-overlays/lib/temperatureOverlaySync.js` -> temperature Canvas raster generation and Mapbox image overlay lifecycle sync.
+- `frontend/src/features/weather-overlays/lib/cloudPotentialField.js` -> KIM dewpoint-spread decoding and green stepped moist-area display ramp.
+- `frontend/src/features/weather-overlays/lib/cloudPotentialOverlaySync.js` -> dewpoint-spread Canvas raster generation and Mapbox image overlay lifecycle sync.
 - `frontend/src/features/weather-overlays/lib/canvasWindRenderer.js` -> Canvas 2D fallback renderer for KIM wind flow and speed overlays.
 - `frontend/src/features/weather-overlays/lib/webglWindRenderer.js` -> WebGL wind renderer for KIM wind flow particles and speed color cells.
 - `frontend/src/features/weather-overlays/lib/lightningLayers.js` -> lightning GeoJSON, icon, layer, visibility, and blink helpers.
@@ -122,22 +126,24 @@ ProjectAMO/
 
 ### Backend
 
-- `backend/server.js` -> Express entry point, API routes, cache headers, static data serving.
+- `backend/server.js` -> Express entry point, API routes, cache headers, static data serving, and KIM NWP map index filtering.
 - `backend/src/briefing/route-axis.js` -> route LineString resampling, cumulative distance, and bearing helpers.
 - `backend/src/briefing/profile-composer.js` -> route-aware planned altitude profile, markers, and segment metadata composition.
 - `backend/src/briefing/vertical-profile.js` -> vertical profile response composition.
 - `backend/src/terrain/terrain-cache.js` -> terrain tile metadata lookup and lazy tile cache.
 - `backend/src/terrain/terrain-sampler.js` -> terrain sampling along route-axis samples.
-- `backend/src/index.js` -> scheduled weather collection jobs and per-type locks.
+- `backend/src/index.js` -> scheduled weather collection jobs, per-type locks, and UTC KIM NWP release-window scheduling.
 - `backend/src/api-client.js` -> upstream KMA/weather API request construction.
 - `backend/src/store.js` -> in-memory cache and SHA-256 change detection.
 - `backend/src/parsers/*` -> per-type raw response parsers.
 - `backend/src/processors/*` -> per-type normalized data processors.
-- `backend/src/processors/kim-surface-wind-processor.js` -> existing KIM scheduled job/lock orchestrator for multi-level NWP wind plus serial Temp collection, publishing canonical `DATA_PATH/kim_nwp/` while preserving the legacy surface-wind cache.
+- `backend/src/processors/kim-surface-wind-processor.js` -> existing KIM scheduled job/lock orchestrator for multi-level NWP wind plus serial Temp/moisture-level RH collection, complete-run skip checks, publishing canonical `DATA_PATH/kim_nwp/` while preserving the legacy surface-wind cache.
 - `backend/src/processors/kim-nwp-store.js` -> canonical `DATA_PATH/kim_nwp/` store helpers for safe path resolution, atomic manifest/grid/index/latest writes, reads, usable-run manifest checks, and run retention.
-- `backend/src/processors/kim-nwp-model.js` -> KIM NWP levels/forecast hours, normalized variable grid builder, compact index filtering, and wind/temperature renderer-compatible field conversion.
+- `backend/src/processors/kim-nwp-model.js` -> KIM NWP levels/forecast hours/moisture-analysis levels, normalized variable grid builder, compact index filtering, and wind/temperature/dewpoint-spread renderer-compatible field conversion.
+- `backend/test/kim-scheduler.test.js` -> scheduler wiring tests for UTC KIM NWP release-window cron behavior.
 - `backend/test/kim-nwp-store.test.js` -> KIM NWP store path validation, atomic write/read, compact index, and retention tests.
 - `backend/test/kim-nwp-model.test.js` -> KIM NWP wind grid, index, and compatibility field model tests.
+- `backend/test/kim-server-index.test.js` -> KIM NWP map index filtering tests for nearest-past plus future time exposure.
 - `backend/collect.js` -> manual one-shot collector.
 - `scripts/prepare-terrain-tiles.js` -> converts decompressed Korea 3-second DEM into 1-degree terrain tiles.
 

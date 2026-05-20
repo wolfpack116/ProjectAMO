@@ -113,6 +113,7 @@ export const MET_LAYERS = [
   { id: 'lightning', label: 'Lightning', color: '#facc15' },
   { id: 'wind', label: 'Wind', color: '#22c55e' },
   { id: 'temp', label: 'Temp', color: '#ef4444' },
+  { id: 'cloud', label: 'Moisture', color: 'rgba(49, 124, 62, 0.7)' },
   { id: 'sigmet', label: 'SIGMET', color: ADVISORY_LAYER_DEFS.sigmet.color },
   { id: 'airmet', label: 'AIRMET', color: ADVISORY_LAYER_DEFS.airmet.color },
   { id: 'sigwx', label: 'SIGWX', color: '#a78bfa' },

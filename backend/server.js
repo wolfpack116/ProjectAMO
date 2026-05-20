@@ -11,6 +11,8 @@ import alertDefaults from '../shared/alert-defaults.js'
 import { buildVerticalProfile } from './src/briefing/vertical-profile.js'
 import { createDefaultTerrainSampler } from './src/terrain/terrain-sampler.js'
 import {
+  buildKimCloudPotentialFieldFromGrid,
+  KIM_NWP_MOISTURE_LEVEL_IDS,
   buildKimTemperatureFieldFromGrid,
   buildKimSurfaceWindFieldFromWindGrid,
   filterKimNwpIndexForVariables,
@@ -157,6 +159,9 @@ function buildKimNwpSnapshotEntry() {
   const index = readKimNwpIndex(DATA_ROOT)
   const uvIndex = index ? filterKimNwpIndexForVariables(index, ['u', 'v']) : null
   const tempIndex = index ? filterKimNwpIndexForVariables(index, ['T']) : null
+  const cloudIndex = index
+    ? filterKimNwpIndexForLevels(filterKimNwpIndexForVariables(index, ['T', 'rh']), KIM_NWP_MOISTURE_LEVEL_IDS)
+    : null
   return {
     hash: latest.content_hash || store.canonicalHash(latest),
     tmfc: latest.latestRun || null,
@@ -164,6 +169,7 @@ function buildKimNwpSnapshotEntry() {
     variables: {
       uv: { hash: uvIndex ? store.canonicalHash(uvIndex) : null },
       T: { hash: tempIndex ? store.canonicalHash(tempIndex) : null },
+      cloud: { hash: cloudIndex ? store.canonicalHash(cloudIndex) : null },
     },
   }
 }
@@ -236,10 +242,19 @@ function buildSnapshotMeta() {
 }
 
 export function filterKimNwpIndexForMap(index, nowMs = Date.now()) {
-  const exposedTimes = (index?.times || []).filter((time) => {
+  const times = index?.times || []
+  const pastTimes = []
+  const futureTimes = []
+  for (const time of times) {
     const validMs = Date.parse(time.validTime)
-    return Number.isFinite(validMs) && validMs >= nowMs
-  })
+    if (!Number.isFinite(validMs)) continue
+    if (validMs >= nowMs) futureTimes.push(time)
+    else pastTimes.push({ time, validMs })
+  }
+  const nearestPast = pastTimes.reduce((nearest, candidate) => (
+    !nearest || candidate.validMs > nearest.validMs ? candidate : nearest
+  ), null)
+  const exposedTimes = nearestPast ? [nearestPast.time, ...futureTimes] : futureTimes
   const exposedHfs = new Set(exposedTimes.map((time) => String(time.hf)))
   const availability = {}
   for (const [levelId, byHf] of Object.entries(index?.availability || {})) {
@@ -251,6 +266,33 @@ export function filterKimNwpIndexForMap(index, nowMs = Date.now()) {
   }
   const levels = (index?.levels || []).filter((level) => availability[level.id])
   return { ...index, levels, times: exposedTimes, availability }
+}
+
+export function filterKimNwpIndexForMapVariables(index, requiredVariables = [], nowMs = Date.now()) {
+  return filterKimNwpIndexForMap(filterKimNwpIndexForVariables(index, requiredVariables), nowMs)
+}
+
+function filterKimNwpIndexForLevels(index, levelIds = []) {
+  const allowed = new Set(levelIds)
+  const availability = {}
+  for (const [levelId, byHf] of Object.entries(index?.availability || {})) {
+    if (!allowed.has(levelId)) continue
+    availability[levelId] = byHf
+  }
+  const availableHfs = new Set(Object.values(availability).flatMap((byHf) => Object.keys(byHf || {})))
+  return {
+    ...index,
+    levels: (index?.levels || []).filter((level) => allowed.has(level.id) && availability[level.id]),
+    times: (index?.times || []).filter((time) => availableHfs.has(String(time.hf))),
+    availability,
+  }
+}
+
+export function filterKimCloudIndexForMap(index, nowMs = Date.now()) {
+  return filterKimNwpIndexForMap(
+    filterKimNwpIndexForLevels(filterKimNwpIndexForVariables(index, ['T', 'rh']), KIM_NWP_MOISTURE_LEVEL_IDS),
+    nowMs,
+  )
 }
 
 function selectDefaultKimNwpField(index) {
@@ -284,6 +326,18 @@ function readSelectedKimTempField(selection) {
     levelId: selection.level,
   })
   return buildKimTemperatureFieldFromGrid(grid)
+}
+
+function readSelectedKimCloudField(selection) {
+  validateKimNwpSelection({ tmfc: selection.tmfc, hf: selection.hf, levelId: selection.level })
+  const grid = readKimNwpGrid({
+    root: DATA_ROOT,
+    model: 'KIMG/NE57',
+    tmfc: selection.tmfc,
+    hf: Number(selection.hf),
+    levelId: selection.level,
+  })
+  return buildKimCloudPotentialFieldFromGrid(grid)
 }
 
 function sendKimWindField(req, res, { allowDefault = false } = {}) {
@@ -331,7 +385,7 @@ app.get('/api/kim/surface-wind', (req, res) => {
 app.get('/api/kim/wind/index', (_req, res) => {
   const index = readKimNwpIndex(DATA_ROOT)
   if (index) {
-    res.json(filterKimNwpIndexForVariables(filterKimNwpIndexForMap(index), ['u', 'v']))
+    res.json(filterKimNwpIndexForMapVariables(index, ['u', 'v']))
     return
   }
   res.status(503).json({ error: 'kim wind index unavailable' })
@@ -341,7 +395,7 @@ app.get('/api/kim/temp/index', (_req, res) => {
   const index = readKimNwpIndex(DATA_ROOT)
   if (index) {
     res.json({
-      ...filterKimNwpIndexForVariables(filterKimNwpIndexForMap(index), ['T']),
+      ...filterKimNwpIndexForMapVariables(index, ['T']),
       type: 'kim_nwp_temp_index',
     })
     return
@@ -358,6 +412,29 @@ app.get('/api/kim/temp/field', (req, res) => {
     res.json(readSelectedKimTempField(selection))
   } catch (error) {
     res.status(400).json({ error: error.message || 'invalid kim temp selection' })
+  }
+})
+app.get('/api/kim/cloud/index', (_req, res) => {
+  const index = readKimNwpIndex(DATA_ROOT)
+  if (index) {
+    res.json({
+      ...filterKimCloudIndexForMap(index),
+      type: 'kim_nwp_cloud_index',
+    })
+    return
+  }
+  res.status(503).json({ error: 'kim cloud index unavailable' })
+})
+app.get('/api/kim/cloud/field', (req, res) => {
+  try {
+    const selection = {
+      tmfc: String(req.query.tmfc || ''),
+      hf: Number(req.query.hf),
+      level: String(req.query.level || ''),
+    }
+    res.json(readSelectedKimCloudField(selection))
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'invalid kim cloud selection' })
   }
 })
 app.get('/api/ground-forecast', (_, res) => sendLatest(res, 'ground_forecast'))
@@ -404,9 +481,13 @@ app.post('/api/vertical-profile', (req, res) => {
   }
 })
 
-app.listen(PORT, HOST, () => console.log(`[server] Backend running on ${HOST}:${PORT}`))
+export { app, buildSnapshotMeta, readSelectedKimCloudField }
 
-startScheduler().catch((err) => {
-  console.error('[server] Scheduler startup error:', err.message)
-  process.exit(1)
-})
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, HOST, () => console.log(`[server] Backend running on ${HOST}:${PORT}`))
+
+  startScheduler().catch((err) => {
+    console.error('[server] Scheduler startup error:', err.message)
+    process.exit(1)
+  })
+}

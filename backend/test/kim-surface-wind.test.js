@@ -3,9 +3,20 @@ import test from 'node:test'
 
 import { parseKimGridText } from '../src/parsers/kim-grid-parser.js'
 import { buildKimGridUrl } from '../src/api-client.js'
+import config from '../src/config.js'
+import {
+  KIM_NWP_LEVELS,
+  buildKimNwpGrid,
+  buildKimNwpIndex,
+  buildKimWindGrid,
+} from '../src/processors/kim-nwp-model.js'
 import {
   buildKimSurfaceWindField,
+  collectKimNwpTask,
+  hasCompleteKimNwpRun,
   mapKimNwpTasksWithConcurrency,
+  mergeHumidityComponentIntoGrid,
+  resolveKimHumidityComponentRequest,
   resolveKimSurfaceWindCandidates,
   selectLegacySurfaceWindGrid,
   shouldPublishKimNwpRun,
@@ -144,6 +155,10 @@ test('resolveKimSurfaceWindCandidates starts with recent synoptic cycles and hf 
   ])
 })
 
+test('KIM NWP scheduler polls only around synoptic release windows', () => {
+  assert.equal(config.schedule.kim_surface_wind_interval, '12 0,1,2,6,7,8,12,13,14,18,19,20 * * *')
+})
+
 test('buildKimGridUrl uses the KMA APIHub KIM cgi endpoint', () => {
   const url = buildKimGridUrl({
     data: 'U',
@@ -178,6 +193,18 @@ test('resolveKimTemperatureComponentRequest uses pressure T and verified single-
   })
 })
 
+test('resolveKimHumidityComponentRequest uses moisture-analysis pressure rh params only', () => {
+  assert.equal(resolveKimHumidityComponentRequest({ level: { id: '10m', kind: 'height', level: 0 } }), null)
+  assert.equal(resolveKimHumidityComponentRequest({ level: { id: '300hPa', kind: 'pressure', level: 300 } }), null)
+  assert.deepEqual(resolveKimHumidityComponentRequest({ level: { id: '850hPa', kind: 'pressure', level: 850 } }), {
+    data: 'P',
+    name: 'rh',
+    level: 850,
+    variable: 'rh',
+    unit: '%',
+  })
+})
+
 test('shouldPublishKimNwpRun rejects incomplete wind grid runs but allows temp-missing wind grids', () => {
   const expectedGridCount = 2
   const completeWindOnlyRun = [
@@ -195,6 +222,135 @@ test('shouldPublishKimNwpRun rejects incomplete wind grid runs but allows temp-m
   assert.equal(shouldPublishKimNwpRun({ grids: completeWindOnlyRun, expectedGridCount }), true)
   assert.equal(shouldPublishKimNwpRun({ grids: incompleteWindRun, expectedGridCount }), false)
   assert.equal(shouldPublishKimNwpRun({ grids: tempOnlyRun, expectedGridCount }), false)
+})
+
+test('shouldPublishKimNwpRun allows rh-missing wind/temp grids', () => {
+  assert.equal(shouldPublishKimNwpRun({
+    expectedGridCount: 1,
+    grids: [{ variables: { u: {}, v: {}, T: {} } }],
+  }), true)
+})
+
+test('hasCompleteKimNwpRun skips only when latest run has wind temp and moisture-level rh availability', () => {
+  const tmfc = '2026051900'
+  const hf = 0
+  const grids = KIM_NWP_LEVELS.map((level) => buildKimNwpGrid({
+    model: 'KIMG/NE57',
+    tmfc,
+    hf,
+    level,
+    components: [
+      { variable: 'u', unit: 'm/s', level: level.level, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [1, 2, 3, 4] },
+      { variable: 'v', unit: 'm/s', level: level.level, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [0, 1, 0, 1] },
+      { variable: 'T', unit: 'K', level: level.level, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [279, 280, 281, 282] },
+        ...(level.kind === 'pressure' && level.id !== '300hPa'
+          ? [{ variable: 'rh', unit: '%', level: level.level, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [90, 80, 70, 60] }]
+          : []),
+    ],
+  }))
+  const completeIndex = buildKimNwpIndex({
+    model: 'KIMG/NE57',
+    tmfc,
+    grids,
+    pathForGrid: (grid) => `kim_nwp/${grid.level.id}/${grid.hf}/grid.json`,
+  })
+  const missingRhIndex = buildKimNwpIndex({
+    model: 'KIMG/NE57',
+    tmfc,
+    grids: grids.map((grid) => (
+        grid.level.id === '850hPa'
+        ? { ...grid, variables: { u: grid.variables.u, v: grid.variables.v, T: grid.variables.T } }
+        : grid
+    )),
+    pathForGrid: (grid) => `kim_nwp/${grid.level.id}/${grid.hf}/grid.json`,
+  })
+
+  assert.equal(hasCompleteKimNwpRun({
+    latest: { latestRun: tmfc },
+    index: completeIndex,
+    tmfc,
+    forecastHours: [hf],
+    levels: KIM_NWP_LEVELS,
+  }), true)
+  assert.equal(hasCompleteKimNwpRun({
+    latest: { latestRun: tmfc },
+    index: missingRhIndex,
+    tmfc,
+    forecastHours: [hf],
+    levels: KIM_NWP_LEVELS,
+  }), false)
+})
+
+test('mergeHumidityComponentIntoGrid adds rh without dropping existing wind/temp variables', () => {
+  const level = KIM_NWP_LEVELS[2]
+  const grid = buildKimNwpGrid({
+    model: 'KIMG/NE57',
+    tmfc: '2026051900',
+    hf: 3,
+    level,
+    components: [
+      { variable: 'u', unit: 'm/s', level: 850, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [1, 2, 3, 4] },
+      { variable: 'v', unit: 'm/s', level: 850, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [0, 1, 0, 1] },
+      { variable: 'T', unit: 'K', level: 850, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [279, 280, 281, 282] },
+    ],
+    fetchedAt: '2026-05-19T00:00:00.000Z',
+  })
+
+  const merged = mergeHumidityComponentIntoGrid({
+    grid,
+    level,
+    tmfc: '2026051900',
+    hf: 3,
+    fetchedAt: '2026-05-19T00:01:00.000Z',
+    humidityComponent: { variable: 'rh', unit: '%', level: 850, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [90, 80, 70, 60] },
+  })
+
+  assert.deepEqual(Object.keys(merged.variables), ['u', 'v', 'T', 'rh'])
+  assert.deepEqual(merged.variables.rh.values, [9000, 8000, 7000, 6000])
+  assert.equal(merged.fetched_at, '2026-05-19T00:01:00.000Z')
+})
+
+test('collectKimNwpTask keeps wind/temp grid publishable when rh merge fails', async () => {
+  const level = KIM_NWP_LEVELS[1]
+  const task = { level, tmfc: '2026051900', hf: 3 }
+  const windGrid = buildKimWindGrid({
+    model: 'KIMG/NE57',
+    tmfc: task.tmfc,
+    hf: task.hf,
+    level,
+    components: [
+      { variable: 'u', unit: 'm/s', level: 925, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [1, 2, 3, 4] },
+      { variable: 'v', unit: 'm/s', level: 925, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [0, 1, 0, 1] },
+    ],
+  })
+  const tempGrid = buildKimNwpGrid({
+    model: 'KIMG/NE57',
+    tmfc: task.tmfc,
+    hf: task.hf,
+    level,
+    components: [
+      { variable: 'u', unit: 'm/s', level: 925, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [1, 2, 3, 4] },
+      { variable: 'v', unit: 'm/s', level: 925, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [0, 1, 0, 1] },
+      { variable: 'T', unit: 'K', level: 925, nx: 2, ny: 2, bounds: BOUNDS_2X2, values: [279, 280, 281, 282] },
+    ],
+  })
+  const writes = []
+
+  const { grid, lastError } = await collectKimNwpTask({
+    task,
+    fetchWind: async () => windGrid,
+    addTemperature: async () => tempGrid,
+    addHumidity: async () => { throw new Error('rh failed') },
+    writeGrid: (nextGrid) => writes.push(nextGrid),
+  })
+
+  assert.match(lastError.message, /rh failed/)
+  assert.equal(grid.variables.u != null, true)
+  assert.equal(grid.variables.v != null, true)
+  assert.equal(grid.variables.T != null, true)
+  assert.equal(grid.variables.rh, undefined)
+  assert.equal(shouldPublishKimNwpRun({ grids: [grid], expectedGridCount: 1 }), true)
+  assert.equal(writes.length, 2)
 })
 
 test('selectLegacySurfaceWindGrid prefers 10m hf0 regardless of collection order', () => {

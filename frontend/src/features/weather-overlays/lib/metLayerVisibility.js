@@ -5,6 +5,7 @@ export function getNextMetVisibility(prev, id, { lowPower = false } = {}) {
       ...prev,
       wind: nextWind,
       temp: false,
+      cloud: false,
       windFlow: nextWind ? !lowPower : prev.windFlow,
       windSpeed: nextWind ? true : prev.windSpeed,
     }
@@ -15,6 +16,17 @@ export function getNextMetVisibility(prev, id, { lowPower = false } = {}) {
       ...prev,
       temp: nextTemp,
       wind: false,
+      cloud: false,
+      windFlow: false,
+    }
+  }
+  if (id === 'cloud') {
+    const nextCloud = !prev.cloud
+    return {
+      ...prev,
+      cloud: nextCloud,
+      wind: false,
+      temp: false,
       windFlow: false,
     }
   }

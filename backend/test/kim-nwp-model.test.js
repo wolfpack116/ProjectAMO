@@ -4,6 +4,8 @@ import test from 'node:test'
 import {
   KIM_NWP_FORECAST_HOURS,
   KIM_NWP_LEVELS,
+  KIM_NWP_MOISTURE_LEVEL_IDS,
+  buildKimCloudPotentialFieldFromGrid,
   buildKimTemperatureFieldFromGrid,
   buildKimNwpGrid,
   buildKimNwpIndex,
@@ -23,6 +25,7 @@ function tempComponent(values, unit = 'K') {
 
 test('KIM wind levels and forecast hours match this phase scope', () => {
   assert.deepEqual(KIM_NWP_LEVELS.map((level) => level.id), ['10m', '925hPa', '850hPa', '700hPa', '500hPa', '300hPa'])
+  assert.deepEqual(KIM_NWP_MOISTURE_LEVEL_IDS, ['925hPa', '850hPa', '700hPa', '500hPa'])
   assert.deepEqual(KIM_NWP_FORECAST_HOURS, [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36])
 })
 
@@ -118,6 +121,29 @@ test('buildKimTemperatureFieldFromGrid returns Kelvin T only and excludes NaN fr
   assert.deepEqual(field.stats, { minT: 279.39, maxT: 281.55, meanT: 280.353 })
 })
 
+test('buildKimCloudPotentialFieldFromGrid derives spread and graded moisture potential from T and rh', () => {
+  const grid = buildKimNwpGrid({
+    model: 'KIMG/NE57',
+    tmfc: '2026051900',
+    hf: 3,
+    level: KIM_NWP_LEVELS[2],
+    components: [
+      tempComponent([293.15, 293.15, 293.15, Number.NaN]),
+      { variable: 'rh', unit: '%', level: 850, nx: 2, ny: 2, bounds: BOUNDS, values: [90, 60, 100, 80] },
+    ],
+  })
+
+  const field = buildKimCloudPotentialFieldFromGrid(grid)
+
+  assert.equal(field.type, 'kim_nwp_cloud_potential')
+  assert.deepEqual(field.units, { spread: 'C', cloudPotential: '%' })
+  assert.equal(field.thresholdC, 4)
+  assert.equal(field.cloudPotential[0] > 0 && field.cloudPotential[0] < 10000, true)
+  assert.equal(field.cloudPotential[1], 0)
+  assert.equal(field.cloudPotential[2], 10000)
+  assert.equal(field.cloudPotential[3], -32768)
+})
+
 test('buildKimNwpIndex omits encoded values', () => {
   const grid = buildKimNwpGrid({
     model: 'KIMG/NE57',
@@ -180,4 +206,36 @@ test('filterKimNwpIndexForVariables separates wind and temp availability', () =>
   assert.deepEqual(windIndex.availability['10m']['0'].variables, ['u', 'v'])
   assert.deepEqual(windIndex.availability['925hPa']['3'].variables, ['u', 'v'])
   assert.deepEqual(tempIndex.availability['925hPa']['3'].variables, ['T'])
+})
+
+test('filterKimNwpIndexForVariables exposes cloud grids only when T and rh exist', () => {
+  const index = buildKimNwpIndex({
+    model: 'KIMG/NE57',
+    tmfc: '2026051900',
+    grids: [
+      buildKimNwpGrid({
+        model: 'KIMG/NE57',
+        tmfc: '2026051900',
+        hf: 0,
+        level: KIM_NWP_LEVELS[1],
+        components: [tempComponent([279, 280, 281, 282])],
+      }),
+      buildKimNwpGrid({
+        model: 'KIMG/NE57',
+        tmfc: '2026051900',
+        hf: 3,
+        level: KIM_NWP_LEVELS[2],
+        components: [
+          tempComponent([279, 280, 281, 282]),
+          { variable: 'rh', unit: '%', level: 850, nx: 2, ny: 2, bounds: BOUNDS, values: [90, 80, 70, 60] },
+        ],
+      }),
+    ],
+    pathForGrid: (grid) => `kim_nwp/${grid.level.id}/${grid.hf}/grid.json`,
+  })
+
+  const cloudIndex = filterKimNwpIndexForVariables(index, ['T', 'rh'])
+
+  assert.deepEqual(cloudIndex.levels.map((level) => level.id), ['850hPa'])
+  assert.deepEqual(cloudIndex.availability['850hPa']['3'].variables, ['T', 'rh'])
 })

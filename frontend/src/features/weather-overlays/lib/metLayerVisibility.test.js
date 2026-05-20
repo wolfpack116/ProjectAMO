@@ -6,20 +6,29 @@ import { getNextMetVisibility } from './metLayerVisibility.js'
 test('getNextMetVisibility makes wind and temp mutually exclusive', () => {
   assert.deepEqual(
     getNextMetVisibility(
-      { wind: false, temp: true, windFlow: true, windSpeed: false },
+      { wind: false, temp: true, cloud: false, windFlow: true, windSpeed: false },
       'wind',
       { lowPower: false },
     ),
-    { wind: true, temp: false, windFlow: true, windSpeed: true },
+    { wind: true, temp: false, cloud: false, windFlow: true, windSpeed: true },
   )
 
   assert.deepEqual(
     getNextMetVisibility(
-      { wind: true, temp: false, windFlow: true, windSpeed: true },
+      { wind: true, temp: false, cloud: false, windFlow: true, windSpeed: true },
       'temp',
       { lowPower: false },
     ),
-    { wind: false, temp: true, windFlow: false, windSpeed: true },
+    { wind: false, temp: true, cloud: false, windFlow: false, windSpeed: true },
+  )
+
+  assert.deepEqual(
+    getNextMetVisibility(
+      { wind: true, temp: false, cloud: false, windFlow: true, windSpeed: true },
+      'cloud',
+      { lowPower: false },
+    ),
+    { wind: false, temp: false, cloud: true, windFlow: false, windSpeed: true },
   )
 })
 

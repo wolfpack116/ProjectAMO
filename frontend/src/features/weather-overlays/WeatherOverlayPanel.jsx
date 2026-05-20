@@ -13,12 +13,13 @@ function WeatherOverlayPanel({
   windFlowTrail = 0.9,
   windFlowWidth = 1.5,
   tempStatus = 'idle',
+  cloudStatus = 'idle',
   onWindFlowOpacityChange,
   onWindFlowTrailChange,
   onWindFlowWidthChange,
 }) {
   const groups = [
-    { id: 'weather', title: '기상', ids: showWind ? ['radar', 'satellite', 'lightning', 'wind', 'temp'] : ['radar', 'satellite', 'lightning'] },
+    { id: 'weather', title: '기상', ids: showWind ? ['radar', 'satellite', 'lightning', 'wind', 'temp', 'cloud'] : ['radar', 'satellite', 'lightning'] },
     { id: 'hazards', title: '위험기상', ids: ['sigmet', 'airmet', 'sigwx'] },
     { id: 'traffic', title: '항적', ids: ['adsb'] },
   ]
@@ -28,12 +29,13 @@ function WeatherOverlayPanel({
     lightning: '낙뢰',
     wind: 'Wind',
     temp: 'Temp',
+    cloud: 'Moisture',
     sigmet: 'SIGMET',
     airmet: 'AIRMET',
     sigwx: 'SIGWX',
     adsb: 'ADS-B',
   }
-  const visibleLayers = layers.filter((layer) => showWind || (layer.id !== 'wind' && layer.id !== 'temp'))
+  const visibleLayers = layers.filter((layer) => showWind || !['wind', 'temp', 'cloud'].includes(layer.id))
   const activeCount = visibleLayers.filter((layer) => visibility[layer.id] && !isLayerDisabled(layer.id)).length
   const layerById = new Map(visibleLayers.map((layer) => [layer.id, layer]))
   const activeCountForGroup = (group) => (
@@ -158,6 +160,28 @@ function WeatherOverlayPanel({
     )
   }
 
+  function renderCloudControl(layer) {
+    const disabled = isLayerDisabled(layer.id)
+    return (
+      <div key={layer.id} className={`wind-toggle-block${disabled ? ' is-disabled' : ''}`}>
+        <label className={`layer-toggle-row${disabled ? ' is-disabled' : ''}`}>
+          <input
+            className="layer-toggle-input"
+            type="checkbox"
+            checked={!!visibility.cloud}
+            disabled={disabled}
+            onChange={() => onToggle('cloud')}
+          />
+          <span className="layer-toggle-switch" aria-hidden="true" />
+          <span className="layer-toggle-swatch" style={{ background: layer.color }} />
+          <span className="layer-toggle-label">{layerLabels.cloud}</span>
+        </label>
+        {visibility.cloud && cloudStatus === 'loading' && <div className="wind-toggle-meta">Moisture loading</div>}
+        {visibility.cloud && (cloudStatus === 'error' || cloudStatus === 'unavailable') && <div className="wind-toggle-meta">Moisture unavailable</div>}
+      </div>
+    )
+  }
+
   const body = (
     <div className="layer-drawer-body">
       {groups.map((group) => (
@@ -172,6 +196,7 @@ function WeatherOverlayPanel({
               if (!layer) return null
               if (layer.id === 'wind') return renderWindControl(layer)
               if (layer.id === 'temp') return renderTempControl(layer)
+              if (layer.id === 'cloud') return renderCloudControl(layer)
               const disabled = isLayerDisabled(layer.id)
               const badge = getLayerBadge(layer.id)
               return (

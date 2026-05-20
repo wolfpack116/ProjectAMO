@@ -8,6 +8,8 @@ export const KIM_NWP_LEVELS = [
   { id: '500hPa', label: '500', kind: 'pressure', value: 500, unit: 'hPa', level: 500, uName: 'u', vName: 'v' },
   { id: '300hPa', label: '300', kind: 'pressure', value: 300, unit: 'hPa', level: 300, uName: 'u', vName: 'v' },
 ]
+export const KIM_NWP_MOISTURE_LEVEL_IDS = ['925hPa', '850hPa', '700hPa', '500hPa']
+export const KIM_NWP_MOISTURE_LEVELS = KIM_NWP_LEVELS.filter((level) => KIM_NWP_MOISTURE_LEVEL_IDS.includes(level.id))
 
 const SCALE = 0.01
 const OFFSET = 0
@@ -112,6 +114,47 @@ function statsForTemperature(values) {
     : { minT: null, maxT: null, meanT: null }
 }
 
+function dewpointCFromTempRh(tempK, rhPct) {
+  if (!Number.isFinite(tempK) || !Number.isFinite(rhPct)) return Number.NaN
+  const tempC = tempK - 273.15
+  const rh = Math.max(1e-6, Math.min(100, rhPct))
+  const a = 17.625
+  const b = 243.04
+  const gamma = Math.log(rh / 100) + (a * tempC) / (b + tempC)
+  return (b * gamma) / (a - gamma)
+}
+
+export function isKimNwpMoistureLevel(level) {
+  return KIM_NWP_MOISTURE_LEVEL_IDS.includes(level?.id)
+}
+
+export function cloudPotentialThresholdForLevel(level) {
+  return level?.id === '500hPa' ? 6 : 4
+}
+
+function cloudPotentialScoreForSpread(spreadC, thresholdC) {
+  if (!Number.isFinite(spreadC)) return Number.NaN
+  if (spreadC > thresholdC) return 0
+  return Math.max(0, Math.min(100, ((thresholdC - Math.max(0, spreadC)) / thresholdC) * 100))
+}
+
+function statsForSpread(values) {
+  let minSpread = Infinity
+  let maxSpread = -Infinity
+  let total = 0
+  let count = 0
+  for (const value of values) {
+    if (!Number.isFinite(value)) continue
+    minSpread = Math.min(minSpread, value)
+    maxSpread = Math.max(maxSpread, value)
+    total += value
+    count += 1
+  }
+  return count > 0
+    ? { minSpread: round(minSpread), maxSpread: round(maxSpread), meanSpread: round(total / count) }
+    : { minSpread: null, maxSpread: null, meanSpread: null }
+}
+
 export function buildKimNwpGrid({ model = KIM_NWP_MODEL, tmfc, hf, level, components, fetchedAt = new Date().toISOString() }) {
   validateComponentShape(components)
   const [firstComponent] = components
@@ -202,6 +245,45 @@ export function buildKimTemperatureFieldFromGrid(grid) {
   }
 }
 
+export function buildKimCloudPotentialFieldFromGrid(grid, { thresholdC = cloudPotentialThresholdForLevel(grid?.level) } = {}) {
+  const tempVariable = grid?.variables?.T
+  const rhVariable = grid?.variables?.rh
+  if (!tempVariable || !rhVariable) throw new Error('KIM NWP grid is missing T/rh variables')
+  const tempValues = decodeComponent(tempVariable.values || [], tempVariable)
+  const rhValues = decodeComponent(rhVariable.values || [], rhVariable)
+  const spread = []
+  const cloudPotential = []
+
+  for (let index = 0; index < tempValues.length; index += 1) {
+    const tdC = dewpointCFromTempRh(tempValues[index], rhValues[index])
+    const tempC = tempValues[index] - 273.15
+    const value = Number.isFinite(tdC) ? tempC - tdC : Number.NaN
+    spread.push(value)
+    cloudPotential.push(cloudPotentialScoreForSpread(value, thresholdC))
+  }
+
+  return {
+    type: 'kim_nwp_cloud_potential',
+    model: grid.model,
+    grid: grid.grid,
+    time: {
+      tmfc: grid.tmfc,
+      hf: grid.hf,
+      validTime: grid.validTime,
+    },
+    level: grid.level,
+    thresholdC,
+    units: { spread: 'C', cloudPotential: '%' },
+    stats: statsForSpread(spread),
+    encoding: 'int16-scaled-json-v1',
+    scale: SCALE,
+    offset: OFFSET,
+    spread: encodeComponent(spread),
+    cloudPotential: encodeComponent(cloudPotential),
+    fetched_at: grid.fetched_at,
+  }
+}
+
 export function buildKimNwpIndex({ model = KIM_NWP_MODEL, tmfc, grids, pathForGrid }) {
   const levels = KIM_NWP_LEVELS
     .filter((level) => grids.some((grid) => grid.level?.id === level.id))
@@ -259,12 +341,17 @@ export function filterKimNwpIndexForVariables(index, requiredVariables = []) {
 export default {
   KIM_NWP_FORECAST_HOURS,
   KIM_NWP_LEVELS,
+  KIM_NWP_MOISTURE_LEVEL_IDS,
+  KIM_NWP_MOISTURE_LEVELS,
   KIM_NWP_MODEL,
   addForecastHours,
   buildKimNwpGrid,
   buildKimNwpIndex,
+  buildKimCloudPotentialFieldFromGrid,
   buildKimTemperatureFieldFromGrid,
   buildKimWindGrid,
   buildKimSurfaceWindFieldFromWindGrid,
+  cloudPotentialThresholdForLevel,
   filterKimNwpIndexForVariables,
+  isKimNwpMoistureLevel,
 }

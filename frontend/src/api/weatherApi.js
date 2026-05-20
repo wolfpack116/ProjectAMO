@@ -165,6 +165,15 @@ export async function fetchKimTemperatureField({ tmfc, hf, level }, options = {}
   return fetchJson(`/api/kim/temp/field?${params.toString()}`, options)
 }
 
+export async function fetchKimCloudPotentialIndex(options = {}) {
+  return fetchJson('/api/kim/cloud/index', options)
+}
+
+export async function fetchKimCloudPotentialField({ tmfc, hf, level }, options = {}) {
+  const params = new URLSearchParams({ tmfc, hf: String(hf), level })
+  return fetchJson(`/api/kim/cloud/field?${params.toString()}`, options)
+}
+
 export async function fetchSigwxFrontMeta(tmfc) {
   if (!tmfc) return null
   return fetchJson(`/api/sigwx-front-meta?tmfc=${encodeURIComponent(tmfc)}`, { optional: true })

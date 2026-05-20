@@ -20,17 +20,27 @@ export function selectKimNwpAvailability(index, selection) {
   return index.availability?.[selection.level]?.[String(selection.hf)] || null
 }
 
-function isNonPastTime(time, nowMs) {
-  if (!Number.isFinite(nowMs)) return true
-  const validMs = Date.parse(time?.validTime)
-  return Number.isFinite(validMs) && validMs >= nowMs
+function getSelectableTimes(times = [], nowMs = null) {
+  if (!Number.isFinite(nowMs)) return times
+  const futureTimes = []
+  let nearestPast = null
+  for (const time of times) {
+    const validMs = Date.parse(time?.validTime)
+    if (!Number.isFinite(validMs)) continue
+    if (validMs >= nowMs) {
+      futureTimes.push(time)
+    } else if (!nearestPast || validMs > nearestPast.validMs) {
+      nearestPast = { time, validMs }
+    }
+  }
+  return nearestPast ? [nearestPast.time, ...futureTimes] : futureTimes
 }
 
 export function selectDefaultKimNwp(index, nowMs = null) {
   const preferredLevel = index?.levels?.find((level) => level.id === '10m') || index?.levels?.[0]
   if (!preferredLevel) return null
-  const time = (index.times || []).find((candidate) =>
-    isNonPastTime(candidate, nowMs) && selectKimNwpAvailability(index, { level: preferredLevel.id, hf: candidate.hf }))
+  const time = getSelectableTimes(index.times, nowMs).find((candidate) =>
+    selectKimNwpAvailability(index, { level: preferredLevel.id, hf: candidate.hf }))
   return time ? { tmfc: index.latestRun, level: preferredLevel.id, hf: time.hf } : null
 }
 
@@ -38,12 +48,14 @@ export function selectFallbackKimNwpSelection(index, currentSelection, nowMs = n
   if (!index) return null
   if (selectKimNwpAvailability(index, currentSelection)) {
     const currentTime = (index.times || []).find((time) => Number(time.hf) === Number(currentSelection.hf))
-    if (isNonPastTime(currentTime, nowMs)) return { ...currentSelection, tmfc: index.latestRun }
+    if (getSelectableTimes(index.times, nowMs).some((time) => Number(time.hf) === Number(currentTime?.hf))) {
+      return { ...currentSelection, tmfc: index.latestRun }
+    }
   }
   const currentLevel = currentSelection?.level
   if (currentLevel) {
-    const time = (index.times || []).find((candidate) =>
-      isNonPastTime(candidate, nowMs) && selectKimNwpAvailability(index, { level: currentLevel, hf: candidate.hf }))
+    const time = getSelectableTimes(index.times, nowMs).find((candidate) =>
+      selectKimNwpAvailability(index, { level: currentLevel, hf: candidate.hf }))
     if (time) return { tmfc: index.latestRun, level: currentLevel, hf: time.hf }
   }
   return selectDefaultKimNwp(index, nowMs)
