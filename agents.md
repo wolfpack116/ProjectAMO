@@ -66,6 +66,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 - Before any task: read `Architecture.md`. If Task Patterns lists a match, follow that number in `EntryPoints.md`.
 - Before any UI, CSS, layout, or responsive task: also read `docs/ui-responsive-guidelines.md` and follow it as the operational UX standard.
+- Before any local server, Playwright screenshot, or Codex App Browser capture task: read `docs/dev-server-and-capture.md` and follow its verified ProjectAMO procedure.
 - After any task: update if files moved, a role memo is stale, a new non-obvious rule appeared, or a task flow changed. Otherwise don't touch.
 - Before adding a line, check if a line can be removed. Both files must stay scannable in seconds.
 

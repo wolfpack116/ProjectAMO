@@ -17,9 +17,9 @@ const viewports = [
 ]
 
 const routes = [
-  { name: 'main-map', path: '/' },
-  { name: 'monitoring-ops', path: '/monitoring?mode=ops' },
-  { name: 'monitoring-ground', path: '/monitoring?mode=ground' },
+  { name: 'main-map', path: '/', readySelector: '.map-shell' },
+  { name: 'monitoring-ops', path: '/monitoring?mode=ops', readySelector: '.dashboard-root' },
+  { name: 'monitoring-ground', path: '/monitoring?mode=ground', readySelector: '.dashboard-root' },
 ]
 
 // This route-level runner captures stable baseline pages. Interactive states
@@ -35,8 +35,8 @@ try {
   for (const viewport of viewports) {
     for (const route of routes) {
       const page = await browser.newPage({ viewport })
-      await page.goto(`${APP_URL}${route.path}`, { waitUntil: 'domcontentloaded' })
-      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {})
+      await page.goto(`${APP_URL}${route.path}`, { waitUntil: 'domcontentloaded', timeout: 15000 })
+      await page.waitForSelector(route.readySelector, { timeout: 15000 })
 
       const file = new URL(`${route.name}-${viewport.name}-${LABEL}.png`, OUT_DIR)
       await page.screenshot({ path: fileURLToPath(file), fullPage: false })
