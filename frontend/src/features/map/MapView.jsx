@@ -547,6 +547,18 @@ function MapView({
 
     map.addControl(new mapboxgl.NavigationControl(), 'bottom-right')
 
+    let resizeFrame = null
+    const resizeMap = () => {
+      if (resizeFrame) cancelAnimationFrame(resizeFrame)
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = null
+        map.resize()
+      })
+    }
+    const resizeObserver = new ResizeObserver(resizeMap)
+    resizeObserver.observe(mapContainerRef.current)
+    window.addEventListener('resize', resizeMap)
+
     let vfrInteractionsBound = false
 
     // zoom handler lives outside style.load to avoid duplicate registration on style switch
@@ -587,7 +599,13 @@ function MapView({
     })
 
     mapRef.current = map
-    return () => { map.remove(); mapRef.current = null }
+    return () => {
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', resizeMap)
+      if (resizeFrame) cancelAnimationFrame(resizeFrame)
+      map.remove()
+      mapRef.current = null
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

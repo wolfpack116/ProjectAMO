@@ -27,17 +27,17 @@ server {
     try_files $uri @projectamo_data_backend;
   }
 
-  location ~* ^/data/(radar/echo_korea_\d{12}\.png|satellite/sat_korea_\d{12}\.(png|webp)|sigwx_low/(fronts|clouds)_\d{10}\.png)$ {
+  location ~* "^/data/(radar/echo_korea_\d{12}\.png|satellite/sat_korea_\d{12}\.(png|webp)|sigwx_low/(fronts|clouds)_\d{10}\.png)$" {
     alias /opt/projectamo/shared/data/$1;
     add_header Cache-Control "public, max-age=10800, immutable";
   }
 
-  location ~* ^/data/(radar/echo_meta\.json|satellite/sat_meta\.json|sigwx_low/(fronts_meta|clouds_meta)_\d{10}\.json)$ {
+  location ~* "^/data/(radar/echo_meta\.json|satellite/sat_meta\.json|sigwx_low/(fronts_meta|clouds_meta)_\d{10}\.json)$" {
     alias /opt/projectamo/shared/data/$1;
     add_header Cache-Control "no-cache";
   }
 
-  location ~* ^/(data/navdata/|data/.*\.(geojson|topojson)|Symbols/|assets/) {
+  location ~* "^/(data/navdata/|data/.*\.(geojson|topojson)|Symbols/|assets/)" {
     try_files $uri =404;
     add_header Cache-Control "public, max-age=31536000, immutable";
   }

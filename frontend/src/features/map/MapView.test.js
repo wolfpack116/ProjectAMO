@@ -13,3 +13,12 @@ test('hidden Mapbox road color keeps alpha high enough for Standard basemap expr
   assert.ok(match, 'HIDDEN_ROAD_COLOR should be an rgba literal')
   assert.ok(Number(match[1]) >= 0.2, 'Mapbox Standard subtracts 0.2 from road alpha in derived color expressions')
 })
+
+test('MapView observes container size changes and resizes the Mapbox canvas', () => {
+  const source = readFileSync(join(__dirname, 'MapView.jsx'), 'utf8')
+
+  assert.match(source, /new ResizeObserver\(/)
+  assert.match(source, /\.observe\(mapContainerRef\.current\)/)
+  assert.match(source, /map\.resize\(\)/)
+  assert.match(source, /\.disconnect\(\)/)
+})

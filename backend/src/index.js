@@ -20,6 +20,7 @@ import airportInfoProcessor from './processors/airport-info-processor.js'
 
 const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, adsb: false, kim_surface_wind: false, satellite: false, ground_forecast: false, environment: false, airport_info: false };
 const KIM_NWP_CRON_OPTIONS = { timezone: 'Etc/UTC' }
+const AIRPORT_INFO_CRON_OPTIONS = { timezone: 'Asia/Seoul' }
 
 async function runWithLock(type, job) {
   if (locks[type]) {
@@ -45,6 +46,14 @@ function scheduleKimNwpJob(scheduler = cron) {
     config.schedule.kim_surface_wind_interval,
     () => runWithLock("kim_surface_wind", kimSurfaceWindProcessor.process),
     KIM_NWP_CRON_OPTIONS,
+  )
+}
+
+function scheduleAirportInfoJob(scheduler = cron) {
+  return scheduler.schedule(
+    config.schedule.airport_info_interval,
+    () => runWithLock("airport_info", airportInfoProcessor.process),
+    AIRPORT_INFO_CRON_OPTIONS,
   )
 }
 
@@ -90,7 +99,7 @@ async function main() {
   cron.schedule(config.schedule.satellite_interval, () => runWithLock("satellite", satelliteProcessor.process));
   cron.schedule(config.schedule.ground_forecast_interval, () => runWithLock("ground_forecast", groundForecastProcessor.process));
   cron.schedule(config.schedule.environment_interval, () => runWithLock("environment", environmentProcessor.process));
-  cron.schedule(config.schedule.airport_info_interval, () => runWithLock("airport_info", airportInfoProcessor.process));
+  scheduleAirportInfoJob();
 
   // 서버 시작 직후 1회 즉시 수집
   console.log("Running initial data collection...");
@@ -108,5 +117,5 @@ if (process.argv[1] && (__filename === process.argv[1] || __filename.endsWith(pr
   });
 }
 
-export { KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleKimNwpJob }
-export default { KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleKimNwpJob }
+export { AIRPORT_INFO_CRON_OPTIONS, KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleAirportInfoJob, scheduleKimNwpJob }
+export default { AIRPORT_INFO_CRON_OPTIONS, KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleAirportInfoJob, scheduleKimNwpJob }

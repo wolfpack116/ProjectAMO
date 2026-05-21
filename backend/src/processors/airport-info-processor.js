@@ -28,12 +28,25 @@ async function process() {
       try {
         const xml = await apiClient.fetchAirportInfo(icao, base_date, base_time)
         const parsed = airportInfoParser.parse(xml, icao)
-        if (parsed) airports[icao] = parsed
+        if (parsed) {
+          airports[icao] = parsed
+        } else {
+          failed.push(icao)
+        }
       } catch {
         failed.push(icao)
       }
     })
   )
+
+  const previous = store.getCached('airport_info')
+  if (previous?.airports) {
+    for (const icao of failed) {
+      if (!airports[icao] && previous.airports[icao]) {
+        airports[icao] = { ...previous.airports[icao], _stale: true }
+      }
+    }
+  }
 
   const result = {
     fetched_at: new Date().toISOString(),
@@ -42,8 +55,13 @@ async function process() {
     airports,
   }
 
+  const airportCount = Object.keys(airports).length
+  if (airportCount === 0) {
+    return { type: 'airport_info', saved: false, reason: 'empty', airports: 0, failed }
+  }
+
   const saveResult = store.save('airport_info', result)
-  return { type: 'airport_info', saved: saveResult.saved, airports: Object.keys(airports).length, failed }
+  return { type: 'airport_info', saved: saveResult.saved, airports: airportCount, failed }
 }
 
 export { process }
