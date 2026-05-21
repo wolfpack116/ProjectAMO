@@ -11,6 +11,7 @@ import {
   isDarkTheme,
   hasPrecipitationWeather,
   hasHighWindCondition,
+  hasSpecialWeather,
 } from "../utils/helpers";
 import WeatherIcon from "./WeatherIcon";
 import {
@@ -146,11 +147,6 @@ function getVisibilitySegmentExtraClass(density) {
 
 function getSegmentClassName(baseClass, density, extraClasses = "") {
   return `taf-new-seg ${baseClass}${getDensityContainerClass(density)}${extraClasses}`;
-}
-
-function hasSpecialWeather(slot) {
-  const raw = String(slot?.display?.weather || "").toUpperCase();
-  return ["TS", "SN", "FG"].some((token) => raw.includes(token));
 }
 
 function hasAlertWind(slot) {

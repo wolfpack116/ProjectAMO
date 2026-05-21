@@ -41,6 +41,14 @@ export function hasPrecipitationWeather(source) {
   return PRECIPITATION_WEATHER_TOKENS.some((token) => raw.includes(token));
 }
 
+const SPECIAL_WEATHER_TOKENS = ['TS', 'FG', 'SN'];
+
+export function hasSpecialWeather(source) {
+  const raw = String(source?.display?.weather || source || '').toUpperCase();
+  if (!raw || raw === 'NSW') return false;
+  return SPECIAL_WEATHER_TOKENS.some((token) => raw.includes(token));
+}
+
 export function hasHighWindCondition(wind, speedThreshold = 25, gustThreshold = 35) {
   if (!wind || wind.calm) return false;
   const speed = Number.isFinite(wind.speed) ? wind.speed : null;

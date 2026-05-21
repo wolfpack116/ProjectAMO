@@ -19,6 +19,8 @@ export default function MetarTab({ metar, amosData, icao, airportMeta }) {
     crosswindArrow,
     weatherKorean,
     weatherVisual,
+    precipitationWeather,
+    specialWeather,
     obsTime,
     visValue,
     ceilValue,
@@ -120,7 +122,13 @@ export default function MetarTab({ metar, amosData, icao, airportMeta }) {
         </div>
 
         {/* 현재날씨 */}
-        <div className="ap-mv2-card">
+        <div
+          className={[
+            'ap-mv2-card',
+            precipitationWeather ? 'ap-mv2-card--precip-weather' : '',
+            specialWeather ? 'ap-mv2-card--special-weather' : '',
+          ].filter(Boolean).join(' ')}
+        >
           <div className="ap-mv2-card-body">
             <div className="ap-mv2-card-content">
               <div className="ap-mv2-card-label">현재 날씨</div>

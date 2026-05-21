@@ -56,7 +56,7 @@ Keep write-heavy work sequential. Tasks 1-4 touch related frontend weather displ
 - Modify: `frontend/src/shared/weather/helpers.js`
 - Create: `frontend/src/shared/weather/helpers.test.js`
 
-- [ ] **Step 1: Add failing helper tests**
+- [x] **Step 1: Add failing helper tests**
 
 Create `frontend/src/shared/weather/helpers.test.js`:
 
@@ -96,7 +96,7 @@ describe('shared weather condition helpers', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests and confirm failure**
+- [x] **Step 2: Run tests and confirm failure**
 
 Run:
 
@@ -106,7 +106,7 @@ node --test frontend/src/shared/weather/helpers.test.js
 
 Expected: fails because `hasSpecialWeather` is not exported.
 
-- [ ] **Step 3: Add shared helper**
+- [x] **Step 3: Add shared helper**
 
 In `frontend/src/shared/weather/helpers.js`, add this near `hasPrecipitationWeather`:
 
@@ -120,7 +120,7 @@ export function hasSpecialWeather(source) {
 }
 ```
 
-- [ ] **Step 4: Verify shared helper tests pass**
+- [x] **Step 4: Verify shared helper tests pass**
 
 Run:
 
@@ -140,7 +140,7 @@ Expected: all tests pass.
 - Modify: `frontend/src/features/monitoring/legacy/components/TafTimeline.jsx`
 - Create: `frontend/src/features/monitoring/legacy/utils/helpers.test.js`
 
-- [ ] **Step 1: Add failing legacy helper alignment tests**
+- [x] **Step 1: Add failing legacy helper alignment tests**
 
 Create `frontend/src/features/monitoring/legacy/utils/helpers.test.js`:
 
@@ -176,7 +176,7 @@ describe('monitoring legacy weather helper compatibility', () => {
 })
 ```
 
-- [ ] **Step 2: Run tests and confirm failure**
+- [x] **Step 2: Run tests and confirm failure**
 
 Run:
 
@@ -186,7 +186,7 @@ node --test frontend/src/features/monitoring/legacy/utils/helpers.test.js
 
 Expected: fails because legacy helpers do not export `hasSpecialWeather`.
 
-- [ ] **Step 3: Delegate legacy condition helpers to shared helpers**
+- [x] **Step 3: Delegate legacy condition helpers to shared helpers**
 
 At the top of `frontend/src/features/monitoring/legacy/utils/helpers.js`, add:
 
@@ -214,7 +214,7 @@ export function hasHighWindCondition(wind, speedThreshold = 25, gustThreshold = 
 }
 ```
 
-- [ ] **Step 4: Remove component-local special-weather functions**
+- [x] **Step 4: Remove component-local special-weather functions**
 
 In `frontend/src/features/monitoring/legacy/components/MetarCard.jsx`, add `hasSpecialWeather` to the existing helpers import and remove the local function:
 
@@ -264,7 +264,7 @@ function hasSpecialWeather(slot) {
 }
 ```
 
-- [ ] **Step 5: Verify monitoring helper compatibility**
+- [x] **Step 5: Verify monitoring helper compatibility**
 
 Run:
 
@@ -284,7 +284,7 @@ Expected: all tests pass.
 - Modify: `frontend/src/features/airport-panel/lib/tafViewModel.js`
 - Create: `frontend/src/features/airport-panel/lib/tafViewModel.test.js`
 
-- [ ] **Step 1: Add failing METAR view-model tests**
+- [x] **Step 1: Add failing METAR view-model tests**
 
 Create `frontend/src/features/airport-panel/lib/metarViewModel.test.js`:
 
@@ -344,7 +344,7 @@ describe('airport METAR view model weather highlighting', () => {
 })
 ```
 
-- [ ] **Step 2: Add failing TAF view-model tests**
+- [x] **Step 2: Add failing TAF view-model tests**
 
 Create `frontend/src/features/airport-panel/lib/tafViewModel.test.js`:
 
@@ -398,7 +398,7 @@ describe('airport TAF view model weather highlighting', () => {
 })
 ```
 
-- [ ] **Step 3: Run tests and confirm failure**
+- [x] **Step 3: Run tests and confirm failure**
 
 Run:
 
@@ -408,7 +408,7 @@ node --test frontend/src/features/airport-panel/lib/metarViewModel.test.js front
 
 Expected: fails because `precipitationWeather`, `specialWeather`, `hasPrecipitation`, and `isSpecialWeather` are missing.
 
-- [ ] **Step 4: Add METAR flags**
+- [x] **Step 4: Add METAR flags**
 
 In `frontend/src/features/airport-panel/lib/metarViewModel.js`, extend the helpers import:
 
@@ -432,7 +432,7 @@ Return those fields:
     specialWeather,
 ```
 
-- [ ] **Step 5: Add TAF flags**
+- [x] **Step 5: Add TAF flags**
 
 In `frontend/src/features/airport-panel/lib/tafViewModel.js`, extend the helpers import:
 
@@ -449,7 +449,7 @@ In the `tafSlotView()` return object, add:
     isSpecialWeather: hasSpecialWeather(slot),
 ```
 
-- [ ] **Step 6: Verify Airport view-model tests**
+- [x] **Step 6: Verify Airport view-model tests**
 
 Run:
 
@@ -468,7 +468,7 @@ Expected: all tests pass.
 - Modify: `frontend/src/features/airport-panel/tabs/TafTab.jsx`
 - Modify: `frontend/src/features/airport-panel/AirportPanel.css`
 
-- [ ] **Step 1: Add weather state class helpers in `TafTab.jsx`**
+- [x] **Step 1: Add weather state class helpers in `TafTab.jsx`**
 
 Near `TAF_VIEWS`, add:
 
@@ -482,7 +482,7 @@ function tafWeatherClass(item, baseClass, { includeSpecial = true } = {}) {
 }
 ```
 
-- [ ] **Step 2: Apply TAF weather classes in all three TAF views**
+- [x] **Step 2: Apply TAF weather classes in all three TAF views**
 
 In the timeline weather segment, change the segment `className` to use the helper only for the weather row:
 
@@ -533,7 +533,7 @@ In the grid weather area:
 </div>
 ```
 
-- [ ] **Step 3: Apply METAR current-weather classes**
+- [x] **Step 3: Apply METAR current-weather classes**
 
 In `frontend/src/features/airport-panel/tabs/MetarTab.jsx`, destructure the two new model flags:
 
@@ -554,7 +554,7 @@ Change the current weather card class:
 >
 ```
 
-- [ ] **Step 4: Tune Airport-only CSS**
+- [x] **Step 4: Tune Airport-only CSS**
 
 In `frontend/src/features/airport-panel/AirportPanel.css`, adjust the Airport TAF section:
 
@@ -646,7 +646,7 @@ In `frontend/src/features/airport-panel/AirportPanel.css`, adjust the Airport TA
 }
 ```
 
-- [ ] **Step 5: Run focused tests and build**
+- [x] **Step 5: Run focused tests and build**
 
 Run:
 
@@ -664,7 +664,7 @@ Expected: tests pass and build succeeds.
 **Files:**
 - No source changes expected.
 
-- [ ] **Step 1: Start or reuse local dev server**
+- [x] **Step 1: Start or reuse local dev server**
 
 Run only if no dev server is already responding:
 
@@ -674,7 +674,7 @@ npm.cmd run dev
 
 Expected: Vite serves `http://localhost:5173/`.
 
-- [ ] **Step 2: Verify Airport panel TAF states**
+- [x] **Step 2: Verify Airport panel TAF states**
 
 In the browser:
 
@@ -691,7 +691,7 @@ Expected:
 - Weather cells with precipitation use blue background.
 - Weather cells with TS/FG/SN use red dashed outline.
 
-- [ ] **Step 3: Verify METAR current-weather card**
+- [x] **Step 3: Verify METAR current-weather card**
 
 Open an airport whose METAR currently has `RA`, `TS`, `FG`, or `SN` if local data provides one.
 
@@ -701,7 +701,7 @@ Expected:
 - Current weather card uses red dashed outline for TS/FG/SN.
 - Mist/BR does not get the red dashed special-weather outline.
 
-- [ ] **Step 4: Verify `/monitoring` did not visually regress**
+- [x] **Step 4: Verify `/monitoring` did not visually regress**
 
 Open:
 
@@ -715,7 +715,7 @@ Expected:
 - Current weather title image behavior still works.
 - TAF view switcher still works.
 
-- [ ] **Step 5: Final verification command**
+- [x] **Step 5: Final verification command**
 
 Run all frontend tests:
 
@@ -734,7 +734,7 @@ Expected: all tests pass and build succeeds.
 - Modify: `docs/superpowers/status/airport-weather-display-unification.status.md`
 - Possibly modify: `Architecture.md`
 
-- [ ] **Step 1: Update status resume point**
+- [x] **Step 1: Update status resume point**
 
 Update `docs/superpowers/status/airport-weather-display-unification.status.md` with:
 
@@ -754,7 +754,7 @@ Plan: docs/superpowers/plans/2026-05-21-airport-weather-display-unification.md
 - Browser checked Airport TAF timeline/table/grid and /monitoring TAF/METAR
 ```
 
-- [ ] **Step 2: Check Architecture.md**
+- [x] **Step 2: Check Architecture.md**
 
 Open `Architecture.md` and decide whether the new helper/test files require File Roles updates.
 
@@ -763,7 +763,7 @@ Expected:
 - If only tests were added and existing file roles remain accurate, leave `Architecture.md` unchanged.
 - If shared helper responsibility meaningfully changes, add a short File Role update for `frontend/src/shared/weather/helpers.js` and any new non-obvious test files.
 
-- [ ] **Step 3: Final git status check**
+- [x] **Step 3: Final git status check**
 
 Run:
 

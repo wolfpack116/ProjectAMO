@@ -349,6 +349,15 @@
   background: rgba(254, 242, 242, 0.8);
 }
 
+.ap-mv2-card--precip-weather {
+  background: rgba(186, 230, 253, 0.72);
+}
+
+.ap-mv2-card--special-weather {
+  outline: 2px dashed #dc2626;
+  outline-offset: -2px;
+}
+
 .ap-mv2-card-body {
   display: flex;
   align-items: center;
@@ -517,12 +526,12 @@
 .ap-taf-header {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-bottom: 10px;
+  gap: 4px;
+  margin-bottom: 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid #e2e8f0;
   color: #94a3b8;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .ap-taf-period {
@@ -790,9 +799,9 @@
   background: #fff;
   color: #475569;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 5px 8px;
+  padding: 6px 10px;
 }
 
 .ap-taf-switch-btn.is-active {
@@ -820,13 +829,13 @@
   grid-template-columns: repeat(var(--taf-hour-count), minmax(18px, 1fr));
   color: #64748b;
   font-family: 'Consolas', 'Menlo', monospace;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .ap-taf-line-label {
   align-self: center;
   color: #475569;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   text-align: right;
 }
@@ -846,13 +855,14 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  min-height: 34px;
+  min-height: 36px;
   border-right: 1px solid rgba(15, 23, 42, 0.08);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   overflow: hidden;
-  padding: 0 4px;
+  padding: 0 5px;
   text-align: center;
+  line-height: 1.15;
 }
 
 .ap-taf-seg:last-child {
@@ -860,8 +870,8 @@
 }
 
 .ap-taf-mini-icon {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   flex: 0 0 auto;
 }
 
@@ -871,16 +881,22 @@
   flex: 0 0 auto;
 }
 
+.ap-taf-table-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
 .ap-taf-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 11px;
+  min-width: 540px;
+  font-size: 12px;
 }
 
 .ap-taf-table th,
 .ap-taf-table td {
   border-bottom: 1px solid #e2e8f0;
-  padding: 7px 5px;
+  padding: 8px 6px;
   text-align: left;
   vertical-align: middle;
 }
@@ -894,6 +910,21 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  border-radius: 8px;
+  padding: 5px 8px;
+}
+
+.ap-taf-weather-cell--precip,
+.ap-taf-card-weather--precip,
+.ap-taf-seg--precip {
+  background: rgba(186, 230, 253, 0.72) !important;
+  color: #0c4a6e !important;
+}
+
+.ap-taf-weather-cell--special,
+.ap-taf-card-weather--special {
+  outline: 2px dashed #dc2626;
+  outline-offset: -2px;
 }
 
 .is-alert {
@@ -910,7 +941,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 7px;
   background: #fff;
-  padding: 9px;
+  padding: 10px;
 }
 
 .ap-taf-card-head,
@@ -924,7 +955,7 @@
 .ap-taf-card-head {
   color: #64748b;
   font-family: 'Consolas', 'Menlo', monospace;
-  font-size: 11px;
+  font-size: 12px;
   margin-bottom: 8px;
 }
 
@@ -932,9 +963,11 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 34px;
+  min-height: 40px;
+  padding: 6px 8px;
+  border-radius: 8px;
   color: #0f172a;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -946,7 +979,7 @@
 .ap-taf-card-row {
   border-top: 1px solid #f1f5f9;
   color: #64748b;
-  font-size: 11px;
+  font-size: 12px;
   padding-top: 6px;
   margin-top: 6px;
 }
@@ -1516,12 +1549,12 @@
   }
 
   .ap-taf-table {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .ap-taf-table th,
   .ap-taf-table td {
-    padding: 7px 3px;
+    padding: 8px 6px;
   }
 
   .ap-taf-weather-cell {
@@ -1529,8 +1562,8 @@
   }
 
   .ap-taf-mini-icon {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
   }
 }
 

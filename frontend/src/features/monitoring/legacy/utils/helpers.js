@@ -1,3 +1,9 @@
+import {
+  hasHighWindCondition as sharedHasHighWindCondition,
+  hasPrecipitationWeather as sharedHasPrecipitationWeather,
+  hasSpecialWeather as sharedHasSpecialWeather,
+} from "../../../../shared/weather/helpers.js";
+
 export function safe(value, fallback = "-") {
   return value == null || value === "" ? fallback : value;
 }
@@ -61,19 +67,16 @@ export function getSeverityLevel({ visibility, wind, gust }) {
   return "ok";
 }
 
-const PRECIPITATION_WEATHER_TOKENS = ["RA", "SN", "DZ", "SG", "PL", "GR", "GS", "UP", "SH", "IC"];
-
 export function hasPrecipitationWeather(source) {
-  const raw = String(source?.display?.weather || source || "").toUpperCase();
-  if (!raw || raw === "NSW") return false;
-  return PRECIPITATION_WEATHER_TOKENS.some((token) => raw.includes(token));
+  return sharedHasPrecipitationWeather(source);
+}
+
+export function hasSpecialWeather(source) {
+  return sharedHasSpecialWeather(source);
 }
 
 export function hasHighWindCondition(wind, speedThreshold = 25, gustThreshold = 35) {
-  if (!wind || wind.calm) return false;
-  const speed = Number.isFinite(wind.speed) ? wind.speed : null;
-  const gust = Number.isFinite(wind.gust) ? wind.gust : null;
-  return (speed != null && speed >= speedThreshold) || (gust != null && gust >= gustThreshold);
+  return sharedHasHighWindCondition(wind, speedThreshold, gustThreshold);
 }
 
 export function pickRunwayDirection(runwayHdg, windDir) {

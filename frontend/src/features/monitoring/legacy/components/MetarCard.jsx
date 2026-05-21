@@ -13,6 +13,7 @@ import {
   isDarkTheme,
   hasPrecipitationWeather,
   hasHighWindCondition,
+  hasSpecialWeather,
   pickRunwayDirection,
   getCrosswindComponentKt,
 } from "../utils/helpers";
@@ -268,11 +269,6 @@ function formatVisibilityValue(value, rawText) {
   }
   if (Number.isFinite(value)) return `${value} m`;
   return "-";
-}
-
-function hasSpecialWeather(observation) {
-  const raw = String(observation?.display?.weather || "").toUpperCase();
-  return ["TS", "FG", "SN"].some((token) => raw.includes(token));
 }
 
 function getMetarBadgeText(header, fallbackType) {

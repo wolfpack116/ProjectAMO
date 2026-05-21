@@ -5,6 +5,8 @@ import {
   computeRelativeHumidity,
   computeFeelsLikeC,
   hasHighWindCondition,
+  hasPrecipitationWeather,
+  hasSpecialWeather,
   getCrosswindComponentKt,
   getCrosswindSide,
   pickCrosswindArrow,
@@ -46,6 +48,8 @@ export function buildMetarViewModel({ metar, amosData, icao, airportMeta }) {
 
   const weatherKorean = convertWeatherToKorean(disp?.weather, obs?.cavok, clouds)
   const weatherVisual = resolveWeatherVisual(obs, hdr?.observation_time)
+  const precipitationWeather = hasPrecipitationWeather(obs)
+  const specialWeather = hasSpecialWeather(obs)
 
   const obsTime = hdr?.observation_time || hdr?.issue_time
   const visValue = disp?.visibility != null ? `${disp.visibility} m` : '??'
@@ -77,6 +81,8 @@ export function buildMetarViewModel({ metar, amosData, icao, airportMeta }) {
     crosswindArrow,
     weatherKorean,
     weatherVisual,
+    precipitationWeather,
+    specialWeather,
     obsTime,
     visValue,
     ceilValue,

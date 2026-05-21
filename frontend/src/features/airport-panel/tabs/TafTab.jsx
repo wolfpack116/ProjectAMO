@@ -10,6 +10,14 @@ const TAF_VIEWS = [
   { id: 'grid', label: '그리드' },
 ]
 
+function tafWeatherClass(item, baseClass, { includeSpecial = true } = {}) {
+  return [
+    baseClass,
+    item?.hasPrecipitation ? `${baseClass}--precip` : '',
+    includeSpecial && item?.isSpecialWeather ? `${baseClass}--special` : '',
+  ].filter(Boolean).join(' ')
+}
+
 export default function EnhancedTafTab({ taf, icao }) {
   const [view, setView] = useState('timeline')
   if (!taf) return <div className="ap-empty">TAF 데이터 없음</div>
@@ -42,16 +50,16 @@ export default function EnhancedTafTab({ taf, icao }) {
           </div>
           {[
             ['비행조건', groupTafSlots(slots, (item) => item.flight.category), (item) => item.flight.category, (item) => ({ background: TAF_CATEGORY_COLOR[item.flight.category] || '#15803d', color: '#fff' })],
-            ['날씨', groupTafSlots(slots, (item) => item.weatherLabel), (item) => item.weatherLabel, () => ({ background: '#f8fafc', color: '#0f172a' })],
+            ['날씨', groupTafSlots(slots, (item) => item.weatherLabel), (item) => item.weatherLabel, (item) => ({ background: item.hasPrecipitation ? '#bae6fd' : '#f8fafc', color: item.hasPrecipitation ? '#0c4a6e' : '#0f172a' })],
             ['바람', groupTafSlots(slots, (item) => item.windText), (item) => item.windText, (item) => ({ background: item.highWind ? '#fff1f2' : '#f8fafc', color: item.highWind ? '#be123c' : '#0f172a' })],
             ['시정', groupTafSlots(slots, (item) => item.visibilityText), (item) => item.visibilityText, (item) => ({ background: item.visibilityCategory.bg, color: item.visibilityCategory.valueColor })],
             ['운고', groupTafSlots(slots, (item) => item.ceilingText), (item) => item.ceilingText, (item) => ({ background: item.ceilingCategory.bg, color: item.ceilingCategory.valueColor })],
-          ].map(([label, groups, textFn, styleFn]) => (
+          ].map(([label, groups, textFn, styleFn], rowIndex) => (
             <div className="ap-taf-line" key={label}>
               <div className="ap-taf-line-label">{label}</div>
               <div className="ap-taf-line-track">
                 {groups.map((group, index) => (
-                  <div key={index} className="ap-taf-seg" style={{ width: group.width, ...styleFn(group.first) }} title={textFn(group.first)}>
+                  <div key={index} className={rowIndex === 1 ? tafWeatherClass(group.first, 'ap-taf-seg', { includeSpecial: false }) : 'ap-taf-seg'} style={{ width: group.width, ...styleFn(group.first) }} title={textFn(group.first)}>
                     {label === '날씨' && <WeatherIcon visual={group.first.visual} className="ap-taf-mini-icon" />}
                     {label === '바람' && <MoveUp className="ap-taf-mini-arrow" style={{ transform: `rotate(${group.first.windRotation}deg)` }} />}
                     <span>{textFn(group.first)}</span>
@@ -64,21 +72,23 @@ export default function EnhancedTafTab({ taf, icao }) {
       )}
 
       {slots.length > 0 && view === 'table' && (
-        <table className="ap-taf-table">
+        <div className="ap-taf-table-wrap">
+          <table className="ap-taf-table">
           <thead><tr><th>시간</th><th>비행조건</th><th>날씨</th><th>바람</th><th>시정</th><th>운고</th></tr></thead>
           <tbody>
             {slots.map((item, index) => (
               <tr key={index}>
                 <td>{formatTafHour(item.time)}</td>
                 <td><span className="ap-taf-cat" style={{ background: TAF_CATEGORY_COLOR[item.flight.category] }}>{item.flight.category}</span></td>
-                <td className="ap-taf-weather-cell"><WeatherIcon visual={item.visual} className="ap-taf-mini-icon" />{item.weatherLabel}</td>
+                <td className={tafWeatherClass(item, 'ap-taf-weather-cell')}><WeatherIcon visual={item.visual} className="ap-taf-mini-icon" />{item.weatherLabel}</td>
                 <td className={item.highWind ? 'is-alert' : ''}>{item.windText}</td>
                 <td style={{ color: item.visibilityCategory.valueColor }}>{item.visibilityText}</td>
                 <td style={{ color: item.ceilingCategory.valueColor }}>{item.ceilingText}</td>
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
 
       {slots.length > 0 && view === 'grid' && (
@@ -86,7 +96,7 @@ export default function EnhancedTafTab({ taf, icao }) {
           {slots.map((item, index) => (
             <article key={index} className="ap-taf-card">
               <div className="ap-taf-card-head"><span>{formatTafHour(item.time)}</span><span className="ap-taf-cat" style={{ background: TAF_CATEGORY_COLOR[item.flight.category] }}>{item.flight.category}</span></div>
-              <div className="ap-taf-card-weather"><WeatherIcon visual={item.visual} className="ap-taf-card-icon" />{item.weatherLabel}</div>
+              <div className={tafWeatherClass(item, 'ap-taf-card-weather')}><WeatherIcon visual={item.visual} className="ap-taf-card-icon" />{item.weatherLabel}</div>
               <div className="ap-taf-card-row"><span>바람</span><strong className={item.highWind ? 'is-alert' : ''}>{item.windText}</strong></div>
               <div className="ap-taf-card-row"><span>시정</span><strong>{item.visibilityText}</strong></div>
               <div className="ap-taf-card-row"><span>운고</span><strong>{item.ceilingText}</strong></div>
@@ -97,5 +107,3 @@ export default function EnhancedTafTab({ taf, icao }) {
     </div>
   )
 }
-
-

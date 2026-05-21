@@ -3,6 +3,8 @@ import {
   classifyVisibilityCategory,
   classifyCeilingCategory,
   hasHighWindCondition,
+  hasPrecipitationWeather,
+  hasSpecialWeather,
 } from '../../../shared/weather/helpers.js'
 import { convertWeatherToKorean } from '../../../shared/weather/visual-mapper.js'
 import { resolveWeatherVisual } from '../../../shared/weather/weather-visual-resolver.js'
@@ -56,6 +58,8 @@ function tafSlotView(slot, icao) {
     windText: formatTafWind(slot),
     windRotation,
     highWind: hasHighWindCondition(wind),
+    hasPrecipitation: hasPrecipitationWeather(slot),
+    isSpecialWeather: hasSpecialWeather(slot),
     visibilityText: formatTafVisibility(slot),
     ceilingText: formatTafCeiling(ceiling),
   }
