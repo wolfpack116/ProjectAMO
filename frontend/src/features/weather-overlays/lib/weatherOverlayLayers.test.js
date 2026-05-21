@@ -95,7 +95,7 @@ test('syncRasterAndSigwxLayers installs raster overlays and visibility from the 
 test('syncRasterAndSigwxLayers does not load SIGWX icons when the SIGWX layer is hidden', () => {
   const map = createMockMap()
   const loadedUrls = []
-  map.hasImage = (id) => String(id).startsWith('sigwx-chip-')
+  map.hasImage = (id) => String(id).startsWith('sigwx-chip-') || String(id).startsWith('lightning-')
   map.loadImage = (url, callback) => {
     loadedUrls.push(url)
     callback(null, { url })
@@ -126,7 +126,7 @@ test('syncRasterAndSigwxLayers does not load SIGWX icons when the SIGWX layer is
 test('syncRasterAndSigwxLayers loads SIGWX icons when the SIGWX layer is visible', () => {
   const map = createMockMap()
   const loadedUrls = []
-  map.hasImage = (id) => String(id).startsWith('sigwx-chip-')
+  map.hasImage = (id) => String(id).startsWith('sigwx-chip-') || String(id).startsWith('lightning-')
   map.loadImage = (url, callback) => {
     loadedUrls.push(url)
     callback(null, { url })
@@ -152,6 +152,47 @@ test('syncRasterAndSigwxLayers loads SIGWX icons when the SIGWX layer is visible
   })
 
   assert.deepEqual(loadedUrls, ['/Symbols/Reference%20Symbols/icon_sigwx/test-visible-mist.png'])
+})
+
+test('styleimagemissing loads a registered SIGWX icon on demand', () => {
+  const map = createMockMap()
+  const handlers = []
+  const loadedUrls = []
+  const url = '/Symbols/Reference%20Symbols/icon_sigwx/test-missing-mist.png'
+
+  map.hasImage = (id) => String(id).startsWith('sigwx-chip-') || String(id).startsWith('lightning-')
+  map.on = (event, handler) => {
+    if (event === 'styleimagemissing') handlers.push(handler)
+  }
+  map.loadImage = (imageUrl, callback) => {
+    loadedUrls.push(imageUrl)
+    callback(null, { url: imageUrl })
+  }
+
+  installWeatherOverlayLayers(map)
+  syncRasterAndSigwxLayers(map, {
+    satelliteFrame: null,
+    radarFrame: null,
+    selectedSigwxFrontMeta: null,
+    selectedSigwxCloudMeta: null,
+    sigwxLowMapData: {
+      polygons: { type: 'FeatureCollection', features: [] },
+      lines: { type: 'FeatureCollection', features: [] },
+      labels: { type: 'FeatureCollection', features: [] },
+      icons: { type: 'FeatureCollection', features: [] },
+      arrowLabels: { type: 'FeatureCollection', features: [] },
+      textChips: { type: 'FeatureCollection', features: [] },
+      iconImages: [{ id: 'sigwx-test-missing-mist.png', url }],
+    },
+    visibility: { satellite: false, radar: false, sigwx: false },
+    showVisibleSigwxFrontOverlay: false,
+    showVisibleSigwxCloudOverlay: false,
+  })
+
+  handlers[0]?.({ id: 'sigwx-test-missing-mist.png' })
+
+  assert.equal(handlers.length, 1)
+  assert.deepEqual(loadedUrls, [url])
 })
 
 test('syncAdvisoryLayers and syncLightningLayers update installed sources and visibility', () => {

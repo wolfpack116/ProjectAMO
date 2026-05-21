@@ -1,6 +1,9 @@
 export async function fetchAdsbData() {
   try {
     const response = await fetch('/api/adsb');
+    if (response.status === 503) {
+      return null;
+    }
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }

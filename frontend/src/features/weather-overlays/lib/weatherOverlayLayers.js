@@ -123,6 +123,25 @@ const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] }
 const pendingMapImages = new WeakMap()
 const addedMapImages = new WeakMap()
 const loadedMapImages = new Map()
+const sigwxIconUrlsById = new Map()
+const styleImageMissingBoundMaps = new WeakSet()
+
+function registerSigwxIconImages(images = []) {
+  images.forEach(({ id, url }) => {
+    if (id && url) sigwxIconUrlsById.set(id, url)
+  })
+}
+
+export function bindSigwxStyleImageMissing(map) {
+  if (!map?.on || styleImageMissingBoundMaps.has(map)) return
+  styleImageMissingBoundMaps.add(map)
+  map.on('styleimagemissing', (event) => {
+    const id = event?.id
+    const url = sigwxIconUrlsById.get(id)
+    if (!url) return
+    ensureMapImage(map, { id, url })
+  })
+}
 
 export function ensureMapImage(map, { id, url }) {
   if (!id || !url || map.hasImage(id)) return
@@ -230,6 +249,8 @@ export function buildSigwxDashArrayExpression() {
 }
 
 export function addOrUpdateSigwxLowLayers(map, data, { loadIcons = true } = {}) {
+  bindSigwxStyleImageMissing(map)
+  registerSigwxIconImages(data?.iconImages)
   ensureSigwxChipImages(map)
   addOrUpdateGeoJsonSource(map, SIGWX_POLYGON_SOURCE, data?.polygons || EMPTY_GEOJSON)
   addOrUpdateGeoJsonSource(map, SIGWX_LINE_SOURCE, data?.lines || EMPTY_GEOJSON)
