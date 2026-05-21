@@ -110,7 +110,7 @@ function WeatherLegends({
       )}
       {icingLegendVisible && (
         <div className="temperature-legend" aria-label="Icing potential legend">
-          <div className="temperature-legend-title">Icing Potential (K-FIP-inspired)</div>
+          <div className="temperature-legend-title">Icing Potential</div>
           <div className="temperature-legend-scale">
             {icingLegendEntries.map((entry) => (
               <div key={entry.label} className="temperature-legend-row">

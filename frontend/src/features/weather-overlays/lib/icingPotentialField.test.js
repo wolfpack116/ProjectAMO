@@ -28,7 +28,7 @@ test('decodes icing score and grade sentinel values', () => {
 })
 
 test('icing color ramp uses WAFS-like potential labels and transparent none', () => {
-  assert.equal(ICING_FIELD_LABEL, 'Icing Potential (K-FIP-inspired)')
+  assert.equal(ICING_FIELD_LABEL, 'Icing Potential')
   assert.deepEqual(ICING_COLOR_RAMP.map((entry) => entry.label), ['None', 'Trace potential', 'Moderate potential', 'Severe potential'])
   assert.equal(pickIcingColor(0).alpha, 0)
   assert.equal(pickIcingColor(1).alpha, 1)

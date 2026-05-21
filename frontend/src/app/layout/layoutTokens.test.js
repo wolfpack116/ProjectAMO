@@ -74,6 +74,7 @@ test('app shell and sidebar consume shared layout tokens', () => {
 test('map overlay panels use responsive panel tokens', () => {
   assert.match(mapCss, /width:\s*var\(--panel-overlay-sm\)/)
   assert.match(mapCss, /width:\s*min\(196px,\s*var\(--panel-overlay-sm\)\)/)
+  assert.match(mapCss, /\.basemap-switcher/)
   assert.doesNotMatch(mapCss, /\.map-view-wrapper \.layer-drawer\s*\{[^}]*width:\s*286px/s)
   assert.doesNotMatch(mapCss, /\.dev-layer-panel\s*\{[^}]*width:\s*160px/s)
   assert.doesNotMatch(mapCss, /\.sigwx-legend-modal\s*\{[^}]*width:\s*280px/s)
@@ -82,7 +83,6 @@ test('map overlay panels use responsive panel tokens', () => {
 test('route briefing panel uses responsive medium panel token', () => {
   assert.match(routeCss, /width:\s*var\(--panel-overlay-md\)/)
   assert.match(routeCss, /\.vertical-profile-window/)
-  assert.match(routeCss, /\.basemap-switcher/)
   assert.doesNotMatch(routeCss, /\.route-check-panel\s*\{[^}]*width:\s*376px/s)
 })
 

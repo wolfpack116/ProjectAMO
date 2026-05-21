@@ -1,4 +1,4 @@
-export const ICING_FIELD_LABEL = 'Icing Potential (K-FIP-inspired)'
+export const ICING_FIELD_LABEL = 'Icing Potential'
 
 export const ICING_COLOR_RAMP = [
   { grade: 0, label: 'None', color: 'rgba(0, 0, 0, 0)', alpha: 0 },

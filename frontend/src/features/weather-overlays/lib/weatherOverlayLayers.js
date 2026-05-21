@@ -112,7 +112,7 @@ export const MET_LAYERS = [
   { id: 'wind', label: 'Wind', color: '#22c55e' },
   { id: 'temp', label: 'Temp', color: '#ef4444' },
   { id: 'cloud', label: 'Moisture', color: 'rgba(49, 124, 62, 0.7)' },
-  { id: 'icing', label: 'Icing Potential (K-FIP-inspired)', color: 'rgba(220, 75, 116, 0.74)' },
+  { id: 'icing', label: 'Icing Potential', color: 'rgba(220, 75, 116, 0.74)' },
   { id: 'sigmet', label: 'SIGMET', color: ADVISORY_LAYER_DEFS.sigmet.color },
   { id: 'airmet', label: 'AIRMET', color: ADVISORY_LAYER_DEFS.airmet.color },
   { id: 'sigwx', label: 'SIGWX', color: '#a78bfa' },

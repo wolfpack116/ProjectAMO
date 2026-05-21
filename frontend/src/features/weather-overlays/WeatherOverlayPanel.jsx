@@ -31,7 +31,7 @@ function WeatherOverlayPanel({
     wind: 'Wind',
     temp: 'Temp',
     cloud: 'Moisture',
-    icing: 'Icing Potential (K-FIP-inspired)',
+    icing: 'Icing Potential',
     sigmet: 'SIGMET',
     airmet: 'AIRMET',
     sigwx: 'SIGWX',
