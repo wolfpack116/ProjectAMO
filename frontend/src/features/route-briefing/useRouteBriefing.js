@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { fetchVerticalProfile } from '../../api/briefingApi.js'
+import { fetchVerticalProfile, fetchCrossSection } from '../../api/briefingApi.js'
 import { getProcedures, KNOWN_AIRPORTS } from './lib/procedureData.js'
 import { buildBriefingRoute, buildVfrRoute, canBuildBriefingRoutePath, loadIapData, loadNavpoints, loadRouteDirectionMetadata } from './lib/routePlanner.js'
 import { relabeledWaypoints } from './lib/routePreview.js'
@@ -34,6 +34,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
   const [routeLoading, setRouteLoading] = useState(false)
   const [cruiseAltitudeFt, setCruiseAltitudeFt] = useState(DEFAULT_CRUISE_ALTITUDE_FT)
   const [verticalProfile, setVerticalProfile] = useState(null)
+  const [crossSection, setCrossSection] = useState(null)
   const [verticalProfileLoading, setVerticalProfileLoading] = useState(false)
   const [verticalProfileError, setVerticalProfileError] = useState(null)
   const [verticalProfileStale, setVerticalProfileStale] = useState(false)
@@ -88,6 +89,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     setRouteError(null)
     setRouteLoading(false)
     setVerticalProfile(null)
+    setCrossSection(null)
     setVerticalProfileError(null)
     setVerticalProfileStale(false)
     setVerticalProfileWindowOpen(false)
@@ -483,6 +485,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     setRouteLoading(true)
     setRouteError(null)
     setVerticalProfile(null)
+    setCrossSection(null)
     setVerticalProfileError(null)
     setVerticalProfileStale(false)
     setVerticalProfileWindowOpen(false)
@@ -562,17 +565,21 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     setVerticalProfileLoading(true)
     setVerticalProfileError(null)
     try {
-      const profile = await fetchVerticalProfile(buildVerticalProfileRequest({
-        routeGeometry,
-        routeResult,
-        selectedSid,
-        selectedStar,
-        selectedIap,
-        vfrWaypoints,
-        plannedCruiseAltitudeFt,
-      }))
+      const [profile, cs] = await Promise.all([
+        fetchVerticalProfile(buildVerticalProfileRequest({
+          routeGeometry,
+          routeResult,
+          selectedSid,
+          selectedStar,
+          selectedIap,
+          vfrWaypoints,
+          plannedCruiseAltitudeFt,
+        })),
+        fetchCrossSection({ routeGeometry }).catch(() => null),
+      ])
       if (requestId !== verticalProfileRequestRef.current) return
       setVerticalProfile(profile)
+      setCrossSection(cs)
       setVerticalProfileStale(false)
       setVerticalProfileWindowOpen(true)
     } catch (err) {
@@ -590,6 +597,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       routeLoading,
       cruiseAltitudeFt,
       verticalProfile,
+      crossSection,
       verticalProfileLoading,
       verticalProfileError,
       verticalProfileStale,

@@ -17,3 +17,7 @@ export function fetchVerticalProfile(payload) {
   return postJson('/api/vertical-profile', payload)
 }
 
+export function fetchCrossSection(payload) {
+  return postJson('/api/briefing/cross-section', payload)
+}
+
