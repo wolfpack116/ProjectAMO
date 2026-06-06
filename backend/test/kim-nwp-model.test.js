@@ -34,20 +34,35 @@ function tempComponent(values, unit = 'K') {
 }
 
 test('KIM wind levels and forecast hours match this phase scope', () => {
-  assert.deepEqual(KIM_NWP_LEVELS.map((level) => level.id), ['10m', '925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa'])
-  assert.deepEqual(KIM_NWP_MOISTURE_LEVEL_IDS, ['925hPa', '850hPa', '700hPa', '500hPa'])
+  assert.deepEqual(KIM_NWP_LEVELS.map((level) => level.id), ['10m', '1000hPa', '925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa', '250hPa', '200hPa', '150hPa'])
+  assert.deepEqual(KIM_NWP_MOISTURE_LEVEL_IDS, ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa'])
   assert.deepEqual(KIM_NWP_FORECAST_HOURS, [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36])
 })
 
-test('icing levels exclude 10m and 300hPa', () => {
-  assert.deepEqual(KIM_NWP_ICING_LEVEL_IDS, ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa'])
-  assert.equal(isKimNwpIcingLevel({ id: '300hPa' }), false)
+test('icing levels include 300hPa but exclude 10m', () => {
+  assert.deepEqual(KIM_NWP_ICING_LEVEL_IDS, ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa'])
+  assert.equal(isKimNwpIcingLevel({ id: '300hPa' }), true)
   assert.equal(isKimNwpIcingLevel({ id: '10m' }), false)
   assert.equal(isKimNwpIcingLevel({ id: '600hPa' }), true)
 })
 
-test('moisture levels remain unchanged by icing levels addition', () => {
-  assert.deepEqual(KIM_NWP_MOISTURE_LEVEL_IDS, ['925hPa', '850hPa', '700hPa', '500hPa'])
+test('moisture levels extended to 300hPa', () => {
+  assert.deepEqual(KIM_NWP_MOISTURE_LEVEL_IDS, ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa'])
+})
+
+test('expanded pressure level set tops at 150hPa for wind/temp', () => {
+  const ids = KIM_NWP_LEVELS.map((l) => l.id)
+  for (const id of ['10m', '1000hPa', '925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa', '250hPa', '200hPa', '150hPa']) {
+    assert.ok(ids.includes(id), `missing ${id}`)
+  }
+  assert.ok(!ids.includes('100hPa'), '100hPa must be excluded')
+})
+
+test('moisture and icing level sets extended to 300hPa', () => {
+  for (const id of ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa']) {
+    assert.ok(KIM_NWP_MOISTURE_LEVEL_IDS.includes(id), `moisture missing ${id}`)
+    assert.ok(KIM_NWP_ICING_LEVEL_IDS.includes(id), `icing missing ${id}`)
+  }
 })
 
 test('buildKimNwpGrid stores u and v for one time and level', () => {
@@ -55,7 +70,7 @@ test('buildKimNwpGrid stores u and v for one time and level', () => {
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 3,
-    level: KIM_NWP_LEVELS[1],
+    level: KIM_NWP_LEVELS[2],
     components: [
       component('u', [1, 2, 3, 4], 925),
       component('v', [0, 0, 1, 1], 925),
@@ -74,7 +89,7 @@ test('buildKimNwpGrid stores a temp-only variable grid', () => {
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 3,
-    level: KIM_NWP_LEVELS[1],
+    level: KIM_NWP_LEVELS[2],
     components: [tempComponent([279.39, Number.NaN, 280.12, 281.55])],
     fetchedAt: '2026-05-19T00:15:00.000Z',
   })
@@ -90,7 +105,7 @@ test('existing variables keep 0.01 scale', () => {
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 0,
-    level: KIM_NWP_LEVELS[1],
+    level: KIM_NWP_LEVELS[2],
     components: [tempComponent([273.15, 274.15, 275.15, 276.15])],
   })
 
@@ -103,7 +118,7 @@ test('hydrometeor variables use per-variable fine scale and clip int16', () => {
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 0,
-    level: KIM_NWP_LEVELS[2],
+    level: KIM_NWP_LEVELS[3],
     components: [
       { variable: 'tqc', unit: 'kg/kg', level: 850, nx: 2, ny: 2, bounds: BOUNDS, values: [0, 1e-4, 5e-3, Number.NaN] },
       { variable: 'w', unit: 'm/s', level: 850, nx: 2, ny: 2, bounds: BOUNDS, values: [-0.3, 0, 0.2, 0.5] },
@@ -145,7 +160,7 @@ test('buildKimSurfaceWindFieldFromWindGrid still rejects grids without u/v pairs
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 0,
-    level: KIM_NWP_LEVELS[1],
+    level: KIM_NWP_LEVELS[2],
     components: [tempComponent([279.39, 280.11, 281.22, 282.33])],
   })
 
@@ -157,7 +172,7 @@ test('buildKimTemperatureFieldFromGrid returns Kelvin T only and excludes NaN fr
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 3,
-    level: KIM_NWP_LEVELS[1],
+    level: KIM_NWP_LEVELS[2],
     components: [
       component('u', [1, 1, 1, 1], 925),
       component('v', [0, 0, 0, 0], 925),
@@ -181,7 +196,7 @@ test('buildKimCloudPotentialFieldFromGrid derives spread and graded moisture pot
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 3,
-    level: KIM_NWP_LEVELS[2],
+    level: KIM_NWP_LEVELS[3],
     components: [
       tempComponent([293.15, 293.15, 293.15, Number.NaN]),
       { variable: 'rh', unit: '%', level: 850, nx: 2, ny: 2, bounds: BOUNDS, values: [90, 60, 100, 80] },
@@ -239,7 +254,7 @@ test('buildKimIcingFieldFromGrid derives score and grade', () => {
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 3,
-    level: KIM_NWP_LEVELS[2],
+    level: KIM_NWP_LEVELS[3],
     components: [
       tempComponent([263.15, 263.15, 263.15, Number.NaN]),
       { variable: 'rh_liq', unit: '%', level: 850, nx: 2, ny: 2, bounds: BOUNDS, values: [90, 40, 95, 90] },
@@ -275,7 +290,7 @@ test('filterKimNwpIndexForVariables exposes icing grids only when all required v
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 0,
-    level: KIM_NWP_LEVELS[2],
+    level: KIM_NWP_LEVELS[3],
     components: [
       tempComponent([263, 263, 263, 263]),
       { variable: 'rh_liq', unit: '%', level: 850, nx: 2, ny: 2, bounds: BOUNDS, values: [90, 90, 90, 90] },
@@ -291,7 +306,7 @@ test('filterKimNwpIndexForVariables exposes icing grids only when all required v
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 0,
-    level: KIM_NWP_LEVELS[3],
+    level: KIM_NWP_LEVELS[4],
     components: [
       tempComponent([263, 263, 263, 263]),
       { variable: 'rh_liq', unit: '%', level: 700, nx: 2, ny: 2, bounds: BOUNDS, values: [90, 90, 90, 90] },
@@ -339,7 +354,7 @@ test('buildKimNwpIndex hashes variable content without exposing values', () => {
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 0,
-    level: KIM_NWP_LEVELS[1],
+    level: KIM_NWP_LEVELS[2],
     components: [
       component('u', [1, 1, 1, 1], 925),
       component('v', [0, 0, 0, 0], 925),
@@ -349,7 +364,7 @@ test('buildKimNwpIndex hashes variable content without exposing values', () => {
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 0,
-    level: KIM_NWP_LEVELS[1],
+    level: KIM_NWP_LEVELS[2],
     components: [
       component('u', [2, 2, 2, 2], 925),
       component('v', [0, 0, 0, 0], 925),
@@ -388,7 +403,7 @@ test('filterKimNwpIndexForVariables separates wind and temp availability', () =>
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 3,
-    level: KIM_NWP_LEVELS[1],
+    level: KIM_NWP_LEVELS[2],
     components: [
       component('u', [1, 1, 1, 1], 925),
       component('v', [0, 0, 0, 0], 925),
@@ -422,14 +437,14 @@ test('filterKimNwpIndexForVariables exposes cloud grids only when T and rh exist
         model: 'KIMG/NE57',
         tmfc: '2026051900',
         hf: 0,
-        level: KIM_NWP_LEVELS[1],
+        level: KIM_NWP_LEVELS[2],
         components: [tempComponent([279, 280, 281, 282])],
       }),
       buildKimNwpGrid({
         model: 'KIMG/NE57',
         tmfc: '2026051900',
         hf: 3,
-        level: KIM_NWP_LEVELS[2],
+        level: KIM_NWP_LEVELS[3],
         components: [
           tempComponent([279, 280, 281, 282]),
           { variable: 'rh', unit: '%', level: 850, nx: 2, ny: 2, bounds: BOUNDS, values: [90, 80, 70, 60] },

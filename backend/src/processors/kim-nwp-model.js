@@ -4,6 +4,7 @@ export const KIM_NWP_MODEL = 'KIMG/NE57'
 export const KIM_NWP_FORECAST_HOURS = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36]
 export const KIM_NWP_LEVELS = [
   { id: '10m', label: '10m', kind: 'height', value: 10, unit: 'm', level: 0, uName: 'u10m', vName: 'v10m' },
+  { id: '1000hPa', label: '1000', kind: 'pressure', value: 1000, unit: 'hPa', level: 1000, uName: 'u', vName: 'v' },
   { id: '925hPa', label: '925', kind: 'pressure', value: 925, unit: 'hPa', level: 925, uName: 'u', vName: 'v' },
   { id: '850hPa', label: '850', kind: 'pressure', value: 850, unit: 'hPa', level: 850, uName: 'u', vName: 'v' },
   { id: '700hPa', label: '700', kind: 'pressure', value: 700, unit: 'hPa', level: 700, uName: 'u', vName: 'v' },
@@ -11,10 +12,13 @@ export const KIM_NWP_LEVELS = [
   { id: '500hPa', label: '500', kind: 'pressure', value: 500, unit: 'hPa', level: 500, uName: 'u', vName: 'v' },
   { id: '400hPa', label: '400', kind: 'pressure', value: 400, unit: 'hPa', level: 400, uName: 'u', vName: 'v' },
   { id: '300hPa', label: '300', kind: 'pressure', value: 300, unit: 'hPa', level: 300, uName: 'u', vName: 'v' },
+  { id: '250hPa', label: '250', kind: 'pressure', value: 250, unit: 'hPa', level: 250, uName: 'u', vName: 'v' },
+  { id: '200hPa', label: '200', kind: 'pressure', value: 200, unit: 'hPa', level: 200, uName: 'u', vName: 'v' },
+  { id: '150hPa', label: '150', kind: 'pressure', value: 150, unit: 'hPa', level: 150, uName: 'u', vName: 'v' },
 ]
-export const KIM_NWP_MOISTURE_LEVEL_IDS = ['925hPa', '850hPa', '700hPa', '500hPa']
+export const KIM_NWP_MOISTURE_LEVEL_IDS = ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa']
 export const KIM_NWP_MOISTURE_LEVELS = KIM_NWP_LEVELS.filter((level) => KIM_NWP_MOISTURE_LEVEL_IDS.includes(level.id))
-export const KIM_NWP_ICING_LEVEL_IDS = ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa']
+export const KIM_NWP_ICING_LEVEL_IDS = ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa']
 export const KIM_NWP_ICING_LEVELS = KIM_NWP_LEVELS.filter((level) => KIM_NWP_ICING_LEVEL_IDS.includes(level.id))
 
 const SCALE_BY_VARIABLE = {
