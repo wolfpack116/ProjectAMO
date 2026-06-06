@@ -171,6 +171,7 @@ export const kim_nwp = {
   keep_raw: process.env.KIM_NWP_KEEP_RAW !== '0',
   concurrency: Number(process.env.KIM_NWP_CONCURRENCY || 4),
   forecast_hours: [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36],
+  single_forecast: process.env.KIM_NWP_SINGLE_FORECAST !== '0',
   collect_icing: process.env.KIM_NWP_COLLECT_ICING !== '0',
   collect_on_startup: process.env.KIM_NWP_COLLECT_ON_STARTUP !== '0',
   incremental_retry: process.env.KIM_NWP_INCREMENTAL_RETRY !== '0',

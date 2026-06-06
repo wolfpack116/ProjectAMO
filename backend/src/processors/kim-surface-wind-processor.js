@@ -30,6 +30,7 @@ import {
   writeKimNwpLatest,
   writeKimNwpManifest,
 } from './kim-nwp-store.js'
+import { selectNearestForecastHour } from './kim-forecast-hour.js'
 
 const TYPE = 'kim_surface_wind'
 const MODEL = 'KIMG/NE57'
@@ -530,12 +531,22 @@ export function selectLegacySurfaceWindGrid(grids = []) {
     || null
 }
 
+export function resolveCollectedForecastHours({ tmfc, nowMs = Date.now(), candidateHours, single }) {
+  if (!single) return [...candidateHours]
+  return [selectNearestForecastHour({ tmfc, nowMs, candidateHours })]
+}
+
 export async function process() {
   const candidates = resolveKimSurfaceWindCandidates()
   let lastError = null
 
   for (const candidate of candidates) {
-    const forecastHours = config.kim_nwp?.forecast_hours || KIM_NWP_FORECAST_HOURS
+    const candidateHours = config.kim_nwp?.forecast_hours || KIM_NWP_FORECAST_HOURS
+    const forecastHours = resolveCollectedForecastHours({
+      tmfc: candidate.tmfc,
+      candidateHours,
+      single: config.kim_nwp?.single_forecast !== false,
+    })
     if (hasCompleteKimNwpRun({
       latest: readKimNwpLatest(config.storage.base_path),
       index: readKimNwpIndex(config.storage.base_path),
