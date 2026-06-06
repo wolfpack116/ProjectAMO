@@ -1,3 +1,5 @@
+import { msToKt, windBarbFeathers, windDirectionFromUV, isothermSegments, pressureToFallbackFt } from './lib/crossSectionGrid.js'
+
 const M_TO_FT = 3.28084
 
 function formatFt(value) {
@@ -31,7 +33,50 @@ function assignMarkerLanes(markers, xFor) {
   })
 }
 
-export default function VerticalProfileChart({ profile }) {
+function icingColor(g) {
+  return ['rgba(0,0,0,0)', 'rgba(120,180,255,0.35)', 'rgba(120,120,255,0.5)', 'rgba(150,80,220,0.6)'][Math.max(0, Math.min(3, Math.round(g)))]
+}
+function moistureColor(p) {
+  if (!Number.isFinite(p)) return 'rgba(0,0,0,0)'
+  const a = Math.max(0, Math.min(1, p / 100))
+  return `rgba(60,140,90,${(0.15 + a * 0.45).toFixed(2)})`
+}
+function WindBarb({ cx, cy, u, v }) {
+  if (!Number.isFinite(u) || !Number.isFinite(v)) return null
+  const kt = msToKt(Math.hypot(u, v))
+  if (kt < 2.5) return <circle cx={cx} cy={cy} r={2.5} className="cs-wind-calm" />
+  const { pennants, full, half } = windBarbFeathers(kt)
+  const dir = windDirectionFromUV(u, v)
+  const fromRad = (dir * Math.PI) / 180
+  const size = 18
+  const tx = cx + Math.sin(fromRad) * size
+  const ty = cy - Math.cos(fromRad) * size
+  const sdx = (tx - cx) / size
+  const sdy = (ty - cy) / size
+  const px = -sdy; const py = sdx
+  const barbLen = size * 0.7
+  const STEP = size * 0.28
+  const parts = [`M ${cx.toFixed(1)} ${cy.toFixed(1)} L ${tx.toFixed(1)} ${ty.toFixed(1)}`]
+  let pos = 0
+  for (let i = 0; i < pennants; i += 1) {
+    const bx = tx - sdx * pos; const by = ty - sdy * pos
+    const mx = bx - sdx * STEP; const my = by - sdy * STEP
+    parts.push(`M ${bx.toFixed(1)} ${by.toFixed(1)} L ${(bx + px * barbLen).toFixed(1)} ${(by + py * barbLen).toFixed(1)} L ${mx.toFixed(1)} ${my.toFixed(1)} Z`)
+    pos += STEP * 1.2
+  }
+  for (let i = 0; i < full; i += 1) {
+    const bx = tx - sdx * pos; const by = ty - sdy * pos
+    parts.push(`M ${bx.toFixed(1)} ${by.toFixed(1)} L ${(bx + px * barbLen).toFixed(1)} ${(by + py * barbLen).toFixed(1)}`)
+    pos += STEP
+  }
+  if (half > 0) {
+    const bx = tx - sdx * pos; const by = ty - sdy * pos
+    parts.push(`M ${bx.toFixed(1)} ${by.toFixed(1)} L ${(bx + px * barbLen * 0.5).toFixed(1)} ${(by + py * barbLen * 0.5).toFixed(1)}`)
+  }
+  return <path d={parts.join(' ')} className="cs-wind-barb" />
+}
+
+export default function VerticalProfileChart({ profile, crossSection = null, layers = {} }) {
   const samples = profile?.axis?.samples ?? []
   const terrainValues = profile?.terrain?.values ?? []
   const cruiseAltitudeFt = profile?.flightPlan?.plannedCruiseAltitudeFt
@@ -102,6 +147,57 @@ export default function VerticalProfileChart({ profile }) {
     .map((marker, index) => ({ ...marker, key: `${marker.label}-${index}` }))
   const markerLabels = assignMarkerLanes(visibleMarkers, xFor)
 
+  const csLevels = crossSection?.levels ?? []
+  const altFor = (lvl) => Number.isFinite(lvl.altFt) ? lvl.altFt : pressureToFallbackFt(lvl.pressure)
+  const shadingCells = (() => {
+    if (!crossSection || (!layers.icing && !layers.moisture)) return []
+    const cells = []
+    for (let li = 0; li < csLevels.length - 1; li += 1) {
+      const lvl = csLevels[li]
+      const lvlNext = csLevels[li + 1]
+      const yA = yFor(altFor(lvl))
+      const yB = yFor(altFor(lvlNext))
+      const yTop = Math.min(yA, yB)
+      const yBot = Math.max(yA, yB)
+      for (let vi = 0; vi < lvl.values.length - 1; vi += 1) {
+        const v = lvl.values[vi]
+        const vNext = lvl.values[vi + 1]
+        const xLeft = xFor(v.distanceNm)
+        const xRight = xFor(vNext.distanceNm)
+        const fill = layers.icing && v.icing != null
+          ? icingColor(v.icing)
+          : layers.moisture && v.cloudPotential != null
+            ? moistureColor(v.cloudPotential)
+            : null
+        if (fill && fill !== 'rgba(0,0,0,0)') {
+          cells.push({ key: `${li}-${vi}`, x: xLeft, y: yTop, w: xRight - xLeft, h: yBot - yTop, fill })
+        }
+      }
+    }
+    return cells
+  })()
+  const tempIsotherms = (() => {
+    if (!crossSection || !layers.temp || csLevels.length < 2) return []
+    const sampleCount = csLevels[0]?.values?.length ?? 0
+    if (sampleCount < 2) return []
+    const xs = csLevels[0].values.map((v) => xFor(v.distanceNm))
+    const ys = csLevels.map((lvl) => yFor(altFor(lvl)))
+    const values = csLevels.flatMap((lvl) => lvl.values.map((v) => v.t))
+    const cells = { nx: sampleCount, ny: csLevels.length, values, xs, ys }
+    const finiteTs = values.filter(Number.isFinite)
+    if (finiteTs.length === 0) return []
+    const minT = Math.min(...finiteTs)
+    const maxT = Math.max(...finiteTs)
+    const result = []
+    for (let t = Math.ceil(minT / 5) * 5; t <= maxT; t += 5) {
+      result.push({ level: t, bold: t === 0, segments: isothermSegments(cells, t) })
+    }
+    return result
+  })()
+  const windBarbs = crossSection && layers.wind ? csLevels.flatMap((lvl) =>
+    lvl.values.map((v) => ({ key: `w-${lvl.pressure}-${v.distanceNm}`, cx: xFor(v.distanceNm), cy: yFor(altFor(lvl)), u: v.u, v: v.v }))
+  ) : []
+
   return (
     <div className="vertical-profile-chart">
       <div className="vertical-profile-meta">
@@ -132,7 +228,23 @@ export default function VerticalProfileChart({ profile }) {
         )}
       </div>
       <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Vertical profile">
+        <defs>
+          <clipPath id="cs-clip">
+            <rect x={padding.left} y={padding.top} width={plotWidth} height={plotHeight} />
+          </clipPath>
+        </defs>
         <rect className="vertical-profile-plot" x={padding.left} y={padding.top} width={plotWidth} height={plotHeight} />
+        <g clipPath="url(#cs-clip)">
+          {shadingCells.map((cell) => (
+            <rect key={cell.key} x={cell.x} y={cell.y} width={cell.w} height={cell.h} fill={cell.fill} />
+          ))}
+          {tempIsotherms.flatMap(({ level, bold, segments }) =>
+            segments.map((seg, si) => (
+              <line key={`t${level}-${si}`} x1={seg[0].x.toFixed(1)} y1={seg[0].y.toFixed(1)} x2={seg[1].x.toFixed(1)} y2={seg[1].y.toFixed(1)} className={bold ? 'cs-isotherm cs-isotherm-zero' : 'cs-isotherm'} />
+            ))
+          )}
+          {windBarbs.map((wb) => <WindBarb key={wb.key} cx={wb.cx} cy={wb.cy} u={wb.u} v={wb.v} />)}
+        </g>
         {yTicks.map((tick) => (
           <g key={`y-${tick}`}>
             <line className="vertical-profile-grid" x1={padding.left} x2={padding.left + plotWidth} y1={yFor(tick)} y2={yFor(tick)} />

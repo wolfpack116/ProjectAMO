@@ -571,6 +571,29 @@
   color: #fff;
 }
 
+.cs-isotherm {
+  stroke: rgba(100, 130, 160, 0.55);
+  stroke-width: 1;
+  fill: none;
+}
+
+.cs-isotherm-zero {
+  stroke: rgba(220, 60, 60, 0.75);
+  stroke-width: 1.8;
+}
+
+.cs-wind-barb {
+  stroke: rgba(30, 30, 80, 0.7);
+  stroke-width: 1.2;
+  fill: rgba(30, 30, 80, 0.7);
+}
+
+.cs-wind-calm {
+  fill: none;
+  stroke: rgba(30, 30, 80, 0.7);
+  stroke-width: 1.2;
+}
+
 .vertical-profile-window .vertical-profile-chart {
   margin: 0;
   padding: 16px;
