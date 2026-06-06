@@ -11,12 +11,16 @@ import { main as startScheduler } from './src/index.js'
 import warningTypes from '../shared/warning-types.js'
 import alertDefaults from '../shared/alert-defaults.js'
 import { buildVerticalProfile } from './src/briefing/vertical-profile.js'
+import { buildCrossSection } from './src/briefing/cross-section-sampler.js'
+import { buildRouteAxis } from './src/briefing/route-axis.js'
+import { selectNearestForecastHour } from './src/processors/kim-forecast-hour.js'
 import { createDefaultTerrainSampler } from './src/terrain/terrain-sampler.js'
 import {
   buildKimCloudPotentialFieldFromGrid,
   buildKimIcingFieldFromGrid,
   KIM_NWP_ICING_LEVEL_IDS,
   KIM_NWP_MOISTURE_LEVEL_IDS,
+  KIM_NWP_LEVELS,
   buildKimTemperatureFieldFromGrid,
   buildKimSurfaceWindFieldFromWindGrid,
   filterKimNwpIndexForVariables,
@@ -654,6 +658,73 @@ app.post('/api/vertical-profile', (req, res) => {
     }
 
     res.status(400).json({ error: error.message || 'failed to build vertical profile' })
+  }
+})
+
+function decodeVar(variable) {
+  const { values = [], scale = 1, offset = 0, encoding } = variable || {}
+  if (encoding === 'int16-scaled-json-v1') {
+    return values.map((v) => (v === -32768 || !Number.isFinite(v) ? Number.NaN : v * scale + offset))
+  }
+  return values
+}
+function decodeArr(values, field) {
+  return decodeVar({ values, scale: field.scale, offset: field.offset, encoding: field.encoding })
+}
+
+app.post('/api/briefing/cross-section', (req, res) => {
+  try {
+    const { routeGeometry, sampleSpacingMeters } = req.body || {}
+    if (!routeGeometry?.coordinates?.length) {
+      return res.status(400).json({ error: 'routeGeometry required' })
+    }
+    const latest = readKimNwpLatest(DATA_ROOT)
+    if (!latest?.latestRun) return res.status(503).json({ error: 'kim run unavailable' })
+    const tmfc = String(req.body.tmfc || latest.latestRun)
+    const candidateHours = config.kim_nwp?.forecast_hours || [0, 3, 6, 9, 12]
+    const hf = Number.isFinite(Number(req.body.hf))
+      ? Number(req.body.hf)
+      : selectNearestForecastHour({ tmfc, candidateHours })
+
+    const axis = buildRouteAxis(routeGeometry, sampleSpacingMeters ?? 250)
+
+    const loadLevel = (levelId) => {
+      const level = KIM_NWP_LEVELS.find((l) => l.id === levelId)
+      if (!level || level.kind !== 'pressure') return null
+      let grid
+      try {
+        grid = readKimNwpGrid({ root: DATA_ROOT, model: 'KIMG/NE57', tmfc, hf, levelId })
+      } catch { return null }
+      if (!grid) return null
+      const out = { pressure: level.value, grid: grid.grid }
+      if (grid.variables?.hgt) out.hgt = decodeVar(grid.variables.hgt)
+      if (grid.variables?.T) out.T = decodeVar(grid.variables.T)
+      if (grid.variables?.u && grid.variables?.v) {
+        out.u = decodeVar(grid.variables.u)
+        out.v = decodeVar(grid.variables.v)
+      }
+      if (grid.variables?.T && grid.variables?.rh) {
+        const f = buildKimCloudPotentialFieldFromGrid(grid)
+        out.cloudPotential = decodeArr(f.cloudPotential, f)
+      }
+      const icingVars = ['T', 'rh_liq', 'w', 'tqc', 'tqi', 'tqr', 'tqs', 'cld']
+      if (icingVars.every((n) => grid.variables?.[n])) {
+        const f = buildKimIcingFieldFromGrid(grid)
+        out.icingGrade = f.icingGrade.map((v) => (v === -32768 ? null : v))
+      }
+      return out
+    }
+
+    const result = buildCrossSection({
+      axis,
+      run: { tmfc, hf, validTime: latest.validTime ?? null },
+      levelIds: KIM_NWP_LEVELS.filter((l) => l.kind === 'pressure').map((l) => l.id),
+      loadLevel,
+    })
+    setNoStore(res)
+    res.json(result)
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'cross-section failed' })
   }
 })
 
