@@ -11,14 +11,13 @@ import sigwxLowProcessor from './processors/sigwx-low-processor.js'
 import amosProcessor from './processors/amos-processor.js'
 import lightningProcessor from './processors/lightning-processor.js'
 import radarEchoProcessor from './processors/radar-echo-processor.js'
-import adsbProcessor from './processors/adsb-processor.js'
 import kimSurfaceWindProcessor from './processors/kim-surface-wind-processor.js'
 import satelliteProcessor from './processors/satellite-processor.js'
 import groundForecastProcessor from './processors/ground-forecast-processor.js'
 import environmentProcessor from './processors/environment-processor.js'
 import airportInfoProcessor from './processors/airport-info-processor.js'
 
-const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, adsb: false, kim_surface_wind: false, satellite: false, ground_forecast: false, environment: false, airport_info: false };
+const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, kim_surface_wind: false, satellite: false, ground_forecast: false, environment: false, airport_info: false };
 const KIM_NWP_CRON_OPTIONS = { timezone: 'Etc/UTC' }
 const AIRPORT_INFO_CRON_OPTIONS = { timezone: 'Asia/Seoul' }
 
@@ -68,7 +67,6 @@ function buildInitialCollectionJobs({ includeKimNwp = config.kim_nwp?.collect_on
     ["amos", amosProcessor.process],
     ["lightning", lightningProcessor.process],
     ["radar_echo", radarEchoProcessor.process],
-    ["adsb", adsbProcessor.process],
     ["satellite", satelliteProcessor.process],
     ["ground_forecast", groundForecastProcessor.process],
     ["environment", environmentProcessor.process],
@@ -94,7 +92,6 @@ async function main() {
   cron.schedule(config.schedule.amos_interval, () => runWithLock("amos", amosProcessor.process));
   cron.schedule(config.schedule.lightning_interval, () => runWithLock("lightning", lightningProcessor.process));
   cron.schedule(config.schedule.radar_echo_interval, () => runWithLock("radar_echo", radarEchoProcessor.process));
-  cron.schedule(config.schedule.adsb_interval, () => runWithLock("adsb", adsbProcessor.process));
   scheduleKimNwpJob();
   cron.schedule(config.schedule.satellite_interval, () => runWithLock("satellite", satelliteProcessor.process));
   cron.schedule(config.schedule.ground_forecast_interval, () => runWithLock("ground_forecast", groundForecastProcessor.process));

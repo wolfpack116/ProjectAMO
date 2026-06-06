@@ -67,8 +67,8 @@ ProjectAMO/
 - `frontend/src/features/monitoring/MonitoringMap.jsx` -> monitoring wrapper around the main MapView with local Aviation/MET icon toggles.
 - `frontend/src/features/monitoring/monitoringApi.js` -> monitoring data loader using current API shape.
 - `frontend/src/features/monitoring/legacy/*` -> copied previous-project dashboard components, alert utilities, CSS, and weather icon assets for the standalone monitoring screen.
-- `frontend/src/features/aviation-layers/aviationWfsLayers.js` -> aviation WFS layer definitions.
-- `frontend/src/features/aviation-layers/addAviationWfsLayers.js` -> WFS source/layer creation.
+- `frontend/src/features/aviation-layers/aviationWfsLayers.js` -> aviation static GeoJSON layer definitions.
+- `frontend/src/features/aviation-layers/addAviationWfsLayers.js` -> aviation GeoJSON source/layer creation.
 - `frontend/src/features/aviation-layers/addAdsbLayer.js` -> ADS-B GeoJSON shaping, source/layer install, visibility sync, cleanup-aware hover popup binding, and `ADSB_SOURCE_IDS`/`ADSB_LAYER_IDS` ownership exports.
 - `frontend/src/features/aviation-layers/AviationLayerPanel.jsx` -> aviation WFS layer toggle panel. ADS-B remains controlled from the MET/weather overlay panel for the current UX.
 - `frontend/src/features/weather-overlays/WeatherOverlayPanel.jsx` -> MET overlay toggle panel.
@@ -114,12 +114,14 @@ ProjectAMO/
 - `frontend/src/features/route-briefing/lib/routePreview.js` -> route/procedure/VFR GeoJSON helpers, layer installation, and VFR map interaction binding.
 - `frontend/src/features/airport-panel/AirportPanel.jsx` -> airport drawer shell and tab selection.
 - `frontend/src/features/airport-panel/AirportPanel.css` -> airport drawer and tab style entry.
+- `frontend/src/features/airport-panel/tabs/CurrentWeatherTab.jsx` -> compact default airport drawer weather summary for warning, METAR, and next-6-hour TAF.
 - `frontend/src/features/airport-panel/tabs/MetarTab.jsx` -> METAR tab rendering.
 - `frontend/src/features/airport-panel/tabs/TafTab.jsx` -> TAF tab rendering.
 - `frontend/src/features/airport-panel/tabs/AmosTab.jsx` -> AMOS tab rendering.
 - `frontend/src/features/airport-panel/tabs/WarningTab.jsx` -> airport warning tab rendering.
 - `frontend/src/features/airport-panel/tabs/AirportInfoTab.jsx` -> airport information bulletin rendering.
 - `frontend/src/features/airport-panel/lib/formatters.js` -> airport panel time/wind formatting helpers.
+- `frontend/src/features/airport-panel/lib/currentWeatherViewModel.js` -> current-weather tab warning, compact METAR, RVR, and next-6-hour TAF view-model helpers.
 - `frontend/src/features/airport-panel/lib/metarViewModel.js` -> METAR display model builder.
 - `frontend/src/features/airport-panel/lib/tafViewModel.js` -> TAF display model builder.
 - `frontend/src/features/airport-panel/lib/amosViewModel.js` -> AMOS display model helpers.

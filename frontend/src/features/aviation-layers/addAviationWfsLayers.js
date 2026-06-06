@@ -1,4 +1,4 @@
-import { AVIATION_WFS_LAYERS, buildWfsUrl } from './aviationWfsLayers.js'
+import { AVIATION_WFS_LAYERS } from './aviationWfsLayers.js'
 
 const POLYGON_FILTER = ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']]
 const LINE_FILTER = ['any', ['==', ['geometry-type'], 'LineString'], ['==', ['geometry-type'], 'MultiLineString']]
@@ -329,7 +329,7 @@ function movePointLayersToTop(map) {
   })
 }
 
-export function addAviationWfsLayers(map, vworldKey, domain) {
+export function addAviationWfsLayers(map) {
   AVIATION_WFS_LAYERS.forEach((layer) => {
     if (layer.tickIconId) {
       ensureFirTickIcon(map, layer.tickIconId, layer.color)
@@ -344,7 +344,7 @@ export function addAviationWfsLayers(map, vworldKey, domain) {
     if (!map.getSource(layer.sourceId)) {
       map.addSource(layer.sourceId, {
         type: 'geojson',
-        data: layer.dataUrl ?? buildWfsUrl(layer.typeName, vworldKey, domain),
+        data: layer.dataUrl,
       })
     }
 

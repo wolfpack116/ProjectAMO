@@ -46,10 +46,10 @@ test('loadDeferredWeatherData fetches panel-only datasets when requested', async
     assert.ok(data.groundOverview)
     assert.ok(data.environment)
     assert.ok(data.airportInfo)
-    assert.ok(data.adsb)
+    assert.equal(data.adsb, null)
     assert.deepEqual(
       recorder.calls,
-      ['/api/sigwx-low-history', '/api/ground-overview', '/api/environment', '/api/airport-info', '/api/adsb'],
+      ['/api/sigwx-low-history', '/api/ground-overview', '/api/environment', '/api/airport-info'],
     )
   } finally {
     recorder.restore()

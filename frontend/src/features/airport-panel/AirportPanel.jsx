@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AIRPORT_NAME_KO } from '../../api/weatherApi.js'
+import CurrentWeatherTab from './tabs/CurrentWeatherTab.jsx'
 import MetarTab from './tabs/MetarTab.jsx'
 import EnhancedTafTab from './tabs/TafTab.jsx'
 import AmosBoardTab from './tabs/AmosTab.jsx'
@@ -19,6 +20,7 @@ const AIRPORT_HEADER_NAME_KO = {
 }
 
 const TABS = [
+  { id: 'current', label: '현재날씨' },
   { id: 'metar', label: 'METAR' },
   { id: 'taf',   label: 'TAF' },
   { id: 'amos',  label: 'AMOS' },
@@ -28,7 +30,7 @@ const TABS = [
 
 
 function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherData }) {
-  const [tab, setTab] = useState('metar')
+  const [tab, setTab] = useState('current')
   const icao = airport?.icao
   const airportInfo = weatherData?.airportInfo?.airports?.[icao] || null
 
@@ -87,6 +89,16 @@ function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherD
         </nav>
 
         <div className="airport-panel-body">
+          {tab === 'current' && (
+            <CurrentWeatherTab
+              icao={icao}
+              airportMeta={airport}
+              warning={warning}
+              metar={metar}
+              taf={taf}
+              amosData={amos}
+            />
+          )}
           {tab === 'metar' && <MetarTab metar={metar} amosData={amos} icao={icao} airportMeta={airport} />}
           {tab === 'taf'   && <EnhancedTafTab taf={taf} icao={icao} />}
           {tab === 'amos'  && <AmosBoardTab amos={amos} metar={metar} airportMeta={airport} />}

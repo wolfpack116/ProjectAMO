@@ -50,8 +50,6 @@ API_BASE_URL=https://apihub.kma.go.kr/api/typ02/openApi
 DATA_PATH=./backend/data
 
 VITE_MAPBOX_TOKEN=your_mapbox_token
-VITE_VWORLD_KEY=your_vworld_key
-VITE_VWORLD_DOMAIN=localhost
 
 # 선택 항목
 AIRKOREA_API_KEY=

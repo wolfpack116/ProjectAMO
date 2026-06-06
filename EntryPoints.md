@@ -20,9 +20,9 @@ Use `MapView.jsx` only for:
 
 Feature-specific model, source/layer, GeoJSON, popup, route, weather, or ADS-B logic belongs in the owning `features/*` module.
 
-## 1. Add a new aviation WFS layer
+## 1. Add a new aviation GeoJSON layer
 
-1. Add definition to `frontend/src/features/aviation-layers/aviationWfsLayers.js` (id, color, source url, line/fill/point options).
+1. Add definition to `frontend/src/features/aviation-layers/aviationWfsLayers.js` (id, color, `dataUrl`, line/fill/point options).
 2. `addAviationWfsLayers.js` auto-creates sources and layers from the definition; no edit needed unless the new layer has a unique render mode (icon by property, tick marks, etc.).
 3. Add toggle UI to `frontend/src/features/aviation-layers/AviationLayerPanel.jsx`.
 4. Verify in browser: layer appears, toggle works, renders above raster overlays.

@@ -236,6 +236,266 @@
   text-align: center;
 }
 
+.ap-current-weather {
+  min-height: 100%;
+  display: grid;
+  grid-template-rows: minmax(64px, 1fr) minmax(220px, 4fr) minmax(240px, 4fr);
+  gap: 12px;
+}
+
+.ap-current-section {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ap-current-metar,
+.ap-current-taf {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ap-current-warning {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 64px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.ap-current-warning--ok {
+  background: #ecfdf5;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.ap-current-warning--danger {
+  background: #f97316;
+  color: #fff7ed;
+}
+
+.ap-current-warning-side {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  min-width: 0;
+}
+
+.ap-current-warning-side--single {
+  grid-column: 1 / -1;
+}
+
+.ap-current-warning-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.ap-current-warning-icon--alert {
+  animation: ap-warning-icon-blink 1s steps(1, end) infinite;
+}
+
+.ap-current-warning-label {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.ap-current-warning-text {
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+  height: var(--ap-warning-page-height);
+  min-height: var(--ap-warning-page-height);
+  align-self: center;
+}
+
+.ap-current-warning-page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.ap-current-warning-page--active {
+  transform: translateY(0);
+}
+
+.ap-current-warning-page--leave {
+  animation: ap-warning-page-out 1000ms ease forwards;
+}
+
+.ap-current-warning-page--enter {
+  animation: ap-warning-page-in 1000ms ease forwards;
+}
+
+.ap-current-warning-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.ap-current-warning-item {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.ap-current-warning-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-left: 10px;
+  border-left: 1px solid rgba(255, 247, 237, 0.45);
+}
+
+.ap-current-warning-name {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.ap-current-warning-time {
+  font-size: 12px;
+  font-family: 'Consolas', 'Menlo', monospace;
+  line-height: 1.15;
+  opacity: 0.94;
+}
+
+.ap-current-warning-measure {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  left: 0;
+  top: -9999px;
+  width: 100%;
+}
+
+.ap-current-warning-measure .ap-current-warning-group {
+  width: 100%;
+  height: auto;
+  flex-wrap: wrap;
+  white-space: normal;
+  align-items: flex-start;
+}
+
+.ap-current-flight {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.ap-current-metar-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(58px, 1fr));
+  gap: 8px;
+}
+
+.ap-current-card {
+  min-width: 0;
+  min-height: 58px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 9px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.ap-current-card.is-alert {
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+
+.ap-current-card-label {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ap-current-card-value {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.ap-current-card-icon {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+}
+
+.ap-current-card-arrow {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.ap-current-card-secondary {
+  color: #64748b;
+  font-size: 11px;
+  font-family: 'Consolas', 'Menlo', monospace;
+  line-height: 1.15;
+}
+
+.ap-current-taf .ap-taf-timeline {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ap-current-taf .ap-taf-line-track {
+  min-height: 30px;
+}
+
+.ap-current-taf .ap-taf-seg {
+  min-height: 30px;
+}
+
+@keyframes ap-warning-icon-blink {
+  50% {
+    opacity: 0.32;
+  }
+}
+
+@keyframes ap-warning-page-out {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(calc(-1 * var(--ap-warning-page-height)));
+  }
+}
+
+@keyframes ap-warning-page-in {
+  from {
+    transform: translateY(var(--ap-warning-page-height));
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
 /* ── METAR v2 (세로형 위젯) ── */
 .ap-metar-v2 {
   display: flex;
@@ -1508,6 +1768,24 @@
 }
 
 @media (max-width: 719px) {
+  .ap-current-weather {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ap-current-warning {
+    grid-template-columns: 1fr;
+  }
+
+  .ap-current-warning-text {
+    margin: 0 8px 8px;
+  }
+
+  .ap-current-metar-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
+
   .airport-panel {
     left: 0;
     z-index: 120;

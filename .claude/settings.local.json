@@ -30,7 +30,11 @@
       "WebFetch(domain:claude.com)",
       "Bash(node -e \"const fs=require\\('fs'\\);const p='C:\\\\\\\\\\\\\\\\Users\\\\\\\\\\\\\\\\Jond Doe\\\\\\\\\\\\\\\\Desktop\\\\\\\\\\\\\\\\Project\\\\\\\\\\\\\\\\ProjectAMO\\\\\\\\\\\\\\\\CLAUDE.md';const t=fs.readFileSync\\(p,'utf8'\\).replace\\(/\\\\r\\\\n/g,'\\\\n'\\).replace\\(/\\\\n/g,'\\\\r\\\\n'\\);fs.writeFileSync\\(p,t,'utf8'\\);console.log\\('Converted to CRLF'\\)\")",
       "Bash(node \"C:\\\\Users\\\\Jond Doe\\\\Desktop\\\\Project\\\\ProjectAMO\\\\_normalize_crlf.cjs\")",
-      "Bash(node -e \"const fs=require\\('fs'\\);const f='C:/Users/Jond Doe/Desktop/Project/ProjectAMO/CLAUDE.md';fs.writeFileSync\\(f,fs.readFileSync\\(f,'utf8'\\).replace\\(/\\\\r\\\\n/g,'\\\\n'\\).replace\\(/\\\\n/g,'\\\\r\\\\n'\\),'utf8'\\)\")"
+      "Bash(node -e \"const fs=require\\('fs'\\);const f='C:/Users/Jond Doe/Desktop/Project/ProjectAMO/CLAUDE.md';fs.writeFileSync\\(f,fs.readFileSync\\(f,'utf8'\\).replace\\(/\\\\r\\\\n/g,'\\\\n'\\).replace\\(/\\\\n/g,'\\\\r\\\\n'\\),'utf8'\\)\")",
+      "Bash(node probe-kim-levels.mjs)",
+      "Bash(git status *)",
+      "Bash(git check-ignore *)",
+      "Bash(git commit -m 'feat: airport current-weather tab, aviation layers, and cross-section planning *)"
     ]
   }
 }

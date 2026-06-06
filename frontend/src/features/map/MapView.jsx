@@ -7,7 +7,7 @@ import { AVIATION_WFS_LAYERS } from '../aviation-layers/aviationWfsLayers.js'
 import {
   ADVISORY_LAYER_DEFS,
 } from '../weather-overlays/lib/advisoryLayers.js'
-import { fetchAdsbData } from '../../api/adsbApi.js'
+import { ADSB_FETCH_DISABLED, fetchAdsbData } from '../../api/adsbApi.js'
 import { fetchSigwxCloudMeta, fetchSigwxFrontMeta } from '../../api/weatherApi.js'
 import { addAdsbLayers, bindAdsbHover, createAdsbGeoJSON, syncAdsbLayer } from '../aviation-layers/addAdsbLayer.js'
 import AviationLayerPanel from '../aviation-layers/AviationLayerPanel.jsx'
@@ -501,7 +501,7 @@ function MapView({
     let timeoutId
     let cancelled = false
 
-    if (!metVisibility.adsb) {
+    if (ADSB_FETCH_DISABLED || !metVisibility.adsb) {
       return undefined
     }
 
@@ -572,8 +572,8 @@ function MapView({
     map.on('style.load', () => {
       applyRoadVisibility(map, roadsVisible)
 
-      // Aviation WFS
-      addAviationWfsLayers(map, import.meta.env.VITE_VWORLD_KEY, import.meta.env.VITE_VWORLD_DOMAIN)
+      // Aviation GeoJSON
+      addAviationWfsLayers(map)
 
       // Route preview
       installRoutePreviewLayers(map)
@@ -849,7 +849,7 @@ function MapView({
     if (map.getLayer(labelLayerId)) {
       const icaos = airportGeoJSON.features.map(f => f.properties.icao).filter(Boolean)
       const filter = icaos.length > 0
-        ? ['all', baseFilter, ['!', ['in', ['get', 'icao'], ['literal', icaos]]]]
+        ? ['all', baseFilter, ['match', ['get', 'icao'], icaos, false, true]]
         : baseFilter
 
       map.setFilter(labelLayerId, filter)

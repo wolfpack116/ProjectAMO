@@ -1,4 +1,10 @@
+export const ADSB_FETCH_DISABLED = true
+
 export async function fetchAdsbData() {
+  if (ADSB_FETCH_DISABLED) {
+    return null
+  }
+
   try {
     const response = await fetch('/api/adsb');
     if (response.status === 503) {

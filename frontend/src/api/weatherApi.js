@@ -1,4 +1,5 @@
 import FALLBACK_AIRPORTS from '../../../shared/airports.js'
+import { ADSB_FETCH_DISABLED } from './adsbApi.js'
 
 export const AIRPORT_NAME_KO = {
   RKSI: 'Incheon International Airport',
@@ -139,7 +140,7 @@ const DEFERRED_WEATHER_FETCHERS = {
   groundOverview: () => fetchJson('/api/ground-overview', { optional: true }),
   environment: () => fetchJson('/api/environment', { optional: true }),
   airportInfo: () => fetchJson('/api/airport-info', { optional: true }),
-  adsb: () => fetchJson('/api/adsb', { optional: true }),
+  adsb: () => (ADSB_FETCH_DISABLED ? Promise.resolve(null) : fetchJson('/api/adsb', { optional: true })),
 }
 
 export async function loadDeferredWeatherData(keys = []) {
@@ -239,7 +240,7 @@ export async function loadChangedWeatherData(changes, { deferredKeys = 'all' } =
   }
   if (changes.amos) { fetches.push(fetchJson('/api/amos', { optional: true })); keys.push('amos') }
   if (changes.lightning) { fetches.push(fetchJson('/api/lightning', { optional: true })); keys.push('lightning') }
-  if (changes.adsb && includesDeferredKey(deferredKeys, 'adsb')) { fetches.push(fetchJson('/api/adsb', { optional: true })); keys.push('adsb') }
+  if (!ADSB_FETCH_DISABLED && changes.adsb && includesDeferredKey(deferredKeys, 'adsb')) { fetches.push(fetchJson('/api/adsb', { optional: true })); keys.push('adsb') }
   if (changes.groundForecast) { fetches.push(fetchJson('/api/ground-forecast', { optional: true })); keys.push('groundForecast') }
   if (changes.groundOverview && includesDeferredKey(deferredKeys, 'groundOverview')) { fetches.push(fetchJson('/api/ground-overview', { optional: true })); keys.push('groundOverview') }
   if (changes.environment && includesDeferredKey(deferredKeys, 'environment')) { fetches.push(fetchJson('/api/environment', { optional: true })); keys.push('environment') }

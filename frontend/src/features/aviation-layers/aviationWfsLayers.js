@@ -164,6 +164,7 @@ export const AVIATION_WFS_LAYERS = [
     fillLayerId: 'wfs-ctr-fill',
     lineLayerId: 'wfs-ctr-line',
     typeName: 'lt_c_aisctrc',
+    dataUrl: '/data/ctr.geojson',
     color: '#7c3aed',
     defaultVisible: false,
     fillOpacity: 0.04,
@@ -178,6 +179,7 @@ export const AVIATION_WFS_LAYERS = [
     fillLayerId: 'wfs-tma-fill',
     lineLayerId: 'wfs-tma-line',
     typeName: 'lt_c_aistmac',
+    dataUrl: '/data/tma.geojson',
     color: '#0891b2',
     defaultVisible: false,
     fillOpacity: 0.03,
@@ -192,6 +194,7 @@ export const AVIATION_WFS_LAYERS = [
     fillLayerId: 'wfs-restricted-fill',
     lineLayerId: 'wfs-restricted-line',
     typeName: 'lt_c_aisresc',
+    dataUrl: '/data/restricted.geojson',
     color: '#ea580c',
     defaultVisible: false,
     fillOpacity: 0.05,
@@ -206,6 +209,7 @@ export const AVIATION_WFS_LAYERS = [
     fillLayerId: 'wfs-prohibited-fill',
     lineLayerId: 'wfs-prohibited-line',
     typeName: 'lt_c_aisprhc',
+    dataUrl: '/data/prohibited.geojson',
     color: '#dc2626',
     defaultVisible: false,
     fillOpacity: 0.06,
@@ -220,6 +224,7 @@ export const AVIATION_WFS_LAYERS = [
     fillLayerId: 'wfs-danger-fill',
     lineLayerId: 'wfs-danger-line',
     typeName: 'lt_c_aisdngc',
+    dataUrl: '/data/danger.geojson',
     color: '#d97706',
     defaultVisible: false,
     fillOpacity: 0.05,
@@ -234,6 +239,7 @@ export const AVIATION_WFS_LAYERS = [
     lineLayerId: 'wfs-ats-route-line',
     routeLabelLayerId: 'wfs-ats-route-label',
     typeName: 'lt_l_aispath',
+    dataUrl: '/data/airways.geojson',
     color: '#1f2933',
     routePrefixFilter: ['!', ['in', ['slice', ['get', 'ident_txt'], 0, 1], ['literal', ['L', 'Y', 'Z']]]],
     defaultVisible: false,
@@ -248,6 +254,7 @@ export const AVIATION_WFS_LAYERS = [
     lineLayerId: 'wfs-rnav-route-line',
     routeLabelLayerId: 'wfs-rnav-route-label',
     typeName: 'lt_l_aispath',
+    dataUrl: '/data/airways.geojson',
     color: '#0076c8',
     routePrefixFilter: ['in', ['slice', ['get', 'ident_txt'], 0, 1], ['literal', ['L', 'Y', 'Z']]],
     defaultVisible: false,
@@ -255,18 +262,3 @@ export const AVIATION_WFS_LAYERS = [
     lineWidth: 1.4,
   },
 ]
-
-export function buildWfsUrl(typeName, vworldKey, domain) {
-  const params = new URLSearchParams({
-    SERVICE: 'WFS',
-    VERSION: '1.1.0',
-    REQUEST: 'GetFeature',
-    TYPENAME: typeName,
-    SRSNAME: 'EPSG:4326',
-    OUTPUT: 'application/json',
-    KEY: vworldKey,
-    DOMAIN: domain,
-  })
-
-  return `/vworld-wfs?${params.toString()}`
-}

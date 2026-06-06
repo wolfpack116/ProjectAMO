@@ -24,12 +24,6 @@ export default defineConfig({
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
-      '/vworld-wfs': {
-        target: 'https://api.vworld.kr',
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/vworld-wfs/, '/req/wfs'),
-      },
     },
   },
 })
