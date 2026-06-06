@@ -705,7 +705,7 @@ app.post('/api/briefing/cross-section', (req, res) => {
       }
       if (grid.variables?.T && grid.variables?.rh) {
         const f = buildKimCloudPotentialFieldFromGrid(grid)
-        out.cloudPotential = decodeArr(f.cloudPotential, f)
+        out.spread = decodeArr(f.spread, f)
       }
       const icingVars = ['T', 'rh_liq', 'w', 'tqc', 'tqi', 'tqr', 'tqs', 'cld']
       if (icingVars.every((n) => grid.variables?.[n])) {

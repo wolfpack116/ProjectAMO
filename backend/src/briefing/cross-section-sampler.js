@@ -41,14 +41,14 @@ export function buildCrossSection({ axis, run, levelIds, loadLevel }) {
       distanceNm: s.distanceNm,
       t: field.T ? nullableC(sampleGridAt(grid, field.T, s.lon, s.lat)) : null,
       moistureSpread: null,
-      cloudPotential: field.cloudPotential ? sampleGridAt(grid, field.cloudPotential, s.lon, s.lat) : null,
+      spread: field.spread ? sampleGridAt(grid, field.spread, s.lon, s.lat) : null,
       icing: field.icingGrade ? sampleGridAt(grid, field.icingGrade, s.lon, s.lat) : null,
       u: field.u ? sampleGridAt(grid, field.u, s.lon, s.lat) : null,
       v: field.v ? sampleGridAt(grid, field.v, s.lon, s.lat) : null,
     }))
 
     if (field.T) { has.T = true; coverageTop.T = trackTop(coverageTop.T, pressure) }
-    if (field.cloudPotential) { has.moisture = true; coverageTop.moisture = trackTop(coverageTop.moisture, pressure) }
+    if (field.spread) { has.moisture = true; coverageTop.moisture = trackTop(coverageTop.moisture, pressure) }
     if (field.icingGrade) { has.icing = true; coverageTop.icing = trackTop(coverageTop.icing, pressure) }
     if (field.u && field.v) { has.wind = true; coverageTop.wind = trackTop(coverageTop.wind, pressure) }
 

@@ -6,6 +6,8 @@ import {
   buildCompactTafModel,
   buildCurrentWarningModel,
 } from '../lib/currentWeatherViewModel.js'
+import { fmtKstShort, fmtTime } from '../lib/formatters.js'
+import { TAF_CATEGORY_COLOR } from '../lib/tafViewModel.js'
 
 function tafWeatherClass(item, baseClass, { includeSpecial = true } = {}) {
   return [
@@ -181,9 +183,9 @@ function MetarSummary({ metar, amosData, icao, airportMeta }) {
   }
 
   const cardList = [
+    model.cards.visibility,
     model.cards.weather,
     model.cards.wind,
-    model.cards.visibility,
     model.cards.ceiling,
     model.cards.qnh,
     model.cards.temperature,
@@ -191,25 +193,42 @@ function MetarSummary({ metar, amosData, icao, airportMeta }) {
 
   return (
     <section className="ap-current-section ap-current-metar">
-      <div className="ap-current-flight" style={{ background: model.flight.bg, color: model.flight.valueColor }}>
-        <span>{model.flight.category}</span>
+      <div className="ap-current-section-header">
+        <span className="ap-current-section-badge">METAR</span>
+        <span className="ap-current-section-time">{fmtKstShort(metar?.header?.observation_time || metar?.header?.issue_time)}</span>
       </div>
-      <div className="ap-current-metar-grid">
-        {cardList.map((card) => (
-          <article
-            key={card.id}
-            className={`ap-current-card ap-current-card--${card.id}${card.highWind ? ' is-alert' : ''}`}
-            style={card.background ? { backgroundColor: card.background, borderLeft: `3px solid ${card.border}` } : undefined}
-          >
-            <span className="ap-current-card-label">{card.label}</span>
-            <strong className="ap-current-card-value" style={card.color ? { color: card.color } : undefined}>
-              {card.visual ? <WeatherIcon visual={card.visual} className="ap-current-card-icon" /> : null}
-              {Number.isFinite(card.windRotation) ? <MoveUp className="ap-current-card-arrow" style={{ transform: `rotate(${card.windRotation}deg)` }} /> : null}
-              <span>{card.value}</span>
-            </strong>
-            {card.secondary ? <span className="ap-current-card-secondary">{card.secondary}</span> : null}
-          </article>
-        ))}
+      <div className="ap-current-metar-layout">
+        <article
+          className="ap-current-flight-card"
+          style={{
+            background: TAF_CATEGORY_COLOR[model.flight.category] || model.flight.bg,
+            color: '#fff',
+          }}
+        >
+          <strong className="ap-current-flight-code">{model.flight.category}</strong>
+          <span className="ap-current-flight-label">{model.flight.labelKo}</span>
+        </article>
+        <div className="ap-current-metar-grid">
+          {cardList.map((card) => (
+            <article
+              key={card.id}
+              className={`ap-current-card ap-current-card--${card.id}${card.highWind ? ' is-alert' : ''}`}
+              style={card.background ? { backgroundColor: card.background, borderLeft: `3px solid ${card.border}` } : undefined}
+            >
+              <div className="ap-current-card-main">
+                <div className="ap-current-card-meta">
+                  {card.visual ? <WeatherIcon visual={card.visual} className="ap-current-card-icon" /> : null}
+                  {Number.isFinite(card.windRotation) ? <MoveUp className="ap-current-card-arrow" style={{ transform: `rotate(${card.windRotation}deg)` }} /> : null}
+                  <span className="ap-current-card-label">{card.label}</span>
+                </div>
+                <strong className="ap-current-card-value" style={card.color ? { color: card.color } : undefined}>
+                  <span>{card.value}</span>
+                </strong>
+              </div>
+              {card.secondary ? <span className="ap-current-card-secondary">{card.secondary}</span> : null}
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -252,6 +271,10 @@ function TafSummary({ taf, icao }) {
 
   return (
     <section className="ap-current-section ap-current-taf">
+      <div className="ap-current-section-header">
+        <span className="ap-current-section-badge">{model.hdr?.report_status === 'AMENDMENT' ? 'TAF AMD' : 'TAF'}</span>
+        <span className="ap-current-section-time">{fmtTime(model.hdr?.valid_start)} - {fmtTime(model.hdr?.valid_end)}</span>
+      </div>
       <div className="ap-taf-timeline">
         <div className="ap-taf-scale" style={{ '--taf-hour-count': model.slots.length }}>
           {model.slots.map((item, index) => (

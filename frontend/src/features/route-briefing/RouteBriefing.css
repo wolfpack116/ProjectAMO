@@ -585,7 +585,12 @@
 .cs-wind-barb {
   stroke: rgba(30, 30, 80, 0.7);
   stroke-width: 1.2;
+  fill: none;
+}
+
+.cs-wind-pennant {
   fill: rgba(30, 30, 80, 0.7);
+  stroke: none;
 }
 
 .cs-wind-calm {

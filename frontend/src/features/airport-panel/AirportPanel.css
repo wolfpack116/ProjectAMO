@@ -239,7 +239,7 @@
 .ap-current-weather {
   min-height: 100%;
   display: grid;
-  grid-template-rows: minmax(64px, 1fr) minmax(220px, 4fr) minmax(240px, 4fr);
+  grid-template-rows: auto auto minmax(240px, 1fr);
   gap: 12px;
 }
 
@@ -252,6 +252,41 @@
 .ap-current-taf {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+}
+
+.ap-current-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ap-current-section-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.ap-current-section-time {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.ap-current-metar-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(132px, 0.85fr) minmax(0, 1.9fr);
   gap: 10px;
 }
 
@@ -384,32 +419,46 @@
   align-items: flex-start;
 }
 
-.ap-current-flight {
+.ap-current-flight-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 38px;
+  min-height: 0;
   border-radius: 6px;
-  font-size: 18px;
+  padding: 18px 14px;
+  text-align: center;
+}
+
+.ap-current-flight-code {
+  font-size: 34px;
   font-weight: 900;
+  line-height: 1;
+}
+
+.ap-current-flight-label {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .ap-current-metar-grid {
   min-height: 0;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(3, minmax(58px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(78px, 1fr));
   gap: 8px;
 }
 
 .ap-current-card {
   min-width: 0;
-  min-height: 58px;
+  min-height: 78px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
-  padding: 9px 10px;
+  gap: 6px;
+  padding: 10px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   background: #fff;
@@ -420,33 +469,52 @@
   background: #fff1f2;
 }
 
+.ap-current-card-main {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(52px, 74px) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 6px;
+}
+
+.ap-current-card-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-right: 6px;
+  border-right: 1px solid rgba(148, 163, 184, 0.28);
+}
+
 .ap-current-card-label {
   color: #64748b;
   font-size: 11px;
   font-weight: 800;
+  line-height: 1.15;
 }
 
 .ap-current-card-value {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-end;
   color: #0f172a;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 900;
   line-height: 1.2;
   overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .ap-current-card-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   flex: 0 0 auto;
 }
 
 .ap-current-card-arrow {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex: 0 0 auto;
 }
 
@@ -455,6 +523,7 @@
   font-size: 11px;
   font-family: 'Consolas', 'Menlo', monospace;
   line-height: 1.15;
+  text-align: right;
 }
 
 .ap-current-taf .ap-taf-timeline {
@@ -463,11 +532,55 @@
 }
 
 .ap-current-taf .ap-taf-line-track {
-  min-height: 30px;
+  min-height: 40px;
 }
 
 .ap-current-taf .ap-taf-seg {
-  min-height: 30px;
+  min-height: 40px;
+  font-size: 13px;
+}
+
+.ap-current-taf .ap-taf-line-label {
+  font-size: 13px;
+}
+
+.ap-current-taf .ap-taf-line:first-of-type .ap-taf-line-label {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.ap-current-taf .ap-taf-line:first-of-type .ap-taf-line-track {
+  min-height: 48px;
+  border-color: rgba(21, 128, 61, 0.18);
+}
+
+.ap-current-taf .ap-taf-line:first-of-type .ap-taf-seg {
+  min-height: 48px;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.ap-current-taf .ap-taf-line:not(:first-of-type) .ap-taf-line-label {
+  color: #64748b;
+}
+
+.ap-current-taf .ap-taf-line:not(:first-of-type) .ap-taf-line-track {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.ap-current-taf .ap-taf-line:not(:first-of-type) .ap-taf-seg {
+  min-height: 36px;
+  font-size: 12px;
+}
+
+.ap-current-taf .ap-taf-mini-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.ap-current-taf .ap-taf-mini-arrow {
+  width: 15px;
+  height: 15px;
 }
 
 @keyframes ap-warning-icon-blink {
@@ -1781,9 +1894,30 @@
     margin: 0 8px 8px;
   }
 
+  .ap-current-metar-layout {
+    grid-template-columns: 1fr;
+  }
+
   .ap-current-metar-grid {
     grid-template-columns: 1fr;
     grid-template-rows: none;
+  }
+
+  .ap-current-card-main {
+    grid-template-columns: minmax(56px, 78px) minmax(0, 1fr);
+  }
+
+  .ap-current-section-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ap-current-section-badge {
+    font-size: 13px;
+  }
+
+  .ap-current-section-time {
+    font-size: 12px;
   }
 
   .airport-panel {

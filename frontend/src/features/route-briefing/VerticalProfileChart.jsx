@@ -36,44 +36,115 @@ function assignMarkerLanes(markers, xFor) {
 function icingColor(g) {
   return ['rgba(0,0,0,0)', 'rgba(120,180,255,0.35)', 'rgba(120,120,255,0.5)', 'rgba(150,80,220,0.6)'][Math.max(0, Math.min(3, Math.round(g)))]
 }
-function moistureColor(p) {
-  if (!Number.isFinite(p)) return 'rgba(0,0,0,0)'
-  const a = Math.max(0, Math.min(1, p / 100))
-  return `rgba(60,140,90,${(0.15 + a * 0.45).toFixed(2)})`
+function chainSegments(segs) {
+  if (segs.length === 0) return []
+  const key = (p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`
+  const adj = new Map()
+  segs.forEach((seg, i) => {
+    const k0 = key(seg[0]); const k1 = key(seg[1])
+    if (!adj.has(k0)) adj.set(k0, [])
+    if (!adj.has(k1)) adj.set(k1, [])
+    adj.get(k0).push([i, 0])
+    adj.get(k1).push([i, 1])
+  })
+  const used = new Set()
+  const chains = []
+  for (let s = 0; s < segs.length; s++) {
+    if (used.has(s)) continue
+    const chain = [...segs[s]]
+    used.add(s)
+    for (let dir = 0; dir < 2; dir++) {
+      let running = true
+      while (running) {
+        running = false
+        const tip = dir === 0 ? chain[chain.length - 1] : chain[0]
+        for (const [idx, end] of (adj.get(key(tip)) || [])) {
+          if (used.has(idx)) continue
+          const next = segs[idx][1 - end]
+          if (dir === 0) chain.push(next); else chain.unshift(next)
+          used.add(idx)
+          running = true
+          break
+        }
+      }
+    }
+    chains.push(chain)
+  }
+  return chains
+}
+
+function catmullRomPath(pts, stride = 8) {
+  if (pts.length < 2) return ''
+  const sampled = stride > 1 && pts.length > 3
+    ? [pts[0], ...pts.filter((_, i) => i > 0 && i < pts.length - 1 && i % stride === 0), pts[pts.length - 1]]
+    : pts
+  if (sampled.length === 2) return `M ${sampled[0].x.toFixed(1)} ${sampled[0].y.toFixed(1)} L ${sampled[1].x.toFixed(1)} ${sampled[1].y.toFixed(1)}`
+  const all = [
+    { x: 2 * sampled[0].x - sampled[1].x, y: 2 * sampled[0].y - sampled[1].y },
+    ...sampled,
+    { x: 2 * sampled[sampled.length - 1].x - sampled[sampled.length - 2].x, y: 2 * sampled[sampled.length - 1].y - sampled[sampled.length - 2].y },
+  ]
+  const d = [`M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`]
+  for (let i = 1; i < all.length - 2; i++) {
+    const [p0, p1, p2, p3] = [all[i - 1], all[i], all[i + 1], all[i + 2]]
+    d.push(`C ${(p1.x + (p2.x - p0.x) / 6).toFixed(1)} ${(p1.y + (p2.y - p0.y) / 6).toFixed(1)},${(p2.x - (p3.x - p1.x) / 6).toFixed(1)} ${(p2.y - (p3.y - p1.y) / 6).toFixed(1)},${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`)
+  }
+  return d.join(' ')
+}
+
+// Same thresholds as map cloud layer (cloudPotentialField.js)
+const SPREAD_COLOR_RAMP = [
+  [0, 1, 'rgba(24,96,44,0.68)'],
+  [1, 2, 'rgba(49,124,62,0.58)'],
+  [2, 3, 'rgba(85,150,85,0.48)'],
+  [3, 4, 'rgba(132,176,124,0.36)'],
+  [4, 5, 'rgba(163,195,151,0.28)'],
+  [5, 6, 'rgba(188,209,174,0.22)'],
+]
+function moistureColor(spread, maxSpread = 4) {
+  if (!Number.isFinite(spread) || spread > maxSpread) return 'rgba(0,0,0,0)'
+  const entry = SPREAD_COLOR_RAMP.find(([min, max]) => spread >= min && spread < max)
+  return entry ? entry[2] : 'rgba(0,0,0,0)'
 }
 function WindBarb({ cx, cy, u, v }) {
   if (!Number.isFinite(u) || !Number.isFinite(v)) return null
   const kt = msToKt(Math.hypot(u, v))
-  if (kt < 2.5) return <circle cx={cx} cy={cy} r={2.5} className="cs-wind-calm" />
+  if (kt < 2.5) return <circle cx={cx} cy={cy} r={2} className="cs-wind-calm" />
   const { pennants, full, half } = windBarbFeathers(kt)
   const dir = windDirectionFromUV(u, v)
   const fromRad = (dir * Math.PI) / 180
-  const size = 18
+  const size = 16
   const tx = cx + Math.sin(fromRad) * size
   const ty = cy - Math.cos(fromRad) * size
   const sdx = (tx - cx) / size
   const sdy = (ty - cy) / size
   const px = -sdy; const py = sdx
-  const barbLen = size * 0.7
+  const barbLen = size * 0.65
   const STEP = size * 0.28
-  const parts = [`M ${cx.toFixed(1)} ${cy.toFixed(1)} L ${tx.toFixed(1)} ${ty.toFixed(1)}`]
+  const lineParts = [`M ${cx.toFixed(1)} ${cy.toFixed(1)} L ${tx.toFixed(1)} ${ty.toFixed(1)}`]
+  const polyParts = []
   let pos = 0
   for (let i = 0; i < pennants; i += 1) {
     const bx = tx - sdx * pos; const by = ty - sdy * pos
     const mx = bx - sdx * STEP; const my = by - sdy * STEP
-    parts.push(`M ${bx.toFixed(1)} ${by.toFixed(1)} L ${(bx + px * barbLen).toFixed(1)} ${(by + py * barbLen).toFixed(1)} L ${mx.toFixed(1)} ${my.toFixed(1)} Z`)
+    polyParts.push(`${bx.toFixed(1)},${by.toFixed(1)} ${(bx + px * barbLen).toFixed(1)},${(by + py * barbLen).toFixed(1)} ${mx.toFixed(1)},${my.toFixed(1)}`)
     pos += STEP * 1.2
   }
   for (let i = 0; i < full; i += 1) {
     const bx = tx - sdx * pos; const by = ty - sdy * pos
-    parts.push(`M ${bx.toFixed(1)} ${by.toFixed(1)} L ${(bx + px * barbLen).toFixed(1)} ${(by + py * barbLen).toFixed(1)}`)
+    lineParts.push(`M ${bx.toFixed(1)} ${by.toFixed(1)} L ${(bx + px * barbLen).toFixed(1)} ${(by + py * barbLen).toFixed(1)}`)
     pos += STEP
   }
   if (half > 0) {
     const bx = tx - sdx * pos; const by = ty - sdy * pos
-    parts.push(`M ${bx.toFixed(1)} ${by.toFixed(1)} L ${(bx + px * barbLen * 0.5).toFixed(1)} ${(by + py * barbLen * 0.5).toFixed(1)}`)
+    lineParts.push(`M ${bx.toFixed(1)} ${by.toFixed(1)} L ${(bx + px * barbLen * 0.5).toFixed(1)} ${(by + py * barbLen * 0.5).toFixed(1)}`)
   }
-  return <path d={parts.join(' ')} className="cs-wind-barb" />
+  return (
+    <g>
+      <path d={lineParts.join(' ')} className="cs-wind-barb" />
+      {polyParts.map((pts, i) => <polygon key={i} points={pts} className="cs-wind-pennant" />)}
+    </g>
+  )
 }
 
 export default function VerticalProfileChart({ profile, crossSection = null, layers = {} }) {
@@ -164,10 +235,11 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
         const vNext = lvl.values[vi + 1]
         const xLeft = xFor(v.distanceNm)
         const xRight = xFor(vNext.distanceNm)
+        const maxSpread = lvl.pressure === 500 ? 6 : 4
         const fill = layers.icing && v.icing != null
           ? icingColor(v.icing)
-          : layers.moisture && v.cloudPotential != null
-            ? moistureColor(v.cloudPotential)
+          : layers.moisture && v.spread != null
+            ? moistureColor(v.spread, maxSpread)
             : null
         if (fill && fill !== 'rgba(0,0,0,0)') {
           cells.push({ key: `${li}-${vi}`, x: xLeft, y: yTop, w: xRight - xLeft, h: yBot - yTop, fill })
@@ -190,13 +262,26 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
     const maxT = Math.max(...finiteTs)
     const result = []
     for (let t = Math.ceil(minT / 5) * 5; t <= maxT; t += 5) {
-      result.push({ level: t, bold: t === 0, segments: isothermSegments(cells, t) })
+      result.push({ level: t, bold: t === 0, chains: chainSegments(isothermSegments(cells, t)) })
     }
     return result
   })()
-  const windBarbs = crossSection && layers.wind ? csLevels.flatMap((lvl) =>
-    lvl.values.map((v) => ({ key: `w-${lvl.pressure}-${v.distanceNm}`, cx: xFor(v.distanceNm), cy: yFor(altFor(lvl)), u: v.u, v: v.v }))
-  ) : []
+  const windBarbs = (() => {
+    if (!crossSection || !layers.wind) return []
+    const BARB_PX = 32
+    const result = []
+    const sampleCount = csLevels[0]?.values?.length ?? 0
+    const step = Math.max(1, Math.round(BARB_PX / (plotWidth / Math.max(sampleCount, 1))))
+    for (const lvl of csLevels) {
+      const cy = yFor(altFor(lvl))
+      for (let vi = 0; vi < lvl.values.length; vi += step) {
+        const v = lvl.values[vi]
+        const cx = xFor(v.distanceNm)
+        result.push({ key: `w-${lvl.pressure}-${vi}`, cx, cy, u: v.u, v: v.v })
+      }
+    }
+    return result
+  })()
 
   return (
     <div className="vertical-profile-chart">
@@ -232,15 +317,20 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
           <clipPath id="cs-clip">
             <rect x={padding.left} y={padding.top} width={plotWidth} height={plotHeight} />
           </clipPath>
+          <filter id="cs-blur" x="-5%" y="-5%" width="110%" height="110%">
+            <feGaussianBlur stdDeviation="4" />
+          </filter>
         </defs>
         <rect className="vertical-profile-plot" x={padding.left} y={padding.top} width={plotWidth} height={plotHeight} />
         <g clipPath="url(#cs-clip)">
-          {shadingCells.map((cell) => (
-            <rect key={cell.key} x={cell.x} y={cell.y} width={cell.w} height={cell.h} fill={cell.fill} />
-          ))}
-          {tempIsotherms.flatMap(({ level, bold, segments }) =>
-            segments.map((seg, si) => (
-              <line key={`t${level}-${si}`} x1={seg[0].x.toFixed(1)} y1={seg[0].y.toFixed(1)} x2={seg[1].x.toFixed(1)} y2={seg[1].y.toFixed(1)} className={bold ? 'cs-isotherm cs-isotherm-zero' : 'cs-isotherm'} />
+          <g filter={layers.moisture && shadingCells.length > 0 ? 'url(#cs-blur)' : undefined}>
+            {shadingCells.map((cell) => (
+              <rect key={cell.key} x={cell.x} y={cell.y} width={cell.w} height={cell.h} fill={cell.fill} />
+            ))}
+          </g>
+          {tempIsotherms.flatMap(({ level, bold, chains }) =>
+            chains.map((pts, ci) => (
+              <path key={`t${level}-${ci}`} d={catmullRomPath(pts)} className={bold ? 'cs-isotherm cs-isotherm-zero' : 'cs-isotherm'} />
             ))
           )}
           {windBarbs.map((wb) => <WindBarb key={wb.key} cx={wb.cx} cy={wb.cy} u={wb.u} v={wb.v} />)}
