@@ -127,6 +127,11 @@ export function resolveKimHumidityComponentRequest({ level }) {
   return { data: 'P', name: 'rh', level: level.level, variable: 'rh', unit: '%' }
 }
 
+export function resolveKimHgtComponentRequest({ level }) {
+  if (level?.kind !== 'pressure') return null
+  return { data: 'P', name: 'hgt', level: level.level, variable: 'hgt', unit: 'm' }
+}
+
 export function resolveKimIcingComponentRequests({
   level,
   collectIcing = config.kim_nwp?.collect_icing !== false,
@@ -145,6 +150,7 @@ export function resolveKimIcingComponentRequests({
 function rawComponentFileName({ level, name, variable }) {
   if (variable === 'T') return 'T.txt'
   if (variable === 'rh') return 'rh.txt'
+  if (variable === 'hgt') return 'hgt.txt'
   if (DEFAULT_ICING_VARIABLES.includes(variable)) return `${variable}.txt`
   return `${name === level.uName ? 'u' : 'v'}.txt`
 }
@@ -315,9 +321,57 @@ export function mergeHumidityComponentIntoGrid({ grid, level, tmfc, hf, humidity
   }
 }
 
+export function mergeHgtComponentIntoGrid({ grid, level, tmfc, hf, hgtComponent, fetchedAt = new Date().toISOString() }) {
+  if (!hgtComponent) return grid
+  validateGridBounds(hgtComponent)
+  return {
+    ...grid,
+    variables: {
+      ...grid.variables,
+      hgt: buildKimNwpGrid({
+        model: KIM_NWP_MODEL,
+        tmfc,
+        hf,
+        level,
+        components: [hgtComponent],
+        fetchedAt: grid.fetched_at,
+      }).variables.hgt,
+    },
+    fetched_at: fetchedAt,
+  }
+}
+
 async function addHumidityToGrid({ grid, level, tmfc, hf }) {
   const humidityComponent = await fetchHumidityComponent({ level, tmfc, hf })
   return mergeHumidityComponentIntoGrid({ grid, level, tmfc, hf, humidityComponent })
+}
+
+async function fetchHgtComponent({ level, tmfc, hf }) {
+  const kim = config.kim_surface_wind
+  const request = resolveKimHgtComponentRequest({ level })
+  if (!request) return null
+  const text = await fetchKimGrid({
+    data: request.data,
+    name: request.name,
+    level: request.level,
+    tmfc,
+    hf,
+    sub: kim.sub,
+    map: 'S',
+    disp: 'A',
+  })
+  writeRawComponent({ level, tmfc, hf, name: request.name, variable: 'hgt', text })
+  const grid = parseKimGridText(text, {
+    variable: request.name,
+    level: request.level,
+    bounds: kim.bounds,
+  })
+  return { ...grid, variable: request.variable, unit: request.unit }
+}
+
+async function addHgtToGrid({ grid, level, tmfc, hf }) {
+  const hgtComponent = await fetchHgtComponent({ level, tmfc, hf })
+  return mergeHgtComponentIntoGrid({ grid, level, tmfc, hf, hgtComponent })
 }
 
 export function mergeIcingComponentsIntoGrid({ grid, level, tmfc, hf, icingComponents = [], fetchedAt = new Date().toISOString() }) {
@@ -351,6 +405,7 @@ async function addIcingToGrid({ grid, level, tmfc, hf }) {
 
 function requiredVariablesForTask(level, { collectIcing = config.kim_nwp?.collect_icing !== false } = {}) {
   const variables = ['u', 'v', 'T']
+  if (level?.kind === 'pressure') variables.push('hgt')
   if (isKimNwpMoistureLevel(level)) variables.push('rh')
   if (collectIcing && isKimNwpIcingLevel(level)) {
     variables.push(...(config.kim_nwp?.icing_variables || DEFAULT_ICING_VARIABLES))
@@ -366,6 +421,7 @@ export async function collectKimNwpTask({
   task,
   fetchWind = fetchWindGrid,
   addTemperature = addTemperatureToGrid,
+  addHgt = addHgtToGrid,
   addHumidity = addHumidityToGrid,
   addIcing = addIcingToGrid,
   collectIcing = config.kim_nwp?.collect_icing !== false,
@@ -392,6 +448,12 @@ export async function collectKimNwpTask({
   let lastError = null
   try {
     grid = await addTemperature({ grid: windGrid, ...task })
+    writeGrid(grid)
+  } catch (error) {
+    lastError = error
+  }
+  try {
+    grid = await addHgt({ grid, ...task })
     writeGrid(grid)
   } catch (error) {
     lastError = error
@@ -455,6 +517,7 @@ export function hasCompleteKimNwpRun({
     for (const hf of forecastHours) {
       const variables = index.availability?.[level.id]?.[String(hf)]?.variables || []
       if (!variables.includes('u') || !variables.includes('v') || !variables.includes('T')) return false
+      if (level.kind === 'pressure' && !variables.includes('hgt')) return false
       if (isKimNwpMoistureLevel(level) && !variables.includes('rh')) return false
       if (collectIcing && isKimNwpIcingLevel(level) && !icingVariables.every((name) => variables.includes(name))) return false
     }
