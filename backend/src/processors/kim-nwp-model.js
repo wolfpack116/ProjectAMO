@@ -33,6 +33,7 @@ const SCALE_BY_VARIABLE = {
   tqi: 2e-7,
   tqr: 2e-7,
   tqs: 2e-7,
+  hgt: 1, // integer metres; int16 range (±32767m) covers 150hPa (~14km)
 }
 const DEFAULT_SCALE = 0.01
 const OFFSET = 0
