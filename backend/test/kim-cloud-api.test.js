@@ -45,7 +45,7 @@ test('cloud API exposes filtered index, field payload, invalid selection, and sn
   process.env.NODE_ENV = 'test'
   process.env.DATA_PATH = root
 
-  const level = KIM_NWP_LEVELS[2]
+  const level = KIM_NWP_LEVELS.find((entry) => entry.id === '850hPa')
   const upperLevel = KIM_NWP_LEVELS.find((entry) => entry.id === '300hPa')
   const tmfc = '2099010100'
   const hf = 0
@@ -107,8 +107,8 @@ test('cloud API exposes filtered index, field payload, invalid selection, and sn
     assert.equal(cloudIndexResponse.status, 200)
     const cloudIndex = await cloudIndexResponse.json()
     assert.equal(cloudIndex.type, 'kim_nwp_cloud_index')
-    assert.deepEqual(cloudIndex.levels.map((entry) => entry.id), ['850hPa'])
-    assert.equal(cloudIndex.availability['300hPa'], undefined)
+    assert.deepEqual(cloudIndex.levels.map((entry) => entry.id), ['850hPa', '300hPa'])
+    assert.deepEqual(cloudIndex.availability['300hPa']['0'].variables, ['T', 'rh'])
     assert.deepEqual(cloudIndex.availability['850hPa']['0'].variables, ['T', 'rh'])
     assert.equal(JSON.stringify(cloudIndex).includes('293.15'), false)
 
