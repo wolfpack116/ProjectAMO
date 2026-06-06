@@ -1055,6 +1055,7 @@ function MapView({
         <Suspense fallback={null}>
           <VerticalProfileWindow
             profile={routeBriefing.state.verticalProfile}
+            crossSection={routeBriefing.state.crossSection}
             isOpen={routeBriefing.state.verticalProfileWindowOpen}
             onClose={() => routeBriefing.actions.setVerticalProfileWindowOpen(false)}
           />

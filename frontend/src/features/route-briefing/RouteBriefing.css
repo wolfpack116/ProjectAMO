@@ -547,6 +547,30 @@
   cursor: pointer;
 }
 
+.cross-section-toggles {
+  display: flex;
+  gap: 6px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cs-toggle {
+  padding: 4px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cs-toggle.is-on {
+  background: #0ea5e9;
+  border-color: #0284c7;
+  color: #fff;
+}
+
 .vertical-profile-window .vertical-profile-chart {
   margin: 0;
   padding: 16px;
