@@ -264,7 +264,7 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
     const minT = Math.min(...finiteTs)
     const maxT = Math.max(...finiteTs)
     const result = []
-    for (let t = Math.ceil(minT / 5) * 5; t <= maxT; t += 5) {
+    for (let t = Math.ceil(minT / 10) * 10; t <= maxT; t += 10) {
       result.push({ level: t, bold: t === 0, chains: chainSegments(isothermSegments(cells, t)) })
     }
     return result
