@@ -600,8 +600,8 @@
 }
 
 .cs-isotherm-label {
-  font-size: 9px;
-  fill: rgba(100, 130, 160, 0.85);
+  font-size: 11px;
+  fill: rgba(100, 130, 160, 0.9);
   font-family: monospace;
   dominant-baseline: middle;
 }

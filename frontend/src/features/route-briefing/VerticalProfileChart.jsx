@@ -209,7 +209,8 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
   const todLabelY = todMarker ? Math.max(padding.top + 14, todMarker.y - 30) : 0
   const todArrowTopY = todMarker ? Math.max(todLabelY + 7, todMarker.y - 21) : 0
   const todArrowTipY = todMarker ? Math.min(todMarker.y - 7, todArrowTopY + 10) : 0
-  const yTicks = [0, yMax / 2, yMax]
+  const yTickInterval = yMax <= 10000 ? 2000 : yMax <= 20000 ? 3000 : yMax <= 40000 ? 5000 : 10000
+  const yTicks = Array.from({ length: Math.floor(yMax / yTickInterval) + 1 }, (_, i) => i * yTickInterval).filter(v => v <= yMax)
   const cruiseTick = Number.isFinite(cruiseAltitudeFt) && cruiseAltitudeFt > 0 && cruiseAltitudeFt < yMax
     ? cruiseAltitudeFt
     : null
