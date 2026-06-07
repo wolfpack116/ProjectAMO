@@ -255,28 +255,10 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
     const sampleCount = csLevels[0]?.values?.length ?? 0
     if (sampleCount < 2) return []
     const xs = csLevels[0].values.map((v) => xFor(v.distanceNm))
-    // Interpolate T field to 100 rows for smooth isotherms
-    const INTERP_ROWS = 100
-    const levelsByAlt = [...csLevels].sort((a, b) => altFor(a) - altFor(b))
-    const denseYs = Array.from({ length: INTERP_ROWS }, (_, i) => yFor((i / (INTERP_ROWS - 1)) * yMax))
-    const denseValues = []
-    for (let ri = 0; ri < INTERP_ROWS; ri++) {
-      const targetAlt = (ri / (INTERP_ROWS - 1)) * yMax
-      let lo = levelsByAlt[0]; let hi = levelsByAlt[levelsByAlt.length - 1]
-      for (let i = 0; i < levelsByAlt.length - 1; i += 1) {
-        if (altFor(levelsByAlt[i]) <= targetAlt && altFor(levelsByAlt[i + 1]) >= targetAlt) {
-          lo = levelsByAlt[i]; hi = levelsByAlt[i + 1]; break
-        }
-      }
-      const altLo = altFor(lo); const altHi = altFor(hi)
-      const t = altLo === altHi ? 0 : Math.max(0, Math.min(1, (targetAlt - altLo) / (altHi - altLo)))
-      for (let ci = 0; ci < sampleCount; ci++) {
-        const tLo = lo.values[ci]?.t; const tHi = hi.values[ci]?.t
-        denseValues.push(Number.isFinite(tLo) && Number.isFinite(tHi) ? tLo + t * (tHi - tLo) : (tLo ?? tHi ?? NaN))
-      }
-    }
-    const cells = { nx: sampleCount, ny: INTERP_ROWS, values: denseValues, xs, ys: denseYs }
-    const finiteTs = denseValues.filter(Number.isFinite)
+    const ys = csLevels.map((lvl) => yFor(altFor(lvl)))
+    const values = csLevels.flatMap((lvl) => lvl.values.map((v) => v.t))
+    const cells = { nx: sampleCount, ny: csLevels.length, values, xs, ys }
+    const finiteTs = values.filter(Number.isFinite)
     if (finiteTs.length === 0) return []
     const minT = finiteTs.reduce((a, b) => Math.min(a, b), Infinity)
     const maxT = finiteTs.reduce((a, b) => Math.max(a, b), -Infinity)
