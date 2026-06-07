@@ -278,8 +278,8 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
     const cells = { nx: sampleCount, ny: INTERP_ROWS, values: denseValues, xs, ys: denseYs }
     const finiteTs = denseValues.filter(Number.isFinite)
     if (finiteTs.length === 0) return []
-    const minT = Math.min(...finiteTs)
-    const maxT = Math.max(...finiteTs)
+    const minT = finiteTs.reduce((a, b) => Math.min(a, b), Infinity)
+    const maxT = finiteTs.reduce((a, b) => Math.max(a, b), -Infinity)
     const result = []
     for (let t = Math.ceil(minT / 5) * 5; t <= maxT; t += 5) {
       result.push({ level: t, bold: t === 0, chains: chainSegments(isothermSegments(cells, t)) })
