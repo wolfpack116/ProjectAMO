@@ -614,6 +614,45 @@ app.get('/api/kim/icing/field', (req, res) => {
     res.status(400).json({ error: error.message || 'invalid kim icing selection' })
   }
 })
+app.get('/api/ktg/index', (_req, res) => {
+  const latest = readKtgLatest(DATA_ROOT)
+  const index = latest ? readKtgIndex(DATA_ROOT) : null
+  if (latest && index) {
+    setNoStore(res)
+    res.json({ tmfc: latest.tmfc, hf: latest.hf, validTime: latest.validTime, altLevelsFt: index.altLevelsFt ?? [] })
+    return
+  }
+  setNoStore(res)
+  res.status(503).json({ error: 'ktg index unavailable' })
+})
+
+app.get('/api/ktg/grid', (req, res) => {
+  const altFt = Number(req.query.altFt) || 3000
+  const latest = readKtgLatest(DATA_ROOT)
+  if (!latest) {
+    setNoStore(res)
+    res.status(503).json({ error: 'ktg data unavailable' })
+    return
+  }
+  const coords = readKtgCoords({ root: DATA_ROOT, tmfc: latest.tmfc, hf: latest.hf })
+  const gridData = readKtgGridSafe({ root: DATA_ROOT, tmfc: latest.tmfc, hf: latest.hf, altFt })
+  if (!coords || !gridData) {
+    setNoStore(res)
+    res.status(503).json({ error: `ktg grid unavailable for ${altFt}ft` })
+    return
+  }
+  let latMin = Infinity; let latMax = -Infinity; let lonMin = Infinity; let lonMax = -Infinity
+  for (const v of coords.lat) { if (v < latMin) latMin = v; if (v > latMax) latMax = v }
+  for (const v of coords.lon) { if (v < lonMin) lonMin = v; if (v > lonMax) lonMax = v }
+  setNoStore(res)
+  res.json({
+    altFt,
+    grid: { ny: coords.ny, nx: coords.nx, latMin, latMax, lonMin, lonMax },
+    ktg: gridData.ktg,
+    run: { tmfc: latest.tmfc, hf: latest.hf, validTime: latest.validTime },
+  })
+})
+
 app.get('/api/ground-forecast', (_, res) => sendLatest(res, 'ground_forecast'))
 app.get('/api/ground-overview', (_, res) => sendLatest(res, 'ground_overview'))
 app.get('/api/environment', (_, res) => sendLatest(res, 'environment'))

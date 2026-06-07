@@ -82,7 +82,7 @@ export function syncIcingPotentialOverlay(map, model = {}) {
       source: ICING_IMAGE_SOURCE_ID,
       slot: 'middle',
       layout: { visibility: 'visible' },
-      paint: { 'raster-opacity': 1, 'raster-fade-duration': 0, 'raster-resampling': 'linear' },
+      paint: { 'raster-opacity': 1, 'raster-fade-duration': 0, 'raster-resampling': 'nearest' },
     })
   }
   setVisible(map, true)

@@ -11,11 +11,13 @@ function WeatherLegends({
   cloudLegendEntries = [],
   icingLegendVisible,
   icingLegendEntries = [],
+  turbulenceLegendVisible,
+  turbulenceLegendEntries = [],
   radarReferenceTimeMs,
   lightningReferenceTimeMs,
   formatReferenceTimeLabel,
 }) {
-  if (!radarLegendVisible && !lightningLegendVisible && !windSpeedLegendVisible && !temperatureLegendVisible && !cloudLegendVisible && !icingLegendVisible) return null
+  if (!radarLegendVisible && !lightningLegendVisible && !windSpeedLegendVisible && !temperatureLegendVisible && !cloudLegendVisible && !icingLegendVisible && !turbulenceLegendVisible) return null
 
   return (
     <div className="map-right-legends">
@@ -113,6 +115,23 @@ function WeatherLegends({
           <div className="temperature-legend-title">Icing Potential</div>
           <div className="temperature-legend-scale">
             {icingLegendEntries.map((entry) => (
+              <div key={entry.label} className="temperature-legend-row">
+                <span className="temperature-legend-label">{entry.label}</span>
+                <span
+                  className="temperature-legend-swatch"
+                  style={{ backgroundColor: entry.color }}
+                  aria-hidden="true"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {turbulenceLegendVisible && (
+        <div className="temperature-legend" aria-label="Turbulence legend">
+          <div className="temperature-legend-title">Turbulence</div>
+          <div className="temperature-legend-scale">
+            {turbulenceLegendEntries.map((entry) => (
               <div key={entry.label} className="temperature-legend-row">
                 <span className="temperature-legend-label">{entry.label}</span>
                 <span

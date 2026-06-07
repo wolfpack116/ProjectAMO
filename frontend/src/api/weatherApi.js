@@ -193,6 +193,14 @@ export async function fetchKimIcingField({ tmfc, hf, level }, options = {}) {
   return fetchJson(`/api/kim/icing/field?${params.toString()}`, options)
 }
 
+export async function fetchKtgIndex(options = {}) {
+  return fetchJson('/api/ktg/index', options)
+}
+
+export async function fetchKtgGrid({ altFt }, options = {}) {
+  return fetchJson(`/api/ktg/grid?altFt=${altFt}`, options)
+}
+
 export async function fetchSigwxFrontMeta(tmfc) {
   if (!tmfc) return null
   return fetchJson(`/api/sigwx-front-meta?tmfc=${encodeURIComponent(tmfc)}`, { optional: true })

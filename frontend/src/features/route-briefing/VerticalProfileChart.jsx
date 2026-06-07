@@ -113,6 +113,32 @@ function moistureColor(spread, maxSpread = 4) {
   const entry = SPREAD_COLOR_RAMP.find(([min, max]) => spread >= min && spread < max)
   return entry ? entry[2] : 'rgba(0,0,0,0)'
 }
+
+// Ray-casting point-in-polygon for GeoJSON polygon ring [[lon, lat], ...]
+function pointInRing(lon, lat, ring) {
+  let inside = false
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i]
+    const [xj, yj] = ring[j]
+    if (((yi > lat) !== (yj > lat)) && (lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi)) {
+      inside = !inside
+    }
+  }
+  return inside
+}
+function pointInGeometry(lon, lat, geometry) {
+  if (!geometry) return false
+  if (geometry.type === 'Polygon') return pointInRing(lon, lat, geometry.coordinates[0])
+  if (geometry.type === 'MultiPolygon') return geometry.coordinates.some((poly) => pointInRing(lon, lat, poly[0]))
+  return false
+}
+
+const PHEN_LABEL = { SEV_TURB: 'TURB', MOD_TURB: 'TURB', SEV_ICE: 'ICE', MOD_ICE: 'ICE', TS: 'TS', CB: 'CB', TC: 'TC' }
+function phenLabel(code) {
+  if (!code) return '?'
+  return PHEN_LABEL[code] ?? code.split('_')[0].slice(0, 4)
+}
+const ADVISORY_COLORS = { sigmet: '#EF4444', airmet: '#F59E0B' }
 function WindBarb({ cx, cy, u, v }) {
   if (!Number.isFinite(u) || !Number.isFinite(v)) return null
   const kt = msToKt(Math.hypot(u, v))
@@ -154,7 +180,7 @@ function WindBarb({ cx, cy, u, v }) {
   )
 }
 
-export default function VerticalProfileChart({ profile, crossSection = null, layers = {} }) {
+export default function VerticalProfileChart({ profile, crossSection = null, layers = {}, advisories = [] }) {
   const samples = profile?.axis?.samples ?? []
   const terrainValues = profile?.terrain?.values ?? []
   const cruiseAltitudeFt = profile?.flightPlan?.plannedCruiseAltitudeFt
@@ -345,6 +371,47 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
     return result
   })()
 
+  const advisoryBands = (() => {
+    if (!layers.advisories || !advisories.length || samples.length < 2) return []
+    const bands = []
+    for (const item of advisories) {
+      if (!item?.geometry) continue
+      if (item.phenomenon_code === 'SFC_VIS') continue
+      const kind = item.kind ?? 'sigmet'
+      const alt = item.altitude ?? {}
+      const lowerFt = alt.lower_fl != null ? alt.lower_fl * 100 : 0
+      const upperFt = alt.upper_fl != null ? alt.upper_fl * 100 : (kind === 'airmet' ? 18000 : 45000)
+      // Find contiguous runs of samples inside this advisory
+      let runStart = null
+      for (let i = 0; i <= samples.length; i++) {
+        const inside = i < samples.length && pointInGeometry(samples[i].lon, samples[i].lat, item.geometry)
+        if (inside && runStart === null) {
+          runStart = i
+        } else if (!inside && runStart !== null) {
+          const sLeft = samples[runStart]
+          const sRight = samples[i - 1]
+          const xLeft = xFor(sLeft.distanceNm)
+          const xRight = xFor(sRight.distanceNm)
+          const clampedUpper = Math.min(upperFt, yMax)
+          const clampedLower = Math.max(lowerFt, 0)
+          if (clampedUpper > clampedLower && xRight > xLeft) {
+            bands.push({
+              key: `adv-${item.mapKey ?? item.id ?? bands.length}-${runStart}`,
+              x: xLeft,
+              y: yFor(clampedUpper),
+              w: xRight - xLeft,
+              h: yFor(clampedLower) - yFor(clampedUpper),
+              label: phenLabel(item.phenomenon_code),
+              color: ADVISORY_COLORS[kind] ?? '#888',
+            })
+          }
+          runStart = null
+        }
+      }
+    }
+    return bands
+  })()
+
   return (
     <div className="vertical-profile-chart">
       <div className="vertical-profile-meta">
@@ -399,6 +466,29 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
             ))
           )}
           {windBarbs.map((wb) => <WindBarb key={wb.key} cx={wb.cx} cy={wb.cy} u={wb.u} v={wb.v} />)}
+          {advisoryBands.map((band) => (
+            <g key={band.key}>
+              <rect
+                x={band.x} y={band.y} width={band.w} height={band.h}
+                fill="none"
+                stroke={band.color}
+                strokeWidth={1.5}
+                strokeDasharray="6,4"
+                opacity={0.85}
+              />
+              <text
+                x={band.x + band.w / 2}
+                y={band.y + band.h / 2 + 5}
+                textAnchor="middle"
+                fontSize={11}
+                fontWeight="bold"
+                fill={band.color}
+                opacity={0.9}
+              >
+                {band.label}
+              </text>
+            </g>
+          ))}
         </g>
         {isothermlabels.map(({ level, y, bold }) => (
           <text

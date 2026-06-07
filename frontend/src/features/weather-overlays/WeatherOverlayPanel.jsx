@@ -15,12 +15,13 @@ function WeatherOverlayPanel({
   tempStatus = 'idle',
   cloudStatus = 'idle',
   icingStatus = 'idle',
+  turbulenceStatus = 'idle',
   onWindFlowOpacityChange,
   onWindFlowTrailChange,
   onWindFlowWidthChange,
 }) {
   const groups = [
-    { id: 'weather', title: '기상', ids: showWind ? ['radar', 'satellite', 'lightning', 'wind', 'temp', 'cloud', 'icing'] : ['radar', 'satellite', 'lightning'] },
+    { id: 'weather', title: '기상', ids: showWind ? ['radar', 'satellite', 'lightning', 'wind', 'temp', 'cloud', 'icing', 'turbulence'] : ['radar', 'satellite', 'lightning'] },
     { id: 'hazards', title: '위험기상', ids: ['sigmet', 'airmet', 'sigwx'] },
     { id: 'traffic', title: '항적', ids: ['adsb'] },
   ]
@@ -32,6 +33,7 @@ function WeatherOverlayPanel({
     temp: 'Temp',
     cloud: 'Moisture',
     icing: 'Icing Potential',
+    turbulence: 'Turbulence',
     sigmet: 'SIGMET',
     airmet: 'AIRMET',
     sigwx: 'SIGWX',
@@ -206,6 +208,28 @@ function WeatherOverlayPanel({
     )
   }
 
+  function renderTurbulenceControl(layer) {
+    const disabled = isLayerDisabled(layer.id)
+    return (
+      <div key={layer.id} className={`wind-toggle-block${disabled ? ' is-disabled' : ''}`}>
+        <label className={`layer-toggle-row${disabled ? ' is-disabled' : ''}`}>
+          <input
+            className="layer-toggle-input"
+            type="checkbox"
+            checked={!!visibility.turbulence}
+            disabled={disabled}
+            onChange={() => onToggle('turbulence')}
+          />
+          <span className="layer-toggle-switch" aria-hidden="true" />
+          <span className="layer-toggle-swatch" style={{ background: layer.color }} />
+          <span className="layer-toggle-label">{layerLabels.turbulence}</span>
+        </label>
+        {visibility.turbulence && turbulenceStatus === 'loading' && <div className="wind-toggle-meta">Turbulence loading</div>}
+        {visibility.turbulence && (turbulenceStatus === 'error' || turbulenceStatus === 'unavailable') && <div className="wind-toggle-meta">Turbulence unavailable</div>}
+      </div>
+    )
+  }
+
   const body = (
     <div className="layer-drawer-body">
       {groups.map((group) => (
@@ -222,6 +246,7 @@ function WeatherOverlayPanel({
               if (layer.id === 'temp') return renderTempControl(layer)
               if (layer.id === 'cloud') return renderCloudControl(layer)
               if (layer.id === 'icing') return renderIcingControl(layer)
+              if (layer.id === 'turbulence') return renderTurbulenceControl(layer)
               const disabled = isLayerDisabled(layer.id)
               const badge = getLayerBadge(layer.id)
               return (
