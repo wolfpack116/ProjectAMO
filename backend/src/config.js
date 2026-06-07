@@ -166,6 +166,14 @@ export const kim_surface_wind = {
   },
 }
 
+export const ktg = {
+  max_runs: Number(process.env.KTG_MAX_RUNS || 2),
+  timeout_ms: Number(process.env.KTG_TIMEOUT_MS || 60000),
+  forecast_hours: [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30],
+  single_forecast: process.env.KTG_SINGLE_FORECAST !== '0',
+  collect_on_startup: process.env.KTG_COLLECT_ON_STARTUP !== '0',
+}
+
 export const kim_nwp = {
   max_runs: Number(process.env.KIM_NWP_MAX_RUNS || 2),
   keep_raw: process.env.KIM_NWP_KEEP_RAW !== '0',
@@ -190,6 +198,7 @@ export const schedule = {
   radar_echo_interval: '*/5 * * * *',
   satellite_interval: '*/10 * * * *',
   adsb_interval: '0 * * * *',
+  ktg_interval: '25 1,2,7,8,13,14,19,20 * * *',
   kim_surface_wind_interval: '12 0,1,2,6,7,8,12,13,14,18,19,20 * * *',
   ground_forecast_interval: '30 6,11,18,23 * * *',
   environment_interval: '10 * * * *',
@@ -210,6 +219,7 @@ export default {
   airports,
   environment,
   ground_forecast,
+  ktg,
   lightning,
   amos,
   radar_echo,

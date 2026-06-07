@@ -70,6 +70,48 @@ export function buildCrossSection({ axis, run, levelIds, loadLevel }) {
   }
 }
 
+// Nearest-neighbour lookup for LCC-projected KTG grids.
+// coordsLat/coordsLon are flat float arrays (length ny*nx).
+function nearestKtgIndex(coordsLat, coordsLon, targetLat, targetLon) {
+  let best = -1
+  let bestDist = Infinity
+  for (let i = 0; i < coordsLat.length; i++) {
+    const dlat = coordsLat[i] - targetLat
+    const dlon = coordsLon[i] - targetLon
+    const d = dlat * dlat + dlon * dlon
+    if (d < bestDist) { bestDist = d; best = i }
+  }
+  return best
+}
+
+// Builds turbulence cross-section from pre-loaded KTG coords + per-altitude grids.
+// coords: { lat[], lon[], ny, nx }
+// loadAltGrid: (altFt) => { ktg: float[] } | null
+export function buildKtgCrossSection({ axis, coords, altLevelsFt, loadAltGrid }) {
+  if (!coords || !Array.isArray(coords.lat) || !altLevelsFt?.length) {
+    return { available: false }
+  }
+  const samples = axis?.samples ?? []
+  if (samples.length === 0) return { available: false }
+
+  // Pre-compute nearest grid index per route sample (shared across altitudes)
+  const nearestIdx = samples.map((s) => nearestKtgIndex(coords.lat, coords.lon, s.lat, s.lon))
+
+  const levels = []
+  for (const altFt of altLevelsFt) {
+    const gridData = loadAltGrid(altFt)
+    if (!gridData?.ktg) continue
+    const values = samples.map((s, si) => {
+      const idx = nearestIdx[si]
+      const ktg = idx >= 0 ? (gridData.ktg[idx] ?? null) : null
+      return { distanceNm: s.distanceNm, ktg }
+    })
+    levels.push({ altFt, values })
+  }
+
+  return { available: levels.length > 0, levels }
+}
+
 function nullableC(kelvin) {
   return Number.isFinite(kelvin) ? Math.round((kelvin - 273.15) * 100) / 100 : null
 }

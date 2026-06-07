@@ -36,6 +36,12 @@ function assignMarkerLanes(markers, xFor) {
 function icingColor(g) {
   return ['rgba(0,0,0,0)', 'rgba(120,180,255,0.35)', 'rgba(120,120,255,0.5)', 'rgba(150,80,220,0.6)'][Math.max(0, Math.min(3, Math.round(g)))]
 }
+function ktgColor(ktg) {
+  if (ktg == null || ktg < 0.3) return null
+  if (ktg < 0.475) return 'rgba(100,210,100,0.40)'
+  if (ktg < 0.75)  return 'rgba(255,195,0,0.55)'
+  return 'rgba(255,55,55,0.65)'
+}
 function chainSegments(segs) {
   if (segs.length === 0) return []
   const key = (p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`
@@ -223,6 +229,28 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
 
   const csLevels = crossSection?.levels ?? []
   const altFor = (lvl) => Number.isFinite(lvl.altFt) ? lvl.altFt : pressureToFallbackFt(lvl.pressure)
+  const turbulenceCells = (() => {
+    const turb = crossSection?.turbulence
+    if (!turb?.available || !layers.turbulence || !turb.levels?.length) return []
+    const cells = []
+    for (const lvl of turb.levels) {
+      const yTop = yFor(lvl.altFt + 500)
+      const yBot = yFor(Math.max(0, lvl.altFt - 500))
+      for (let vi = 0; vi < lvl.values.length - 1; vi++) {
+        const color = ktgColor(lvl.values[vi].ktg)
+        if (!color) continue
+        cells.push({
+          key: `turb-${lvl.altFt}-${vi}`,
+          x: xFor(lvl.values[vi].distanceNm),
+          y: yTop,
+          w: xFor(lvl.values[vi + 1].distanceNm) - xFor(lvl.values[vi].distanceNm),
+          h: yBot - yTop,
+          fill: color,
+        })
+      }
+    }
+    return cells
+  })()
   const shadingCells = (() => {
     if (!crossSection || (!layers.icing && !layers.moisture)) return []
     const cells = []
@@ -357,6 +385,9 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
         </defs>
         <rect className="vertical-profile-plot" x={padding.left} y={padding.top} width={plotWidth} height={plotHeight} />
         <g clipPath="url(#cs-clip)">
+          {turbulenceCells.map((cell) => (
+            <rect key={cell.key} x={cell.x} y={cell.y} width={cell.w} height={cell.h} fill={cell.fill} />
+          ))}
           <g filter={layers.moisture && shadingCells.length > 0 ? 'url(#cs-blur)' : undefined}>
             {shadingCells.map((cell) => (
               <rect key={cell.key} x={cell.x} y={cell.y} width={cell.w} height={cell.h} fill={cell.fill} />

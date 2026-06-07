@@ -31,6 +31,8 @@ import {
   readKimNwpLatest,
   validateKimNwpSelection,
 } from './src/processors/kim-nwp-store.js'
+import { readKtgLatest, readKtgIndex, readKtgCoords, readKtgGridSafe } from './src/processors/ktg-store.js'
+import { buildKtgCrossSection } from './src/briefing/cross-section-sampler.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -728,8 +730,21 @@ app.post('/api/briefing/cross-section', (req, res) => {
       levelIds: KIM_NWP_LEVELS.filter((l) => l.kind === 'pressure').map((l) => l.id),
       loadLevel,
     })
+
+    // KTG low-altitude turbulence
+    const ktgLatest = readKtgLatest(DATA_ROOT)
+    const ktgIndex = ktgLatest ? readKtgIndex(DATA_ROOT) : null
+    const ktgCoords = ktgLatest ? readKtgCoords({ root: DATA_ROOT, tmfc: ktgLatest.tmfc, hf: ktgLatest.hf }) : null
+    const turbulence = buildKtgCrossSection({
+      axis,
+      coords: ktgCoords,
+      altLevelsFt: ktgIndex?.altLevelsFt ?? [],
+      loadAltGrid: (altFt) => readKtgGridSafe({ root: DATA_ROOT, tmfc: ktgLatest?.tmfc, hf: ktgLatest?.hf, altFt }),
+    })
+    if (ktgLatest) turbulence.run = { tmfc: ktgLatest.tmfc, hf: ktgLatest.hf, validTime: ktgLatest.validTime }
+
     setNoStore(res)
-    res.json(result)
+    res.json({ ...result, turbulence })
   } catch (error) {
     res.status(400).json({ error: error.message || 'cross-section failed' })
   }

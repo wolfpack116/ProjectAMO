@@ -2,7 +2,7 @@ import { useState } from 'react'
 import VerticalProfileChart from './VerticalProfileChart.jsx'
 
 export default function VerticalProfileWindow({ profile, crossSection, isOpen, onClose }) {
-  const [layers, setLayers] = useState({ temp: true, wind: true, icing: false, moisture: false })
+  const [layers, setLayers] = useState({ temp: true, wind: true, icing: false, moisture: false, turbulence: true })
   if (!profile || !isOpen) return null
 
   const toggle = (key) => setLayers((prev) => {
@@ -23,7 +23,7 @@ export default function VerticalProfileWindow({ profile, crossSection, isOpen, o
           <button type="button" className="vertical-profile-window-close" onClick={onClose}>{'닫기'}</button>
         </div>
         <div className="cross-section-toggles" role="group" aria-label="레이어">
-          {[['temp', 'TEMP'], ['moisture', 'Moisture'], ['icing', 'Icing'], ['wind', 'Wind']].map(([k, label]) => (
+          {[['temp', 'TEMP'], ['moisture', 'Moisture'], ['icing', 'Icing'], ['wind', 'Wind'], ['turbulence', 'Turbulence']].map(([k, label]) => (
             <button key={k} type="button" className={`cs-toggle${layers[k] ? ' is-on' : ''}`} aria-pressed={layers[k]} onClick={() => toggle(k)}>{label}</button>
           ))}
         </div>

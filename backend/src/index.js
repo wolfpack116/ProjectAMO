@@ -16,8 +16,9 @@ import satelliteProcessor from './processors/satellite-processor.js'
 import groundForecastProcessor from './processors/ground-forecast-processor.js'
 import environmentProcessor from './processors/environment-processor.js'
 import airportInfoProcessor from './processors/airport-info-processor.js'
+import ktgProcessor from './processors/ktg-processor.js'
 
-const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, kim_surface_wind: false, satellite: false, ground_forecast: false, environment: false, airport_info: false };
+const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, kim_surface_wind: false, ktg: false, satellite: false, ground_forecast: false, environment: false, airport_info: false };
 const KIM_NWP_CRON_OPTIONS = { timezone: 'Etc/UTC' }
 const AIRPORT_INFO_CRON_OPTIONS = { timezone: 'Asia/Seoul' }
 
@@ -73,6 +74,7 @@ function buildInitialCollectionJobs({ includeKimNwp = config.kim_nwp?.collect_on
     ["airport_info", airportInfoProcessor.process],
   ]
   if (includeKimNwp) jobs.splice(10, 0, ["kim_surface_wind", kimSurfaceWindProcessor.process])
+  if (config.ktg?.collect_on_startup !== false) jobs.push(["ktg", ktgProcessor.process])
   return jobs
 }
 
@@ -93,6 +95,7 @@ async function main() {
   cron.schedule(config.schedule.lightning_interval, () => runWithLock("lightning", lightningProcessor.process));
   cron.schedule(config.schedule.radar_echo_interval, () => runWithLock("radar_echo", radarEchoProcessor.process));
   scheduleKimNwpJob();
+  cron.schedule(config.schedule.ktg_interval, () => runWithLock('ktg', ktgProcessor.process), KIM_NWP_CRON_OPTIONS);
   cron.schedule(config.schedule.satellite_interval, () => runWithLock("satellite", satelliteProcessor.process));
   cron.schedule(config.schedule.ground_forecast_interval, () => runWithLock("ground_forecast", groundForecastProcessor.process));
   cron.schedule(config.schedule.environment_interval, () => runWithLock("environment", environmentProcessor.process));

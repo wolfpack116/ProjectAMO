@@ -56,6 +56,7 @@ import { setLayerVisibility } from './lib/mapLayerUtils.js'
 import { bindLayerEvent, cleanupAll } from './lib/mapStyleSync.js'
 import {
   AIRPORT_CIRCLE_LAYER,
+  AIRPORT_INTERACTIVE_LAYERS,
   AIRPORT_SOURCE_ID,
   addAirportLayers,
   addGeoBoundaryLayers,
@@ -63,6 +64,11 @@ import {
   setGeoBoundaryVisibility,
   shouldShowGeoBoundaries,
 } from './lib/baseMapLayers.js'
+import {
+  registerAirportStationImages,
+  registerAirportWeatherImages,
+  registerAirportWindBarbImages,
+} from './lib/airportStationImages.js'
 import {
   VFR_WP_CIRCLE,
   bindVfrInteractions,
@@ -283,7 +289,14 @@ function MapView({
     map.fitBounds(bounds, { padding: 80, maxZoom: fitBoundsRequest.maxZoom ?? 8, duration: 500 })
   }, [fitBoundsRequest, isStyleReady, styleRevision])
 
-  const airportGeoJSON = useMemo(() => createAirportGeoJSON(airports), [airports])
+  const airportGeoJSON = useMemo(
+    () => createAirportGeoJSON(airports, metarData),
+    [airports, metarData],
+  )
+  const airportWeatherImageIds = useMemo(
+    () => [...new Set(airportGeoJSON.features.map((feature) => feature.properties.weatherIconId).filter(Boolean))],
+    [airportGeoJSON],
+  )
   const adsbGeoJSON = useMemo(() => createAdsbGeoJSON(adsbData), [adsbData])
   const weatherOverlayModel = useMemo(() => buildWeatherOverlayModel({
     echoMeta,
@@ -617,14 +630,14 @@ function MapView({
     adsbEventCleanupRef.current?.()
     sectorEventCleanupRef.current?.()
 
-    airportEventCleanupRef.current = [
-      bindLayerEvent(map, 'click', AIRPORT_CIRCLE_LAYER, (e) => {
+    airportEventCleanupRef.current = AIRPORT_INTERACTIVE_LAYERS.flatMap((layerId) => [
+      bindLayerEvent(map, 'click', layerId, (e) => {
         const icao = e.features?.[0]?.properties?.icao
         if (icao) onSelectRef.current?.(icao)
       }),
-      bindLayerEvent(map, 'mouseenter', AIRPORT_CIRCLE_LAYER, () => { map.getCanvas().style.cursor = 'pointer' }),
-      bindLayerEvent(map, 'mouseleave', AIRPORT_CIRCLE_LAYER, () => { map.getCanvas().style.cursor = '' }),
-    ]
+      bindLayerEvent(map, 'mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer' }),
+      bindLayerEvent(map, 'mouseleave', layerId, () => { map.getCanvas().style.cursor = '' }),
+    ])
 
     const advisoryLayerIds = [
       ADVISORY_LAYER_DEFS.sigmet.fillLayerId,
@@ -839,22 +852,38 @@ function MapView({
   useEffect(() => {
     const map = mapRef.current
     if (!map || !isStyleReady) return
-    addAirportLayers(map, airportGeoJSON)
-    map.getSource(AIRPORT_SOURCE_ID)?.setData(airportGeoJSON)
 
-    // Hide WFS airport labels if they have an active marker
-    const labelLayerId = 'aviation-airports-label'
-    const baseFilter = ['==', ['geometry-type'], 'Point']
+    let cancelled = false
 
-    if (map.getLayer(labelLayerId)) {
-      const icaos = airportGeoJSON.features.map(f => f.properties.icao).filter(Boolean)
-      const filter = icaos.length > 0
-        ? ['all', baseFilter, ['match', ['get', 'icao'], icaos, false, true]]
-        : baseFilter
+    async function syncAirportMarkers() {
+      registerAirportStationImages(map)
+      registerAirportWindBarbImages(map)
+      await registerAirportWeatherImages(map, airportWeatherImageIds)
+      if (cancelled) return
 
-      map.setFilter(labelLayerId, filter)
+      addAirportLayers(map, airportGeoJSON)
+      map.getSource(AIRPORT_SOURCE_ID)?.setData(airportGeoJSON)
+
+      // Hide WFS airport labels if they have an active marker
+      const labelLayerId = 'aviation-airports-label'
+      const baseFilter = ['==', ['geometry-type'], 'Point']
+
+      if (map.getLayer(labelLayerId)) {
+        const icaos = airportGeoJSON.features.map(f => f.properties.icao).filter(Boolean)
+        const filter = icaos.length > 0
+          ? ['all', baseFilter, ['match', ['get', 'icao'], icaos, false, true]]
+          : baseFilter
+
+        map.setFilter(labelLayerId, filter)
+      }
     }
-  }, [airportGeoJSON, isStyleReady, styleRevision])
+
+    void syncAirportMarkers()
+
+    return () => {
+      cancelled = true
+    }
+  }, [airportGeoJSON, airportWeatherImageIds, isStyleReady, styleRevision])
 
   // ???? Sync airport selected state ??????????????????????????????????????????????????????????????????????????????????????
 
