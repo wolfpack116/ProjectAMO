@@ -572,14 +572,14 @@
 }
 
 .cs-isotherm {
-  stroke: rgba(100, 130, 160, 0.55);
-  stroke-width: 1;
+  stroke: rgba(100, 130, 160, 0.7);
+  stroke-width: 1.5;
   fill: none;
 }
 
 .cs-isotherm-zero {
-  stroke: rgba(220, 60, 60, 0.75);
-  stroke-width: 1.8;
+  stroke: rgba(220, 60, 60, 0.85);
+  stroke-width: 2.5;
 }
 
 .cs-wind-barb {
@@ -624,8 +624,7 @@
 }
 
 .vertical-profile-grid {
-  stroke: #e2e8f0;
-  stroke-width: 1;
+  stroke: none;
 }
 
 .vertical-profile-axis-label {
