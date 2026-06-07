@@ -24,6 +24,7 @@ import { useKimSurfaceWind } from '../weather-overlays/lib/useKimSurfaceWind.js'
 import { useKimTemperature } from '../weather-overlays/lib/useKimTemperature.js'
 import { useKimCloudPotential } from '../weather-overlays/lib/useKimCloudPotential.js'
 import { useKimIcing } from '../weather-overlays/lib/useKimIcing.js'
+import { useKtgTurbulence } from '../weather-overlays/lib/useKtgTurbulence.js'
 import { destroyWindOverlay, syncWindOverlay } from '../weather-overlays/lib/windOverlaySync.js'
 import { WIND_SPEED_COLOR_RAMP } from '../weather-overlays/lib/windField.js'
 import { CELSIUS_TEMPERATURE_COLOR_RAMP } from '../weather-overlays/lib/temperatureField.js'
@@ -32,6 +33,8 @@ import { CLOUD_POTENTIAL_COLOR_RAMP, getCloudPotentialMaxSpread } from '../weath
 import { destroyCloudPotentialOverlay, syncCloudPotentialOverlay } from '../weather-overlays/lib/cloudPotentialOverlaySync.js'
 import { ICING_COLOR_RAMP } from '../weather-overlays/lib/icingPotentialField.js'
 import { destroyIcingPotentialOverlay, syncIcingPotentialOverlay } from '../weather-overlays/lib/icingPotentialOverlaySync.js'
+import { KTG_COLOR_RAMP } from '../weather-overlays/lib/ktgTurbulenceField.js'
+import { destroyKtgTurbulenceOverlay, syncKtgTurbulenceOverlay } from '../weather-overlays/lib/ktgTurbulenceOverlaySync.js'
 import { getNextMetVisibility } from '../weather-overlays/lib/metLayerVisibility.js'
 import {
   LIGHTNING_BLINK_INTERVAL_MS,
@@ -199,10 +202,12 @@ function MapView({
   const tempEnabled = enableWindOverlay && metVisibility.temp
   const cloudEnabled = enableWindOverlay && metVisibility.cloud
   const icingEnabled = enableWindOverlay && metVisibility.icing
+  const turbulenceEnabled = enableWindOverlay && metVisibility.turbulence
   const kimSurfaceWind = useKimSurfaceWind(windEnabled, nwpSelection, setNwpSelection)
   const kimTemperature = useKimTemperature(tempEnabled, nwpSelection, setNwpSelection)
   const kimCloudPotential = useKimCloudPotential(cloudEnabled, nwpSelection, setNwpSelection)
   const kimIcing = useKimIcing(icingEnabled, nwpSelection, setNwpSelection)
+  const ktgTurbulence = useKtgTurbulence(turbulenceEnabled)
   const windRendererOptions = useMemo(() => ({
     ...(kimSurfaceWind.lowPower
       ? { desktopCap: 800, mobileCap: 800, frameCap: 15, sampleStep: 4, pixelRatioCap: 1.5 }
@@ -810,6 +815,21 @@ function MapView({
     styleRevision,
   ])
 
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !isStyleReady || !enableWindOverlay) return
+    syncKtgTurbulenceOverlay(map, {
+      ktgGrid: ktgTurbulence.ktgGrid,
+      isVisible: metVisibility.turbulence,
+    })
+  }, [
+    enableWindOverlay,
+    ktgTurbulence.ktgGrid,
+    metVisibility.turbulence,
+    isStyleReady,
+    styleRevision,
+  ])
+
   useEffect(() => () => {
     const map = mapRef.current
     if (map) {
@@ -817,6 +837,7 @@ function MapView({
       destroyTemperatureOverlay(map)
       destroyCloudPotentialOverlay(map)
       destroyIcingPotentialOverlay(map)
+      destroyKtgTurbulenceOverlay(map)
     }
   }, [])
 
@@ -920,6 +941,9 @@ function MapView({
     if (id === 'icing') {
       return !enableWindOverlay || (!metVisibility.icing && (kimIcing.status === 'error' || kimIcing.status === 'unavailable') && !kimIcing.icingField)
     }
+    if (id === 'turbulence') {
+      return !enableWindOverlay || (!metVisibility.turbulence && (ktgTurbulence.status === 'error') && !ktgTurbulence.ktgGrid)
+    }
     if (id === 'radar') return radarFrames.length === 0
     if (id === 'satellite') return satelliteFrames.length === 0
     return false
@@ -989,6 +1013,8 @@ function MapView({
         cloudLegendEntries={CLOUD_POTENTIAL_COLOR_RAMP.filter((entry) => entry.max <= getCloudPotentialMaxSpread(kimCloudPotential.cloudField))}
         icingLegendVisible={!!(enableWindOverlay && metVisibility.icing && kimIcing.icingField)}
         icingLegendEntries={ICING_COLOR_RAMP}
+        turbulenceLegendVisible={!!(enableWindOverlay && metVisibility.turbulence && ktgTurbulence.ktgGrid)}
+        turbulenceLegendEntries={KTG_COLOR_RAMP}
         radarReferenceTimeMs={radarReferenceTimeMs}
         lightningReferenceTimeMs={lightningReferenceTimeMs}
         formatReferenceTimeLabel={formatReferenceTimeLabel}
@@ -1039,6 +1065,36 @@ function MapView({
         isElevated={weatherTimelineVisible}
         onSelectionChange={setNwpSelection}
       />
+      {enableWindOverlay && metVisibility.turbulence && ktgTurbulence.altLevelsFt.length > 1 && (() => {
+        const altLevels = ktgTurbulence.altLevelsFt
+        const selAlt = ktgTurbulence.selectedAltFt
+        const idx = altLevels.indexOf(selAlt)
+        const effectiveIdx = idx >= 0 ? idx : 0
+        return (
+          <div className="nwp-level-slider-rail" aria-label="Turbulence altitude">
+            <input
+              className="nwp-level-slider"
+              type="range"
+              min="0"
+              max={String(altLevels.length - 1)}
+              step="1"
+              value={String(effectiveIdx)}
+              aria-label="Turbulence altitude level"
+              onChange={(e) => ktgTurbulence.setSelectedAltFt(altLevels[Number(e.target.value)])}
+            />
+            <div className="nwp-level-slider-ticks" aria-hidden="true">
+              {[...altLevels].reverse().map((ft) => (
+                <span
+                  key={ft}
+                  className={`nwp-level-slider-tick${ft === selAlt ? ' is-active' : ''}`}
+                >
+                  {`${ft / 1000}K`}
+                </span>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       <AdsbTimestamp
         isVisible={metVisibility.adsb && !weatherTimelineVisible}
@@ -1087,6 +1143,10 @@ function MapView({
             crossSection={routeBriefing.state.crossSection}
             isOpen={routeBriefing.state.verticalProfileWindowOpen}
             onClose={() => routeBriefing.actions.setVerticalProfileWindowOpen(false)}
+            advisories={[
+              ...sigmetItems.map((item) => ({ ...item, kind: 'sigmet' })),
+              ...airmetItems.map((item) => ({ ...item, kind: 'airmet' })),
+            ]}
           />
         </Suspense>
       )}
@@ -1112,6 +1172,7 @@ function MapView({
           tempStatus={kimTemperature.status}
           cloudStatus={kimCloudPotential.status}
           icingStatus={kimIcing.status}
+          turbulenceStatus={ktgTurbulence.status}
           windLowPower={kimSurfaceWind.lowPower}
           windFlowOpacity={windFlowOpacity}
           windFlowTrail={windFlowTrail}

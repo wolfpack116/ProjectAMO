@@ -107,9 +107,9 @@ export function addAirportLayers(map, data) {
         'icon-image': ['get', 'windIconId'],
         'icon-size': [
           'interpolate', ['linear'], ['zoom'],
-          6, 0.62,
-          9, 0.72,
-          12, 0.8,
+          6, 0.74,
+          9, 0.86,
+          12, 0.96,
         ],
         'icon-rotate': ['get', 'windDirection'],
         'icon-rotation-alignment': 'map',
@@ -121,7 +121,7 @@ export function addAirportLayers(map, data) {
   }
   if (!map.getLayer(AIRPORT_VISIBILITY_LAYER)) {
     map.addLayer({
-      id: AIRPORT_VISIBILITY_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top', minzoom: 8,
+      id: AIRPORT_VISIBILITY_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top',
       filter: ['!=', ['get', 'visibilityText'], ''],
       layout: {
         'text-field': ['get', 'visibilityText'],
@@ -130,8 +130,8 @@ export function addAirportLayers(map, data) {
         'text-anchor': 'right',
         'text-size': [
           'interpolate', ['linear'], ['zoom'],
-          6, 10,
-          9, 11,
+          5, 10,
+          8, 11,
           12, 12,
         ],
         'text-allow-overlap': true,
@@ -148,11 +148,11 @@ export function addAirportLayers(map, data) {
         'icon-image': ['get', 'weatherIconId'],
         'icon-size': [
           'interpolate', ['linear'], ['zoom'],
-          6, 0.34,
-          9, 0.42,
-          12, 0.5,
+          5, 0.58,
+          8, 0.68,
+          12, 0.78,
         ],
-        'icon-offset': [1.2, 0],
+        'icon-offset': [1.3, 0],
         'icon-anchor': 'left',
         'icon-allow-overlap': true,
         'icon-ignore-placement': true,
@@ -161,7 +161,7 @@ export function addAirportLayers(map, data) {
   }
   if (!map.getLayer(AIRPORT_CEILING_LAYER)) {
     map.addLayer({
-      id: AIRPORT_CEILING_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top', minzoom: 8,
+      id: AIRPORT_CEILING_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top',
       filter: ['!=', ['get', 'ceilingText'], ''],
       layout: {
         'text-field': ['get', 'ceilingText'],
@@ -170,6 +170,7 @@ export function addAirportLayers(map, data) {
         'text-anchor': 'top',
         'text-size': [
           'interpolate', ['linear'], ['zoom'],
+          5, 10,
           8, 10,
           12, 11,
         ],

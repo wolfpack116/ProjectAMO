@@ -62,60 +62,46 @@ function createStationImage(color, skyCover) {
   return createCanvasImage((context, size) => {
     const centerX = size / 2
     const centerY = size / 2
-    const radius = 7
+    const strokeRadius = 7
+    const fillRadius = 5.8
 
     context.lineCap = 'round'
     context.lineJoin = 'round'
 
     context.beginPath()
-    context.arc(centerX, centerY, radius, 0, Math.PI * 2)
+    context.arc(centerX, centerY, strokeRadius, 0, Math.PI * 2)
     context.strokeStyle = '#ffffff'
     context.lineWidth = 4
     context.stroke()
 
-    fillStationCover(context, centerX, centerY, radius, skyCover, color)
+    context.beginPath()
+    context.arc(centerX, centerY, strokeRadius - 0.6, 0, Math.PI * 2)
+    context.fillStyle = '#ffffff'
+    context.fill()
+
+    fillStationCover(context, centerX, centerY, fillRadius, skyCover, color)
 
     context.beginPath()
-    context.arc(centerX, centerY, radius, 0, Math.PI * 2)
+    context.arc(centerX, centerY, strokeRadius, 0, Math.PI * 2)
     context.strokeStyle = color
-    context.lineWidth = 2
+    context.lineWidth = 1.6
     context.stroke()
   }, 48)
-}
-
-function drawWindFlag(context, centerX, currentY, spacing, barbLength, angleRad, color) {
-  const nextY = currentY + spacing
-  const dx = barbLength * Math.sin(angleRad)
-  const dy = barbLength * Math.cos(angleRad)
-  context.fillStyle = color
-  context.beginPath()
-  context.moveTo(centerX, currentY)
-  context.lineTo(centerX + dx, currentY + dy)
-  context.lineTo(centerX, nextY)
-  context.closePath()
-  context.fill()
-  return nextY
-}
-
-function drawWindLine(context, centerX, currentY, length, angleRad) {
-  const dx = length * Math.sin(angleRad)
-  const dy = length * Math.cos(angleRad)
-  context.beginPath()
-  context.moveTo(centerX, currentY)
-  context.lineTo(centerX + dx, currentY + dy)
-  context.stroke()
 }
 
 function createWindBarbImage(speedKt) {
   return createCanvasImage((context, size) => {
     const centerX = size / 2
     const centerY = size / 2
+    const stemStartY = centerY - 10
     const stemLength = 28
-    const barbLength = 10
+    const fullBarbLength = 12
     const halfBarbLength = 6
     const barbSpacing = 5
     const angleRad = (60 * Math.PI) / 180
-    const tipY = centerY - stemLength
+    const tipY = stemStartY - stemLength
+    const bareTipLength = 3
+    const featherStartY = tipY + bareTipLength
     const bucket = Math.min(60, Math.max(5, Math.round(speedKt / 5) * 5))
     let remaining = bucket
     const flags = Math.floor(remaining / 50)
@@ -131,22 +117,45 @@ function createWindBarbImage(speedKt) {
       context.lineJoin = 'round'
 
       context.beginPath()
-      context.moveTo(centerX, centerY)
+      context.moveTo(centerX, stemStartY)
       context.lineTo(centerX, tipY)
       context.stroke()
 
-      let currentY = tipY
+      const drawBarb = (attachY, length) => {
+        const dx = length * Math.sin(angleRad)
+        const dy = length * Math.cos(angleRad)
+        context.beginPath()
+        context.moveTo(centerX, attachY)
+        context.lineTo(centerX - dx, attachY + dy)
+        context.stroke()
+      }
+
+      const drawPennant = (attachY) => {
+        const dx = fullBarbLength * Math.sin(angleRad)
+        const dy = fullBarbLength * Math.cos(angleRad)
+        const nextY = attachY + (barbSpacing * 2)
+        context.fillStyle = strokeStyle
+        context.beginPath()
+        context.moveTo(centerX, attachY)
+        context.lineTo(centerX - dx, attachY + dy)
+        context.lineTo(centerX, nextY)
+        context.closePath()
+        context.fill()
+        return nextY
+      }
+
+      let currentY = featherStartY
       for (let index = 0; index < flags; index += 1) {
-        currentY = drawWindFlag(context, centerX, currentY, barbSpacing, barbLength, angleRad, strokeStyle)
+        currentY = drawPennant(currentY)
       }
 
       for (let index = 0; index < fullBarbs; index += 1) {
-        drawWindLine(context, centerX, currentY, barbLength, angleRad)
+        drawBarb(currentY, fullBarbLength)
         currentY += barbSpacing
       }
 
       if (halfBarbs > 0) {
-        drawWindLine(context, centerX, currentY, halfBarbLength, angleRad)
+        drawBarb(currentY, halfBarbLength)
       }
     }
 
@@ -172,9 +181,39 @@ function loadImageElement(src) {
 async function createWeatherImage(iconId) {
   const image = await loadImageElement(getWeatherIconSrc(iconId))
   return createCanvasImage((context, size) => {
+    const imageInset = 5
+    const imageSize = size - (imageInset * 2)
+
     context.clearRect(0, 0, size, size)
-    context.drawImage(image, 2, 2, size - 4, size - 4)
-  }, 40)
+    context.save()
+    context.globalAlpha = 0.28
+    for (const [offsetX, offsetY] of [
+      [-1.5, 0],
+      [1.5, 0],
+      [0, -1.5],
+      [0, 1.5],
+      [-1, -1],
+      [1, -1],
+      [-1, 1],
+      [1, 1],
+    ]) {
+      context.drawImage(
+        image,
+        imageInset + offsetX,
+        imageInset + offsetY,
+        imageSize,
+        imageSize,
+      )
+    }
+    context.restore()
+
+    context.save()
+    context.shadowColor = 'rgba(15, 23, 42, 0.3)'
+    context.shadowBlur = 6
+    context.shadowOffsetY = 1.5
+    context.drawImage(image, imageInset, imageInset, imageSize, imageSize)
+    context.restore()
+  }, 48)
 }
 
 export function registerAirportStationImages(map) {

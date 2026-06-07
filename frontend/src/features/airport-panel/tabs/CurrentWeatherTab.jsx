@@ -191,6 +191,54 @@ function MetarSummary({ metar, amosData, icao, airportMeta }) {
     model.cards.temperature,
   ]
 
+  function renderCardLabel(card) {
+    if (card.id === 'weather') {
+      return (
+        <span className="ap-current-card-label ap-current-card-label--stack">
+          <span>현재</span>
+          <span>날씨</span>
+        </span>
+      )
+    }
+
+    if (card.id === 'temperature') {
+      return (
+        <span className="ap-current-card-label ap-current-card-label--stack">
+          <span>기온/</span>
+          <span>이슬점</span>
+        </span>
+      )
+    }
+
+    return <span className="ap-current-card-label">{card.label}</span>
+  }
+
+  function renderCardValue(card) {
+    if (card.id === 'weather') {
+      return (
+        <strong className="ap-current-card-value ap-current-card-value--with-visual" style={card.color ? { color: card.color } : undefined}>
+          {card.visual ? <WeatherIcon visual={card.visual} className="ap-current-card-value-icon" /> : null}
+          <span>{card.value}</span>
+        </strong>
+      )
+    }
+
+    if (card.id === 'wind') {
+      return (
+        <strong className="ap-current-card-value ap-current-card-value--with-visual" style={card.color ? { color: card.color } : undefined}>
+          {Number.isFinite(card.windRotation) ? <MoveUp className="ap-current-card-value-arrow" style={{ transform: `rotate(${card.windRotation}deg)` }} /> : null}
+          <span>{card.value}</span>
+        </strong>
+      )
+    }
+
+    return (
+      <strong className="ap-current-card-value" style={card.color ? { color: card.color } : undefined}>
+        <span>{card.value}</span>
+      </strong>
+    )
+  }
+
   return (
     <section className="ap-current-section ap-current-metar">
       <div className="ap-current-section-header">
@@ -217,13 +265,9 @@ function MetarSummary({ metar, amosData, icao, airportMeta }) {
             >
               <div className="ap-current-card-main">
                 <div className="ap-current-card-meta">
-                  {card.visual ? <WeatherIcon visual={card.visual} className="ap-current-card-icon" /> : null}
-                  {Number.isFinite(card.windRotation) ? <MoveUp className="ap-current-card-arrow" style={{ transform: `rotate(${card.windRotation}deg)` }} /> : null}
-                  <span className="ap-current-card-label">{card.label}</span>
+                  {renderCardLabel(card)}
                 </div>
-                <strong className="ap-current-card-value" style={card.color ? { color: card.color } : undefined}>
-                  <span>{card.value}</span>
-                </strong>
+                {renderCardValue(card)}
               </div>
               {card.secondary ? <span className="ap-current-card-secondary">{card.secondary}</span> : null}
             </article>

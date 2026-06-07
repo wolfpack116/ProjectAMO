@@ -447,18 +447,18 @@
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(78px, 1fr));
+  grid-template-rows: repeat(2, minmax(92px, 1fr));
   gap: 8px;
 }
 
 .ap-current-card {
   min-width: 0;
-  min-height: 78px;
+  min-height: 92px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 6px;
-  padding: 10px 12px;
+  padding: 14px 14px;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   background: #fff;
@@ -472,7 +472,7 @@
 .ap-current-card-main {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(52px, 74px) minmax(0, 1fr);
+  grid-template-columns: 44px minmax(0, 1fr);
   align-items: stretch;
   gap: 6px;
 }
@@ -484,13 +484,23 @@
   gap: 5px;
   padding-right: 6px;
   border-right: 1px solid rgba(148, 163, 184, 0.28);
+  flex-direction: column;
+  justify-content: center;
 }
 
 .ap-current-card-label {
   color: #64748b;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.ap-current-card-label--stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
 }
 
 .ap-current-card-value {
@@ -504,6 +514,22 @@
   line-height: 1.2;
   overflow-wrap: anywhere;
   text-align: right;
+}
+
+.ap-current-card-value--with-visual {
+  gap: 8px;
+}
+
+.ap-current-card-value-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.ap-current-card-value-arrow {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
 }
 
 .ap-current-card-icon {
@@ -1904,7 +1930,7 @@
   }
 
   .ap-current-card-main {
-    grid-template-columns: minmax(56px, 78px) minmax(0, 1fr);
+    grid-template-columns: 44px minmax(0, 1fr);
   }
 
   .ap-current-section-header {
