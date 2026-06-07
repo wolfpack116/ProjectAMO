@@ -73,18 +73,19 @@ function chainSegments(segs) {
   return chains
 }
 
-function catmullRomPath(pts, stride = 8) {
+function catmullRomPath(pts, maxPoints = 40) {
   if (pts.length < 2) return ''
-  const sampled = stride > 1 && pts.length > 3
-    ? [pts[0], ...pts.filter((_, i) => i > 0 && i < pts.length - 1 && i % stride === 0), pts[pts.length - 1]]
-    : pts
+  const n = Math.max(2, Math.min(maxPoints, pts.length))
+  const sampled = pts.length <= n ? pts :
+    Array.from({ length: n }, (_, i) => pts[Math.round(i * (pts.length - 1) / (n - 1))])
   if (sampled.length === 2) return `M ${sampled[0].x.toFixed(1)} ${sampled[0].y.toFixed(1)} L ${sampled[1].x.toFixed(1)} ${sampled[1].y.toFixed(1)}`
+  const last = sampled[sampled.length - 1]
   const all = [
     { x: 2 * sampled[0].x - sampled[1].x, y: 2 * sampled[0].y - sampled[1].y },
     ...sampled,
-    { x: 2 * sampled[sampled.length - 1].x - sampled[sampled.length - 2].x, y: 2 * sampled[sampled.length - 1].y - sampled[sampled.length - 2].y },
+    { x: 2 * last.x - sampled[sampled.length - 2].x, y: 2 * last.y - sampled[sampled.length - 2].y },
   ]
-  const d = [`M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`]
+  const d = [`M ${sampled[0].x.toFixed(1)} ${sampled[0].y.toFixed(1)}`]
   for (let i = 1; i < all.length - 2; i++) {
     const [p0, p1, p2, p3] = [all[i - 1], all[i], all[i + 1], all[i + 2]]
     d.push(`C ${(p1.x + (p2.x - p0.x) / 6).toFixed(1)} ${(p1.y + (p2.y - p0.y) / 6).toFixed(1)},${(p2.x - (p3.x - p1.x) / 6).toFixed(1)} ${(p2.y - (p3.y - p1.y) / 6).toFixed(1)},${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`)
