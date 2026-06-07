@@ -680,8 +680,15 @@ app.post('/api/briefing/cross-section', (req, res) => {
     }
     const latest = readKimNwpLatest(DATA_ROOT)
     if (!latest?.latestRun) return res.status(503).json({ error: 'kim run unavailable' })
+    const index = readKimNwpIndex(DATA_ROOT)
     const tmfc = String(req.body.tmfc || latest.latestRun)
-    const candidateHours = config.kim_nwp?.forecast_hours || [0, 3, 6, 9, 12]
+    // Only consider hours that actually have pressure-level wind data
+    const pressureWindIndex = filterKimNwpIndexForVariables(index, ['u', 'v'])
+    const availableHours = pressureWindIndex?.times?.filter((t) => {
+      const pressureLevels = (pressureWindIndex?.levels ?? []).filter((l) => l.kind === 'pressure')
+      return pressureLevels.some((l) => pressureWindIndex.availability?.[l.id]?.[String(t.hf)])
+    }).map((t) => t.hf) ?? []
+    const candidateHours = availableHours.length > 0 ? availableHours : (config.kim_nwp?.forecast_hours || [0, 3, 6, 9, 12])
     const hf = Number.isFinite(Number(req.body.hf))
       ? Number(req.body.hf)
       : selectNearestForecastHour({ tmfc, candidateHours })
