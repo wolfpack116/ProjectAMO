@@ -599,6 +599,18 @@
   stroke-width: 1.2;
 }
 
+.cs-isotherm-label {
+  font-size: 9px;
+  fill: rgba(100, 130, 160, 0.85);
+  font-family: monospace;
+  dominant-baseline: middle;
+}
+
+.cs-isotherm-label-zero {
+  fill: rgba(220, 60, 60, 0.9);
+  font-weight: bold;
+}
+
 .vertical-profile-window .vertical-profile-chart {
   margin: 0;
   padding: 16px;

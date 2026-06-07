@@ -113,7 +113,7 @@ function WindBarb({ cx, cy, u, v }) {
   const { pennants, full, half } = windBarbFeathers(kt)
   const dir = windDirectionFromUV(u, v)
   const fromRad = (dir * Math.PI) / 180
-  const size = 16
+  const size = 13
   const tx = cx + Math.sin(fromRad) * size
   const ty = cy - Math.cos(fromRad) * size
   const sdx = (tx - cx) / size
@@ -266,15 +266,46 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
     }
     return result
   })()
+  const isothermlabels = (() => {
+    if (!crossSection || !layers.temp) return []
+    const seen = new Set()
+    return tempIsotherms.flatMap(({ level, bold, chains }) => {
+      const labels = []
+      for (const chain of chains) {
+        let bestX = -Infinity; let bestY = null
+        for (const pt of chain) { if (pt.x > bestX) { bestX = pt.x; bestY = pt.y } }
+        if (bestY === null || bestX < padding.left + plotWidth * 0.4) continue
+        // Deduplicate labels at very close y positions (within 8px)
+        const yKey = Math.round(bestY / 8)
+        const key = `${level}-${yKey}`
+        if (seen.has(key)) continue
+        seen.add(key)
+        labels.push({ level, y: bestY, bold })
+      }
+      return labels
+    })
+  })()
   const windBarbs = (() => {
-    if (!crossSection || !layers.wind) return []
-    const BARB_PX = 32
+    if (!crossSection || !layers.wind || csLevels.length < 2) return []
+    const MIN_PX = 13
+    const BARB_PX_W = 32
+    // Sort levels ascending by altitude, then thin out levels that are too close in pixel space
+    const levelsByAlt = [...csLevels].sort((a, b) => altFor(a) - altFor(b))
+    const kept = []
+    let lastY = null
+    for (const lvl of levelsByAlt) {
+      const y = yFor(altFor(lvl))
+      if (lastY === null || Math.abs(y - lastY) >= MIN_PX) {
+        kept.push(lvl)
+        lastY = y
+      }
+    }
+    const sampleCount = kept[0]?.values?.length ?? 0
+    const colStep = Math.max(1, Math.round(BARB_PX_W / (plotWidth / Math.max(sampleCount, 1))))
     const result = []
-    const sampleCount = csLevels[0]?.values?.length ?? 0
-    const step = Math.max(1, Math.round(BARB_PX / (plotWidth / Math.max(sampleCount, 1))))
-    for (const lvl of csLevels) {
+    for (const lvl of kept) {
       const cy = yFor(altFor(lvl))
-      for (let vi = 0; vi < lvl.values.length; vi += step) {
+      for (let vi = 0; vi < lvl.values.length; vi += colStep) {
         const v = lvl.values[vi]
         const cx = xFor(v.distanceNm)
         result.push({ key: `w-${lvl.pressure}-${vi}`, cx, cy, u: v.u, v: v.v })
@@ -335,6 +366,16 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
           )}
           {windBarbs.map((wb) => <WindBarb key={wb.key} cx={wb.cx} cy={wb.cy} u={wb.u} v={wb.v} />)}
         </g>
+        {isothermlabels.map(({ level, y, bold }) => (
+          <text
+            key={`tl-${level}-${y.toFixed(0)}`}
+            x={padding.left + plotWidth + 4}
+            y={y}
+            className={`cs-isotherm-label${bold ? ' cs-isotherm-label-zero' : ''}`}
+          >
+            {level}°
+          </text>
+        ))}
         {yTicks.map((tick) => (
           <g key={`y-${tick}`}>
             <line className="vertical-profile-grid" x1={padding.left} x2={padding.left + plotWidth} y1={yFor(tick)} y2={yFor(tick)} />
