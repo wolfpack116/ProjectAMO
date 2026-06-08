@@ -1,20 +1,9 @@
 
 import sharp from 'sharp'
+import { latLonToEN } from '../lib/lcc-projection.js'
 
 const DEG2RAD = Math.PI / 180;
 const BASE_OUTPUT_WIDTH = 1200;
-
-// LCC projection parameters (same as radar-echo-parser.js)
-const PHI1 = 30.0 * DEG2RAD;
-const PHI2 = 60.0 * DEG2RAD;
-const PHI0 = 38.0 * DEG2RAD;
-const LAM0 = 126.0 * DEG2RAD;
-const R = 6371009; // Earth radius in meters
-
-const _n = Math.log(Math.cos(PHI1) / Math.cos(PHI2)) /
-  Math.log(Math.tan(Math.PI / 4 + PHI2 / 2) / Math.tan(Math.PI / 4 + PHI1 / 2));
-const _F = Math.cos(PHI1) * Math.pow(Math.tan(Math.PI / 4 + PHI1 / 2), _n) / _n;
-const _rho0 = R * _F / Math.pow(Math.tan(Math.PI / 4 + PHI0 / 2), _n);
 
 // Output geographic bounds (covers KO domain)
 const WEST = 114.0;
@@ -28,13 +17,6 @@ const IR_BT_COLD_K = 190;
 const IR_BT_WARM_K = 310;
 const IR_DISPLAY_GAMMA = 1.15;
 
-function latLonToEN(latDeg, lonDeg) {
-  const lat = latDeg * DEG2RAD;
-  const lon = lonDeg * DEG2RAD;
-  const rho = R * _F / Math.pow(Math.tan(Math.PI / 4 + lat / 2), _n);
-  const theta = _n * (lon - LAM0);
-  return [rho * Math.sin(theta), _rho0 - rho * Math.cos(theta)];
-}
 
 function latToMercatorY(lat) {
   const clamped = Math.max(-85.05112878, Math.min(85.05112878, lat));
