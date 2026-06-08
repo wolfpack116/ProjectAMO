@@ -251,7 +251,7 @@ Provided DEM source:
 Recommended storage location:
 
 - local development: `backend/data/terrain/`
-- GCP VM runtime: `/opt/projectamo/shared/data/terrain/`
+- EC2 VM runtime: `/opt/projectamo/shared/data/terrain/`
 
 Do not place the DEM under `frontend/public/`.
 
@@ -272,7 +272,7 @@ Reason:
 Deployment note:
 
 - `scripts/prepare-terrain-tiles.js` writes tiles under the active project checkout by default, which is fine for local development.
-- On the GCP VM, deploy the generated `tiles/` directory to `/opt/projectamo/shared/data/terrain/tiles/` because the backend resolves terrain from `DATA_PATH`.
+- On the EC2 VM, deploy the generated `tiles/` directory to `/opt/projectamo/shared/data/terrain/tiles/` because the backend resolves terrain from `DATA_PATH`.
 
 ### Why tiles
 

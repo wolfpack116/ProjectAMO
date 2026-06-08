@@ -4,7 +4,7 @@
 
 ## 배경 / 운영 구조
 - Vite+React 프론트 / Node+Express 백엔드 항공 기상 대시보드. 저사양 GCP free-tier VM 가정.
-- 프로덕션: **nginx(:80/443) + PM2**. nginx가 `frontend/dist` SPA와 `/data/*`를 직접 서빙하고, `/api/*`는 Express(127.0.0.1:3001)로 reverse proxy. (`docs/gcp-vm-manual-deploy.md`, `deploy/nginx/projectamo.conf.example`)
+- 프로덕션: **nginx(:80/443) + PM2**. nginx가 `frontend/dist` SPA와 `/data/*`를 직접 서빙하고, `/api/*`는 Express(127.0.0.1:3001)로 reverse proxy. (`docs/aws-ec2-manual-deploy.md`, `deploy/nginx/projectamo.conf.example`)
 - 첫 진입: `loadWeatherData()`가 19개 엔드포인트 병렬 요청(`frontend/src/api/weatherApi.js:91`) → 이후 60초 주기 `/api/snapshot-meta` 폴링 + 해시 비교로 변경분만 재요청.
 - 제약: KIM 과학식·UI 레이어 의미·라우트 단면 스코프 변경 금지, 로컬 개발 후방호환 유지.
 

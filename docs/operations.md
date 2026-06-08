@@ -1,8 +1,8 @@
-# GCP VM Operations
+# AWS EC2 Operations
 
 ## Runtime
 
-- Deployment target: `GCE VM`
+- Deployment target: `AWS EC2 VM`
 - Process manager: `PM2`
 - Reverse proxy: `nginx`
 - Data storage: VM local disk at `/opt/projectamo/shared/data`

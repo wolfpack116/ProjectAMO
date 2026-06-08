@@ -658,6 +658,46 @@ app.get('/api/ground-overview', (_, res) => sendLatest(res, 'ground_overview'))
 app.get('/api/environment', (_, res) => sendLatest(res, 'environment'))
 app.get('/api/airport-info', (_, res) => sendLatest(res, 'airport_info'))
 
+app.get('/api/weather/flight-category-overlay/point', (req, res) => {
+  const lat = parseFloat(req.query.lat)
+  const lon = parseFloat(req.query.lon)
+  if (!isFinite(lat) || !isFinite(lon)) return res.status(400).json({ error: 'invalid lat/lon' })
+
+  const data = store.getCached('flight_category_overlay')
+  if (!data?.query_grid) return res.status(503).json({ error: 'no data' })
+
+  const { width, height, lat_max, lat_min, lon_min, lon_max, vis, ceil_ft } = data.query_grid
+
+  const fc = (lon - lon_min) / (lon_max - lon_min) * (width - 1)
+  const fr = (lat_max - lat) / (lat_max - lat_min) * (height - 1)
+  if (fc < 0 || fc > width - 1 || fr < 0 || fr > height - 1) {
+    return res.status(400).json({ error: 'out of domain' })
+  }
+
+  const c0 = Math.floor(fc), c1 = Math.min(c0 + 1, width - 1)
+  const r0 = Math.floor(fr), r1 = Math.min(r0 + 1, height - 1)
+  const dc = fc - c0, dr = fr - r0
+  const bilerp = (arr) =>
+    arr[r0 * width + c0] * (1 - dc) * (1 - dr) +
+    arr[r0 * width + c1] * dc * (1 - dr) +
+    arr[r1 * width + c0] * (1 - dc) * dr +
+    arr[r1 * width + c1] * dc * dr
+
+  const vis_m = bilerp(vis)
+  const ceil = bilerp(ceil_ft)
+  const ranks = ['VFR', 'IFR', 'LIFR']
+  const vcat = vis_m < 0 ? 0 : vis_m < 800 ? 2 : vis_m < 5000 ? 1 : 0
+  const ccat = ceil < 0 ? 0 : ceil >= 99000 ? 0 : ceil < 500 ? 2 : ceil < 1500 ? 1 : 0
+  const category = ranks[Math.max(vcat, ccat)]
+
+  res.json({
+    lat, lon,
+    vis_m: Math.round(vis_m),
+    ceil_ft: ceil >= 99000 ? null : Math.round(ceil),
+    category,
+  })
+})
+
 app.get('/api/weather/flight-category-overlay', (req, res) => {
   const data = store.getCached('flight_category_overlay')
   if (!data?.geojson) {

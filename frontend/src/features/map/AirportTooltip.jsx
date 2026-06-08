@@ -24,13 +24,18 @@ function formatVisibility(observation) {
 function formatWeather(observation) {
   if (!observation?.weather?.length) return ''
   return observation.weather.map((w) => {
-    const parts = [w.intensity, w.descriptor, w.phenomenon].filter(Boolean)
+    const intensity = w.intensity === 'MODERATE' ? '' : (w.intensity || '')
+    const phenomenon = Array.isArray(w.phenomena) ? w.phenomena.join('') : (w.phenomenon || '')
+    const parts = [intensity, w.descriptor, phenomenon].filter(Boolean)
     return parts.join('')
   }).join(' ')
 }
 
 function formatClouds(observation) {
-  if (!observation?.clouds?.length) return '—'
+  if (!observation) return '—'
+  if (!observation.clouds?.length) {
+    return observation.display?.clouds || 'SKC'
+  }
   const significant = observation.clouds.filter((c) => {
     const amt = String(c?.amount || '').toUpperCase()
     return ['FEW', 'SCT', 'BKN', 'OVC', 'VV'].includes(amt)
@@ -44,14 +49,15 @@ function formatClouds(observation) {
 
 function formatTempDew(observation) {
   if (!observation) return '—'
-  const t = Number.isFinite(observation.temp) ? `${Math.round(observation.temp)}°` : '—'
-  const d = Number.isFinite(observation.dewpoint) ? `${Math.round(observation.dewpoint)}°` : '—'
+  const t = Number.isFinite(observation.temperature?.air) ? `${Math.round(observation.temperature.air)}°` : '—'
+  const d = Number.isFinite(observation.temperature?.dewpoint) ? `${Math.round(observation.temperature.dewpoint)}°` : '—'
   return `${t} / ${d}`
 }
 
 function formatQnh(observation) {
   if (!observation) return '—'
-  const qnh = observation.qnh ?? observation.altimeter
+  const raw = observation.qnh
+  const qnh = typeof raw === 'number' ? raw : raw?.value ?? observation.altimeter?.value ?? observation.altimeter
   if (!Number.isFinite(qnh)) return '—'
   return `Q${Math.round(qnh)}`
 }
@@ -85,7 +91,7 @@ export default function AirportTooltip({ metar, airport, flightCategory, categor
   const resolvedCategoryColor = categoryColor || AIRPORT_CATEGORY_UNKNOWN_COLOR
   const resolvedCategory = flightCategory && flightCategory !== 'UNKNOWN' ? flightCategory : null
 
-  const TOOLTIP_W = 184
+  const TOOLTIP_W = 152
   const TOOLTIP_H = 210
   const OFFSET = 28
 
@@ -135,10 +141,14 @@ export default function AirportTooltip({ metar, airport, flightCategory, categor
         </div>
         <div className="airport-tooltip-row">
           <span className="airport-tooltip-label">QNH</span>
-          <span className="airport-tooltip-value">
-            {qnh}{obsTime !== '—' ? <span className="airport-tooltip-time"> · {obsTime}</span> : null}
-          </span>
+          <span className="airport-tooltip-value">{qnh}</span>
         </div>
+        {obsTime !== '—' && (
+          <div className="airport-tooltip-row">
+            <span className="airport-tooltip-label">시간</span>
+            <span className="airport-tooltip-value airport-tooltip-time">{obsTime}</span>
+          </div>
+        )}
       </div>
     </div>
   )

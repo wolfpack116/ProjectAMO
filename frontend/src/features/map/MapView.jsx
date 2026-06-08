@@ -918,13 +918,6 @@ function MapView({
 
       addAirportLayers(map, airportGeoJSON)
       map.getSource(AIRPORT_SOURCE_ID)?.setData(airportGeoJSON)
-
-      // Hide basemap airport POI layers (replaced by our own markers)
-      for (const layerId of ['aviation-airports-point', 'aviation-airports-label']) {
-        if (map.getLayer(layerId)) {
-          map.setLayoutProperty(layerId, 'visibility', 'none')
-        }
-      }
     }
 
     void syncAirportMarkers()

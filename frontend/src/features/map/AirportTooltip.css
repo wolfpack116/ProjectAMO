@@ -1,7 +1,7 @@
 .airport-tooltip {
   position: absolute;
   z-index: 200;
-  width: 184px;
+  width: 152px;
   background: rgba(255, 255, 255, 0.97);
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14), 0 2px 4px rgba(0, 0, 0, 0.08);
@@ -85,7 +85,7 @@
 }
 
 .airport-tooltip-time {
-  font-size: 11px;
+  font-size: 12px;
   color: #94a3b8;
   font-weight: 500;
 }

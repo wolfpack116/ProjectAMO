@@ -9,7 +9,7 @@ const LON_MAX = 133.07
 /**
  * Parse nph-sfc_obs_nc_api ASCII response (obs=vs, disp=A).
  * Returns Float32Array(SFC_W * SFC_H), values in metres.
- * Fill (-999) → -1. Raw unit is 10m → ÷10.
+ * Fill (-999) → -1. Raw unit is km → ×1000 to metres.
  */
 export function parseSfcAscii(text) {
   const eqIdx = text.indexOf('=')
@@ -29,13 +29,13 @@ export function parseSfcAscii(text) {
       numStart = i
     } else if (!isNumChar && numStart !== -1) {
       const v = parseFloat(text.slice(numStart, i))
-      result[idx++] = v <= -999 ? -1 : v / 10
+      result[idx++] = v <= -999 ? -1 : v * 1000
       numStart = -1
     }
   }
   if (numStart !== -1 && idx < result.length) {
     const v = parseFloat(text.slice(numStart))
-    result[idx] = v <= -999 ? -1 : v / 10
+    result[idx] = v <= -999 ? -1 : v * 1000
   }
 
   return result

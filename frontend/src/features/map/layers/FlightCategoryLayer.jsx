@@ -1,12 +1,15 @@
 import { useEffect, useRef } from 'react'
+import mapboxgl from 'mapbox-gl'
 
 const SOURCE_ID = 'flight-category-source'
 const LAYER_ID = 'flight-category-fill'
 const POLL_MS = 60 * 1000
+const CATEGORY_COLORS = { VFR: '#15803d', IFR: '#f97316', LIFR: '#dc2626' }
 
 export default function FlightCategoryLayer({ map, visible, beforeLayerId }) {
   const etagRef = useRef(null)
   const timerRef = useRef(null)
+  const popupRef = useRef(null)
 
   useEffect(() => {
     if (!map) return
@@ -60,8 +63,39 @@ export default function FlightCategoryLayer({ map, visible, beforeLayerId }) {
     fetchData()
     timerRef.current = setInterval(fetchData, POLL_MS)
 
+    function handleClick(e) {
+      const { lat, lng } = e.lngLat
+      fetch(`/api/weather/flight-category-overlay/point?lat=${lat}&lon=${lng}`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((d) => {
+          if (!d || d.error) return
+          const color = CATEGORY_COLORS[d.category] || '#94a3b8'
+          const visStr = d.vis_m >= 9999 ? '9,999m+' : `${d.vis_m.toLocaleString()}m`
+          const ceilStr = d.ceil_ft == null || d.ceil_ft >= 25000 ? '—' : `${d.ceil_ft.toLocaleString()}ft`
+          const html = `<div style="font-family:'Noto Sans KR',sans-serif;padding:2px 0">
+            <div style="font-size:13px;font-weight:800;color:${color};margin-bottom:5px">${d.category}</div>
+            <div style="font-size:12px;line-height:1.8;color:#1e293b">
+              <span style="color:#64748b;font-weight:600">시정</span>&nbsp;${visStr}<br/>
+              <span style="color:#64748b;font-weight:600">운고</span>&nbsp;${ceilStr}
+            </div>
+          </div>`
+          popupRef.current?.remove()
+          popupRef.current = new mapboxgl.Popup({ closeButton: true, offset: 8, maxWidth: '160px' })
+            .setLngLat(e.lngLat)
+            .setHTML(html)
+            .addTo(map)
+        })
+        .catch(() => {})
+    }
+
+    map.on('click', LAYER_ID, handleClick)
+    map.on('mouseenter', LAYER_ID, () => { map.getCanvas().style.cursor = 'pointer' })
+    map.on('mouseleave', LAYER_ID, () => { map.getCanvas().style.cursor = '' })
+
     return () => {
       clearInterval(timerRef.current)
+      popupRef.current?.remove()
+      map.off('click', LAYER_ID, handleClick)
       try {
         if (map.getLayer(LAYER_ID)) map.removeLayer(LAYER_ID)
         if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID)
