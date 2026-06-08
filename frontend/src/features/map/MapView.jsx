@@ -918,9 +918,11 @@ function MapView({
       addAirportLayers(map, airportGeoJSON)
       map.getSource(AIRPORT_SOURCE_ID)?.setData(airportGeoJSON)
 
-      // Hide WFS airport labels (replaced by our own marker labels)
-      if (map.getLayer('aviation-airports-label')) {
-        map.setLayoutProperty('aviation-airports-label', 'visibility', 'none')
+      // Hide basemap airport POI layers (replaced by our own markers)
+      for (const layerId of ['aviation-airports-point', 'aviation-airports-label']) {
+        if (map.getLayer(layerId)) {
+          map.setLayoutProperty(layerId, 'visibility', 'none')
+        }
       }
     }
 
