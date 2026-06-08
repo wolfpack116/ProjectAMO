@@ -657,6 +657,19 @@ app.get('/api/ground-forecast', (_, res) => sendLatest(res, 'ground_forecast'))
 app.get('/api/ground-overview', (_, res) => sendLatest(res, 'ground_overview'))
 app.get('/api/environment', (_, res) => sendLatest(res, 'environment'))
 app.get('/api/airport-info', (_, res) => sendLatest(res, 'airport_info'))
+
+app.get('/api/weather/flight-category-overlay', (req, res) => {
+  const data = store.getCached('flight_category_overlay')
+  if (!data?.geojson) {
+    return res.json({ type: 'FeatureCollection', features: [] })
+  }
+  const etag = `"${data.content_hash || store.canonicalHash(data.geojson)}"`
+  res.setHeader('Last-Modified', new Date(data.computed_at).toUTCString())
+  res.setHeader('ETag', etag)
+  res.setHeader('Cache-Control', 'no-cache')
+  if (req.headers['if-none-match'] === etag) return res.status(304).end()
+  res.json(data.geojson)
+})
 app.get('/api/snapshot-meta', (_req, res) => {
   res.setHeader('Cache-Control', 'no-cache')
   res.json(getCachedSnapshotMeta())
