@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { formatNwpTimeTick, getNwpSliderOptions, shouldCommitNwpSelection } from './NwpSliderBarModel.js'
+import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
 
 function NwpSliderBar({
   isVisible,
@@ -11,6 +12,7 @@ function NwpSliderBar({
   isElevated = false,
   onSelectionChange,
 }) {
+  const { tz } = useTimeZone()
   const [draftSelection, setDraftSelection] = useState(selection)
 
   useEffect(() => {
@@ -105,7 +107,7 @@ function NwpSliderBar({
                   key={time.hf}
                   className={`nwp-time-slider-tick${Number(time.hf) === Number(activeSelection.hf) ? ' is-active' : ''}`}
                 >
-                  {formatNwpTimeTick(time, availableTimes[index - 1])}
+                  {formatNwpTimeTick(time, availableTimes[index - 1], tz)}
                 </span>
               ))}
             </div>

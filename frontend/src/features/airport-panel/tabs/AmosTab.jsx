@@ -1,4 +1,5 @@
 import { buildAmosConsoleModel } from '../lib/amosViewModel.js'
+import { useTimeZone } from '../../../shared/timezone/TimeZoneContext.jsx'
 
 const BEARINGS = [
   ['36', 0],
@@ -90,9 +91,10 @@ function PrioritySummary({ items }) {
 }
 
 export default function AmosBoardTab({ amos, metar, airportMeta }) {
+  const { tz } = useTimeZone()
   if (!amos) return <div className="ap-empty">AMOS 데이터 없음</div>
 
-  const model = buildAmosConsoleModel(amos, metar, airportMeta)
+  const model = buildAmosConsoleModel(amos, metar, airportMeta, tz)
 
   return (
     <div className="ap-amos ap-amos-console-wrap">

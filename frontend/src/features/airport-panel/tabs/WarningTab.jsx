@@ -1,10 +1,12 @@
 import { fmtKst } from '../lib/formatters.js'
+import { useTimeZone } from '../../../shared/timezone/TimeZoneContext.jsx'
 
 const WARNING_LEVEL_COLOR = {
   1: '#f59e0b', 2: '#f97316', 3: '#ef4444', 4: '#dc2626',
 }
 
 export default function WarningTab({ warning }) {
+  const { tz } = useTimeZone()
   const warnings = warning?.warnings || []
 
   if (warnings.length === 0) return <div className="ap-empty">현재 활성 경보 없음</div>
@@ -24,7 +26,7 @@ export default function WarningTab({ warning }) {
               {w.level && <span className="ap-warning-level">Level {w.level}</span>}
             </div>
             <div className="ap-warning-time">
-              {fmtKst(start)} – {fmtKst(end)}
+              {fmtKst(start, tz)} – {fmtKst(end, tz)}
             </div>
             {message && <div className="ap-warning-text">{message}</div>}
           </div>

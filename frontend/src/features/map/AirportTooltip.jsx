@@ -1,0 +1,145 @@
+import { useMemo } from 'react'
+import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
+import { AIRPORT_CATEGORY_UNKNOWN_COLOR } from './lib/airportStationModel.js'
+import './AirportTooltip.css'
+
+function formatWind(wind) {
+  if (!wind) return '—'
+  if (wind.calm) return 'CALM'
+  const dir = wind.variable ? 'VRB' : Number.isFinite(wind.direction) ? String(wind.direction).padStart(3, '0') : '///'
+  const spd = Number.isFinite(wind.speed) ? String(Math.round(wind.speed)).padStart(2, '0') : '//'
+  const gust = Number.isFinite(wind.gust) ? ` G${Math.round(wind.gust)}` : ''
+  return `${dir}/${spd}kt${gust}`
+}
+
+function formatVisibility(observation) {
+  if (!observation) return '—'
+  if (observation.visibility?.cavok || observation.cavok) return 'CAVOK'
+  const val = observation.visibility?.value
+  if (!Number.isFinite(val)) return '—'
+  if (val >= 9999) return '9,999m+'
+  return `${val.toLocaleString()}m`
+}
+
+function formatWeather(observation) {
+  if (!observation?.weather?.length) return ''
+  return observation.weather.map((w) => {
+    const parts = [w.intensity, w.descriptor, w.phenomenon].filter(Boolean)
+    return parts.join('')
+  }).join(' ')
+}
+
+function formatClouds(observation) {
+  if (!observation?.clouds?.length) return '—'
+  const significant = observation.clouds.filter((c) => {
+    const amt = String(c?.amount || '').toUpperCase()
+    return ['FEW', 'SCT', 'BKN', 'OVC', 'VV'].includes(amt)
+  })
+  if (!significant.length) return 'SKC'
+  return significant.map((c) => {
+    const base = Number.isFinite(c.base) ? String(c.base).padStart(3, '0') : '///'
+    return `${String(c.amount).toUpperCase()}${base}`
+  }).join(' ')
+}
+
+function formatTempDew(observation) {
+  if (!observation) return '—'
+  const t = Number.isFinite(observation.temp) ? `${Math.round(observation.temp)}°` : '—'
+  const d = Number.isFinite(observation.dewpoint) ? `${Math.round(observation.dewpoint)}°` : '—'
+  return `${t} / ${d}`
+}
+
+function formatQnh(observation) {
+  if (!observation) return '—'
+  const qnh = observation.qnh ?? observation.altimeter
+  if (!Number.isFinite(qnh)) return '—'
+  return `Q${Math.round(qnh)}`
+}
+
+function formatObsTime(metar, tz) {
+  const iso = metar?.header?.observation_time || metar?.header?.issue_time
+  if (!iso) return '—'
+  try {
+    const d = new Date(iso)
+    const display = tz === 'KST' ? new Date(d.getTime() + 9 * 3600 * 1000) : d
+    const hh = String(display.getUTCHours()).padStart(2, '0')
+    const mm = String(display.getUTCMinutes()).padStart(2, '0')
+    return `${hh}:${mm} ${tz}`
+  } catch {
+    return '—'
+  }
+}
+
+export default function AirportTooltip({ metar, airport, flightCategory, categoryColor, x, y, containerWidth, containerHeight }) {
+  const { tz } = useTimeZone()
+
+  const obs = metar?.observation || null
+  const wind = formatWind(obs?.wind)
+  const vis = formatVisibility(obs)
+  const wx = formatWeather(obs)
+  const clouds = formatClouds(obs)
+  const tempDew = formatTempDew(obs)
+  const qnh = formatQnh(obs)
+  const obsTime = formatObsTime(metar, tz)
+
+  const resolvedCategoryColor = categoryColor || AIRPORT_CATEGORY_UNKNOWN_COLOR
+  const resolvedCategory = flightCategory && flightCategory !== 'UNKNOWN' ? flightCategory : null
+
+  const TOOLTIP_W = 184
+  const TOOLTIP_H = 210
+  const OFFSET = 28
+
+  const style = useMemo(() => {
+    let left = x - TOOLTIP_W / 2
+    let top = y - TOOLTIP_H - OFFSET
+    if (top < 8) top = y + OFFSET
+    if (containerWidth) {
+      if (left < 8) left = 8
+      if (left + TOOLTIP_W > containerWidth - 8) left = containerWidth - TOOLTIP_W - 8
+    }
+    return { left, top, borderColor: resolvedCategoryColor }
+  }, [x, y, containerWidth, containerHeight, resolvedCategoryColor])
+
+  return (
+    <div className="airport-tooltip" style={style}>
+      <div className="airport-tooltip-header">
+        <span className="airport-tooltip-icao">{airport?.icao || '—'}</span>
+        {resolvedCategory && (
+          <span className="airport-tooltip-badge" style={{ color: resolvedCategoryColor }}>
+            {resolvedCategory}
+          </span>
+        )}
+      </div>
+      <div className="airport-tooltip-name">{airport?.nameKo || airport?.name || ''}</div>
+
+      <div className="airport-tooltip-divider" />
+
+      <div className="airport-tooltip-rows">
+        <div className="airport-tooltip-row">
+          <span className="airport-tooltip-label">바람</span>
+          <span className="airport-tooltip-value">{wind}</span>
+        </div>
+        <div className="airport-tooltip-row">
+          <span className="airport-tooltip-label">시정</span>
+          <span className="airport-tooltip-value">
+            {vis}{wx ? <span className="airport-tooltip-wx"> {wx}</span> : null}
+          </span>
+        </div>
+        <div className="airport-tooltip-row">
+          <span className="airport-tooltip-label">운고</span>
+          <span className="airport-tooltip-value">{clouds}</span>
+        </div>
+        <div className="airport-tooltip-row">
+          <span className="airport-tooltip-label">기온</span>
+          <span className="airport-tooltip-value">{tempDew}</span>
+        </div>
+        <div className="airport-tooltip-row">
+          <span className="airport-tooltip-label">QNH</span>
+          <span className="airport-tooltip-value">
+            {qnh}{obsTime !== '—' ? <span className="airport-tooltip-time"> · {obsTime}</span> : null}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}

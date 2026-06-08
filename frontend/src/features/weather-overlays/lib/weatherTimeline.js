@@ -10,14 +10,15 @@ export function parseKstTmToMs(value) {
   )
 }
 
-export function formatKstMinute(valueMs) {
+export function formatKstMinute(valueMs, tz = 'KST') {
   if (!Number.isFinite(valueMs)) return '--:--'
-  const kst = new Date(valueMs + 9 * 60 * 60 * 1000)
-  const month = String(kst.getUTCMonth() + 1).padStart(2, '0')
-  const day = String(kst.getUTCDate()).padStart(2, '0')
-  const hour = String(kst.getUTCHours()).padStart(2, '0')
-  const minute = String(kst.getUTCMinutes()).padStart(2, '0')
-  return `${month}/${day} ${hour}:${minute} KST`
+  const offset = tz === 'KST' ? 9 * 60 * 60 * 1000 : 0
+  const d = new Date(valueMs + offset)
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(d.getUTCDate()).padStart(2, '0')
+  const hour = String(d.getUTCHours()).padStart(2, '0')
+  const minute = String(d.getUTCMinutes()).padStart(2, '0')
+  return `${month}/${day} ${hour}:${minute} ${tz}`
 }
 
 export function normalizeFrame(frame) {

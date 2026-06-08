@@ -1,6 +1,7 @@
 import { Pause, Play } from 'lucide-react'
 
 import { formatKstMinute, shouldUpdateWeatherTimelineSelection } from './lib/weatherTimeline.js'
+import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
 
 const PLAYBACK_SPEEDS = [0.5, 1, 2, 4]
 
@@ -15,6 +16,7 @@ function WeatherTimelineBar({
   onIndexChange,
   onPlaybackSpeedChange,
 }) {
+  const { tz } = useTimeZone()
   if (!isVisible || tickCount <= 0) return null
 
   const handleSliderInput = (event) => {
@@ -38,7 +40,7 @@ function WeatherTimelineBar({
         onInput={handleSliderInput}
         aria-label="Weather frame time"
       />
-      <div className="weather-timeline-time">{formatKstMinute(selectedTimeMs)}</div>
+      <div className="weather-timeline-time">{formatKstMinute(selectedTimeMs, tz)}</div>
       <label className="weather-timeline-speed">
         <span>Speed</span>
         <select value={playbackSpeed} onChange={(event) => onPlaybackSpeedChange(Number(event.target.value))} aria-label="Weather playback speed">

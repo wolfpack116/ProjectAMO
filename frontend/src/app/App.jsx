@@ -3,28 +3,31 @@ import AirportPanel from '../features/airport-panel/AirportPanel.jsx'
 import MapView from '../features/map/MapView.jsx'
 import useWeatherPolling from './useWeatherPolling.js'
 import Sidebar from './layout/Sidebar.jsx'
+import SettingsModal from '../features/settings/SettingsModal.jsx'
+import { TimeZoneProvider, useTimeZone } from '../shared/timezone/TimeZoneContext.jsx'
 
 const MonitoringPage = lazy(() => import('../features/monitoring/MonitoringPage.jsx'))
 
-function formatUtcTime(date) {
-  const year  = date.getUTCFullYear()
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
-  const day   = String(date.getUTCDate()).padStart(2, '0')
-  const hours = String(date.getUTCHours()).padStart(2, '0')
-  const mins  = String(date.getUTCMinutes()).padStart(2, '0')
-  return `${year}/${month}/${day} ${hours}:${mins} UTC`
+function formatTimeByTz(ms, tz) {
+  const d = tz === 'KST' ? new Date(ms + 9 * 3600 * 1000) : new Date(ms)
+  const year  = d.getUTCFullYear()
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const day   = String(d.getUTCDate()).padStart(2, '0')
+  const hours = String(d.getUTCHours()).padStart(2, '0')
+  const mins  = String(d.getUTCMinutes()).padStart(2, '0')
+  return `${year}/${month}/${day} ${hours}:${mins} ${tz}`
 }
 
 function MainAppShell() {
-  const [utcTime, setUtcTime] = useState(() => formatUtcTime(new Date()))
+  const { tz } = useTimeZone()
+  const [nowMs, setNowMs] = useState(() => Date.now())
   const [activePanel, setActivePanel] = useState(null)
   const [selectedAirport, setSelectedAirport] = useState(null)
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
   const { weatherData, requestDeferredWeatherData } = useWeatherPolling()
 
-  // UTC clock
   useEffect(() => {
-    const timer = window.setInterval(() => setUtcTime(formatUtcTime(new Date())), 1000)
+    const timer = window.setInterval(() => setNowMs(Date.now()), 1000)
     return () => window.clearInterval(timer)
   }, [])
 
@@ -39,9 +42,9 @@ function MainAppShell() {
 
   return (
     <div className={`app ${isSidebarExpanded ? 'sidebar-is-expanded' : ''}`}>
-      <Sidebar 
-        activePanel={activePanel} 
-        onPanelToggle={togglePanel} 
+      <Sidebar
+        activePanel={activePanel}
+        onPanelToggle={togglePanel}
         isExpanded={isSidebarExpanded}
         onExpandToggle={setIsSidebarExpanded}
       />
@@ -70,7 +73,10 @@ function MainAppShell() {
         onClose={() => setSelectedAirport(null)}
         onRequestDeferredWeatherData={requestDeferredWeatherData}
       />
-      <div className="utc-bar">{utcTime}</div>
+      <div className="utc-bar">{formatTimeByTz(nowMs, tz)}</div>
+      {activePanel === 'settings' && (
+        <SettingsModal onClose={() => togglePanel('settings')} />
+      )}
     </div>
   )
 }
@@ -78,7 +84,7 @@ function MainAppShell() {
 function App() {
   return window.location.pathname === '/monitoring'
     ? <Suspense fallback={null}><MonitoringPage /></Suspense>
-    : <MainAppShell />
+    : <TimeZoneProvider><MainAppShell /></TimeZoneProvider>
 }
 
 export default App

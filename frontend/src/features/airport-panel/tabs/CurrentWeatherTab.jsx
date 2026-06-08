@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, Check, MoveUp } from 'lucide-react'
 import WeatherIcon from '../../../shared/ui/WeatherIcon.jsx'
 import {
@@ -8,6 +8,7 @@ import {
 } from '../lib/currentWeatherViewModel.js'
 import { fmtKstShort, fmtTime } from '../lib/formatters.js'
 import { TAF_CATEGORY_COLOR } from '../lib/tafViewModel.js'
+import { useTimeZone } from '../../../shared/timezone/TimeZoneContext.jsx'
 
 function tafWeatherClass(item, baseClass, { includeSpecial = true } = {}) {
   return [
@@ -18,7 +19,8 @@ function tafWeatherClass(item, baseClass, { includeSpecial = true } = {}) {
 }
 
 function WarningSummary({ warning }) {
-  const model = buildCurrentWarningModel(warning)
+  const { tz } = useTimeZone()
+  const model = useMemo(() => buildCurrentWarningModel(warning, tz), [warning, tz])
   const viewportRef = useRef(null)
   const measureRef = useRef(null)
   const [pages, setPages] = useState([])
@@ -172,6 +174,7 @@ function WarningSummary({ warning }) {
 }
 
 function MetarSummary({ metar, amosData, icao, airportMeta }) {
+  const { tz } = useTimeZone()
   const model = buildCompactMetarModel({ metar, amosData, icao, airportMeta })
 
   if (model.empty) {
@@ -243,7 +246,7 @@ function MetarSummary({ metar, amosData, icao, airportMeta }) {
     <section className="ap-current-section ap-current-metar">
       <div className="ap-current-section-header">
         <span className="ap-current-section-badge">METAR</span>
-        <span className="ap-current-section-time">{fmtKstShort(metar?.header?.observation_time || metar?.header?.issue_time)}</span>
+        <span className="ap-current-section-time">{fmtKstShort(metar?.header?.observation_time || metar?.header?.issue_time, tz)}</span>
       </div>
       <div className="ap-current-metar-layout">
         <article

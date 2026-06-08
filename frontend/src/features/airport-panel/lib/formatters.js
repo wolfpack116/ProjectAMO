@@ -9,26 +9,27 @@ export function fmtTime(iso) {
   } catch { return iso }
 }
 
-export function fmtKst(iso) {
+export function fmtKst(iso, tz = 'KST') {
   if (!iso) return '—'
   try {
     const d = new Date(iso)
+    if (tz === 'UTC') return d.toISOString().replace('T', ' ').slice(0, 16) + ' UTC'
     const kst = new Date(d.getTime() + 9 * 3600 * 1000)
     return kst.toISOString().replace('T', ' ').slice(0, 16) + ' KST'
   } catch { return iso }
 }
 
-export function fmtKstShort(iso) {
+export function fmtKstShort(iso, tz = 'KST') {
   if (!iso) return '—'
   try {
     const d = new Date(iso)
-    const kst = new Date(d.getTime() + 9 * 3600 * 1000)
-    const yyyy = kst.getUTCFullYear()
-    const mo = String(kst.getUTCMonth() + 1).padStart(2, '0')
-    const dd = String(kst.getUTCDate()).padStart(2, '0')
-    const hh = String(kst.getUTCHours()).padStart(2, '0')
-    const mm = String(kst.getUTCMinutes()).padStart(2, '0')
-    return `${yyyy}-${mo}-${dd} ${hh}:${mm} KST`
+    const display = tz === 'KST' ? new Date(d.getTime() + 9 * 3600 * 1000) : d
+    const yyyy = display.getUTCFullYear()
+    const mo = String(display.getUTCMonth() + 1).padStart(2, '0')
+    const dd = String(display.getUTCDate()).padStart(2, '0')
+    const hh = String(display.getUTCHours()).padStart(2, '0')
+    const mm = String(display.getUTCMinutes()).padStart(2, '0')
+    return `${yyyy}-${mo}-${dd} ${hh}:${mm} ${tz}`
   } catch { return iso }
 }
 

@@ -8,13 +8,14 @@ import {
 
 const HOUR_MS = 60 * 60 * 1000
 
-function formatWarningTime(value) {
+function formatWarningTime(value, tz = 'UTC') {
   if (!value) return '-- ----'
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return '-- ----'
-  const day = String(date.getUTCDate()).padStart(2, '0')
-  const hour = String(date.getUTCHours()).padStart(2, '0')
-  const minute = String(date.getUTCMinutes()).padStart(2, '0')
+  const d = tz === 'KST' ? new Date(date.getTime() + 9 * 3600 * 1000) : date
+  const day = String(d.getUTCDate()).padStart(2, '0')
+  const hour = String(d.getUTCHours()).padStart(2, '0')
+  const minute = String(d.getUTCMinutes()).padStart(2, '0')
   return `${day} ${hour}${minute}`
 }
 
@@ -35,12 +36,12 @@ function formatCompactWind(obs) {
   return `${direction}/${speed}kt`
 }
 
-export function buildCurrentWarningModel(warning) {
+export function buildCurrentWarningModel(warning, tz = 'UTC') {
   const warnings = Array.isArray(warning?.warnings) ? warning.warnings : []
   const items = warnings.map((item) => ({
     key: item?.wrng_type_key || item?.type || item?.wrng_type_name || 'UNKNOWN',
     name: pickWarningName(item),
-    timeText: `${formatWarningTime(item?.valid_start)} - ${formatWarningTime(item?.valid_end)}`,
+    timeText: `${formatWarningTime(item?.valid_start, tz)} - ${formatWarningTime(item?.valid_end, tz)}`,
     raw: item,
   }))
 

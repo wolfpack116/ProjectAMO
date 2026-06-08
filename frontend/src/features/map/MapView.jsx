@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAP_CONFIG, BASEMAP_OPTIONS } from './mapConfig.js'
@@ -60,6 +61,7 @@ import { bindLayerEvent, cleanupAll } from './lib/mapStyleSync.js'
 import {
   AIRPORT_CIRCLE_LAYER,
   AIRPORT_INTERACTIVE_LAYERS,
+  AIRPORT_STATION_CENTER_LAYER,
   AIRPORT_SOURCE_ID,
   addAirportLayers,
   addGeoBoundaryLayers,
@@ -84,6 +86,7 @@ import {
   syncVfrWaypointData,
 } from '../route-briefing/lib/routePreviewSync.js'
 import { useRouteBriefing } from '../route-briefing/useRouteBriefing.js'
+import AirportTooltip from './AirportTooltip.jsx'
 import './MapView.css'
 
 const RouteBriefingPanel = lazy(() => import('../route-briefing/RouteBriefingPanel.jsx'))
@@ -163,7 +166,12 @@ function MapView({
   const mapContainerRef = useRef(null)
   const mapRef = useRef(null)
   const onSelectRef = useRef(onAirportSelect)
+  const tooltipTimerRef = useRef(null)
+  const tooltipIcaoRef = useRef(null)
+  const [hoveredAirportIcao, setHoveredAirportIcao] = useState(null)
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
   const airportEventCleanupRef = useRef([])
+  const { tz } = useTimeZone()
   const advisoryEventCleanupRef = useRef([])
   const adsbEventCleanupRef = useRef(null)
   const sectorEventCleanupRef = useRef(null)
@@ -319,6 +327,7 @@ function MapView({
     selectedSigwxFrontMeta,
     selectedSigwxCloudMeta,
     lightningReferenceTimeMs,
+    tz,
   }), [
     echoMeta,
     satMeta,
@@ -335,6 +344,7 @@ function MapView({
     selectedSigwxFrontMeta,
     selectedSigwxCloudMeta,
     lightningReferenceTimeMs,
+    tz,
   ])
   const {
     radarFrames,
@@ -635,14 +645,37 @@ function MapView({
     adsbEventCleanupRef.current?.()
     sectorEventCleanupRef.current?.()
 
-    airportEventCleanupRef.current = AIRPORT_INTERACTIVE_LAYERS.flatMap((layerId) => [
-      bindLayerEvent(map, 'click', layerId, (e) => {
+    airportEventCleanupRef.current = [
+      // click + cursor on all interactive layers
+      ...AIRPORT_INTERACTIVE_LAYERS.flatMap((layerId) => [
+        bindLayerEvent(map, 'click', layerId, (e) => {
+          const icao = e.features?.[0]?.properties?.icao
+          if (icao) onSelectRef.current?.(icao)
+        }),
+        bindLayerEvent(map, 'mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer' }),
+        bindLayerEvent(map, 'mouseleave', layerId, () => { map.getCanvas().style.cursor = '' }),
+      ]),
+      // tooltip via mousemove — avoids adjacent-airport cancel race condition
+      bindLayerEvent(map, 'mousemove', AIRPORT_STATION_CENTER_LAYER, (e) => {
         const icao = e.features?.[0]?.properties?.icao
-        if (icao) onSelectRef.current?.(icao)
+        const coords = e.features?.[0]?.geometry?.coordinates
+        if (!icao || !coords) return
+        clearTimeout(tooltipTimerRef.current)
+        if (icao !== tooltipIcaoRef.current) {
+          tooltipIcaoRef.current = icao
+          const { x, y } = map.project(coords)
+          setHoveredAirportIcao(icao)
+          setTooltipPos({ x, y })
+        }
       }),
-      bindLayerEvent(map, 'mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer' }),
-      bindLayerEvent(map, 'mouseleave', layerId, () => { map.getCanvas().style.cursor = '' }),
-    ])
+      bindLayerEvent(map, 'mouseleave', AIRPORT_STATION_CENTER_LAYER, () => {
+        tooltipIcaoRef.current = null
+        clearTimeout(tooltipTimerRef.current)
+        tooltipTimerRef.current = setTimeout(() => {
+          setHoveredAirportIcao(null)
+        }, 80)
+      }),
+    ]
 
     const advisoryLayerIds = [
       ADVISORY_LAYER_DEFS.sigmet.fillLayerId,
@@ -885,17 +918,9 @@ function MapView({
       addAirportLayers(map, airportGeoJSON)
       map.getSource(AIRPORT_SOURCE_ID)?.setData(airportGeoJSON)
 
-      // Hide WFS airport labels if they have an active marker
-      const labelLayerId = 'aviation-airports-label'
-      const baseFilter = ['==', ['geometry-type'], 'Point']
-
-      if (map.getLayer(labelLayerId)) {
-        const icaos = airportGeoJSON.features.map(f => f.properties.icao).filter(Boolean)
-        const filter = icaos.length > 0
-          ? ['all', baseFilter, ['match', ['get', 'icao'], icaos, false, true]]
-          : baseFilter
-
-        map.setFilter(labelLayerId, filter)
+      // Hide WFS airport labels (replaced by our own marker labels)
+      if (map.getLayer('aviation-airports-label')) {
+        map.setLayoutProperty('aviation-airports-label', 'visibility', 'none')
       }
     }
 
@@ -1017,7 +1042,7 @@ function MapView({
         turbulenceLegendEntries={KTG_COLOR_RAMP}
         radarReferenceTimeMs={radarReferenceTimeMs}
         lightningReferenceTimeMs={lightningReferenceTimeMs}
-        formatReferenceTimeLabel={formatReferenceTimeLabel}
+        formatReferenceTimeLabel={(ms) => formatReferenceTimeLabel(ms, tz)}
       />
 
       <AdvisoryBadges
@@ -1158,6 +1183,25 @@ function MapView({
         />
       )}
 
+      {hoveredAirportIcao && (() => {
+        const hoveredMetar = metarData?.airports?.[hoveredAirportIcao] || null
+        const hoveredAirportMeta = airports.find((a) => a.icao === hoveredAirportIcao) || null
+        const hoveredFeature = airportGeoJSON.features.find((f) => f.properties.icao === hoveredAirportIcao)
+        const containerEl = mapContainerRef.current
+        return (
+          <AirportTooltip
+            metar={hoveredMetar}
+            airport={hoveredAirportMeta}
+            flightCategory={hoveredFeature?.properties?.flightCategory}
+            categoryColor={hoveredFeature?.properties?.categoryColor}
+            x={tooltipPos.x}
+            y={tooltipPos.y}
+            containerWidth={containerEl?.clientWidth}
+            containerHeight={containerEl?.clientHeight}
+          />
+        )
+      })()}
+
       {activePanel === 'met' && (
         <WeatherOverlayPanel
           layers={MET_LAYERS}
@@ -1183,33 +1227,6 @@ function MapView({
         />
       )}
 
-      {activePanel === 'settings' && (
-        <div className="dev-layer-panel settings-panel" aria-label="Options panel">
-          <div className="dev-layer-panel-title">Options</div>
-          {metVisibility.sigwx && (
-            <>
-              <div className="dev-layer-section-title">SIGWX</div>
-              <div className="settings-actions">
-                <button type="button" className="dev-layer-inline-button" onClick={toggleSigwxLegend}>Legend</button>
-              </div>
-              <div className="dev-layer-section-title">SIGWX Filters</div>
-              <div className="dev-filter-grid">
-                {SIGWX_FILTER_OPTIONS.map((option) => (
-                  <button
-                    key={option.key}
-                    type="button"
-                    className={`dev-filter-chip${sigwxFilter[option.key] === false ? ' is-off' : ''}`}
-                    onClick={() => toggleSigwxFilter(option.key)}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-          {!metVisibility.sigwx && <div className="sigwx-group-empty">Enable SIGWX to configure filters.</div>}
-        </div>
-      )}
     </div>
   )
 }

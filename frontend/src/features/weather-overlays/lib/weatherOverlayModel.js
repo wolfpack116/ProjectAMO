@@ -24,11 +24,12 @@ export function parseFrameTmToMs(tm) {
   return Number.isFinite(ms) ? ms : null
 }
 
-export function formatReferenceTimeLabel(timeMs) {
+export function formatReferenceTimeLabel(timeMs, tz = 'KST') {
   if (!Number.isFinite(timeMs)) return '--:--'
-  const kst = new Date(timeMs + 9 * 60 * 60 * 1000)
-  const hours = String(kst.getUTCHours()).padStart(2, '0')
-  const minutes = String(kst.getUTCMinutes()).padStart(2, '0')
+  const offset = tz === 'KST' ? 9 * 60 * 60 * 1000 : 0
+  const d = new Date(timeMs + offset)
+  const hours = String(d.getUTCHours()).padStart(2, '0')
+  const minutes = String(d.getUTCMinutes()).padStart(2, '0')
   return `${hours}:${minutes}`
 }
 
@@ -48,17 +49,18 @@ export function parseSigwxTmfcToMs(tmfc) {
   return Number.isFinite(ms) ? ms : null
 }
 
-export function formatSigwxStamp(value) {
+export function formatSigwxStamp(value, tz = 'KST') {
   const timeMs = value?.includes?.('T')
     ? Date.parse(value)
     : parseSigwxTmfcToMs(value)
   if (!Number.isFinite(timeMs)) return '-'
-  const kst = new Date(timeMs + 9 * 60 * 60 * 1000)
-  const month = String(kst.getUTCMonth() + 1).padStart(2, '0')
-  const day = String(kst.getUTCDate()).padStart(2, '0')
-  const hours = String(kst.getUTCHours()).padStart(2, '0')
-  const minutes = String(kst.getUTCMinutes()).padStart(2, '0')
-  return `${month}/${day} ${hours}:${minutes} KST`
+  const offset = tz === 'KST' ? 9 * 60 * 60 * 1000 : 0
+  const d = new Date(timeMs + offset)
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(d.getUTCDate()).padStart(2, '0')
+  const hours = String(d.getUTCHours()).padStart(2, '0')
+  const minutes = String(d.getUTCMinutes()).padStart(2, '0')
+  return `${month}/${day} ${hours}:${minutes} ${tz}`
 }
 
 export function formatAdvisoryPanelLabel(item, kind) {
@@ -68,19 +70,19 @@ export function formatAdvisoryPanelLabel(item, kind) {
   return `${base}${sequence}${phenomenon ? ` ${phenomenon}` : ''}`
 }
 
-export function formatAdvisoryValidLabel(item) {
+export function formatAdvisoryValidLabel(item, tz = 'KST') {
   const start = Date.parse(item?.valid_from)
   const end = Date.parse(item?.valid_to)
   if (!Number.isFinite(start) || !Number.isFinite(end)) return null
-  return `${formatSigwxStamp(new Date(start).toISOString())} ~ ${formatSigwxStamp(new Date(end).toISOString())}`
+  return `${formatSigwxStamp(new Date(start).toISOString(), tz)} ~ ${formatSigwxStamp(new Date(end).toISOString(), tz)}`
 }
 
-function advisoryItemsWithPanelData(data, kind) {
+function advisoryItemsWithPanelData(data, kind, tz = 'KST') {
   return (data?.items || []).map((item, index) => ({
     ...item,
     mapKey: item.id || `${kind}-${index}`,
     panelLabel: formatAdvisoryPanelLabel(item, kind),
-    validLabel: formatAdvisoryValidLabel(item),
+    validLabel: formatAdvisoryValidLabel(item, tz),
   }))
 }
 
@@ -102,6 +104,7 @@ export function buildWeatherOverlayModel({
   lightningReferenceTimeMs,
   blinkLightning,
   lightningBlinkOff,
+  tz = 'KST',
 }) {
   const radarFrames = normalizeFrames(echoMeta?.frames?.length ? echoMeta.frames : [echoMeta?.nationwide])
   const satelliteFrames = normalizeFrames(satMeta?.frames?.length ? satMeta.frames : [satMeta?.latest])
@@ -123,8 +126,8 @@ export function buildWeatherOverlayModel({
   const satelliteFrame = pickNearestPreviousFrame(satelliteFrames, selectedWeatherTimeMs)
   const lightningGeoJSON = createLightningGeoJSON(lightningData, lightningReferenceTimeMs)
 
-  const sigmetItems = advisoryItemsWithPanelData(sigmetData, 'sigmet')
-  const airmetItems = advisoryItemsWithPanelData(airmetData, 'airmet')
+  const sigmetItems = advisoryItemsWithPanelData(sigmetData, 'sigmet', tz)
+  const airmetItems = advisoryItemsWithPanelData(airmetData, 'airmet', tz)
   const visibleSigmetPayload = {
     ...sigmetData,
     items: sigmetItems.filter((item) => !(hiddenAdvisoryKeys.sigmet || []).includes(item.mapKey)),
@@ -195,11 +198,11 @@ export function buildWeatherOverlayModel({
     lightningLegendEntries: LIGHTNING_AGE_BANDS.map((band) => ({
       ...band,
       color: band.color,
-      label: formatReferenceTimeLabel(lightningReferenceTimeMs - band.max * 60 * 1000),
+      label: formatReferenceTimeLabel(lightningReferenceTimeMs - band.max * 60 * 1000, tz),
     })),
     radarReferenceTimeMs: parseFrameTmToMs(radarFrame?.tm) ?? Date.now(),
-    sigwxIssueLabel: formatSigwxStamp(selectedSigwxEntry?.fetched_at),
-    sigwxValidLabel: formatSigwxStamp(selectedSigwxEntry?.tmfc),
+    sigwxIssueLabel: formatSigwxStamp(selectedSigwxEntry?.fetched_at, tz),
+    sigwxValidLabel: formatSigwxStamp(selectedSigwxEntry?.tmfc, tz),
     blinkLightning,
     lightningBlinkOff,
     lightningReferenceTimeMs,

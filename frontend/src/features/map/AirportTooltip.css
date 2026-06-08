@@ -1,0 +1,91 @@
+.airport-tooltip {
+  position: absolute;
+  z-index: 200;
+  width: 184px;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14), 0 2px 4px rgba(0, 0, 0, 0.08);
+  border: 2px solid #94a3b8; /* color overridden by inline borderColor */
+  pointer-events: none;
+  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.airport-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 13px 4px;
+}
+
+.airport-tooltip-icao {
+  font-size: 17px;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: 0.8px;
+}
+
+.airport-tooltip-badge {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.airport-tooltip-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  padding: 0 13px 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Divider ── */
+.airport-tooltip-divider {
+  height: 1px;
+  background: rgba(148, 163, 184, 0.35);
+  margin: 0;
+}
+
+/* ── Data rows ── */
+.airport-tooltip-rows {
+  padding: 9px 13px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.airport-tooltip-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.airport-tooltip-label {
+  flex-shrink: 0;
+  width: 36px;
+  font-size: 15px;
+  color: #475569;
+  font-weight: 700;
+}
+
+.airport-tooltip-value {
+  font-size: 13px;
+  color: #1e293b;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.airport-tooltip-wx {
+  color: #dc2626;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+.airport-tooltip-time {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}

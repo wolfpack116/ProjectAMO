@@ -28,11 +28,19 @@ export function formatMsToKt(value) {
   return isFiniteNumber(value) ? formatOneDecimal(value * KT_PER_MS) : '-'
 }
 
-export function formatAmosTime(value) {
+export function formatAmosTime(value, tz = 'KST') {
   if (!value) return '관측 시간 없음'
   const compact = String(value).match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})/)
-  if (compact) return `${compact[1]}-${compact[2]}-${compact[3]} ${compact[4]}:${compact[5]} KST`
-  return fmtKst(value)
+  if (compact) {
+    if (tz === 'UTC') {
+      const pad = (n) => String(n).padStart(2, '0')
+      const utcMs = Date.UTC(Number(compact[1]), Number(compact[2]) - 1, Number(compact[3]), Number(compact[4]), Number(compact[5])) - 9 * 3600 * 1000
+      const d = new Date(utcMs)
+      return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`
+    }
+    return `${compact[1]}-${compact[2]}-${compact[3]} ${compact[4]}:${compact[5]} KST`
+  }
+  return fmtKst(value, tz)
 }
 
 const AMOS_REPRESENTATIVE_RUNWAYS = {
@@ -165,7 +173,7 @@ export function calculateRunwayWindComponent({ windDirectionDeg, windSpeedKt, ru
   }
 }
 
-export function buildAmosConsoleModel(amos, metar, airportMeta) {
+export function buildAmosConsoleModel(amos, metar, airportMeta, tz = 'KST') {
   const runways = enrichAmosRunways(amos)
   const runwayLabels = runwayLabelsFromAirport(airportMeta)
   const twoMinute = runways[0] || {}
@@ -193,7 +201,7 @@ export function buildAmosConsoleModel(amos, metar, airportMeta) {
   const observedTime = rf?.observed_tm_kst || obs.observed_tm_kst
 
   return {
-    observedTimeLabel: formatAmosTime(observedTime),
+    observedTimeLabel: formatAmosTime(observedTime, tz),
     runwayLabels,
     activeRunwayLabel,
     inactiveRunwayLabel: runwayLabels[activeRunwayIndex === 1 ? 0 : 1] || null,

@@ -1,9 +1,11 @@
 import { MoveUp } from 'lucide-react'
 import WeatherIcon from '../../../shared/ui/WeatherIcon.jsx'
 import { fmtKstShort } from '../lib/formatters.js'
+import { useTimeZone } from '../../../shared/timezone/TimeZoneContext.jsx'
 import { buildMetarViewModel } from '../lib/metarViewModel.js'
 
 export default function MetarTab({ metar, amosData, icao, airportMeta }) {
+  const { tz } = useTimeZone()
   if (!metar) return <div className="ap-empty">METAR 데이터 없음</div>
 
   const {
@@ -41,7 +43,7 @@ export default function MetarTab({ metar, amosData, icao, airportMeta }) {
       <div className="ap-mv2-header">
         <div className="ap-mv2-header-left">
           <span className="ap-mv2-badge">{hdr?.report_type || 'METAR'}</span>
-          <span className="ap-mv2-time">{fmtKstShort(obsTime)}</span>
+          <span className="ap-mv2-time">{fmtKstShort(obsTime, tz)}</span>
         </div>
       </div>
 

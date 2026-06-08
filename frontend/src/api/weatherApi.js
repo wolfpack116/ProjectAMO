@@ -2,14 +2,21 @@ import FALLBACK_AIRPORTS from '../../../shared/airports.js'
 import { ADSB_FETCH_DISABLED } from './adsbApi.js'
 
 export const AIRPORT_NAME_KO = {
-  RKSI: 'Incheon International Airport',
-  RKSS: 'Gimpo International Airport',
-  RKPC: 'Jeju International Airport',
-  RKPK: 'Gimhae International Airport',
-  RKJB: 'Muan International Airport',
-  RKNY: 'Yangyang International Airport',
-  RKPU: 'Ulsan Airport',
-  RKJY: 'Yeosu Airport',
+  RKSI: '인천국제공항',
+  RKSS: '김포국제공항',
+  RKPC: '제주국제공항',
+  RKPK: '김해국제공항',
+  RKTU: '청주국제공항',
+  RKTN: '대구국제공항',
+  RKTH: '포항경주공항',
+  RKJB: '무안국제공항',
+  RKJJ: '광주공항',
+  RKJK: '군산공항',
+  RKJY: '여수공항',
+  RKNW: '원주공항',
+  RKPS: '사천공항',
+  RKPU: '울산공항',
+  RKNY: '양양국제공항',
 }
 
 async function fetchJson(url, { optional = false, signal } = {}) {
