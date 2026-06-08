@@ -138,6 +138,17 @@ export const satellite = {
   timeout_ms: 30000,
 }
 
+export const flight_category = {
+  sfc_vis_url: process.env.SFC_VIS_URL ||
+    'https://apihub.kma.go.kr/api/typ01/cgi-bin/url/nph-sfc_obs_nc_api',
+  ctps_url: process.env.CTPS_URL ||
+    'https://apihub.kma.go.kr/api/typ05/api/GK2A/LE2/CTPS/KO/data',
+  timeout_ms: 30000,
+  idw_grid_size: 512,
+  simplify_tolerance: 0.01,
+  collect_on_startup: process.env.FLIGHT_CATEGORY_ON_STARTUP !== '0',
+}
+
 export const adsb = {
   url: process.env.ADSB_API_URL || 'https://opensky-network.org/api/states/all',
   token_url: process.env.ADSB_TOKEN_URL || 'https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token',
@@ -203,6 +214,7 @@ export const schedule = {
   ground_forecast_interval: '30 6,11,18,23 * * *',
   environment_interval: '10 * * * *',
   airport_info_interval: '0,30 6,17 * * *',
+  flight_category_interval: '5 * * * *',
 }
 
 export const storage = {
@@ -219,6 +231,7 @@ export default {
   airports,
   environment,
   ground_forecast,
+  flight_category,
   ktg,
   lightning,
   amos,
