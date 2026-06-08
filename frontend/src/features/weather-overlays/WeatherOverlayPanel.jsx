@@ -21,7 +21,7 @@ function WeatherOverlayPanel({
   onWindFlowWidthChange,
 }) {
   const groups = [
-    { id: 'weather', title: '기상', ids: showWind ? ['radar', 'satellite', 'lightning', 'wind', 'temp', 'cloud', 'icing', 'turbulence'] : ['radar', 'satellite', 'lightning'] },
+    { id: 'weather', title: '기상', ids: showWind ? ['radar', 'satellite', 'lightning', 'wind', 'temp', 'cloud', 'icing', 'turbulence', 'flightCategory'] : ['radar', 'satellite', 'lightning', 'flightCategory'] },
     { id: 'hazards', title: '위험기상', ids: ['sigmet', 'airmet', 'sigwx'] },
     { id: 'traffic', title: '항적', ids: ['adsb'] },
   ]
@@ -38,6 +38,7 @@ function WeatherOverlayPanel({
     airmet: 'AIRMET',
     sigwx: 'SIGWX',
     adsb: 'ADS-B',
+    flightCategory: '비행기상구역',
   }
   const visibleLayers = layers.filter((layer) => showWind || !['wind', 'temp', 'cloud', 'icing'].includes(layer.id))
   const activeCount = visibleLayers.filter((layer) => visibility[layer.id] && !isLayerDisabled(layer.id)).length

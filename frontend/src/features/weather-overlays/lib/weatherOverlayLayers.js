@@ -118,6 +118,7 @@ export const MET_LAYERS = [
   { id: 'airmet', label: 'AIRMET', color: ADVISORY_LAYER_DEFS.airmet.color },
   { id: 'sigwx', label: 'SIGWX', color: '#a78bfa' },
   { id: 'adsb', label: 'ADS-B', color: '#10b981' },
+  { id: 'flightCategory', label: '비행기상구역', color: '#f97316' },
 ]
 
 const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] }

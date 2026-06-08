@@ -55,6 +55,7 @@ import {
 import {
   getPlaybackDelayMs,
 } from '../weather-overlays/lib/weatherTimeline.js'
+import FlightCategoryLayer from './layers/FlightCategoryLayer.jsx'
 import BasemapSwitcher from './basemapSwitcher/BasemapSwitcher.jsx'
 import { setLayerVisibility } from './lib/mapLayerUtils.js'
 import { bindLayerEvent, cleanupAll } from './lib/mapStyleSync.js'
@@ -1024,6 +1025,14 @@ function MapView({
       data-route-briefing-map-mode={activePanel === 'route-check' && routeBriefingMapMode ? 'true' : 'false'}
     >
       <div ref={mapContainerRef} className="map-view" />
+
+      {isStyleReady && (
+        <FlightCategoryLayer
+          map={mapRef.current}
+          visible={!!metVisibility.flightCategory}
+          beforeLayerId={AIRPORT_CIRCLE_LAYER}
+        />
+      )}
 
       {error && <div className="map-view-error" role="alert">{error}</div>}
 
