@@ -6,7 +6,7 @@ import {
   buildCompactTafModel,
   buildCurrentWarningModel,
 } from '../lib/currentWeatherViewModel.js'
-import { fmtKstShort, fmtTime } from '../lib/formatters.js'
+import { fmtKstShort } from '../lib/formatters.js'
 import { TAF_CATEGORY_COLOR } from '../lib/tafViewModel.js'
 import { useTimeZone } from '../../../shared/timezone/TimeZoneContext.jsx'
 
@@ -282,6 +282,7 @@ function MetarSummary({ metar, amosData, icao, airportMeta }) {
 }
 
 function TafSummary({ taf, icao }) {
+  const { tz } = useTimeZone()
   const model = buildCompactTafModel({ taf, icao })
 
   if (model.empty) {
@@ -320,12 +321,12 @@ function TafSummary({ taf, icao }) {
     <section className="ap-current-section ap-current-taf">
       <div className="ap-current-section-header">
         <span className="ap-current-section-badge">{model.hdr?.report_status === 'AMENDMENT' ? 'TAF AMD' : 'TAF'}</span>
-        <span className="ap-current-section-time">{fmtTime(model.hdr?.valid_start)} - {fmtTime(model.hdr?.valid_end)}</span>
+        <span className="ap-current-section-time">{fmtKstShort(model.slots[0]?.time, tz)} – {fmtKstShort(new Date(new Date(model.slots.at(-1)?.time).getTime() + 3600000).toISOString(), tz)}</span>
       </div>
       <div className="ap-taf-timeline">
         <div className="ap-taf-scale" style={{ '--taf-hour-count': model.slots.length }}>
           {model.slots.map((item, index) => (
-            <span key={item.time || index}>{index % 3 === 0 || index === 0 ? model.formatTafHour(item.time) : ''}</span>
+            <span key={item.time || index}>{model.formatTafHour(item.time, tz)}</span>
           ))}
         </div>
         {rows.map(([label, groups, textFn, styleFn], rowIndex) => (

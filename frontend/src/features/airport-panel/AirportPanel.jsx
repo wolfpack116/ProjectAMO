@@ -19,20 +19,35 @@ const AIRPORT_HEADER_NAME_KO = {
   RKJY: '여수공항',
 }
 
-const TABS = [
+const FULL_FEATURE_AIRPORTS = new Set(['RKSI', 'RKSS', 'RKPC', 'RKPU', 'RKJY', 'RKJB', 'RKNY', 'RKPK'])
+
+const TABS_FULL = [
   { id: 'current', label: '현재날씨' },
-  { id: 'metar', label: 'METAR' },
-  { id: 'taf',   label: 'TAF' },
-  { id: 'amos',  label: 'AMOS' },
-  { id: 'warn',  label: '공항경보' },
-  { id: 'info',  label: '기상정보' },
+  { id: 'metar',   label: 'METAR' },
+  { id: 'taf',     label: 'TAF' },
+  { id: 'amos',    label: 'AMOS' },
+  { id: 'warn',    label: '공항경보' },
+  { id: 'info',    label: '기상정보' },
 ]
 
+const TABS_LIMITED = [
+  { id: 'current', label: '현재날씨' },
+  { id: 'metar',   label: 'METAR' },
+  { id: 'taf',     label: 'TAF' },
+  { id: 'warn',    label: '공항경보' },
+]
 
 function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherData }) {
   const [tab, setTab] = useState('current')
   const icao = airport?.icao
+  const isFullFeature = FULL_FEATURE_AIRPORTS.has(icao)
   const airportInfo = weatherData?.airportInfo?.airports?.[icao] || null
+
+  useEffect(() => {
+    if (!isFullFeature && (tab === 'amos' || tab === 'info')) {
+      setTab('current')
+    }
+  }, [isFullFeature, tab])
 
   useEffect(() => {
     if (airport && tab === 'info' && !airportInfo) {
@@ -42,6 +57,7 @@ function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherD
 
   if (!airport) return null
 
+  const tabs = isFullFeature ? TABS_FULL : TABS_LIMITED
   const headerNameKo = AIRPORT_HEADER_NAME_KO[icao] || airport.nameKo || airport.name || icao
   const headerNameEn = airport.name || AIRPORT_NAME_KO[icao] || icao
   const headerImageSrc = `/images/${String(icao || 'RKSI').toLowerCase()}_banner.webp`
@@ -54,14 +70,18 @@ function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherD
 
   return (
     <aside className="airport-panel">
-      <header className="airport-panel-head">
-        <img
-          className="airport-panel-head-image"
-          src={headerImageSrc}
-          alt=""
-          aria-hidden="true"
-        />
-        <div className="airport-panel-head-overlay" aria-hidden="true" />
+      <header className={`airport-panel-head${isFullFeature ? '' : ' airport-panel-head--no-image'}`}>
+        {isFullFeature && (
+          <>
+            <img
+              className="airport-panel-head-image"
+              src={headerImageSrc}
+              alt=""
+              aria-hidden="true"
+            />
+            <div className="airport-panel-head-overlay" aria-hidden="true" />
+          </>
+        )}
         <div className="airport-panel-info">
           <span className="airport-panel-title">
             {headerNameKo}
@@ -74,7 +94,7 @@ function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherD
 
       <div className="airport-panel-main">
         <nav className="airport-panel-tabs">
-          {TABS.map((t) => (
+          {tabs.map((t) => (
             <button
               key={t.id}
               className={`airport-panel-tab${tab === t.id ? ' is-active' : ''}`}

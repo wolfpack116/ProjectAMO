@@ -92,6 +92,10 @@
   -webkit-backdrop-filter: none;
 }
 
+.airport-panel-head--no-image {
+  background: linear-gradient(135deg, #1b3a5c 0%, #2c5f85 45%, #1e4a70 100%);
+}
+
 .airport-panel-head-image {
   position: absolute;
   inset: 0;

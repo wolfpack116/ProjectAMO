@@ -76,10 +76,11 @@ export function groupTafSlots(slots, keyFn) {
   return groups.map((group) => ({ ...group, width: `${(group.items.length / Math.max(1, slots.length)) * 100}%`, first: group.items[0] }))
 }
 
-export function formatTafHour(iso) {
+export function formatTafHour(iso, tz = 'UTC') {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return '--'
-  return `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCHours()).padStart(2, '0')}Z`
+  const display = tz === 'KST' ? new Date(d.getTime() + 9 * 3600 * 1000) : d
+  return `${String(display.getUTCDate()).padStart(2, '0')}/${String(display.getUTCHours()).padStart(2, '0')}${tz === 'UTC' ? 'Z' : ''}`
 }
 
 export function buildTafViewModel(taf, icao) {

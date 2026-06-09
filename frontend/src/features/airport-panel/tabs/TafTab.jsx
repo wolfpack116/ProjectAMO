@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { MoveUp } from 'lucide-react'
 import WeatherIcon from '../../../shared/ui/WeatherIcon.jsx'
-import { fmtTime } from '../lib/formatters.js'
+import { fmtKstShort } from '../lib/formatters.js'
 import { buildTafViewModel, formatTafHour, groupTafSlots, TAF_CATEGORY_COLOR } from '../lib/tafViewModel.js'
+import { useTimeZone } from '../../../shared/timezone/TimeZoneContext.jsx'
 
 const TAF_VIEWS = [
   { id: 'timeline', label: '타임라인' },
@@ -20,6 +21,7 @@ function tafWeatherClass(item, baseClass, { includeSpecial = true } = {}) {
 
 export default function EnhancedTafTab({ taf, icao }) {
   const [view, setView] = useState('timeline')
+  const { tz } = useTimeZone()
   if (!taf) return <div className="ap-empty">TAF 데이터 없음</div>
 
   const { rawTimeline, slots, hdr } = buildTafViewModel(taf, icao)
@@ -29,7 +31,7 @@ export default function EnhancedTafTab({ taf, icao }) {
       <div className="ap-taf-header">
         <div>
           <span className="ap-taf-badge">{hdr?.report_status === 'AMENDMENT' ? 'TAF AMD' : 'TAF'}</span>
-          <span className="ap-taf-valid">{fmtTime(hdr?.valid_start)} - {fmtTime(hdr?.valid_end)}</span>
+          <span className="ap-taf-valid">{fmtKstShort(hdr?.valid_start, tz)} – {fmtKstShort(hdr?.valid_end, tz)}</span>
         </div>
         <div className="ap-taf-switch" role="tablist" aria-label="TAF view">
           {TAF_VIEWS.map((item) => (
@@ -46,7 +48,7 @@ export default function EnhancedTafTab({ taf, icao }) {
       {slots.length > 0 && view === 'timeline' && (
         <div className="ap-taf-timeline">
           <div className="ap-taf-scale" style={{ '--taf-hour-count': slots.length }}>
-            {slots.map((item, index) => <span key={index}>{index % 3 === 0 || index === 0 ? formatTafHour(item.time) : ''}</span>)}
+            {slots.map((item, index) => <span key={index}>{index % 3 === 0 || index === 0 ? formatTafHour(item.time, tz) : ''}</span>)}
           </div>
           {[
             ['비행조건', groupTafSlots(slots, (item) => item.flight.category), (item) => item.flight.category, (item) => ({ background: TAF_CATEGORY_COLOR[item.flight.category] || '#15803d', color: '#fff' })],
@@ -78,7 +80,7 @@ export default function EnhancedTafTab({ taf, icao }) {
           <tbody>
             {slots.map((item, index) => (
               <tr key={index}>
-                <td>{formatTafHour(item.time)}</td>
+                <td>{formatTafHour(item.time, tz)}</td>
                 <td><span className="ap-taf-cat" style={{ background: TAF_CATEGORY_COLOR[item.flight.category] }}>{item.flight.category}</span></td>
                 <td className={tafWeatherClass(item, 'ap-taf-weather-cell')}><WeatherIcon visual={item.visual} className="ap-taf-mini-icon" />{item.weatherLabel}</td>
                 <td className={item.highWind ? 'is-alert' : ''}>{item.windText}</td>
@@ -95,7 +97,7 @@ export default function EnhancedTafTab({ taf, icao }) {
         <div className="ap-taf-grid">
           {slots.map((item, index) => (
             <article key={index} className="ap-taf-card">
-              <div className="ap-taf-card-head"><span>{formatTafHour(item.time)}</span><span className="ap-taf-cat" style={{ background: TAF_CATEGORY_COLOR[item.flight.category] }}>{item.flight.category}</span></div>
+              <div className="ap-taf-card-head"><span>{formatTafHour(item.time, tz)}</span><span className="ap-taf-cat" style={{ background: TAF_CATEGORY_COLOR[item.flight.category] }}>{item.flight.category}</span></div>
               <div className={tafWeatherClass(item, 'ap-taf-card-weather')}><WeatherIcon visual={item.visual} className="ap-taf-card-icon" />{item.weatherLabel}</div>
               <div className="ap-taf-card-row"><span>바람</span><strong className={item.highWind ? 'is-alert' : ''}>{item.windText}</strong></div>
               <div className="ap-taf-card-row"><span>시정</span><strong>{item.visibilityText}</strong></div>
