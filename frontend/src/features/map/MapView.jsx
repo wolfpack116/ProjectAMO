@@ -21,16 +21,12 @@ import WeatherTimelineBar from '../weather-overlays/WeatherTimelineBar.jsx'
 import WeatherLegends from '../weather-overlays/WeatherLegends.jsx'
 import WeatherOverlayPanel from '../weather-overlays/WeatherOverlayPanel.jsx'
 import NwpSliderBar from '../weather-overlays/NwpSliderBar.jsx'
-import { useKimSurfaceWind } from '../weather-overlays/lib/useKimSurfaceWind.js'
-import { useKimTemperature } from '../weather-overlays/lib/useKimTemperature.js'
-import { useKimCloudPotential } from '../weather-overlays/lib/useKimCloudPotential.js'
-import { useKimIcing } from '../weather-overlays/lib/useKimIcing.js'
-import { useKtgTurbulence } from '../weather-overlays/lib/useKtgTurbulence.js'
+import { useNwpOverlays } from '../weather-overlays/lib/useNwpOverlays.js'
 import { destroyWindOverlay, syncWindOverlay } from '../weather-overlays/lib/windOverlaySync.js'
 import { WIND_SPEED_COLOR_RAMP } from '../weather-overlays/lib/windField.js'
 import { CELSIUS_TEMPERATURE_COLOR_RAMP } from '../weather-overlays/lib/temperatureField.js'
 import { destroyTemperatureOverlay, syncTemperatureOverlay } from '../weather-overlays/lib/temperatureOverlaySync.js'
-import { CLOUD_POTENTIAL_COLOR_RAMP, getCloudPotentialMaxSpread } from '../weather-overlays/lib/cloudPotentialField.js'
+import { CLOUD_POTENTIAL_COLOR_RAMP } from '../weather-overlays/lib/cloudPotentialField.js'
 import { destroyCloudPotentialOverlay, syncCloudPotentialOverlay } from '../weather-overlays/lib/cloudPotentialOverlaySync.js'
 import { ICING_COLOR_RAMP } from '../weather-overlays/lib/icingPotentialField.js'
 import { destroyIcingPotentialOverlay, syncIcingPotentialOverlay } from '../weather-overlays/lib/icingPotentialOverlaySync.js'
@@ -55,7 +51,12 @@ import {
 import {
   getPlaybackDelayMs,
 } from '../weather-overlays/lib/weatherTimeline.js'
-import FlightCategoryLayer from './layers/FlightCategoryLayer.jsx'
+import { useFlightCategory } from '../weather-overlays/lib/useFlightCategory.js'
+import {
+  bindFlightCategoryClick,
+  removeFlightCategoryLayer,
+  syncFlightCategoryLayer,
+} from '../weather-overlays/lib/flightCategoryLayers.js'
 import BasemapSwitcher from './basemapSwitcher/BasemapSwitcher.jsx'
 import { setLayerVisibility } from './lib/mapLayerUtils.js'
 import { bindLayerEvent, cleanupAll } from './lib/mapStyleSync.js'
@@ -190,7 +191,6 @@ function MapView({
   const [windFlowOpacity, setWindFlowOpacity] = useState(0.8)
   const [windFlowTrail, setWindFlowTrail] = useState(0.9)
   const [windFlowWidth, setWindFlowWidth] = useState(1.5)
-  const [nwpSelection, setNwpSelection] = useState(null)
   const [sigwxHistoryIndex, setSigwxHistoryIndex] = useState(0)
   const [sigwxLegendOpen, setSigwxLegendOpen] = useState(false)
   const [openAdvisoryPanel, setOpenAdvisoryPanel] = useState(null)
@@ -207,42 +207,15 @@ function MapView({
   const { vfrWaypointsRef, hideTimerRef } = routeBriefing.refs
   const { setHoveredWpInfo, setVfrWaypoints } = routeBriefing.actions
   const { routePreviewModel } = routeBriefing
-  const windEnabled = enableWindOverlay && metVisibility.wind
-  const tempEnabled = enableWindOverlay && metVisibility.temp
-  const cloudEnabled = enableWindOverlay && metVisibility.cloud
-  const icingEnabled = enableWindOverlay && metVisibility.icing
-  const turbulenceEnabled = enableWindOverlay && metVisibility.turbulence
-  const kimSurfaceWind = useKimSurfaceWind(windEnabled, nwpSelection, setNwpSelection)
-  const kimTemperature = useKimTemperature(tempEnabled, nwpSelection, setNwpSelection)
-  const kimCloudPotential = useKimCloudPotential(cloudEnabled, nwpSelection, setNwpSelection)
-  const kimIcing = useKimIcing(icingEnabled, nwpSelection, setNwpSelection)
-  const ktgTurbulence = useKtgTurbulence(turbulenceEnabled)
-  const windRendererOptions = useMemo(() => ({
-    ...(kimSurfaceWind.lowPower
-      ? { desktopCap: 800, mobileCap: 800, frameCap: 15, sampleStep: 4, pixelRatioCap: 1.5 }
-      : {}),
-    adaptiveParticleDensity: true,
-    zoomAdaptiveDensity: true,
-    samplerLod: true,
-    flowColorMode: metVisibility.windSpeed ? 'neutral' : 'speed',
-    flowOpacity: windFlowOpacity,
-    flowWidth: windFlowWidth,
-    trailPersistence: windFlowTrail,
-  }), [kimSurfaceWind.lowPower, metVisibility.windSpeed, windFlowOpacity, windFlowTrail, windFlowWidth])
-  const nwpSliderSource = metVisibility.icing
-    ? kimIcing
-    : metVisibility.cloud
-    ? kimCloudPotential
-    : metVisibility.temp
-      ? kimTemperature
-      : kimSurfaceWind
-  const nwpSliderIndex = metVisibility.icing
-    ? kimIcing.icingIndex
-    : metVisibility.cloud
-    ? kimCloudPotential.cloudIndex
-    : metVisibility.temp
-      ? kimTemperature.temperatureIndex
-      : kimSurfaceWind.windIndex
+  const { geojson: flightCategoryGeojson } = useFlightCategory()
+  const fcPopupRef = useRef(null)
+  const {
+    windField, windRendererOptions, temperatureField, cloudField, icingField, ktgGrid,
+    windStatus, tempStatus, cloudStatus, icingStatus, turbulenceStatus,
+    lowPower, cloudMaxSpread,
+    altLevelsFt, selectedAltFt, setSelectedAltFt,
+    sliderLevels, sliderTimes, sliderAvailability, nwpSelection, setNwpSelection,
+  } = useNwpOverlays({ enableWindOverlay, metVisibility, windFlowOpacity, windFlowTrail, windFlowWidth })
 
   useEffect(() => { onSelectRef.current = onAirportSelect }, [onAirportSelect])
 
@@ -520,7 +493,7 @@ function MapView({
 
   function toggleMet(id) {
     setMetVisibility((prev) => {
-      return getNextMetVisibility(prev, id, { lowPower: kimSurfaceWind.lowPower })
+      return getNextMetVisibility(prev, id, { lowPower })
     })
   }
 
@@ -785,7 +758,7 @@ function MapView({
     const map = mapRef.current
     if (!map || !isStyleReady || !enableWindOverlay) return
     syncWindOverlay(map, {
-      windField: kimSurfaceWind.windField,
+      windField,
       rendererOptions: windRendererOptions,
       visibility: {
         wind: metVisibility.wind,
@@ -795,7 +768,7 @@ function MapView({
     })
   }, [
     enableWindOverlay,
-    kimSurfaceWind.windField,
+    windField,
     windRendererOptions,
     metVisibility.wind,
     metVisibility.windFlow,
@@ -808,12 +781,12 @@ function MapView({
     const map = mapRef.current
     if (!map || !isStyleReady || !enableWindOverlay) return
     syncTemperatureOverlay(map, {
-      temperatureField: kimTemperature.temperatureField,
+      temperatureField,
       isVisible: metVisibility.temp,
     })
   }, [
     enableWindOverlay,
-    kimTemperature.temperatureField,
+    temperatureField,
     metVisibility.temp,
     isStyleReady,
     styleRevision,
@@ -823,12 +796,12 @@ function MapView({
     const map = mapRef.current
     if (!map || !isStyleReady || !enableWindOverlay) return
     syncCloudPotentialOverlay(map, {
-      cloudPotentialField: kimCloudPotential.cloudField,
+      cloudPotentialField: cloudField,
       isVisible: metVisibility.cloud,
     })
   }, [
     enableWindOverlay,
-    kimCloudPotential.cloudField,
+    cloudField,
     metVisibility.cloud,
     isStyleReady,
     styleRevision,
@@ -838,12 +811,12 @@ function MapView({
     const map = mapRef.current
     if (!map || !isStyleReady || !enableWindOverlay) return
     syncIcingPotentialOverlay(map, {
-      icingField: kimIcing.icingField,
+      icingField,
       isVisible: metVisibility.icing,
     })
   }, [
     enableWindOverlay,
-    kimIcing.icingField,
+    icingField,
     metVisibility.icing,
     isStyleReady,
     styleRevision,
@@ -853,12 +826,12 @@ function MapView({
     const map = mapRef.current
     if (!map || !isStyleReady || !enableWindOverlay) return
     syncKtgTurbulenceOverlay(map, {
-      ktgGrid: ktgTurbulence.ktgGrid,
+      ktgGrid,
       isVisible: metVisibility.turbulence,
     })
   }, [
     enableWindOverlay,
-    ktgTurbulence.ktgGrid,
+    ktgGrid,
     metVisibility.turbulence,
     isStyleReady,
     styleRevision,
@@ -872,6 +845,7 @@ function MapView({
       destroyCloudPotentialOverlay(map)
       destroyIcingPotentialOverlay(map)
       destroyKtgTurbulenceOverlay(map)
+      removeFlightCategoryLayer(map)
     }
   }, [])
 
@@ -901,6 +875,24 @@ function MapView({
     if (!map || !isStyleReady) return
     syncAdsbLayer(map, { geojson: adsbGeoJSON, isVisible: metVisibility.adsb })
   }, [adsbGeoJSON, metVisibility.adsb, isStyleReady, styleRevision])
+
+  // ???? Sync flight category overlay ??????????????????????????????????????????????????????????????????????????????????????????????????
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !isStyleReady) return
+    syncFlightCategoryLayer(map, {
+      geojson: flightCategoryGeojson,
+      visible: !!metVisibility.flightCategory,
+      beforeLayerId: AIRPORT_CIRCLE_LAYER,
+    })
+  }, [flightCategoryGeojson, metVisibility.flightCategory, isStyleReady, styleRevision])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !isStyleReady) return
+    return bindFlightCategoryClick(map, fcPopupRef)
+  }, [isStyleReady, styleRevision]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ???? Sync airport data ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 
@@ -954,16 +946,16 @@ function MapView({
   }
 
   function isMetLayerDisabled(id) {
-    if (id === 'wind') return !enableWindOverlay || (kimSurfaceWind.status === 'error' && !kimSurfaceWind.windField)
-    if (id === 'temp') return !enableWindOverlay || ((kimTemperature.status === 'error' || kimTemperature.status === 'unavailable') && !kimTemperature.temperatureField)
+    if (id === 'wind') return !enableWindOverlay || (windStatus === 'error' && !windField)
+    if (id === 'temp') return !enableWindOverlay || ((tempStatus === 'error' || tempStatus === 'unavailable') && !temperatureField)
     if (id === 'cloud') {
-      return !enableWindOverlay || (!metVisibility.cloud && (kimCloudPotential.status === 'error' || kimCloudPotential.status === 'unavailable') && !kimCloudPotential.cloudField)
+      return !enableWindOverlay || (!metVisibility.cloud && (cloudStatus === 'error' || cloudStatus === 'unavailable') && !cloudField)
     }
     if (id === 'icing') {
-      return !enableWindOverlay || (!metVisibility.icing && (kimIcing.status === 'error' || kimIcing.status === 'unavailable') && !kimIcing.icingField)
+      return !enableWindOverlay || (!metVisibility.icing && (icingStatus === 'error' || icingStatus === 'unavailable') && !icingField)
     }
     if (id === 'turbulence') {
-      return !enableWindOverlay || (!metVisibility.turbulence && (ktgTurbulence.status === 'error') && !ktgTurbulence.ktgGrid)
+      return !enableWindOverlay || (!metVisibility.turbulence && turbulenceStatus === 'error' && !ktgGrid)
     }
     if (id === 'radar') return radarFrames.length === 0
     if (id === 'satellite') return satelliteFrames.length === 0
@@ -1019,14 +1011,6 @@ function MapView({
     >
       <div ref={mapContainerRef} className="map-view" />
 
-      {isStyleReady && (
-        <FlightCategoryLayer
-          map={mapRef.current}
-          visible={!!metVisibility.flightCategory}
-          beforeLayerId={AIRPORT_CIRCLE_LAYER}
-        />
-      )}
-
       {error && <div className="map-view-error" role="alert">{error}</div>}
 
       <WeatherLegends
@@ -1034,15 +1018,15 @@ function MapView({
         lightningLegendVisible={lightningLegendVisible}
         radarRainrateLegend={RADAR_RAINRATE_LEGEND}
         lightningLegendEntries={lightningLegendEntries}
-        windSpeedLegendVisible={!!(enableWindOverlay && metVisibility.wind && metVisibility.windSpeed && kimSurfaceWind.windField)}
+        windSpeedLegendVisible={!!(enableWindOverlay && metVisibility.wind && metVisibility.windSpeed && windField)}
         windSpeedLegendEntries={WIND_SPEED_COLOR_RAMP}
-        temperatureLegendVisible={!!(enableWindOverlay && metVisibility.temp && kimTemperature.temperatureField)}
+        temperatureLegendVisible={!!(enableWindOverlay && metVisibility.temp && temperatureField)}
         temperatureLegendEntries={CELSIUS_TEMPERATURE_COLOR_RAMP}
-        cloudLegendVisible={!!(enableWindOverlay && metVisibility.cloud && kimCloudPotential.cloudField)}
-        cloudLegendEntries={CLOUD_POTENTIAL_COLOR_RAMP.filter((entry) => entry.max <= getCloudPotentialMaxSpread(kimCloudPotential.cloudField))}
-        icingLegendVisible={!!(enableWindOverlay && metVisibility.icing && kimIcing.icingField)}
+        cloudLegendVisible={!!(enableWindOverlay && metVisibility.cloud && cloudField)}
+        cloudLegendEntries={CLOUD_POTENTIAL_COLOR_RAMP.filter((entry) => entry.max <= cloudMaxSpread)}
+        icingLegendVisible={!!(enableWindOverlay && metVisibility.icing && icingField)}
         icingLegendEntries={ICING_COLOR_RAMP}
-        turbulenceLegendVisible={!!(enableWindOverlay && metVisibility.turbulence && ktgTurbulence.ktgGrid)}
+        turbulenceLegendVisible={!!(enableWindOverlay && metVisibility.turbulence && ktgGrid)}
         turbulenceLegendEntries={KTG_COLOR_RAMP}
         radarReferenceTimeMs={radarReferenceTimeMs}
         lightningReferenceTimeMs={lightningReferenceTimeMs}
@@ -1087,16 +1071,16 @@ function MapView({
 
       <NwpSliderBar
         isVisible={enableWindOverlay && (metVisibility.wind || metVisibility.temp || metVisibility.cloud || metVisibility.icing)}
-        levels={nwpSliderSource.availableLevels}
-        times={nwpSliderSource.availableTimes}
+        levels={sliderLevels}
+        times={sliderTimes}
         selection={nwpSelection}
-        availability={nwpSliderIndex?.availability}
+        availability={sliderAvailability}
         isElevated={weatherTimelineVisible}
         onSelectionChange={setNwpSelection}
       />
-      {enableWindOverlay && metVisibility.turbulence && ktgTurbulence.altLevelsFt.length > 1 && (() => {
-        const altLevels = ktgTurbulence.altLevelsFt
-        const selAlt = ktgTurbulence.selectedAltFt
+      {enableWindOverlay && metVisibility.turbulence && altLevelsFt.length > 1 && (() => {
+        const altLevels = altLevelsFt
+        const selAlt = selectedAltFt
         const idx = altLevels.indexOf(selAlt)
         const effectiveIdx = idx >= 0 ? idx : 0
         return (
@@ -1109,7 +1093,7 @@ function MapView({
               step="1"
               value={String(effectiveIdx)}
               aria-label="Turbulence altitude level"
-              onChange={(e) => ktgTurbulence.setSelectedAltFt(altLevels[Number(e.target.value)])}
+              onChange={(e) => setSelectedAltFt(altLevels[Number(e.target.value)])}
             />
             <div className="nwp-level-slider-ticks" aria-hidden="true">
               {[...altLevels].reverse().map((ft) => (
@@ -1216,12 +1200,12 @@ function MapView({
           isLayerDisabled={isMetLayerDisabled}
           getLayerBadge={metLayerBadge}
           showWind={enableWindOverlay}
-          windStatus={kimSurfaceWind.status}
-          tempStatus={kimTemperature.status}
-          cloudStatus={kimCloudPotential.status}
-          icingStatus={kimIcing.status}
-          turbulenceStatus={ktgTurbulence.status}
-          windLowPower={kimSurfaceWind.lowPower}
+          windStatus={windStatus}
+          tempStatus={tempStatus}
+          cloudStatus={cloudStatus}
+          icingStatus={icingStatus}
+          turbulenceStatus={turbulenceStatus}
+          windLowPower={lowPower}
           windFlowOpacity={windFlowOpacity}
           windFlowTrail={windFlowTrail}
           windFlowWidth={windFlowWidth}

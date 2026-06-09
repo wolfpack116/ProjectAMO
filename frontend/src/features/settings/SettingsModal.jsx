@@ -3,7 +3,7 @@ import { X } from 'lucide-react'
 import {
   DEFAULT_AIRPORT_MINIMA_RULES,
   normalizeAirportMinimaSettings,
-} from '../monitoring/legacy/utils/helpers'
+} from '../../shared/weather/helpers.js'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
 import './SettingsModal.css'
 

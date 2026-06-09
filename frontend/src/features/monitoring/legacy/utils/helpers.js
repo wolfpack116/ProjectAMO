@@ -4,6 +4,12 @@ import {
   hasSpecialWeather as sharedHasSpecialWeather,
 } from "../../../../shared/weather/helpers.js";
 
+import {
+  DEFAULT_AIRPORT_MINIMA_RULES,
+  normalizeAirportMinimaSettings,
+} from "../../../../shared/weather/helpers.js";
+export { DEFAULT_AIRPORT_MINIMA_RULES, normalizeAirportMinimaSettings };
+
 export function safe(value, fallback = "-") {
   return value == null || value === "" ? fallback : value;
 }
@@ -244,41 +250,6 @@ export function isDarkTheme() {
   return document.documentElement.getAttribute("data-theme") === "dark";
 }
 
-export const DEFAULT_AIRPORT_MINIMA_RULES = {
-  RKSI: { visibilityM: 175, ceilingFt: null },
-  RKSS: { visibilityM: 175, ceilingFt: null },
-  RKPC: { visibilityM: 300, ceilingFt: 100 },
-  RKPK: { visibilityM: 300, ceilingFt: 100 },
-  RKTU: { visibilityM: 550, ceilingFt: 200 },
-  RKTN: { visibilityM: 550, ceilingFt: 200 },
-  RKTH: { visibilityM: 550, ceilingFt: 200 },
-  RKJB: { visibilityM: 550, ceilingFt: 200 },
-  RKJJ: { visibilityM: 550, ceilingFt: 200 },
-  RKJK: { visibilityM: 550, ceilingFt: 200 },
-  RKJY: { visibilityM: 550, ceilingFt: 200 },
-  RKNW: { visibilityM: 550, ceilingFt: 200 },
-  RKPS: { visibilityM: 550, ceilingFt: 200 },
-  RKPU: { visibilityM: 550, ceilingFt: 200 },
-  RKNY: { visibilityM: 550, ceilingFt: 200 },
-};
-
-function normalizeNullableNumber(value) {
-  if (value === "" || value == null) return null;
-  const next = Number(value);
-  return Number.isFinite(next) ? next : null;
-}
-
-export function normalizeAirportMinimaSettings(raw) {
-  const next = {};
-  for (const [icao, defaults] of Object.entries(DEFAULT_AIRPORT_MINIMA_RULES)) {
-    const source = raw?.[icao] || defaults;
-    next[icao] = {
-      visibilityM: normalizeNullableNumber(source.visibilityM) ?? defaults.visibilityM,
-      ceilingFt: normalizeNullableNumber(source.ceilingFt),
-    };
-  }
-  return next;
-}
 
 export function getAirportMinimaRule(icao, minimaSettings = null) {
   const rules = minimaSettings || DEFAULT_AIRPORT_MINIMA_RULES;
