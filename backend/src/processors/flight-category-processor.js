@@ -308,9 +308,11 @@ export async function process() {
   const geojson = categoryGridToGeoJson(catGrid)
 
   const queryGrids = buildQueryGrids(visGrid, ceilFull, cthRaw)
+  const amosFetchedAt = store.getCached('amos')?.fetched_at ?? null
   const result = {
     type: 'flight_category_overlay',
     fetched_at: new Date().toISOString(),
+    amos_fetched_at: amosFetchedAt,
     computed_at: new Date().toISOString(),
     feature_count: geojson.features.length,
     geojson,
