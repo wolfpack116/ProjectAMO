@@ -169,7 +169,7 @@ test('fog qualifiers still produce weather icons on the map', () => {
   assert.equal(model.weatherIconId, 'airport-wx-fog')
 })
 
-test('calm wind and unusable low-speed buckets produce no wind barb', () => {
+test('calm wind produces no wind barb; low-speed non-calm uses minimum 5kt bucket', () => {
   const calmModel = buildAirportStationMarkerModel({
     airport: { icao: 'RKSI' },
     metar: buildMetar({
@@ -185,8 +185,8 @@ test('calm wind and unusable low-speed buckets produce no wind barb', () => {
 
   assert.equal(calmModel.windIconId, '')
   assert.equal(calmModel.windDirection, null)
-  assert.equal(tinyWindModel.windIconId, '')
-  assert.equal(tinyWindModel.windDirection, null)
+  assert.equal(tinyWindModel.windIconId, 'airport-wind-005')
+  assert.equal(tinyWindModel.windDirection, 120)
 })
 
 test('wind buckets round to the nearest five knots and cap at sixty', () => {

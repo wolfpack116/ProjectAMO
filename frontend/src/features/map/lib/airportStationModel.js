@@ -134,8 +134,7 @@ function getWindModel(observation = {}) {
     return { windDirection: null, windIconId: '' }
   }
 
-  const bucket = Math.min(60, Math.round(speedKt / 5) * 5)
-  if (bucket < 5) return { windDirection: null, windIconId: '' }
+  const bucket = Math.min(60, Math.max(5, Math.round(speedKt / 5) * 5))
 
   return {
     windDirection: direction,
