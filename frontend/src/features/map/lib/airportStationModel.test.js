@@ -49,11 +49,22 @@ test('buildAirportStationMarkerModel returns VFR clear marker with no ceiling we
   assert.equal(model.categoryColor, AIRPORT_CATEGORY_COLORS.VFR)
   assert.equal(model.skyCover, 'clear')
   assert.equal(model.stationIconId, 'airport-station-vfr-clear')
-  assert.equal(model.visibilityText, '9999')
+  assert.equal(model.visibilityText, 'CAVOK')
   assert.equal(model.ceilingText, '')
   assert.equal(model.weatherIconId, '')
   assert.equal(model.windIconId, 'airport-wind-010')
   assert.equal(model.windDirection, 40)
+})
+
+test('non-CAVOK visibility >= 9999 shows 9999+ on the marker', () => {
+  const model = buildAirportStationMarkerModel({
+    airport: { icao: 'RKSI' },
+    metar: buildMetar({
+      visibility: { value: 9999, cavok: false },
+    }),
+  })
+
+  assert.equal(model.visibilityText, '9999+')
 })
 
 test('buildAirportStationMarkerModel returns IFR from low visibility and LIFR from airport minima', () => {

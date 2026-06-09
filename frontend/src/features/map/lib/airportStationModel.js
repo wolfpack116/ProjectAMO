@@ -94,17 +94,15 @@ function getVisibilityMeters(observation = {}) {
 }
 
 function formatVisibilityText(observation = {}, metar = {}) {
-  const visibilityMeters = getVisibilityMeters(observation)
-  if (Number.isFinite(visibilityMeters)) {
-    if (visibilityMeters >= 1000) return String(visibilityMeters)
-    return String(visibilityMeters).padStart(4, '0')
-  }
-
   if (observation.visibility?.cavok || observation.cavok || metar?.cavok_flag) {
     return 'CAVOK'
   }
 
-  return ''
+  const visibilityMeters = getVisibilityMeters(observation)
+  if (!Number.isFinite(visibilityMeters)) return ''
+  if (visibilityMeters >= 9999) return '9999+'
+  if (visibilityMeters >= 1000) return String(visibilityMeters)
+  return String(visibilityMeters).padStart(4, '0')
 }
 
 function isMeaningfulWeatherCode(code) {

@@ -42,7 +42,7 @@ function formatClouds(observation) {
   })
   if (!significant.length) return 'SKC'
   return significant.map((c) => {
-    const base = Number.isFinite(c.base) ? String(c.base).padStart(3, '0') : '///'
+    const base = Number.isFinite(c.base) ? String(Math.round(c.base / 100)).padStart(3, '0') : '///'
     return `${String(c.amount).toUpperCase()}${base}`
   }).join(' ')
 }
