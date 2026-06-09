@@ -104,6 +104,9 @@ export function buildWeatherOverlayModel({
   lightningReferenceTimeMs,
   blinkLightning,
   lightningBlinkOff,
+  nwpSelection = null,
+  ktgGrid = null,
+  flightCategoryGeojson = null,
   tz = 'KST',
 }) {
   const radarFrames = normalizeFrames(echoMeta?.frames?.length ? echoMeta.frames : [echoMeta?.nationwide])
@@ -203,6 +206,16 @@ export function buildWeatherOverlayModel({
     radarReferenceTimeMs: parseFrameTmToMs(radarFrame?.tm) ?? Date.now(),
     sigwxIssueLabel: formatSigwxStamp(selectedSigwxEntry?.fetched_at, tz),
     sigwxValidLabel: formatSigwxStamp(selectedSigwxEntry?.tmfc, tz),
+    nwpIssueLabel: formatSigwxStamp(nwpSelection?.tmfc ?? null, tz),
+    nwpValidLabel: (() => {
+      const base = parseSigwxTmfcToMs(nwpSelection?.tmfc)
+      const hf = Number(nwpSelection?.hf)
+      if (!Number.isFinite(base) || !Number.isFinite(hf)) return '-'
+      return formatSigwxStamp(new Date(base + hf * 3600000).toISOString(), tz)
+    })(),
+    ktgIssueLabel: formatSigwxStamp(ktgGrid?.tmfc ?? null, tz),
+    ktgValidLabel: formatSigwxStamp(ktgGrid?.validTime ?? null, tz),
+    flightCategoryIssueLabel: formatSigwxStamp(flightCategoryGeojson?.fetched_at ?? null, tz),
     blinkLightning,
     lightningBlinkOff,
     lightningReferenceTimeMs,

@@ -21,6 +21,7 @@ import WeatherTimelineBar from '../weather-overlays/WeatherTimelineBar.jsx'
 import WeatherLegends from '../weather-overlays/WeatherLegends.jsx'
 import WeatherOverlayPanel from '../weather-overlays/WeatherOverlayPanel.jsx'
 import NwpSliderBar from '../weather-overlays/NwpSliderBar.jsx'
+import WeatherLayerTimestampBar from '../weather-overlays/WeatherLayerTimestampBar.jsx'
 import { useNwpOverlays } from '../weather-overlays/lib/useNwpOverlays.js'
 import { destroyWindOverlay, syncWindOverlay } from '../weather-overlays/lib/windOverlaySync.js'
 import { WIND_SPEED_COLOR_RAMP } from '../weather-overlays/lib/windField.js'
@@ -302,6 +303,9 @@ function MapView({
     selectedSigwxFrontMeta,
     selectedSigwxCloudMeta,
     lightningReferenceTimeMs,
+    nwpSelection,
+    ktgGrid,
+    flightCategoryGeojson,
     tz,
   }), [
     echoMeta,
@@ -319,6 +323,9 @@ function MapView({
     selectedSigwxFrontMeta,
     selectedSigwxCloudMeta,
     lightningReferenceTimeMs,
+    nwpSelection,
+    ktgGrid,
+    flightCategoryGeojson,
     tz,
   ])
   const {
@@ -344,6 +351,11 @@ function MapView({
     radarReferenceTimeMs,
     sigwxIssueLabel,
     sigwxValidLabel,
+    nwpIssueLabel,
+    nwpValidLabel,
+    ktgIssueLabel,
+    ktgValidLabel,
+    flightCategoryIssueLabel,
   } = weatherOverlayModel
   const advisoryPanelItems = useMemo(() => {
     if (openAdvisoryPanel === 'sigwxLow') return sigwxGroups
@@ -351,6 +363,28 @@ function MapView({
     if (openAdvisoryPanel === 'airmet') return airmetItems
     return []
   }, [openAdvisoryPanel, sigwxGroups, sigmetItems, airmetItems])
+
+  const timestampEntries = useMemo(() => {
+    const entries = []
+    if (enableWindOverlay && metVisibility.wind)
+      entries.push({ key: 'wind', label: 'Wind', issueLabel: nwpIssueLabel, validLabel: nwpValidLabel })
+    if (enableWindOverlay && metVisibility.temp)
+      entries.push({ key: 'temp', label: 'Temp', issueLabel: nwpIssueLabel, validLabel: nwpValidLabel })
+    if (enableWindOverlay && metVisibility.cloud)
+      entries.push({ key: 'cloud', label: 'Moisture', issueLabel: nwpIssueLabel, validLabel: nwpValidLabel })
+    if (enableWindOverlay && metVisibility.icing)
+      entries.push({ key: 'icing', label: 'Icing', issueLabel: nwpIssueLabel, validLabel: nwpValidLabel })
+    if (enableWindOverlay && metVisibility.turbulence)
+      entries.push({ key: 'turbulence', label: 'Turbulence', issueLabel: ktgIssueLabel, validLabel: ktgValidLabel })
+    if (metVisibility.flightCategory)
+      entries.push({ key: 'flightCategory', label: '비행기상구역', issueLabel: flightCategoryIssueLabel })
+    return entries
+  }, [
+    enableWindOverlay,
+    metVisibility.wind, metVisibility.temp, metVisibility.cloud,
+    metVisibility.icing, metVisibility.turbulence, metVisibility.flightCategory,
+    nwpIssueLabel, nwpValidLabel, ktgIssueLabel, ktgValidLabel, flightCategoryIssueLabel,
+  ])
 
   useEffect(() => {
     const tickCount = weatherTimelineTicks.length
@@ -1016,6 +1050,8 @@ function MapView({
       <div ref={mapContainerRef} className="map-view" />
 
       {error && <div className="map-view-error" role="alert">{error}</div>}
+
+      <WeatherLayerTimestampBar entries={timestampEntries} />
 
       <WeatherLegends
         radarLegendVisible={radarLegendVisible}
