@@ -99,26 +99,6 @@ export function addAirportLayers(map, data) {
       },
     })
   }
-  if (!map.getLayer(AIRPORT_WIND_LAYER)) {
-    map.addLayer({
-      id: AIRPORT_WIND_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top', minzoom: 6,
-      filter: ['!=', ['get', 'windIconId'], ''],
-      layout: {
-        'icon-image': ['get', 'windIconId'],
-        'icon-size': [
-          'interpolate', ['linear'], ['zoom'],
-          6, 0.74,
-          9, 0.86,
-          12, 0.96,
-        ],
-        'icon-rotate': ['get', 'windDirection'],
-        'icon-rotation-alignment': 'map',
-        'icon-anchor': 'center',
-        'icon-allow-overlap': true,
-        'icon-ignore-placement': true,
-      },
-    })
-  }
   if (!map.getLayer(AIRPORT_VISIBILITY_LAYER)) {
     map.addLayer({
       id: AIRPORT_VISIBILITY_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top',
@@ -198,6 +178,26 @@ export function addAirportLayers(map, data) {
         'text-ignore-placement': true,
       },
       paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 },
+    })
+  }
+  if (!map.getLayer(AIRPORT_WIND_LAYER)) {
+    map.addLayer({
+      id: AIRPORT_WIND_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top', minzoom: 6,
+      filter: ['!=', ['get', 'windIconId'], ''],
+      layout: {
+        'icon-image': ['get', 'windIconId'],
+        'icon-size': [
+          'interpolate', ['linear'], ['zoom'],
+          6, 0.74,
+          9, 0.86,
+          12, 0.96,
+        ],
+        'icon-rotate': ['get', 'windDirection'],
+        'icon-rotation-alignment': 'map',
+        'icon-anchor': 'center',
+        'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
+      },
     })
   }
 }
