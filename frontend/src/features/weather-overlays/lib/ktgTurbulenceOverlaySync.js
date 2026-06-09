@@ -1,15 +1,9 @@
 import { pickKtgRgba } from './ktgTurbulenceField.js'
+import { coordinatesForGrid } from './overlayUtils.js'
 
 const KTG_IMAGE_SOURCE_ID = 'ktg-turbulence-image-source'
 const KTG_IMAGE_LAYER_ID = 'ktg-turbulence-image-layer'
 const stateByMap = new WeakMap()
-
-function coordinatesForGrid(grid) {
-  if (!grid) return null
-  const { lonMin, lonMax, latMin, latMax } = grid
-  if (![lonMin, lonMax, latMin, latMax].every(Number.isFinite)) return null
-  return [[lonMin, latMax], [lonMax, latMax], [lonMax, latMin], [lonMin, latMin]]
-}
 
 function buildKtgImage(ktgData) {
   const { grid, ktg } = ktgData

@@ -53,6 +53,7 @@ import {
 } from '../weather-overlays/lib/weatherTimeline.js'
 import { useFlightCategory } from '../weather-overlays/lib/useFlightCategory.js'
 import {
+  addFlightCategoryLayer,
   bindFlightCategoryClick,
   removeFlightCategoryLayer,
   syncFlightCategoryLayer,
@@ -592,6 +593,9 @@ function MapView({
 
       // Airport circles
       addAirportLayers(map, { type: 'FeatureCollection', features: [] })
+
+      // Flight category overlay (before airport circles so airports render on top)
+      addFlightCategoryLayer(map, AIRPORT_CIRCLE_LAYER)
 
       // ADS-B
       addAdsbLayers(map)

@@ -213,13 +213,3 @@ function formatWindLevelLabel(field) {
   if (level.unit === 'm') return `${level.value}m`
   return level.label || level.id
 }
-export default {
-  WIND_SPEED_COLOR_RAMP,
-  createDownsampledWindField,
-  createWindFieldSampler,
-  decodeWindComponent,
-  formatKimWindMetaLabel,
-  getWindFieldMeanSpeed,
-  interpolateWindSpeedColor,
-  pickWindSpeedColor,
-}

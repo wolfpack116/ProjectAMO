@@ -132,15 +132,6 @@ export const FLIGHT_CATEGORY_META = {
     borderSoft: '#bbf7d0',
     valueColor: '#166534',
   },
-  MVFR: {
-    category: 'MVFR',
-    color: '#2563eb',
-    labelKo: '한계시계비행규칙',
-    bg: '#eff6ff',
-    border: '#2563eb',
-    borderSoft: '#bfdbfe',
-    valueColor: '#1d4ed8',
-  },
   IFR: {
     category: 'IFR',
     color: '#f59e0b',

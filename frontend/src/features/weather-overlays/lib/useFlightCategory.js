@@ -17,10 +17,7 @@ export function useFlightCategory() {
         const res = await fetch('/api/weather/flight-category-overlay', { headers })
         if (cancelled) return
         if (res.status === 304) return
-        if (!res.ok) {
-          setGeojson(EMPTY_FC)
-          return
-        }
+        if (!res.ok) return
         const etag = res.headers.get('ETag')
         if (etag) etagRef.current = etag
         const data = await res.json()

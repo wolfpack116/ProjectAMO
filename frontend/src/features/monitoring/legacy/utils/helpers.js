@@ -208,18 +208,6 @@ export const FLIGHT_CATEGORY_META = {
     darkBorderSoft: "rgba(21,128,61,0.35)",
     darkValueColor: "#4ade80",
   },
-  MVFR: {
-    category: "MVFR",
-    color: "#2563eb",
-    labelKo: "한계시계비행규칙",
-    bg: "#eff6ff",
-    border: "#2563eb",
-    borderSoft: "#bfdbfe",
-    valueColor: "#1d4ed8",
-    darkBg: "rgba(37,99,235,0.15)",
-    darkBorderSoft: "rgba(37,99,235,0.35)",
-    darkValueColor: "#93c5fd",
-  },
   IFR: {
     category: "IFR",
     color: "#f59e0b",

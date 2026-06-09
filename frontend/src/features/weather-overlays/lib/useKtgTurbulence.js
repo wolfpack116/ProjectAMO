@@ -30,6 +30,10 @@ export function useKtgTurbulence(enabled) {
         if (cancelled) return
         const levels = index?.altLevelsFt ?? []
         setAltLevelsFt(levels)
+        if (levels.length === 0) {
+          setStatus('unavailable')
+          return
+        }
         // If the current selection is not in the list, pick the closest level.
         if (levels.length > 0) {
           setSelectedAltFtState((prev) => {

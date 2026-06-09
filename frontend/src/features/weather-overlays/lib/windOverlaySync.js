@@ -1,6 +1,7 @@
 import CanvasWindRenderer from './canvasWindRenderer.js'
 import WebGLWindRenderer from './webglWindRenderer.js'
 import { decodeWindComponent, interpolateWindSpeedColor } from './windField.js'
+import { coordinatesForGrid, parseRgba } from './overlayUtils.js'
 
 const overlays = new WeakMap()
 const canvasFallbackMaps = new WeakSet()
@@ -78,19 +79,6 @@ function applyVisibility(renderer, visibility = {}) {
   })
 }
 
-function parseRgba(color) {
-  const match = color.match(/rgba\(([^)]+)\)/)
-  if (!match) return [255, 255, 255, 0]
-  const [r, g, b, a] = match[1].split(',').map((part) => Number.parseFloat(part.trim()))
-  return [r, g, b, Math.round((a ?? 1) * 255)]
-}
-
-function buildSpeedImageCoordinates(grid) {
-  if (!grid) return null
-  const { lonMin, lonMax, latMin, latMax } = grid
-  if (![lonMin, lonMax, latMin, latMax].every(Number.isFinite)) return null
-  return [[lonMin, latMax], [lonMax, latMax], [lonMax, latMin], [lonMin, latMin]]
-}
 
 function buildWindSpeedImage(windField) {
   const grid = windField?.grid
@@ -155,7 +143,7 @@ function syncWindSpeedImageLayer(map, state, windField, visibility = {}) {
     return
   }
 
-  const coordinates = buildSpeedImageCoordinates(windField?.grid)
+  const coordinates = coordinatesForGrid(windField?.grid)
   if (!coordinates) return
 
   const source = map.getSource?.(WIND_SPEED_SOURCE_ID)
@@ -309,10 +297,6 @@ export function __resetWindOverlayRendererFactoriesForTest() {
   rendererFactories = defaultFactories
 }
 
-export default {
-  syncWindOverlay,
-  destroyWindOverlay,
-}
 
 export const WIND_SPEED_IMAGE_LAYER_IDS = [WIND_SPEED_LAYER_ID]
 export const WIND_SPEED_IMAGE_SOURCE_IDS = [WIND_SPEED_SOURCE_ID]

@@ -9,7 +9,7 @@ import {
 import { convertWeatherToKorean } from '../../../shared/weather/visual-mapper.js'
 import { resolveWeatherVisual } from '../../../shared/weather/weather-visual-resolver.js'
 
-export const TAF_CATEGORY_COLOR = { VFR: '#15803d', MVFR: '#2563eb', IFR: '#f59e0b', LIFR: '#dc2626' }
+export const TAF_CATEGORY_COLOR = { VFR: '#15803d', IFR: '#f59e0b', LIFR: '#dc2626' }
 
 function getTafCeiling(slot) {
   return slot?.clouds
