@@ -19,6 +19,8 @@ import airportInfoProcessor from './processors/airport-info-processor.js'
 import ktgProcessor from './processors/ktg-processor.js'
 import flightCategoryProcessor from './processors/flight-category-processor.js'
 
+// ADS-B collection is intentionally not scheduled — frontend disables ADS-B display (ADSB_FETCH_DISABLED).
+// The /api/adsb route serves a static latest.json if one exists; no processor runs.
 const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, kim_surface_wind: false, ktg: false, satellite: false, ground_forecast: false, environment: false, airport_info: false, flight_category: false };
 const KIM_NWP_CRON_OPTIONS = { timezone: 'Etc/UTC' }
 const AIRPORT_INFO_CRON_OPTIONS = { timezone: 'Asia/Seoul' }

@@ -3,6 +3,7 @@ import path from 'path'
 import sharp from 'sharp'
 import config from '../config.js'
 import { parseSatelliteNC, parseFogNC, renderFogImage } from '../parsers/satellite-parser.js'
+import { fetchWithTimeout } from '../lib/fetchWithTimeout.js'
 
 let backgroundFillRunning = false;
 const fogRetryTimers = new Map();
@@ -59,19 +60,10 @@ function buildFogUrl(tm) {
   return `${config.satellite.fog_url}/${product}/${region}/data?date=${tm}&authKey=${config.api.auth_key}`;
 }
 
-async function fetchWithTimeout(url, ms = config.satellite.timeout_ms) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
-  try {
-    return await fetch(url, { signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 async function fetchNC(url) {
   try {
-    const response = await fetchWithTimeout(url);
+    const response = await fetchWithTimeout(url, config.satellite.timeout_ms);
     if (!response.ok) return null;
 
     const buffer = Buffer.from(await response.arrayBuffer());

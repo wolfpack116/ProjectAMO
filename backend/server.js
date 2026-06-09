@@ -434,7 +434,7 @@ function selectDefaultKimNwpField(index) {
   return { tmfc: index.latestRun, hf: time.hf, level: preferredLevel.id }
 }
 
-function readSelectedKimNwpField(selection) {
+function readSelectedKimField(selection, buildFn) {
   validateKimNwpSelection({ tmfc: selection.tmfc, hf: selection.hf, levelId: selection.level })
   const grid = readKimNwpGrid({
     root: DATA_ROOT,
@@ -443,43 +443,36 @@ function readSelectedKimNwpField(selection) {
     hf: Number(selection.hf),
     levelId: selection.level,
   })
-  return buildKimSurfaceWindFieldFromWindGrid(grid)
+  return buildFn(grid)
 }
 
-function readSelectedKimTempField(selection) {
-  validateKimNwpSelection({ tmfc: selection.tmfc, hf: selection.hf, levelId: selection.level })
-  const grid = readKimNwpGrid({
-    root: DATA_ROOT,
-    model: 'KIMG/NE57',
-    tmfc: selection.tmfc,
-    hf: Number(selection.hf),
-    levelId: selection.level,
-  })
-  return buildKimTemperatureFieldFromGrid(grid)
-}
-
+// Kept as named exports for backwards compatibility (used in cross-section route and tests).
 function readSelectedKimCloudField(selection) {
-  validateKimNwpSelection({ tmfc: selection.tmfc, hf: selection.hf, levelId: selection.level })
-  const grid = readKimNwpGrid({
-    root: DATA_ROOT,
-    model: 'KIMG/NE57',
-    tmfc: selection.tmfc,
-    hf: Number(selection.hf),
-    levelId: selection.level,
-  })
-  return buildKimCloudPotentialFieldFromGrid(grid)
+  return readSelectedKimField(selection, buildKimCloudPotentialFieldFromGrid)
+}
+function readSelectedKimIcingField(selection) {
+  return readSelectedKimField(selection, buildKimIcingFieldFromGrid)
 }
 
-function readSelectedKimIcingField(selection) {
-  validateKimNwpSelection({ tmfc: selection.tmfc, hf: selection.hf, levelId: selection.level })
-  const grid = readKimNwpGrid({
-    root: DATA_ROOT,
-    model: 'KIMG/NE57',
-    tmfc: selection.tmfc,
-    hf: Number(selection.hf),
-    levelId: selection.level,
-  })
-  return buildKimIcingFieldFromGrid(grid)
+function sendKimField(req, res, { type, buildFn, errorLabel }) {
+  try {
+    const selection = {
+      tmfc: String(req.query.tmfc || ''),
+      hf: Number(req.query.hf),
+      level: String(req.query.level || ''),
+    }
+    // Early 304: (tmfc, hf, level) uniquely identifies an immutable KIM field — no need to read the grid.
+    const etagSeed = `kim-${type}:${selection.tmfc}:${selection.hf}:${selection.level}`
+    const etag = `"${crypto.createHash('sha256').update(etagSeed).digest('hex')}"`
+    if (requestHasMatchingEtag(req, etag)) {
+      res.status(304).end()
+      return
+    }
+    const field = readSelectedKimField(selection, buildFn)
+    sendImmutableJson(res, field, etagSeed)
+  } catch (error) {
+    res.status(400).json({ error: error.message || errorLabel })
+  }
 }
 
 function sendKimWindField(req, res, { allowDefault = false } = {}) {
@@ -500,8 +493,14 @@ function sendKimWindField(req, res, { allowDefault = false } = {}) {
       return
     }
 
-    const field = readSelectedKimNwpField(selection)
-    sendImmutableJson(res, field, `kim-wind:${selection.tmfc}:${selection.hf}:${selection.level}:${field?.fetched_at || ''}`)
+    const etagSeed = `kim-wind:${selection.tmfc}:${selection.hf}:${selection.level}`
+    const etag = `"${crypto.createHash('sha256').update(etagSeed).digest('hex')}"`
+    if (requestHasMatchingEtag(req, etag)) {
+      res.status(304).end()
+      return
+    }
+    const field = readSelectedKimField(selection, buildKimSurfaceWindFieldFromWindGrid)
+    sendImmutableJson(res, field, etagSeed)
   } catch (error) {
     res.status(400).json({ error: error.message || 'invalid kim wind selection' })
   }
@@ -549,19 +548,9 @@ app.get('/api/kim/temp/index', (_req, res) => {
   setNoStore(res)
   res.status(503).json({ error: 'kim temp index unavailable' })
 })
-app.get('/api/kim/temp/field', (req, res) => {
-  try {
-    const selection = {
-      tmfc: String(req.query.tmfc || ''),
-      hf: Number(req.query.hf),
-      level: String(req.query.level || ''),
-    }
-    const field = readSelectedKimTempField(selection)
-    sendImmutableJson(res, field, `kim-temp:${selection.tmfc}:${selection.hf}:${selection.level}:${field?.fetched_at || ''}`)
-  } catch (error) {
-    res.status(400).json({ error: error.message || 'invalid kim temp selection' })
-  }
-})
+app.get('/api/kim/temp/field', (req, res) =>
+  sendKimField(req, res, { type: 'temp', buildFn: buildKimTemperatureFieldFromGrid, errorLabel: 'invalid kim temp selection' })
+)
 app.get('/api/kim/cloud/index', (_req, res) => {
   const index = readKimNwpIndex(DATA_ROOT)
   if (index) {
@@ -575,19 +564,9 @@ app.get('/api/kim/cloud/index', (_req, res) => {
   setNoStore(res)
   res.status(503).json({ error: 'kim cloud index unavailable' })
 })
-app.get('/api/kim/cloud/field', (req, res) => {
-  try {
-    const selection = {
-      tmfc: String(req.query.tmfc || ''),
-      hf: Number(req.query.hf),
-      level: String(req.query.level || ''),
-    }
-    const field = readSelectedKimCloudField(selection)
-    sendImmutableJson(res, field, `kim-cloud:${selection.tmfc}:${selection.hf}:${selection.level}:${field?.fetched_at || ''}`)
-  } catch (error) {
-    res.status(400).json({ error: error.message || 'invalid kim cloud selection' })
-  }
-})
+app.get('/api/kim/cloud/field', (req, res) =>
+  sendKimField(req, res, { type: 'cloud', buildFn: buildKimCloudPotentialFieldFromGrid, errorLabel: 'invalid kim cloud selection' })
+)
 app.get('/api/kim/icing/index', (_req, res) => {
   const index = readKimNwpIndex(DATA_ROOT)
   if (index) {
@@ -601,19 +580,9 @@ app.get('/api/kim/icing/index', (_req, res) => {
   setNoStore(res)
   res.status(503).json({ error: 'kim icing index unavailable' })
 })
-app.get('/api/kim/icing/field', (req, res) => {
-  try {
-    const selection = {
-      tmfc: String(req.query.tmfc || ''),
-      hf: Number(req.query.hf),
-      level: String(req.query.level || ''),
-    }
-    const field = readSelectedKimIcingField(selection)
-    sendImmutableJson(res, field, `kim-icing:${selection.tmfc}:${selection.hf}:${selection.level}:${field?.fetched_at || ''}`)
-  } catch (error) {
-    res.status(400).json({ error: error.message || 'invalid kim icing selection' })
-  }
-})
+app.get('/api/kim/icing/field', (req, res) =>
+  sendKimField(req, res, { type: 'icing', buildFn: buildKimIcingFieldFromGrid, errorLabel: 'invalid kim icing selection' })
+)
 app.get('/api/ktg/index', (_req, res) => {
   const latest = readKtgLatest(DATA_ROOT)
   const index = latest ? readKtgIndex(DATA_ROOT) : null

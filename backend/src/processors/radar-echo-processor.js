@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import config from '../config.js'
 import { parseRadarBinary, renderFullCoverageEcho } from '../parsers/radar-echo-parser.js'
+import { fetchWithTimeout } from '../lib/fetchWithTimeout.js'
 
 let backgroundFillRunning = false;
 const RENDER_VERSION = "rainrate-reproject-full-v2";
@@ -46,15 +47,6 @@ function buildEchoUrl(tm) {
   return `${config.api.radar_url}?${params.toString()}`;
 }
 
-async function fetchWithTimeout(url, ms = config.radar_echo.timeout_ms) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
-  try {
-    return await fetch(url, { signal: controller.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 /**
  * Download radar binary (.bin.gz) for a given timestamp.
@@ -63,7 +55,7 @@ async function fetchWithTimeout(url, ms = config.radar_echo.timeout_ms) {
 async function fetchRadarBinary(tm) {
   const url = buildEchoUrl(tm);
   try {
-    const response = await fetchWithTimeout(url);
+    const response = await fetchWithTimeout(url, config.radar_echo.timeout_ms);
     if (!response.ok) return null;
 
     const buffer = Buffer.from(await response.arrayBuffer());
