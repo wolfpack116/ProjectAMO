@@ -213,8 +213,8 @@ export function buildWeatherOverlayModel({
       if (!Number.isFinite(base) || !Number.isFinite(hf)) return '-'
       return formatSigwxStamp(new Date(base + hf * 3600000).toISOString(), tz)
     })(),
-    ktgIssueLabel: formatSigwxStamp(ktgGrid?.tmfc ?? null, tz),
-    ktgValidLabel: formatSigwxStamp(ktgGrid?.validTime ?? null, tz),
+    ktgIssueLabel: formatSigwxStamp(ktgGrid?.run?.tmfc ?? null, tz),
+    ktgValidLabel: formatSigwxStamp(ktgGrid?.run?.validTime ?? null, tz),
     flightCategoryIssueLabel: formatSigwxStamp(flightCategoryGeojson?.fetched_at ?? null, tz),
     blinkLightning,
     lightningBlinkOff,

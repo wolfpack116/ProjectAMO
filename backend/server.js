@@ -677,7 +677,7 @@ app.get('/api/weather/flight-category-overlay', (req, res) => {
   res.setHeader('ETag', etag)
   res.setHeader('Cache-Control', 'no-cache')
   if (req.headers['if-none-match'] === etag) return res.status(304).end()
-  res.json(data.geojson)
+  res.json({ ...data.geojson, fetched_at: data.fetched_at })
 })
 app.get('/api/snapshot-meta', (_req, res) => {
   res.setHeader('Cache-Control', 'no-cache')
