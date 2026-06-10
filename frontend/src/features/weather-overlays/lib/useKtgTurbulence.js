@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchKtgGrid, fetchKtgIndex } from '../../../api/weatherApi.js'
+import { useKimSnapshotMeta } from './useKimSnapshotMeta.js'
 
 const DEFAULT_ALT_FT = 3000
 
@@ -15,6 +16,15 @@ export function useKtgTurbulence(enabled) {
   const [status, setStatus] = useState('idle')
   const cacheRef = useRef(new Map())
   const requestTokenRef = useRef(0)
+
+  const snapshot = useKimSnapshotMeta(enabled)
+  const ktgHash = snapshot?.ktg?.hash ?? null
+
+  // Invalidate grid cache when backend data changes.
+  useEffect(() => {
+    if (!enabled) return
+    cacheRef.current.clear()
+  }, [enabled, ktgHash])
 
   // Fetch index to get available altitude levels.
   useEffect(() => {
@@ -48,7 +58,7 @@ export function useKtgTurbulence(enabled) {
     }
     loadIndex()
     return () => { cancelled = true; controller.abort() }
-  }, [enabled])
+  }, [enabled, ktgHash])
 
   // Fetch grid for selected altitude.
   useEffect(() => {

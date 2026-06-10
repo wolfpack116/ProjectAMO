@@ -38,6 +38,16 @@ export function parseSfcAscii(text) {
     result[idx] = v <= -999 ? -1 : v * 1000
   }
 
+  // API delivers rows south-first; flip to north-first to match sfcPixelToLatLon convention.
+  const rowBuf = new Float32Array(SFC_W)
+  for (let r = 0; r < Math.floor(SFC_H / 2); r++) {
+    const top = r * SFC_W
+    const bot = (SFC_H - 1 - r) * SFC_W
+    rowBuf.set(result.subarray(top, top + SFC_W))
+    result.copyWithin(top, bot, bot + SFC_W)
+    result.set(rowBuf, bot)
+  }
+
   return result
 }
 

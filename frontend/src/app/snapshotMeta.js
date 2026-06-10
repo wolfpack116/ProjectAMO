@@ -32,6 +32,8 @@ export function detectSnapshotChanges(prev, next) {
     satMeta: framesDiffer(prev?.satMeta, next?.satMeta),
     sigwxFrontMeta: overlayMetaDiffer(prev?.sigwxFrontMeta, next?.sigwxFrontMeta),
     sigwxCloudMeta: overlayMetaDiffer(prev?.sigwxCloudMeta, next?.sigwxCloudMeta),
+    flightCategory: hashesDiffer(prev?.flightCategory, next?.flightCategory),
+    ktg: hashesDiffer(prev?.ktg, next?.ktg),
   }
 }
 

@@ -299,6 +299,8 @@ function buildSnapshotMetaCacheKey() {
     path.join(DATA_ROOT, 'airport_info', 'latest.json'),
     path.join(DATA_ROOT, 'radar', 'echo_meta.json'),
     path.join(DATA_ROOT, 'satellite', 'sat_meta.json'),
+    path.join(DATA_ROOT, 'flight_category_overlay', 'latest.json'),
+    path.join(DATA_ROOT, 'ktg', 'latest.json'),
   ]
   return files.map((filePath) => `${filePath}:${fileMtimeMs(filePath)}`).join('|')
 }
@@ -361,6 +363,11 @@ function buildSnapshotMeta() {
     satellite: satMeta,
     sigwxFrontMeta,
     sigwxCloudMeta,
+    flightCategory: buildHashEntry('flight_category_overlay'),
+    ktg: (() => {
+      const ktgLatest = readKtgLatest(DATA_ROOT)
+      return ktgLatest ? { hash: store.canonicalHash(ktgLatest), tmfc: ktgLatest.tmfc || null } : null
+    })(),
   }
 }
 

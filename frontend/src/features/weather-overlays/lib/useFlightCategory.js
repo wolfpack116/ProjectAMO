@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
+import { useKimSnapshotMeta } from './useKimSnapshotMeta.js'
 
 const EMPTY_FC = { type: 'FeatureCollection', features: [] }
-const POLL_MS = 60 * 1000
 
 export function useFlightCategory() {
   const [geojson, setGeojson] = useState(EMPTY_FC)
   const etagRef = useRef(null)
+  const snapshot = useKimSnapshotMeta(true)
+  const fcHash = snapshot?.flightCategory?.hash ?? null
+  const hasSnapshot = snapshot !== null
 
   useEffect(() => {
+    if (!hasSnapshot) return
     let cancelled = false
-
     async function fetchData() {
       try {
         const headers = {}
@@ -26,14 +29,10 @@ export function useFlightCategory() {
         // transient network error — retain last known data
       }
     }
-
     fetchData()
-    const timer = setInterval(fetchData, POLL_MS)
-    return () => {
-      cancelled = true
-      clearInterval(timer)
-    }
-  }, [])
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasSnapshot, fcHash])
 
   return { geojson }
 }
