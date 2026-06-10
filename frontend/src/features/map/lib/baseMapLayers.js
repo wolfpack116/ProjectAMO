@@ -99,67 +99,52 @@ export function addAirportLayers(map, data) {
       },
     })
   }
-  if (!map.getLayer(AIRPORT_VISIBILITY_LAYER)) {
-    map.addLayer({
-      id: AIRPORT_VISIBILITY_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top',
-      filter: ['!=', ['get', 'visibilityText'], ''],
-      layout: {
-        'text-field': ['get', 'visibilityText'],
-        'text-font': ['Noto Sans CJK JP Bold', 'Arial Unicode MS Bold'],
-        'text-offset': [-1.25, 0],
-        'text-anchor': 'right',
-        'text-size': [
-          'interpolate', ['linear'], ['zoom'],
-          5, 10,
-          8, 11,
-          12, 12,
-        ],
-        'text-allow-overlap': true,
-        'text-ignore-placement': true,
-      },
-      paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 },
-    })
-  }
-  if (!map.getLayer(AIRPORT_WEATHER_LAYER)) {
-    map.addLayer({
-      id: AIRPORT_WEATHER_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top', minzoom: 6,
-      filter: ['!=', ['get', 'weatherIconId'], ''],
-      layout: {
-        'icon-image': ['get', 'weatherIconId'],
-        'icon-size': [
-          'interpolate', ['linear'], ['zoom'],
-          5, 0.58,
-          8, 0.68,
-          12, 0.78,
-        ],
-        'icon-offset': [1.3, 0],
-        'icon-anchor': 'left',
-        'icon-allow-overlap': true,
-        'icon-ignore-placement': true,
-      },
-    })
-  }
-  if (!map.getLayer(AIRPORT_CEILING_LAYER)) {
-    map.addLayer({
-      id: AIRPORT_CEILING_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top',
-      filter: ['!=', ['get', 'ceilingText'], ''],
-      layout: {
-        'text-field': ['get', 'ceilingText'],
-        'text-font': ['Noto Sans CJK JP Bold', 'Arial Unicode MS Bold'],
-        'text-offset': [0, 1],
-        'text-anchor': 'top',
-        'text-size': [
-          'interpolate', ['linear'], ['zoom'],
-          5, 10,
-          8, 10,
-          12, 11,
-        ],
-        'text-allow-overlap': true,
-        'text-ignore-placement': true,
-      },
-      paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 },
-    })
-  }
+  // if (!map.getLayer(AIRPORT_VISIBILITY_LAYER)) {
+  //   map.addLayer({
+  //     id: AIRPORT_VISIBILITY_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top',
+  //     filter: ['!=', ['get', 'visibilityText'], ''],
+  //     layout: {
+  //       'text-field': ['get', 'visibilityText'],
+  //       'text-font': ['Noto Sans CJK JP Bold', 'Arial Unicode MS Bold'],
+  //       'text-offset': [-1.25, 0],
+  //       'text-anchor': 'right',
+  //       'text-size': ['interpolate', ['linear'], ['zoom'], 5, 10, 8, 11, 12, 12],
+  //       'text-allow-overlap': true,
+  //       'text-ignore-placement': true,
+  //     },
+  //     paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 },
+  //   })
+  // }
+  // if (!map.getLayer(AIRPORT_WEATHER_LAYER)) {
+  //   map.addLayer({
+  //     id: AIRPORT_WEATHER_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top', minzoom: 6,
+  //     filter: ['!=', ['get', 'weatherIconId'], ''],
+  //     layout: {
+  //       'icon-image': ['get', 'weatherIconId'],
+  //       'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.58, 8, 0.68, 12, 0.78],
+  //       'icon-offset': [1.3, 0],
+  //       'icon-anchor': 'left',
+  //       'icon-allow-overlap': true,
+  //       'icon-ignore-placement': true,
+  //     },
+  //   })
+  // }
+  // if (!map.getLayer(AIRPORT_CEILING_LAYER)) {
+  //   map.addLayer({
+  //     id: AIRPORT_CEILING_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top',
+  //     filter: ['!=', ['get', 'ceilingText'], ''],
+  //     layout: {
+  //       'text-field': ['get', 'ceilingText'],
+  //       'text-font': ['Noto Sans CJK JP Bold', 'Arial Unicode MS Bold'],
+  //       'text-offset': [0, 1],
+  //       'text-anchor': 'top',
+  //       'text-size': ['interpolate', ['linear'], ['zoom'], 5, 10, 8, 10, 12, 11],
+  //       'text-allow-overlap': true,
+  //       'text-ignore-placement': true,
+  //     },
+  //     paint: { 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 },
+  //   })
+  // }
   if (!map.getLayer(AIRPORT_LABEL_LAYER)) {
     map.addLayer({
       id: AIRPORT_LABEL_LAYER, type: 'symbol', source: AIRPORT_SOURCE_ID, slot: 'top',
@@ -169,11 +154,16 @@ export function addAirportLayers(map, data) {
         'text-size': 12,
         'text-offset': [
           'case',
-          ['!=', ['get', 'ceilingText'], ''],
-          ['literal', [0, 1.9]],
+          ['boolean', ['get', 'labelAbove'], false],
+          ['literal', [0, -1.1]],
           ['literal', [0, 1.1]],
         ],
-        'text-anchor': 'top',
+        'text-anchor': [
+          'case',
+          ['boolean', ['get', 'labelAbove'], false],
+          'bottom',
+          'top',
+        ],
         'text-allow-overlap': true,
         'text-ignore-placement': true,
       },

@@ -124,12 +124,12 @@ function getWeatherIconId(metar = {}) {
 
 function getWindModel(observation = {}) {
   const wind = observation.wind
-  if (!wind || wind.calm) return { windDirection: null, windIconId: '' }
+  if (!wind || wind.calm) return { windDirection: null, windIconId: '', labelAbove: false }
 
   const speedKt = normalizeNumber(wind.speed)
   const direction = normalizeNumber(wind.direction)
   if (!Number.isFinite(speedKt) || speedKt <= 0 || !Number.isFinite(direction)) {
-    return { windDirection: null, windIconId: '' }
+    return { windDirection: null, windIconId: '', labelAbove: false }
   }
 
   const bucket = Math.min(60, Math.max(5, Math.round(speedKt / 5) * 5))
@@ -137,6 +137,7 @@ function getWindModel(observation = {}) {
   return {
     windDirection: direction,
     windIconId: `airport-wind-${String(bucket).padStart(3, '0')}`,
+    labelAbove: direction >= 135 && direction <= 225,
   }
 }
 
@@ -162,7 +163,7 @@ export function buildAirportStationMarkerModel({ airport, metar }) {
     visibilityMeters,
     ceilingFeet,
   })
-  const { windDirection, windIconId } = getWindModel(observation)
+  const { windDirection, windIconId, labelAbove } = getWindModel(observation)
 
   return {
     flightCategory,
@@ -174,5 +175,6 @@ export function buildAirportStationMarkerModel({ airport, metar }) {
     weatherIconId: getWeatherIconId(metar),
     windIconId,
     windDirection,
+    labelAbove,
   }
 }
