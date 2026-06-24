@@ -8,6 +8,7 @@ import store from './src/store.js'
 import stats from './src/stats.js'
 import config from './src/config.js'
 import { main as startScheduler } from './src/index.js'
+import adsbProcessor from './src/processors/adsb-processor.js'
 import warningTypes from '../shared/warning-types.js'
 import alertDefaults from '../shared/alert-defaults.js'
 import { buildVerticalProfile } from './src/briefing/vertical-profile.js'
@@ -521,7 +522,37 @@ app.get('/api/airmet', (_, res) => sendLatest(res, 'airmet'))
 app.get('/api/sigwx-low', (_, res) => sendLatest(res, 'sigwx_low'))
 app.get('/api/lightning', (_, res) => sendLatest(res, 'lightning'))
 app.get('/api/amos', (_, res) => sendLatest(res, 'amos'))
-app.get('/api/adsb', (_, res) => sendLatest(res, 'adsb'))
+// ADS-B is collected on demand: only refresh adsb.lol when a viewer requests it and
+// the snapshot is stale. No viewers -> no upstream calls. Cold start waits for the fetch.
+const ADSB_REFRESH_MS = 5 * 60 * 1000
+const ADSB_COLD_MS = 30 * 60 * 1000
+let adsbRefreshing = null
+function adsbFileAgeMs() {
+  try {
+    return Date.now() - fs.statSync(path.join(DATA_ROOT, 'adsb', 'latest.json')).mtimeMs
+  } catch {
+    return Infinity
+  }
+}
+function triggerAdsbRefresh() {
+  if (!adsbRefreshing) {
+    adsbRefreshing = Promise.resolve()
+      .then(() => adsbProcessor.process())
+      .catch((err) => console.error('[adsb] on-demand refresh failed:', err.message))
+      .finally(() => { adsbRefreshing = null })
+  }
+  return adsbRefreshing
+}
+app.get('/api/adsb', async (_req, res) => {
+  const age = adsbFileAgeMs()
+  if (age >= ADSB_REFRESH_MS) {
+    const pending = triggerAdsbRefresh()
+    if (age >= ADSB_COLD_MS) {
+      await Promise.race([pending, new Promise((resolve) => setTimeout(resolve, 8000))])
+    }
+  }
+  sendLatest(res, 'adsb')
+})
 
 // Flight route lookup (origin/destination) via adsbdb.com, proxied + cached so a
 // single hover is shared across users. Routes are stable, so cache long; back off on 429.

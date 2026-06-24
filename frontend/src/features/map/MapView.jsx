@@ -10,7 +10,7 @@ import {
 } from '../weather-overlays/lib/advisoryLayers.js'
 import { ADSB_FETCH_DISABLED, fetchAdsbData } from '../../api/adsbApi.js'
 import { fetchSigwxCloudMeta, fetchSigwxFrontMeta } from '../../api/weatherApi.js'
-import { addAdsbLayers, bindAdsbHover, createAdsbGeoJSON, syncAdsbLayer } from '../aviation-layers/addAdsbLayer.js'
+import { addAdsbLayers, bindAdsbHover, createAdsbGeoJSON, createAdsbTrailGeoJSON, syncAdsbLayer } from '../aviation-layers/addAdsbLayer.js'
 import { registerAircraftImages } from '../aviation-layers/aircraftIconImages.js'
 import { registerAirlineLogos } from '../aviation-layers/airlineLogoImages.js'
 import AviationLayerPanel from '../aviation-layers/AviationLayerPanel.jsx'
@@ -101,7 +101,7 @@ const VerticalProfileWindow = lazy(() => import('../route-briefing/VerticalProfi
 // ???? Constants ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
 const ROAD_VISIBILITY_ZOOM = 8
-const ADSB_POLL_INTERVAL_MS = 60 * 60 * 1000
+const ADSB_POLL_INTERVAL_MS = 90 * 1000
 const HIDDEN_ROAD_COLOR = 'rgba(255,255,255,0.2)'
 const VISIBLE_ROAD_COLORS = { roads: '#d6dde6', trunks: '#c6d1dd', motorways: '#b9c7d4' }
 
@@ -203,6 +203,7 @@ function MapView({
   const [selectedSigwxFrontMeta, setSelectedSigwxFrontMeta] = useState(sigwxFrontMeta)
   const [selectedSigwxCloudMeta, setSelectedSigwxCloudMeta] = useState(sigwxCloudMeta)
   const [adsbData, setAdsbData] = useState(null)
+  const [adsbLoading, setAdsbLoading] = useState(false)
   const [basemapId, setBasemapId] = useState('standard')
   const [basemapMenuOpen, setBasemapMenuOpen] = useState(false)
   const [routeBriefingMapMode, setRouteBriefingMapMode] = useState(false)
@@ -289,6 +290,7 @@ function MapView({
     [airportGeoJSON],
   )
   const adsbGeoJSON = useMemo(() => createAdsbGeoJSON(adsbData), [adsbData])
+  const adsbTrailGeoJSON = useMemo(() => createAdsbTrailGeoJSON(adsbData), [adsbData])
   const weatherOverlayModel = useMemo(() => buildWeatherOverlayModel({
     echoMeta,
     satMeta,
@@ -541,13 +543,17 @@ function MapView({
     let cancelled = false
 
     if (ADSB_FETCH_DISABLED || !metVisibility.adsb) {
+      setAdsbLoading(false)
       return undefined
     }
+
+    setAdsbLoading(!adsbData)
 
     async function poll() {
       const data = await fetchAdsbData()
       if (cancelled) return
       if (data) setAdsbData(data)
+      setAdsbLoading(false)
       timeoutId = setTimeout(poll, ADSB_POLL_INTERVAL_MS)
     }
 
@@ -915,8 +921,8 @@ function MapView({
     if (!map || !isStyleReady) return
     registerAircraftImages(map)
     registerAirlineLogos(map)
-    syncAdsbLayer(map, { geojson: adsbGeoJSON, isVisible: metVisibility.adsb })
-  }, [adsbGeoJSON, metVisibility.adsb, isStyleReady, styleRevision])
+    syncAdsbLayer(map, { geojson: adsbGeoJSON, trailGeojson: adsbTrailGeoJSON, isVisible: metVisibility.adsb })
+  }, [adsbGeoJSON, adsbTrailGeoJSON, metVisibility.adsb, isStyleReady, styleRevision])
 
   // ???? Sync flight category overlay ??????????????????????????????????????????????????????????????????????????????????????????????????
 
@@ -1052,6 +1058,13 @@ function MapView({
       data-route-briefing-map-mode={activePanel === 'route-check' && routeBriefingMapMode ? 'true' : 'false'}
     >
       <div ref={mapContainerRef} className="map-view" />
+
+      {adsbLoading && (
+        <div className="adsb-loading" role="status" aria-live="polite">
+          <span className="adsb-loading__spinner" aria-hidden="true" />
+          <span>ADS-B 불러오는 중…</span>
+        </div>
+      )}
 
       {error && <div className="map-view-error" role="alert">{error}</div>}
 

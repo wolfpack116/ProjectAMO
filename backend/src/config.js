@@ -210,7 +210,6 @@ export const schedule = {
   lightning_interval: '*/5 * * * *',
   radar_echo_interval: '*/5 * * * *',
   satellite_interval: '*/10 * * * *',
-  adsb_interval: '*/10 * * * *',
   ktg_interval: '25 1,2,7,8,13,14,19,20 * * *',
   kim_surface_wind_interval: '12 0,1,2,6,7,8,12,13,14,18,19,20 * * *',
   ground_forecast_interval: '30 6,11,18,23 * * *',

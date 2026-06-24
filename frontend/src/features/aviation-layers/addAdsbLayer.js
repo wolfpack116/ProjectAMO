@@ -4,14 +4,54 @@ import { airlineLogoId, airlineCode, isKoreanAirline, AIRLINE_NAMES } from './ai
 import { typeNameKo, routeLabel, fetchRoute } from './flightInfo.js'
 
 export const ADSB_SOURCE_ID = 'adsb-source'
+export const ADSB_TRAIL_SOURCE_ID = 'adsb-trail-source'
 export const ADSB_LAYER_ID = 'adsb-layer'
 export const ADSB_LOGO_LAYER_ID = 'adsb-logo-layer'
-export const ADSB_SOURCE_IDS = [ADSB_SOURCE_ID]
-export const ADSB_LAYER_IDS = [ADSB_LAYER_ID, ADSB_LOGO_LAYER_ID]
+export const ADSB_TRAIL_LAYER_ID = 'adsb-trail-layer'
+export const ADSB_SOURCE_IDS = [ADSB_SOURCE_ID, ADSB_TRAIL_SOURCE_ID]
+export const ADSB_LAYER_IDS = [ADSB_TRAIL_LAYER_ID, ADSB_LAYER_ID, ADSB_LOGO_LAYER_ID]
 
 const CLASS_LABELS_KO = {
   heavy: '대형기', jet: '협동체', regional: '리저널', turboprop: '터보프롭',
   piston: '경항공기', helicopter: '헬기', unknown: '',
+}
+
+// Short motion tail behind each aircraft: heading/speed-based (not a historical path),
+// pointing where it came from, length scaled by ground speed for a sense of movement.
+const TAIL_SECONDS = 75
+const TAIL_MIN_M = 3000
+const TAIL_MAX_M = 40000
+
+function destPoint(lon, lat, bearingDeg, distM) {
+  const R = 6371000
+  const br = (bearingDeg * Math.PI) / 180
+  const dr = distM / R
+  const la1 = (lat * Math.PI) / 180
+  const lo1 = (lon * Math.PI) / 180
+  const la2 = Math.asin(Math.sin(la1) * Math.cos(dr) + Math.cos(la1) * Math.sin(dr) * Math.cos(br))
+  const lo2 = lo1 + Math.atan2(Math.sin(br) * Math.sin(dr) * Math.cos(la1), Math.cos(dr) - Math.sin(la1) * Math.sin(la2))
+  return [(lo2 * 180) / Math.PI, (la2 * 180) / Math.PI]
+}
+
+export function createAdsbTrailGeoJSON(adsbData) {
+  if (!adsbData || !adsbData.aircraft) {
+    return { type: 'FeatureCollection', features: [] }
+  }
+  return {
+    type: 'FeatureCollection',
+    features: adsbData.aircraft
+      .filter(a => Number.isFinite(a.lon) && Number.isFinite(a.lat)
+        && Number.isFinite(a.true_track) && Number.isFinite(a.velocity) && a.velocity > 10)
+      .map(a => {
+        const dist = Math.min(TAIL_MAX_M, Math.max(TAIL_MIN_M, a.velocity * TAIL_SECONDS))
+        const tail = destPoint(a.lon, a.lat, (a.true_track + 180) % 360, dist)
+        return {
+          type: 'Feature',
+          geometry: { type: 'LineString', coordinates: [tail, [a.lon, a.lat]] },
+          properties: { icao24: a.icao24 },
+        }
+      }),
+  }
 }
 
 export function createAdsbGeoJSON(adsbData) {
@@ -50,6 +90,30 @@ export function addAdsbLayers(map) {
     map.addSource(ADSB_SOURCE_ID, {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] }
+    })
+  }
+
+  if (!map.getSource(ADSB_TRAIL_SOURCE_ID)) {
+    map.addSource(ADSB_TRAIL_SOURCE_ID, {
+      type: 'geojson',
+      lineMetrics: true,
+      data: { type: 'FeatureCollection', features: [] }
+    })
+  }
+
+  // Motion tail — added before the icons so it renders beneath them.
+  if (!map.getLayer(ADSB_TRAIL_LAYER_ID)) {
+    map.addLayer({
+      id: ADSB_TRAIL_LAYER_ID,
+      type: 'line',
+      source: ADSB_TRAIL_SOURCE_ID,
+      slot: 'top',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-width': 2,
+        'line-gradient': ['interpolate', ['linear'], ['line-progress'],
+          0, 'rgba(16,185,129,0)', 1, 'rgba(16,185,129,0.85)'],
+      }
     })
   }
 
@@ -94,11 +158,8 @@ export function addAdsbLayers(map) {
 
 export function setAdsbVisibility(map, isVisible) {
   const visibility = isVisible ? 'visible' : 'none'
-  if (map.getLayer(ADSB_LAYER_ID)) {
-    map.setLayoutProperty(ADSB_LAYER_ID, 'visibility', visibility)
-  }
-  if (map.getLayer(ADSB_LOGO_LAYER_ID)) {
-    map.setLayoutProperty(ADSB_LOGO_LAYER_ID, 'visibility', visibility)
+  for (const id of ADSB_LAYER_IDS) {
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visibility)
   }
 }
 
@@ -210,7 +271,8 @@ export function bindAdsbHover(map) {
   }
 }
 
-export function syncAdsbLayer(map, { geojson, isVisible }) {
+export function syncAdsbLayer(map, { geojson, trailGeojson, isVisible }) {
   map.getSource(ADSB_SOURCE_ID)?.setData(geojson)
+  if (trailGeojson) map.getSource(ADSB_TRAIL_SOURCE_ID)?.setData(trailGeojson)
   setAdsbVisibility(map, isVisible)
 }
