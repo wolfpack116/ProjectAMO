@@ -201,6 +201,7 @@ async function process() {
   const aircraft = (raw.ac || [])
     .map(normalizeState)
     .filter(Boolean)
+    .filter((a) => !a.on_ground)
     .filter((a) => isInFir(a.lon, a.lat))
     .sort((a, b) => {
       const left = `${a.callsign || ""}-${a.icao24 || ""}`;
