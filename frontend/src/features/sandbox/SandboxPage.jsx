@@ -111,6 +111,7 @@ export default function SandboxPage() {
       isDrawingRef.current = false
       setDrawing(false)
       setVertCount(0)
+      setPolyCount(draw.getAll().features.length)
       map.getCanvas().style.cursor = ''
       map.doubleClickZoom.enable()
       setPreview(map, [], null)
@@ -240,10 +241,7 @@ export default function SandboxPage() {
             {hasSelection && (
               <button onClick={handleDeleteSelected} style={btnStyle('#ef4444')}>선택 구역 삭제</button>
             )}
-            {hasSelection && polyCount > 0 && (
-              <button onClick={handleDeleteAll} style={btnStyle('#6b7280')}>전체 구역 삭제</button>
-            )}
-            {polyCount > 0 && !hasSelection && (
+            {polyCount > 0 && (
               <button onClick={handleDeleteAll} style={btnStyle('#6b7280')}>전체 구역 삭제 ({polyCount})</button>
             )}
             {polyCount > 0 && !hasSelection && (
