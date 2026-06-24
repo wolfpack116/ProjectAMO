@@ -7,6 +7,7 @@ import SettingsModal from '../features/settings/SettingsModal.jsx'
 import { TimeZoneProvider, useTimeZone } from '../shared/timezone/TimeZoneContext.jsx'
 
 const MonitoringPage = lazy(() => import('../features/monitoring/MonitoringPage.jsx'))
+const SandboxPage = lazy(() => import('../features/sandbox/SandboxPage.jsx'))
 
 function formatTimeByTz(ms, tz) {
   const d = tz === 'KST' ? new Date(ms + 9 * 3600 * 1000) : new Date(ms)
@@ -82,9 +83,10 @@ function MainAppShell() {
 }
 
 function App() {
-  return window.location.pathname === '/monitoring'
-    ? <Suspense fallback={null}><MonitoringPage /></Suspense>
-    : <TimeZoneProvider><MainAppShell /></TimeZoneProvider>
+  const path = window.location.pathname
+  if (path === '/monitoring') return <Suspense fallback={null}><MonitoringPage /></Suspense>
+  if (path === '/sandbox') return <Suspense fallback={null}><SandboxPage /></Suspense>
+  return <TimeZoneProvider><MainAppShell /></TimeZoneProvider>
 }
 
 export default App

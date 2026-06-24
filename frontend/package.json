@@ -13,6 +13,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mapbox/mapbox-gl-draw": "^1.5.1",
     "lucide-react": "^0.468.0",
     "mapbox-gl": "^3.23.0",
     "project-kma": "file:..",
