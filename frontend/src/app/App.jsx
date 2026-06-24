@@ -4,6 +4,8 @@ import MapView from '../features/map/MapView.jsx'
 import useWeatherPolling from './useWeatherPolling.js'
 import Sidebar from './layout/Sidebar.jsx'
 import SettingsModal from '../features/settings/SettingsModal.jsx'
+import UpdatesModal from '../features/about/UpdatesModal.jsx'
+import { useLastSeenVersion } from '../features/about/useLastSeenVersion.js'
 import { TimeZoneProvider, useTimeZone } from '../shared/timezone/TimeZoneContext.jsx'
 
 const MonitoringPage = lazy(() => import('../features/monitoring/MonitoringPage.jsx'))
@@ -25,10 +27,21 @@ function MainAppShell() {
   const [selectedAirport, setSelectedAirport] = useState(null)
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
   const { weatherData, requestDeferredWeatherData } = useWeatherPolling()
+  const { hasUpdate, markSeen } = useLastSeenVersion()
 
   useEffect(() => {
     const timer = window.setInterval(() => setNowMs(Date.now()), 1000)
     return () => window.clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    if (activePanel === 'updates') markSeen()
+  }, [activePanel, markSeen])
+
+  // Auto-open the update board on first visit after a new release (once, on mount).
+  useEffect(() => {
+    if (hasUpdate) setActivePanel('updates')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function togglePanel(panelId) {
@@ -47,6 +60,7 @@ function MainAppShell() {
         onPanelToggle={togglePanel}
         isExpanded={isSidebarExpanded}
         onExpandToggle={setIsSidebarExpanded}
+        hasUpdate={hasUpdate}
       />
       <main className="map-shell">
         <MapView
@@ -76,6 +90,9 @@ function MainAppShell() {
       <div className="utc-bar">{formatTimeByTz(nowMs, tz)}</div>
       {activePanel === 'settings' && (
         <SettingsModal onClose={() => togglePanel('settings')} />
+      )}
+      {activePanel === 'updates' && (
+        <UpdatesModal onClose={() => togglePanel('updates')} />
       )}
     </div>
   )

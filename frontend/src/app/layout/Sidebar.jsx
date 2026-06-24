@@ -1,8 +1,8 @@
-import { useState } from 'react'
 import {
   Cloud, FileText, Layers, Settings, TriangleAlert,
-  Menu, Monitor, Search, HelpCircle
+  Menu, Monitor, Search, HelpCircle, Bell
 } from 'lucide-react'
+import { CURRENT_VERSION } from '../../features/about/changelog.js'
 import './Sidebar.css'
 
 const topItems = [
@@ -14,6 +14,7 @@ const topItems = [
 ]
 
 const bottomItems = [
+  { label: '업데이트', icon: Bell },
   { label: '설정',   icon: Settings },
   { label: '도움말', icon: HelpCircle },
 ]
@@ -30,7 +31,7 @@ function SidebarButton({ item, isExpanded, onClick }) {
     >
       <div className="sidebar-icon-wrapper">
         <Icon size={20} strokeWidth={2} />
-        {item.badge && !isExpanded && <span className="sidebar-badge-dot" />}
+        {(item.dot || (item.badge && !isExpanded)) && <span className="sidebar-badge-dot" />}
       </div>
       {isExpanded && <span className="sidebar-label">{item.label}</span>}
       {isExpanded && item.badge && <span className="sidebar-badge-count">{item.badge}</span>}
@@ -42,10 +43,11 @@ const PANEL_MAP = {
   항공정보:        'aviation',
   기상정보:        'met',
   '비행 전 브리핑': 'route-check',
+  업데이트:        'updates',
   설정:            'settings',
 }
 
-function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle }) {
+function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle, hasUpdate }) {
   return (
     <aside className={`sidebar ${isExpanded ? 'is-expanded' : ''}`}>
       {/* 최상단: 햄버거 & 로고 */}
@@ -100,13 +102,20 @@ function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle }) {
           return (
             <SidebarButton
               key={item.label}
-              item={{ ...item, active: panelId ? activePanel === panelId : false }}
+              item={{
+                ...item,
+                active: panelId ? activePanel === panelId : false,
+                dot: item.label === '업데이트' ? hasUpdate : item.dot,
+              }}
               isExpanded={isExpanded}
               onClick={panelId ? () => onPanelToggle(panelId) : undefined}
             />
           )
         })}
-        
+
+        {/* 버전 */}
+        <div className="sidebar-version">{isExpanded ? `버전 v${CURRENT_VERSION}` : `v${CURRENT_VERSION}`}</div>
+
         {/* 구분선 */}
         <div className="sidebar-divider" />
         
