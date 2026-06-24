@@ -522,6 +522,46 @@ app.get('/api/sigwx-low', (_, res) => sendLatest(res, 'sigwx_low'))
 app.get('/api/lightning', (_, res) => sendLatest(res, 'lightning'))
 app.get('/api/amos', (_, res) => sendLatest(res, 'amos'))
 app.get('/api/adsb', (_, res) => sendLatest(res, 'adsb'))
+
+// Flight route lookup (origin/destination) via adsbdb.com, proxied + cached so a
+// single hover is shared across users. Routes are stable, so cache long; back off on 429.
+const adsbRouteCache = new Map()
+const ADSB_ROUTE_TTL_MS = 6 * 60 * 60 * 1000
+let adsbdbBackoffUntil = 0
+app.get('/api/adsb/route/:callsign', async (req, res) => {
+  const callsign = String(req.params.callsign || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)
+  if (!callsign) { res.json({ route: null }); return }
+
+  const now = Date.now()
+  const cached = adsbRouteCache.get(callsign)
+  if (cached && cached.expires > now) { res.json({ route: cached.route }); return }
+  if (now < adsbdbBackoffUntil) { res.json({ route: null }); return }
+
+  try {
+    const response = await fetch(`https://api.adsbdb.com/v0/callsign/${callsign}`, {
+      headers: { 'User-Agent': 'ProjectAMO/1.0 (+https://www.projectamo.co.kr)' },
+      signal: AbortSignal.timeout(8000),
+    })
+    if (response.status === 429) { adsbdbBackoffUntil = now + 60_000; res.json({ route: null }); return }
+    if (!response.ok) {
+      adsbRouteCache.set(callsign, { route: null, expires: now + ADSB_ROUTE_TTL_MS })
+      res.json({ route: null }); return
+    }
+    const data = await response.json()
+    const fr = data?.response?.flightroute
+    let route = null
+    if (fr?.origin?.icao_code && fr?.destination?.icao_code) {
+      route = {
+        origin: { icao: fr.origin.icao_code, city: fr.origin.municipality || null },
+        destination: { icao: fr.destination.icao_code, city: fr.destination.municipality || null },
+      }
+    }
+    adsbRouteCache.set(callsign, { route, expires: now + ADSB_ROUTE_TTL_MS })
+    res.json({ route })
+  } catch {
+    res.json({ route: null })
+  }
+})
 app.get('/api/kim/surface-wind', (req, res) => {
   const hasSelection = req.query.tmfc || req.query.hf || req.query.level
   const index = readKimNwpIndex(DATA_ROOT)

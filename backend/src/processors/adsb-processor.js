@@ -189,7 +189,10 @@ function normalizeState(ac) {
     squawk: ac.squawk || null,
     spi: false,
     position_source: null,
-    on_ground
+    on_ground,
+    type_code: typeof ac.t === "string" ? ac.t : null,
+    category: typeof ac.category === "string" ? ac.category : null,
+    registration: typeof ac.r === "string" ? ac.r : null
   };
 }
 

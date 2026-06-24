@@ -45,5 +45,9 @@ test('syncAdsbLayer applies current data and visibility', () => {
   const geojson = { type: 'FeatureCollection', features: [] }
   syncAdsbLayer(map, { geojson, isVisible: true })
   assert.equal(map.source.data, geojson)
-  assert.deepEqual(map.calls.at(-1), ['layout', 'adsb-layer', 'visibility', 'visible'])
+  const visibilityCalls = map.calls.filter((call) => call[0] === 'layout' && call[2] === 'visibility')
+  assert.deepEqual(visibilityCalls, [
+    ['layout', 'adsb-layer', 'visibility', 'visible'],
+    ['layout', 'adsb-logo-layer', 'visibility', 'visible'],
+  ])
 })

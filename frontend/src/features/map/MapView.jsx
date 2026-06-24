@@ -11,6 +11,8 @@ import {
 import { ADSB_FETCH_DISABLED, fetchAdsbData } from '../../api/adsbApi.js'
 import { fetchSigwxCloudMeta, fetchSigwxFrontMeta } from '../../api/weatherApi.js'
 import { addAdsbLayers, bindAdsbHover, createAdsbGeoJSON, syncAdsbLayer } from '../aviation-layers/addAdsbLayer.js'
+import { registerAircraftImages } from '../aviation-layers/aircraftIconImages.js'
+import { registerAirlineLogos } from '../aviation-layers/airlineLogoImages.js'
 import AviationLayerPanel from '../aviation-layers/AviationLayerPanel.jsx'
 import { SIGWX_FILTER_OPTIONS } from '../weather-overlays/lib/sigwxData.js'
 import AdvisoryBadges from '../weather-overlays/AdvisoryBadges.jsx'
@@ -911,6 +913,8 @@ function MapView({
   useEffect(() => {
     const map = mapRef.current
     if (!map || !isStyleReady) return
+    registerAircraftImages(map)
+    registerAirlineLogos(map)
     syncAdsbLayer(map, { geojson: adsbGeoJSON, isVisible: metVisibility.adsb })
   }, [adsbGeoJSON, metVisibility.adsb, isStyleReady, styleRevision])
 
