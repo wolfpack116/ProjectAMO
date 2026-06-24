@@ -3,9 +3,9 @@ import test from 'node:test'
 
 import { buildInitialCollectionJobs } from '../src/index.js'
 
-test('ADS-B collection is temporarily disabled', () => {
+test('ADS-B collection runs in the initial collection jobs', () => {
   assert.equal(
     buildInitialCollectionJobs().some(([type]) => type === 'adsb'),
-    false,
+    true,
   )
 })

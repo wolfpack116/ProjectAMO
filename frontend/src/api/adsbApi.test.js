@@ -3,25 +3,33 @@ import assert from 'node:assert/strict'
 
 import { fetchAdsbData } from './adsbApi.js'
 
-test('fetchAdsbData is temporarily disabled without calling the ADS-B API', async () => {
+test('fetchAdsbData fetches /api/adsb and returns the payload', async () => {
   const originalFetch = globalThis.fetch
-  const originalConsoleError = console.error
-  const errors = []
-  let called = false
+  const calls = []
 
-  globalThis.fetch = async () => {
-    called = true
-    return { ok: false, status: 503 }
+  globalThis.fetch = async (url) => {
+    calls.push(String(url))
+    return { ok: true, status: 200, json: async () => ({ type: 'adsb', aircraft: [] }) }
   }
-  console.error = (...args) => errors.push(args)
+
+  try {
+    const data = await fetchAdsbData()
+    assert.deepEqual(calls, ['/api/adsb'])
+    assert.deepEqual(data, { type: 'adsb', aircraft: [] })
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('fetchAdsbData returns null when the backend has no snapshot (503)', async () => {
+  const originalFetch = globalThis.fetch
+
+  globalThis.fetch = async () => ({ ok: false, status: 503 })
 
   try {
     const data = await fetchAdsbData()
     assert.equal(data, null)
-    assert.equal(called, false)
-    assert.deepEqual(errors, [])
   } finally {
     globalThis.fetch = originalFetch
-    console.error = originalConsoleError
   }
 })

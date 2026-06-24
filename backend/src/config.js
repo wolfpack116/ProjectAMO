@@ -150,12 +150,14 @@ export const flight_category = {
 }
 
 export const adsb = {
-  url: process.env.ADSB_API_URL || 'https://opensky-network.org/api/states/all',
-  token_url: process.env.ADSB_TOKEN_URL || 'https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token',
-  client_id: process.env.ADSB_CLIENT_ID || process.env.OPENSKY_CLIENT_ID || '',
-  client_secret: process.env.ADSB_CLIENT_SECRET || process.env.OPENSKY_CLIENT_SECRET || '',
+  url: process.env.ADSB_API_URL || 'https://api.adsb.lol/v2',
   timeout_ms: 20000,
   max_history_frames: 36,
+  center: {
+    lat: Number(process.env.ADSB_LAT || 36.5),
+    lon: Number(process.env.ADSB_LON || 127.5),
+  },
+  dist_nm: Number(process.env.ADSB_DIST_NM || 250),
   bounds: {
     lamin: Number(process.env.ADSB_LAMIN || 30),
     lamax: Number(process.env.ADSB_LAMAX || 39),
@@ -208,7 +210,7 @@ export const schedule = {
   lightning_interval: '*/5 * * * *',
   radar_echo_interval: '*/5 * * * *',
   satellite_interval: '*/10 * * * *',
-  adsb_interval: '0 * * * *',
+  adsb_interval: '*/10 * * * *',
   ktg_interval: '25 1,2,7,8,13,14,19,20 * * *',
   kim_surface_wind_interval: '12 0,1,2,6,7,8,12,13,14,18,19,20 * * *',
   ground_forecast_interval: '30 6,11,18,23 * * *',

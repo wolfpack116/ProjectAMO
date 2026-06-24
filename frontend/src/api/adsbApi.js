@@ -1,4 +1,4 @@
-export const ADSB_FETCH_DISABLED = true
+export const ADSB_FETCH_DISABLED = false
 
 export async function fetchAdsbData() {
   if (ADSB_FETCH_DISABLED) {
