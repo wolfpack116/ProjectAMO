@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
+import useIsMobile from '../../shared/ui/useIsMobile.js'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAP_CONFIG, BASEMAP_OPTIONS } from './mapConfig.js'
@@ -167,8 +168,11 @@ function MapView({
   selectedAirport,
   onAirportSelect,
   onRequestDeferredWeatherData,
+  onLayerCountsChange,
+  onClosePanel,
   enableWindOverlay = true,
 }) {
+  const isMobile = useIsMobile()
   const mapContainerRef = useRef(null)
   const mapRef = useRef(null)
   const onSelectRef = useRef(onAirportSelect)
@@ -533,6 +537,18 @@ function MapView({
   function toggleMet(id) {
     setMetVisibility((prev) => {
       return getNextMetVisibility(prev, id, { lowPower })
+    })
+  }
+
+  function clearAviationLayers() {
+    setAviationVisibility(AVIATION_WFS_LAYERS.reduce((acc, l) => { acc[l.id] = false; return acc }, {}))
+  }
+
+  function clearMetLayers() {
+    setMetVisibility((prev) => {
+      const next = { ...prev }
+      MET_LAYERS.forEach((l) => { next[l.id] = false })
+      return next
     })
   }
 
@@ -1055,6 +1071,14 @@ function MapView({
     })
   }
 
+  // Active-layer counts (mirror the panel "N개 켜짐" logic) reported up for the
+  // mobile on-map entry buttons.
+  const aviationActiveCount = AVIATION_WFS_LAYERS.filter((l) => aviationVisibility[l.id]).length
+  const metActiveCount = MET_LAYERS.filter((l) => metVisibility[l.id] && !isMetLayerDisabled(l.id)).length
+  useEffect(() => {
+    onLayerCountsChange?.({ aviation: aviationActiveCount, met: metActiveCount })
+  }, [aviationActiveCount, metActiveCount, onLayerCountsChange])
+
   // ???? Render ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
   return (
@@ -1078,6 +1102,8 @@ function MapView({
       <WeatherLegends
         radarLegendVisible={radarLegendVisible}
         lightningLegendVisible={lightningLegendVisible}
+        blinkLightning={blinkLightning}
+        onBlinkLightningChange={setBlinkLightning}
         radarRainrateLegend={RADAR_RAINRATE_LEGEND}
         lightningLegendEntries={lightningLegendEntries}
         windSpeedLegendVisible={!!(enableWindOverlay && metVisibility.wind && metVisibility.windSpeed && windField)}
@@ -1199,15 +1225,18 @@ function MapView({
               derived={routeBriefing.derived}
               actions={routeBriefing.actions}
               airports={airports}
+              onClose={onClosePanel}
             />
           </Suspense>
-          <button
-            type="button"
-            className="route-briefing-map-mode-toggle"
-            onClick={() => setRouteBriefingMapMode((prev) => !prev)}
-          >
-            {routeBriefingMapMode ? '입력 보기' : '지도 보기'}
-          </button>
+          {!isMobile && (
+            <button
+              type="button"
+              className="route-briefing-map-mode-toggle"
+              onClick={() => setRouteBriefingMapMode((prev) => !prev)}
+            >
+              {routeBriefingMapMode ? '입력 보기' : '지도 보기'}
+            </button>
+          )}
         </>
       )}
 
@@ -1230,6 +1259,8 @@ function MapView({
         <AviationLayerPanel
           visibility={aviationVisibility}
           onToggle={toggleAviation}
+          onClose={onClosePanel}
+          onClearAll={clearAviationLayers}
         />
       )}
 
@@ -1258,6 +1289,8 @@ function MapView({
           visibility={metVisibility}
           blinkLightning={blinkLightning}
           onToggle={toggleMet}
+          onClose={onClosePanel}
+          onClearAll={clearMetLayers}
           onBlinkLightningChange={setBlinkLightning}
           isLayerDisabled={isMetLayerDisabled}
           getLayerBadge={metLayerBadge}

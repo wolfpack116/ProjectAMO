@@ -847,3 +847,132 @@
   background: #dc2626;
   color: #ffffff;
 }
+
+/* ── Mobile route briefing: route-type segmented (iOS-style pill track —
+   active is a white pill + blue text on a gray track, no solid-blue fill).
+   Airport/dependent pickers live in shared AirportPickerField/PickerField. ── */
+.route-check-form .route-type-segmented {
+  display: flex;
+  width: 100%;
+  margin-top: 6px;
+  gap: 3px;
+  padding: 3px;
+  border: 0;
+  border-radius: 10px;
+  background: #eef2f7;
+}
+
+.route-check-form .route-type-seg {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 34px;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.route-check-form .route-type-seg.is-active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+/* ── Mobile briefing: from→to route block + swap (actions live in the
+   shared MobileSheet footer slot, pinned flush to the task bar) ── */
+.rb-route {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.rb-swap {
+  display: flex;
+  justify-content: center;
+  margin: 2px 0;
+}
+
+.rb-mobile .rb-swap-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0.5px solid rgba(148, 163, 184, 0.5);
+  background: #ffffff;
+  color: #2563eb;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rb-mobile .rb-swap-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Action bar in the MobileSheet footer — same iOS pill-track style as the
+   segmented controls: gray track, 검색 = white pill + blue text (primary),
+   자동검색/초기화 = track-transparent slate. No solid-blue fill. */
+.mobile-sheet-footer .route-check-actions {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #eef2f7;
+}
+
+.mobile-sheet-footer .route-check-actions button {
+  flex: 1 1 0;
+  height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mobile-sheet-footer .route-check-actions .route-check-search-button {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+.mobile-sheet-footer .route-check-actions button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+/* Peek (collapsed) summary — centered route + rule + distance */
+.rb-peek-route {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.rb-peek-arrow {
+  color: #94a3b8;
+}
+
+.rb-peek-rule {
+  font-size: 11px;
+  padding: 3px 8px;
+  min-width: 0;
+}
+
+.rb-peek-dist {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+}

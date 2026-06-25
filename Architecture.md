@@ -56,6 +56,7 @@ ProjectAMO/
 - `frontend/src/app/layout/MobileMapOverlay.jsx` -> mobile 지도-task status strip (warning summary) plus on-map aviation/met layer entry buttons.
 - `frontend/src/app/layout/MobileMoreMenu.jsx` -> mobile 더보기-task list (updates/settings/monitoring; NOTAM/help disabled).
 - `frontend/src/shared/ui/useIsMobile.js` -> shared `<=719px` matchMedia hook (used by `App.jsx` for the mobile shell).
+- `frontend/src/shared/ui/MobileSheet.jsx` -> shared mobile (<=719px) bottom sheet: grabber handle, peek/half/full pointer-drag detents, scrollable body, flush to the task bar. Hosts the layer panels and the route-briefing panel on mobile.
 - `frontend/src/app/layout/layoutTokens.css` -> shared responsive layout tokens for shell widths, panel widths, breakpoint policy, spacing, and minimum control sizes.
 - `frontend/src/api/weatherApi.js` -> initial weather bundle, deferred weather dataset, changed dataset, static airport/navdata fetch helpers.
 - `frontend/src/api/adsbApi.js` -> ADS-B fetch helper.
@@ -74,7 +75,8 @@ ProjectAMO/
 - `frontend/src/features/aviation-layers/aviationWfsLayers.js` -> aviation static GeoJSON layer definitions.
 - `frontend/src/features/aviation-layers/addAviationWfsLayers.js` -> aviation GeoJSON source/layer creation.
 - `frontend/src/features/aviation-layers/addAdsbLayer.js` -> ADS-B GeoJSON shaping, source/layer install, visibility sync, cleanup-aware hover popup binding, and `ADSB_SOURCE_IDS`/`ADSB_LAYER_IDS` ownership exports.
-- `frontend/src/features/aviation-layers/AviationLayerPanel.jsx` -> aviation WFS layer toggle panel. ADS-B remains controlled from the MET/weather overlay panel for the current UX.
+- `frontend/src/features/aviation-layers/AviationLayerPanel.jsx` -> aviation WFS layer toggle panel (desktop rows; mobile renders a tile grid inside `MobileSheet`). ADS-B remains controlled from the MET/weather overlay panel for the current UX.
+- `frontend/src/features/aviation-layers/lib/aviationLayerTiles.js` -> mobile aviation tile symbology metadata (boundary-color squares, ICAO `public/Symbols/*.svg`, airway line samples); colors imported from `aviationWfsLayers.js` so the tile grid mirrors the live map.
 - `frontend/src/features/weather-overlays/WeatherOverlayPanel.jsx` -> MET overlay toggle panel.
 - `frontend/src/features/weather-overlays/WeatherTimelineBar.jsx` -> shared bottom playback timeline for radar, satellite, and lightning overlay frames.
 - `frontend/src/features/weather-overlays/AdsbTimestamp.jsx` -> ADS-B reference-time display pill.

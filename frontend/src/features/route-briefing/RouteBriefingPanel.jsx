@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { KNOWN_AIRPORTS } from './lib/procedureData.js'
 import { calcVfrDistance } from './lib/routePreview.js'
 import {
@@ -8,9 +9,24 @@ import {
   buildIfrSequenceTokens,
   getVfrAirportAltitudeFt,
 } from './lib/routeBriefingModel.js'
+import useIsMobile from '../../shared/ui/useIsMobile.js'
+import MobileSheet from '../../shared/ui/MobileSheet.jsx'
+import AirportPickerField from '../../shared/ui/AirportPickerField.jsx'
+import PickerField from '../../shared/ui/PickerField.jsx'
 import './RouteBriefing.css'
 
+const AIRPORT_KO = {
+  RKSI: '인천', RKSS: '김포', RKPC: '제주', RKPK: '김해',
+  RKJB: '무안', RKNY: '양양', RKJY: '여수', RKPU: '울산',
+}
+const AIRPORT_OPTIONS = KNOWN_AIRPORTS.map((icao) => ({ value: icao, ko: AIRPORT_KO[icao] ?? icao }))
+const NONE_OPTION = { value: '', label: '-- 없음 --' }
+
 export default function RouteBriefingPanel({ state, refs = {}, derived, actions, airports = [] }) {
+  const isMobile = useIsMobile()
+  // The briefing stays an active task; the sheet × collapses to the peek summary
+  // instead of closing (use the bottom task bar to leave 브리핑).
+  const [sheetDetent, setSheetDetent] = useState('half')
   const {
     routeForm,
     routeResult,
@@ -57,6 +73,445 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     setCruiseAltitudeFt,
   } = actions
 
+  const isIfr = routeForm.flightRule === 'IFR'
+
+  function swapAirports() {
+    const dep = routeForm.departureAirport
+    const arr = routeForm.arrivalAirport
+    handleDepartureAirportChange(arr)
+    handleArrivalAirportChange(dep)
+  }
+
+  // Shared between the desktop panel and the mobile sheet.
+  const errorBlock = routeError && <div className="route-check-error">{routeError}</div>
+
+  const resultsBlock = routeResult && (
+    <div className="route-check-result">
+      {routeResult.flightRule === 'IFR' && (() => {
+        const displayTokens = buildIfrSequenceTokens(routeResult, { selectedSid, selectedStar, selectedIap })
+        const { totalDistanceNm, items: distanceBreakdown } = buildIfrDistanceBreakdown({
+          routeResult,
+          selectedSid,
+          selectedStar,
+          selectedIap,
+        })
+
+        return (
+          <>
+            <div className="route-check-total-dist">
+              {'총 거리'}: <strong>{totalDistanceNm} NM</strong>
+              {distanceBreakdown.length > 0 && (
+                <span className="dist-breakdown">
+                  {' ('}
+                  {distanceBreakdown.map((item, index) => (
+                    <span key={`${item.kind}-${item.label}`}>
+                      {index > 0 && <span className="dist-breakdown-sep">{' + '}</span>}
+                      <span
+                        className={`dist-breakdown-token is-${item.kind}`}
+                        style={{ color: ROUTE_SEQUENCE_COLORS[item.kind] }}
+                      >
+                        {`${item.label} ${item.value.toFixed(1)}`}
+                      </span>
+                    </span>
+                  ))}
+                  {')'}
+                </span>
+              )}
+            </div>
+            <div className="route-check-sequence">
+              {displayTokens.map((token, index) => (
+                <span key={`${token.kind}-${token.text}-${index}`}>
+                  {index > 0 && <span className="route-check-sequence-sep">{' -> '}</span>}
+                  <span
+                    className={`route-check-sequence-token is-${token.kind}`}
+                    style={{ color: ROUTE_SEQUENCE_COLORS[token.kind] }}
+                  >
+                    {token.text}
+                  </span>
+                </span>
+              ))}
+            </div>
+          </>
+        )
+      })()}
+      {routeResult.flightRule === 'VFR' && vfrWaypoints.length >= 2 && (
+        <>
+          <div className="route-check-total-dist">
+            {'총 거리'}: <strong>{calcVfrDistance(vfrWaypoints).toFixed(1)} NM</strong>
+          </div>
+          <div className="vfr-altitude-tools">
+            <span>{'VFR WP 계획고도'}</span>
+            <button type="button" onClick={applyCruiseAltitudeToVfrWaypoints}>
+              {'순항고도 전체 적용'}
+            </button>
+          </div>
+          <div className="vfr-waypoint-altitude-list">
+            {vfrWaypoints.map((wp, index) => {
+              const fallbackAltitudeFt = Number(cruiseAltitudeFt)
+              const displayAltitudeFt = wp.fixed
+                ? getVfrAirportAltitudeFt(airports, wp)
+                : Number.isFinite(Number(wp.altitudeFt))
+                ? Number(wp.altitudeFt)
+                : fallbackAltitudeFt
+              const isEditing = !wp.fixed && editingVfrAltitudeIndex === index
+              return (
+                <div className="vfr-waypoint-altitude-row" key={`${wp.id}-${index}`}>
+                  <span className="vfr-waypoint-altitude-id">{wp.id}</span>
+                  {isEditing ? (
+                    <input
+                      className="vfr-waypoint-altitude-input"
+                      type="number"
+                      min="100"
+                      step="100"
+                      autoFocus
+                      value={Number.isFinite(displayAltitudeFt) ? Math.round(displayAltitudeFt) : ''}
+                      onChange={(e) => updateVfrWaypointAltitude(index, e.target.value)}
+                      onBlur={() => setEditingVfrAltitudeIndex(null)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') e.currentTarget.blur()
+                        if (e.key === 'Escape') setEditingVfrAltitudeIndex(null)
+                      }}
+                    />
+                  ) : wp.fixed ? (
+                    <span className="vfr-waypoint-altitude-pill is-fixed" title="공항 고도">
+                      {`${Math.round(displayAltitudeFt).toLocaleString()} ft`}
+                    </span>
+                  ) : (
+                    <button
+                      className="vfr-waypoint-altitude-pill"
+                      type="button"
+                      onClick={() => setEditingVfrAltitudeIndex(index)}
+                    >
+                      {Number.isFinite(displayAltitudeFt)
+                        ? `${Math.round(displayAltitudeFt).toLocaleString()} ft`
+                        : '고도 입력'}
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
+      <div className="vertical-profile-control">
+        <label>
+          <span>{'순항고도(ft)'}</span>
+          <input
+            type="number"
+            min="100"
+            step="100"
+            value={cruiseAltitudeFt}
+            onChange={(e) => setCruiseAltitudeFt(e.target.value)}
+          />
+        </label>
+        <button type="button" onClick={handleVerticalProfileRequest} disabled={verticalProfileLoading}>
+          {verticalProfileLoading ? '생성 중...' : '연직단면도 생성'}
+        </button>
+      </div>
+      {verticalProfileStale && (
+        <div className="vertical-profile-stale">
+          {'경로가 변경되었습니다. 연직단면도를 다시 생성해주세요.'}
+        </div>
+      )}
+      {verticalProfileError && <div className="vertical-profile-error">{verticalProfileError}</div>}
+      {verticalProfile && (
+        <button
+          className="vertical-profile-open-button"
+          type="button"
+          onClick={() => setVerticalProfileWindowOpen(true)}
+        >
+          {'연직단면도 열기'}
+        </button>
+      )}
+    </div>
+  )
+
+  // ── Desktop panel (unchanged): native selects in the floating panel ──
+  function renderDesktopAirportSelect(label, value, onChange, firSentinel, firLabel) {
+    return (
+      <label>{label}
+        <select
+          value={KNOWN_AIRPORTS.includes(value) ? value : value === firSentinel ? firSentinel : ''}
+          onChange={(e) => onChange(e.target.value)}
+        >
+          <option value="" disabled>{'-- 선택 --'}</option>
+          {KNOWN_AIRPORTS.map((ap) => <option key={ap} value={ap}>{ap}</option>)}
+          <option value={firSentinel}>{firLabel}</option>
+        </select>
+      </label>
+    )
+  }
+
+  const desktopBody = (
+    <>
+      <form className="route-check-form" onSubmit={handleRouteSearch}>
+        <div className="route-check-section route-check-section--conditions">
+          <div className="route-check-section-title">{'운항 조건'}</div>
+          <div className="route-check-section-grid">
+            <div className={`route-check-field route-check-flight-rule-field${routeForm.flightRule === 'VFR' ? ' full-width' : ''}`}>
+              <div className="route-check-field-label">{'비행 규칙'}</div>
+              <div className="route-check-flight-rule">
+                <label className={`route-check-radio route-check-flight-option${isIfr ? ' is-active' : ''}`}>
+                  <input type="radio" name="flightRule" value="IFR" checked={isIfr} onChange={() => switchFlightRule('IFR')} />
+                  <span>IFR</span>
+                </label>
+                <span className="route-check-flight-divider">/</span>
+                <label className={`route-check-radio route-check-flight-option${!isIfr ? ' is-active' : ''}`}>
+                  <input type="radio" name="flightRule" value="VFR" checked={!isIfr} onChange={() => switchFlightRule('VFR')} />
+                  <span>VFR</span>
+                </label>
+              </div>
+            </div>
+            {isIfr && (
+              <label>{'경로 유형'}
+                <select value={routeForm.routeType} onChange={(e) => updateRouteField('routeType', e.target.value)}>
+                  <option value="ALL">{'전체'}</option>
+                  <option value="RNAV">RNAV</option>
+                  <option value="ATS">ATS</option>
+                </select>
+              </label>
+            )}
+          </div>
+        </div>
+
+        <div className="route-check-section">
+          <div className="route-check-section-title">{'출발'}</div>
+          <div className="route-check-section-grid">
+            {renderDesktopAirportSelect('출발 공항', routeForm.departureAirport, handleDepartureAirportChange, FIR_IN_AIRPORT, 'FIR 진입')}
+            {isIfr && (
+            <label>{isFirInMode ? '진입 FIX' : visibleSidOptions.length > 0 ? 'SID' : '진입 FIX'}
+              {isFirInMode
+                ? (
+                    <select
+                    value={routeForm.entryFix}
+                    onChange={(e) => handleEntryFixChange(e.target.value)}
+                    disabled={firInOptions.length === 0}
+                  >
+                    {firInOptions.length === 0
+                      ? <option value="">{'진입 FIX 없음'}</option>
+                      : [
+                          <option key="__empty__" value="">{'-- 없음 --'}</option>,
+                          ...firInOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>),
+                        ]}
+                  </select>
+                )
+                : visibleSidOptions.length > 0
+                ? (
+                  <select value={selectedSid?.id ?? ''} onChange={(e) => {
+                    const proc = visibleSidOptions.find((p) => p.id === e.target.value) ?? null
+                    handleSidChange(proc)
+                  }}>
+                    <option value="">{'-- 없음 --'}</option>
+                    {visibleSidOptions.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+                  </select>
+                )
+                : <input value={routeForm.entryFix} onChange={(e) => handleEntryFixChange(e.target.value)} />
+              }
+            </label>
+            )}
+          </div>
+        </div>
+
+        <div className="route-check-section">
+          <div className="route-check-section-title">{'도착'}</div>
+          <div className="route-check-section-grid">
+            {renderDesktopAirportSelect('도착 공항', routeForm.arrivalAirport, handleArrivalAirportChange, FIR_EXIT_AIRPORT, 'FIR 이탈')}
+            {isIfr && (
+            <label>{isFirExitMode ? '이탈 FIX' : starOptions.length > 0 ? 'STAR' : '이탈 FIX'}
+              {isFirExitMode
+                ? (
+                  <select
+                    value={routeForm.exitFix}
+                    onChange={(e) => handleExitFixChange(e.target.value)}
+                    disabled={firExitOptions.length === 0}
+                  >
+                    {firExitOptions.length === 0
+                      ? <option value="">{'이탈 FIX 없음'}</option>
+                      : [
+                          <option key="__empty__" value="">{'-- 없음 --'}</option>,
+                          ...firExitOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>),
+                        ]}
+                  </select>
+                )
+                : starOptions.length > 0
+                ? (
+                  <select value={selectedStar?.id ?? ''} onChange={(e) => {
+                    const proc = starOptions.find((p) => p.id === e.target.value) ?? null
+                    handleStarChange(proc)
+                  }}>
+                    <option value="">{'-- 없음 --'}</option>
+                    {starOptions.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+                  </select>
+                )
+                : <input value={routeForm.exitFix} onChange={(e) => handleExitFixChange(e.target.value)} />
+              }
+            </label>
+            )}
+            {!isFirExitMode && iapCandidates.length > 1 && (
+              <label>RWY
+                <select value={selectedIapKey ?? ''} onChange={(e) => {
+                  handleIapChange(e.target.value)
+                }}>
+                  {iapCandidates.map(({ key, label }) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
+        </div>
+
+        <div className={`route-check-actions${!isIfr ? ' is-vfr' : ''}`}>
+          <button className="route-check-search-button" type="submit" disabled={routeLoading}>{routeLoading ? '검색 중...' : '검색'}</button>
+          {isIfr && (
+            <button className="route-check-secondary-button" type="button" onClick={handleAutoRecommend} disabled={routeLoading}>{'자동검색'}</button>
+          )}
+          <button className="route-check-secondary-button" type="button" onClick={handleRouteReset} disabled={routeLoading}>{'초기화'}</button>
+        </div>
+      </form>
+      {errorBlock}
+      {resultsBlock}
+    </>
+  )
+
+  // ── Mobile sheet: from→to + swap, dependent pickers, progressive disclosure ──
+  const depChosen = !!routeForm.departureAirport
+  const arrChosen = !!routeForm.arrivalAirport
+  const firOnEitherSide = routeForm.departureAirport === FIR_IN_AIRPORT || routeForm.arrivalAirport === FIR_EXIT_AIRPORT
+
+  const mobileBody = (
+    <form id="rb-mobile-form" className="route-check-form rb-mobile" onSubmit={handleRouteSearch}>
+      <div className="route-type-segmented">
+        <button type="button" className={`route-type-seg${isIfr ? ' is-active' : ''}`} onClick={() => switchFlightRule('IFR')}>IFR</button>
+        <button type="button" className={`route-type-seg${!isIfr ? ' is-active' : ''}`} onClick={() => switchFlightRule('VFR')}>VFR</button>
+      </div>
+      {isIfr && (
+        <div className="route-type-segmented" style={{ marginTop: 8 }}>
+          {[['ALL', '전체'], ['RNAV', 'RNAV'], ['ATS', 'ATS']].map(([val, lbl]) => (
+            <button
+              key={val}
+              type="button"
+              className={`route-type-seg${routeForm.routeType === val ? ' is-active' : ''}`}
+              onClick={() => updateRouteField('routeType', val)}
+            >
+              {lbl}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="rb-route">
+        <AirportPickerField
+          label="출발"
+          value={routeForm.departureAirport}
+          options={AIRPORT_OPTIONS}
+          firOption={{ value: FIR_IN_AIRPORT, label: 'FIR 진입' }}
+          onChange={handleDepartureAirportChange}
+          disabledValue={routeForm.arrivalAirport}
+        />
+        {isIfr && depChosen && (
+          isFirInMode
+            ? (
+              <PickerField
+                label="진입 FIX"
+                value={routeForm.entryFix}
+                options={[NONE_OPTION, ...firInOptions.map((o) => ({ value: o.value, label: o.label }))]}
+                onChange={handleEntryFixChange}
+              />
+            )
+            : (
+              <PickerField
+                label="SID"
+                value={selectedSid?.id ?? ''}
+                options={[NONE_OPTION, ...visibleSidOptions.map((p) => ({ value: p.id, label: p.label }))]}
+                onChange={(id) => handleSidChange(id ? (visibleSidOptions.find((p) => p.id === id) ?? null) : null)}
+              />
+            )
+        )}
+
+        <div className="rb-swap">
+          <button type="button" className="rb-swap-btn" onClick={swapAirports} disabled={firOnEitherSide} aria-label="출발 도착 교환">⇅</button>
+        </div>
+
+        <AirportPickerField
+          label="도착"
+          value={routeForm.arrivalAirport}
+          options={AIRPORT_OPTIONS}
+          firOption={{ value: FIR_EXIT_AIRPORT, label: 'FIR 이탈' }}
+          onChange={handleArrivalAirportChange}
+          disabledValue={routeForm.departureAirport}
+        />
+        {isIfr && arrChosen && (
+          isFirExitMode
+            ? (
+              <PickerField
+                label="이탈 FIX"
+                value={routeForm.exitFix}
+                options={[NONE_OPTION, ...firExitOptions.map((o) => ({ value: o.value, label: o.label }))]}
+                onChange={handleExitFixChange}
+              />
+            )
+            : (
+              <PickerField
+                label="STAR"
+                value={selectedStar?.id ?? ''}
+                options={[NONE_OPTION, ...starOptions.map((p) => ({ value: p.id, label: p.label }))]}
+                onChange={(id) => handleStarChange(id ? (starOptions.find((p) => p.id === id) ?? null) : null)}
+              />
+            )
+        )}
+        {isIfr && arrChosen && !isFirExitMode && iapCandidates.length > 1 && (
+          <PickerField
+            label="RWY"
+            value={selectedIapKey ?? ''}
+            options={iapCandidates.map(({ key, label }) => ({ value: key, label }))}
+            onChange={handleIapChange}
+          />
+        )}
+      </div>
+
+      {errorBlock}
+      {resultsBlock}
+    </form>
+  )
+
+  // Action bar lives in the sheet footer (outside the scroll area) so it stays
+  // flush to the bottom task bar regardless of form height.
+  const mobileFooter = (
+    <div className={`route-check-actions${!isIfr ? ' is-vfr' : ''}`}>
+      <button className="route-check-search-button" type="submit" form="rb-mobile-form" disabled={routeLoading}>{routeLoading ? '검색 중...' : '검색'}</button>
+      {isIfr && (
+        <button className="route-check-secondary-button" type="button" onClick={handleAutoRecommend} disabled={routeLoading}>{'자동검색'}</button>
+      )}
+      <button className="route-check-secondary-button" type="button" onClick={handleRouteReset} disabled={routeLoading}>{'초기화'}</button>
+    </div>
+  )
+
+  // Centered peek summary shown when the sheet is collapsed (map revealed).
+  const depLabel = routeForm.departureAirport === FIR_IN_AIRPORT
+    ? 'FIR진입'
+    : routeForm.departureAirport || '출발'
+  const arrLabel = routeForm.arrivalAirport === FIR_EXIT_AIRPORT
+    ? 'FIR이탈'
+    : routeForm.arrivalAirport || '도착'
+  let peekDistance = null
+  if (routeResult) {
+    if (routeResult.flightRule === 'VFR' && vfrWaypoints.length >= 2) {
+      peekDistance = `${calcVfrDistance(vfrWaypoints).toFixed(1)} NM`
+    } else if (routeResult.flightRule === 'IFR') {
+      peekDistance = `${buildIfrDistanceBreakdown({ routeResult, selectedSid, selectedStar, selectedIap }).totalDistanceNm} NM`
+    }
+  }
+  const peekSummary = (
+    <span className="rb-peek-route">
+      <span>{depLabel}</span>
+      <span className="rb-peek-arrow" aria-hidden="true">→</span>
+      <span>{arrLabel}</span>
+      <span className="route-check-status rb-peek-rule">{routeForm.flightRule}</span>
+      {peekDistance && <span className="rb-peek-dist">{peekDistance}</span>}
+    </span>
+  )
+
   return (
     <>
       {hoveredWpInfo && (
@@ -68,312 +523,32 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           onMouseLeave={() => setHoveredWpInfo(null)}
         >X</button>
       )}
-
-      <section className="route-check-panel" aria-label={'\uacbd\ub85c \ud655\uc778 \ud328\ub110'}>
-        <div className="route-check-header">
-          <div>
-            <div className="route-check-eyebrow">Flight Plan</div>
-            <div className="route-check-title">{'\uacbd\ub85c \ud655\uc778'}</div>
-          </div>
-          <span className="route-check-status">{routeForm.flightRule}</span>
-        </div>
-        <form className="route-check-form" onSubmit={handleRouteSearch}>
-          <div className="route-check-section route-check-section--conditions">
-            <div className="route-check-section-title">{'\uc6b4\ud56d \uc870\uac74'}</div>
-            <div className="route-check-section-grid">
-              <div className={`route-check-field route-check-flight-rule-field${routeForm.flightRule === 'VFR' ? ' full-width' : ''}`}>
-                <div className="route-check-field-label">{'\ube44\ud589 \uaddc\uce59'}</div>
-                <div className="route-check-flight-rule">
-                  <label className={`route-check-radio route-check-flight-option${routeForm.flightRule === 'IFR' ? ' is-active' : ''}`}>
-                    <input type="radio" name="flightRule" value="IFR" checked={routeForm.flightRule === 'IFR'} onChange={() => switchFlightRule('IFR')} />
-                    <span>IFR</span>
-                  </label>
-                  <span className="route-check-flight-divider">/</span>
-                  <label className={`route-check-radio route-check-flight-option${routeForm.flightRule === 'VFR' ? ' is-active' : ''}`}>
-                    <input type="radio" name="flightRule" value="VFR" checked={routeForm.flightRule === 'VFR'} onChange={() => switchFlightRule('VFR')} />
-                    <span>VFR</span>
-                  </label>
-                </div>
-              </div>
-              {routeForm.flightRule === 'IFR' && (
-                <label>{'\uacbd\ub85c \uc720\ud615'}
-                  <select value={routeForm.routeType} onChange={(e) => updateRouteField('routeType', e.target.value)}>
-                    <option value="ALL">{'\uc804\uccb4'}</option>
-                    <option value="RNAV">RNAV</option>
-                    <option value="ATS">ATS</option>
-                  </select>
-                </label>
-              )}
+      {isMobile ? (
+        <MobileSheet
+          open
+          eyebrow="Flight Plan"
+          title={'경로 확인'}
+          onClose={() => setSheetDetent('peek')}
+          detent={sheetDetent}
+          onDetentChange={setSheetDetent}
+          headerExtra={<span className="route-check-status">{routeForm.flightRule}</span>}
+          peekContent={peekSummary}
+          footer={mobileFooter}
+        >
+          {mobileBody}
+        </MobileSheet>
+      ) : (
+        <section className="route-check-panel" aria-label={'경로 확인 패널'}>
+          <div className="route-check-header">
+            <div>
+              <div className="route-check-eyebrow">Flight Plan</div>
+              <div className="route-check-title">{'경로 확인'}</div>
             </div>
+            <span className="route-check-status">{routeForm.flightRule}</span>
           </div>
-
-          <div className="route-check-section">
-            <div className="route-check-section-title">{'\ucd9c\ubc1c'}</div>
-            <div className="route-check-section-grid">
-              <label>{'\ucd9c\ubc1c \uacf5\ud56d'}
-                <select
-                  value={routeForm.departureAirport === FIR_IN_AIRPORT ? FIR_IN_AIRPORT : KNOWN_AIRPORTS.includes(routeForm.departureAirport) ? routeForm.departureAirport : '__direct__'}
-                  onChange={(e) => handleDepartureAirportChange(e.target.value === '__direct__' ? '' : e.target.value)}
-                >
-                  {KNOWN_AIRPORTS.map((ap) => <option key={ap} value={ap}>{ap}</option>)}
-                  <option value={FIR_IN_AIRPORT}>FIR IN</option>
-                  <option value="__direct__">{'\uc9c1\uc811 \uc785\ub825'}</option>
-                </select>
-                {!KNOWN_AIRPORTS.includes(routeForm.departureAirport) && routeForm.departureAirport !== FIR_IN_AIRPORT && (
-                  <input className="proc-direct-input" value={routeForm.departureAirport} placeholder="ICAO" onChange={(e) => updateRouteField('departureAirport', e.target.value)} />
-                )}
-              </label>
-              {routeForm.flightRule === 'IFR' && (
-              <label>{isFirInMode ? '\uc9c4\uc785 FIX' : visibleSidOptions.length > 0 ? 'SID' : '\uc9c4\uc785 FIX'}
-                {isFirInMode
-                  ? (
-                      <select
-                      value={routeForm.entryFix}
-                      onChange={(e) => handleEntryFixChange(e.target.value)}
-                      disabled={firInOptions.length === 0}
-                    >
-                      {firInOptions.length === 0
-                        ? <option value="">{'\uc9c4\uc785 FIX \uc5c6\uc74c'}</option>
-                        : [
-                            <option key="__empty__" value="">{'-- \uc5c6\uc74c --'}</option>,
-                            ...firInOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>),
-                          ]}
-                    </select>
-                  )
-                  : visibleSidOptions.length > 0
-                  ? (
-                    <select value={selectedSid?.id ?? ''} onChange={(e) => {
-                      const proc = visibleSidOptions.find((p) => p.id === e.target.value) ?? null
-                      handleSidChange(proc)
-                    }}>
-                      <option value="">{'-- \uc5c6\uc74c --'}</option>
-                      {visibleSidOptions.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
-                    </select>
-                  )
-                  : <input value={routeForm.entryFix} onChange={(e) => handleEntryFixChange(e.target.value)} />
-                }
-              </label>
-              )}
-            </div>
-          </div>
-
-          <div className="route-check-section">
-            <div className="route-check-section-title">{'\ub3c4\ucc29'}</div>
-            <div className="route-check-section-grid">
-              <label>{'\ub3c4\ucc29 \uacf5\ud56d'}
-                <select
-                  value={
-                    routeForm.arrivalAirport === FIR_EXIT_AIRPORT
-                      ? FIR_EXIT_AIRPORT
-                      : KNOWN_AIRPORTS.includes(routeForm.arrivalAirport)
-                        ? routeForm.arrivalAirport
-                        : '__direct__'
-                  }
-                  onChange={(e) => handleArrivalAirportChange(e.target.value === '__direct__' ? '' : e.target.value)}
-                >
-                  {KNOWN_AIRPORTS.map((ap) => <option key={ap} value={ap}>{ap}</option>)}
-                  <option value={FIR_EXIT_AIRPORT}>FIR EXIT</option>
-                  <option value="__direct__">{'\uc9c1\uc811 \uc785\ub825'}</option>
-                </select>
-                {!KNOWN_AIRPORTS.includes(routeForm.arrivalAirport) && routeForm.arrivalAirport !== FIR_EXIT_AIRPORT && (
-                  <input className="proc-direct-input" value={routeForm.arrivalAirport} placeholder="ICAO" onChange={(e) => updateRouteField('arrivalAirport', e.target.value)} />
-                )}
-              </label>
-              {routeForm.flightRule === 'IFR' && (
-              <label>{isFirExitMode ? '\uc774\ud0c8 FIX' : starOptions.length > 0 ? 'STAR' : '\uc774\ud0c8 FIX'}
-                {isFirExitMode
-                  ? (
-                    <select
-                      value={routeForm.exitFix}
-                      onChange={(e) => handleExitFixChange(e.target.value)}
-                      disabled={firExitOptions.length === 0}
-                    >
-                      {firExitOptions.length === 0
-                        ? <option value="">{'\uc774\ud0c8 FIX \uc5c6\uc74c'}</option>
-                        : [
-                            <option key="__empty__" value="">{'-- \uc5c6\uc74c --'}</option>,
-                            ...firExitOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>),
-                          ]}
-                    </select>
-                  )
-                  : starOptions.length > 0
-                  ? (
-                    <select value={selectedStar?.id ?? ''} onChange={(e) => {
-                      const proc = starOptions.find((p) => p.id === e.target.value) ?? null
-                      handleStarChange(proc)
-                    }}>
-                      <option value="">{'-- \uc5c6\uc74c --'}</option>
-                      {starOptions.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
-                    </select>
-                  )
-                  : <input value={routeForm.exitFix} onChange={(e) => handleExitFixChange(e.target.value)} />
-                }
-              </label>
-              )}
-              {!isFirExitMode && iapCandidates.length > 1 && (
-                <label>RWY
-                  <select value={selectedIapKey ?? ''} onChange={(e) => {
-                    handleIapChange(e.target.value)
-                  }}>
-                    {iapCandidates.map(({ key, label }) => (
-                      <option key={key} value={key}>{label}</option>
-                    ))}
-                  </select>
-                </label>
-              )}
-            </div>
-          </div>
-
-          <div className={`route-check-actions${routeForm.flightRule === 'VFR' ? ' is-vfr' : ''}`}>
-            <button className="route-check-search-button" type="submit" disabled={routeLoading}>{routeLoading ? '\uac80\uc0c9 \uc911...' : '\uac80\uc0c9'}</button>
-            {routeForm.flightRule === 'IFR' && (
-              <button className="route-check-secondary-button" type="button" onClick={handleAutoRecommend} disabled={routeLoading}>{'\uc790\ub3d9\uac80\uc0c9'}</button>
-            )}
-            <button className="route-check-secondary-button" type="button" onClick={handleRouteReset} disabled={routeLoading}>{'\ucd08\uae30\ud654'}</button>
-          </div>
-        </form>
-        {routeError && <div className="route-check-error">{routeError}</div>}
-        {routeResult && (
-          <div className="route-check-result">
-            {routeResult.flightRule === 'IFR' && (() => {
-              const displayTokens = buildIfrSequenceTokens(routeResult, { selectedSid, selectedStar, selectedIap })
-              const { totalDistanceNm, items: distanceBreakdown } = buildIfrDistanceBreakdown({
-                routeResult,
-                selectedSid,
-                selectedStar,
-                selectedIap,
-              })
-
-              return (
-                <>
-                  <div className="route-check-total-dist">
-                    {'\ucd1d \uac70\ub9ac'}: <strong>{totalDistanceNm} NM</strong>
-                    {distanceBreakdown.length > 0 && (
-                      <span className="dist-breakdown">
-                        {' ('}
-                        {distanceBreakdown.map((item, index) => (
-                          <span key={`${item.kind}-${item.label}`}>
-                            {index > 0 && <span className="dist-breakdown-sep">{' + '}</span>}
-                            <span
-                              className={`dist-breakdown-token is-${item.kind}`}
-                              style={{ color: ROUTE_SEQUENCE_COLORS[item.kind] }}
-                            >
-                              {`${item.label} ${item.value.toFixed(1)}`}
-                            </span>
-                          </span>
-                        ))}
-                        {')'}
-                      </span>
-                    )}
-                  </div>
-                  <div className="route-check-sequence">
-                    {displayTokens.map((token, index) => (
-                      <span key={`${token.kind}-${token.text}-${index}`}>
-                        {index > 0 && <span className="route-check-sequence-sep">{' -> '}</span>}
-                        <span
-                          className={`route-check-sequence-token is-${token.kind}`}
-                          style={{ color: ROUTE_SEQUENCE_COLORS[token.kind] }}
-                        >
-                          {token.text}
-                        </span>
-                      </span>
-                    ))}
-                  </div>
-                </>
-              )
-            })()}
-            {routeResult.flightRule === 'VFR' && vfrWaypoints.length >= 2 && (
-              <>
-                <div className="route-check-total-dist">
-                  {'\ucd1d \uac70\ub9ac'}: <strong>{calcVfrDistance(vfrWaypoints).toFixed(1)} NM</strong>
-                </div>
-                <div className="vfr-altitude-tools">
-                  <span>{'VFR WP \uacc4\ud68d\uace0\ub3c4'}</span>
-                  <button type="button" onClick={applyCruiseAltitudeToVfrWaypoints}>
-                    {'\uc21c\ud56d\uace0\ub3c4 \uc804\uccb4 \uc801\uc6a9'}
-                  </button>
-                </div>
-                <div className="vfr-waypoint-altitude-list">
-                  {vfrWaypoints.map((wp, index) => {
-                    const fallbackAltitudeFt = Number(cruiseAltitudeFt)
-                    const displayAltitudeFt = wp.fixed
-                      ? getVfrAirportAltitudeFt(airports, wp)
-                      : Number.isFinite(Number(wp.altitudeFt))
-                      ? Number(wp.altitudeFt)
-                      : fallbackAltitudeFt
-                    const isEditing = !wp.fixed && editingVfrAltitudeIndex === index
-                    return (
-                      <div className="vfr-waypoint-altitude-row" key={`${wp.id}-${index}`}>
-                        <span className="vfr-waypoint-altitude-id">{wp.id}</span>
-                        {isEditing ? (
-                          <input
-                            className="vfr-waypoint-altitude-input"
-                            type="number"
-                            min="100"
-                            step="100"
-                            autoFocus
-                            value={Number.isFinite(displayAltitudeFt) ? Math.round(displayAltitudeFt) : ''}
-                            onChange={(e) => updateVfrWaypointAltitude(index, e.target.value)}
-                            onBlur={() => setEditingVfrAltitudeIndex(null)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') e.currentTarget.blur()
-                              if (e.key === 'Escape') setEditingVfrAltitudeIndex(null)
-                            }}
-                          />
-                        ) : wp.fixed ? (
-                          <span className="vfr-waypoint-altitude-pill is-fixed" title="怨듯빆 ?쒓퀬">
-                            {`${Math.round(displayAltitudeFt).toLocaleString()} ft`}
-                          </span>
-                        ) : (
-                          <button
-                            className="vfr-waypoint-altitude-pill"
-                            type="button"
-                            onClick={() => setEditingVfrAltitudeIndex(index)}
-                          >
-                            {Number.isFinite(displayAltitudeFt)
-                              ? `${Math.round(displayAltitudeFt).toLocaleString()} ft`
-                              : '\uace0\ub3c4 \uc785\ub825'}
-                          </button>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </>
-            )}
-            <div className="vertical-profile-control">
-              <label>
-                <span>{'\uc21c\ud56d\uace0\ub3c4(ft)'}</span>
-                <input
-                  type="number"
-                  min="100"
-                  step="100"
-                  value={cruiseAltitudeFt}
-                  onChange={(e) => setCruiseAltitudeFt(e.target.value)}
-                />
-              </label>
-              <button type="button" onClick={handleVerticalProfileRequest} disabled={verticalProfileLoading}>
-                {verticalProfileLoading ? '\uc0dd\uc131 \uc911...' : '\uc5f0\uc9c1\ub2e8\uba74\ub3c4 \uc0dd\uc131'}
-              </button>
-            </div>
-            {verticalProfileStale && (
-              <div className="vertical-profile-stale">
-                {'\uacbd\ub85c\uac00 \ubcc0\uacbd\ub418\uc5c8\uc2b5\ub2c8\ub2e4. \uc5f0\uc9c1\ub2e8\uba74\ub3c4\ub97c \ub2e4\uc2dc \uc0dd\uc131\ud574\uc8fc\uc138\uc694.'}
-              </div>
-            )}
-            {verticalProfileError && <div className="vertical-profile-error">{verticalProfileError}</div>}
-            {verticalProfile && (
-              <button
-                className="vertical-profile-open-button"
-                type="button"
-                onClick={() => setVerticalProfileWindowOpen(true)}
-              >
-                {'\uc5f0\uc9c1\ub2e8\uba74\ub3c4 \uc5f4\uae30'}
-              </button>
-            )}
-          </div>
-        )}
-      </section>
+          {desktopBody}
+        </section>
+      )}
     </>
   )
 }

@@ -31,6 +31,7 @@ function MainAppShell() {
   const [selectedAirport, setSelectedAirport] = useState(null)
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
   const [mobileTask, setMobileTask] = useState('map')
+  const [layerCounts, setLayerCounts] = useState({ aviation: 0, met: 0 })
   const isMobile = useIsMobile()
   const { weatherData, requestDeferredWeatherData } = useWeatherPolling()
   const { hasUpdate, markSeen } = useLastSeenVersion()
@@ -99,6 +100,8 @@ function MainAppShell() {
           selectedAirport={selectedAirport}
           onAirportSelect={setSelectedAirport}
           onRequestDeferredWeatherData={requestDeferredWeatherData}
+          onLayerCountsChange={setLayerCounts}
+          onClosePanel={() => { setActivePanel(null); setMobileTask('map') }}
         />
       </main>
       <AirportPanel
@@ -108,11 +111,14 @@ function MainAppShell() {
         onRequestDeferredWeatherData={requestDeferredWeatherData}
       />
 
-      {isMobile && mobileTask === 'map' && !selectedAirport && (
+      {isMobile && mobileTask === 'map' && !selectedAirport
+        && activePanel !== 'aviation' && activePanel !== 'met' && (
         <MobileMapOverlay
           activePanel={activePanel}
           onToggle={togglePanel}
           warningCount={warningAirportCount}
+          aviationCount={layerCounts.aviation}
+          metCount={layerCounts.met}
         />
       )}
       {isMobile && mobileTask === 'more' && !selectedAirport && (

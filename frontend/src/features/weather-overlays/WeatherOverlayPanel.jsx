@@ -1,8 +1,34 @@
+import {
+  Radar, Satellite, Zap, Wind, Thermometer, Droplets,
+  Snowflake, Activity, Plane, AlertTriangle, AlertOctagon, CloudFog, Radio,
+} from 'lucide-react'
+import useIsMobile from '../../shared/ui/useIsMobile.js'
+import MobileSheet from '../../shared/ui/MobileSheet.jsx'
+
+// Representative icon per weather layer for the mobile tile grid (legend-like).
+const WEATHER_TILE_ICON = {
+  radar: Radar,
+  satellite: Satellite,
+  lightning: Zap,
+  wind: Wind,
+  temp: Thermometer,
+  cloud: Droplets,
+  icing: Snowflake,
+  turbulence: Activity,
+  flightCategory: Plane,
+  sigmet: AlertTriangle,
+  airmet: AlertOctagon,
+  sigwx: CloudFog,
+  adsb: Radio,
+}
+
 function WeatherOverlayPanel({
   layers,
   visibility,
   blinkLightning,
   onToggle,
+  onClose,
+  onClearAll,
   onBlinkLightningChange,
   isLayerDisabled,
   getLayerBadge,
@@ -20,6 +46,7 @@ function WeatherOverlayPanel({
   onWindFlowTrailChange,
   onWindFlowWidthChange,
 }) {
+  const isMobile = useIsMobile()
   const groups = [
     { id: 'weather', title: '기상', ids: showWind ? ['radar', 'satellite', 'lightning', 'wind', 'temp', 'cloud', 'icing', 'turbulence', 'flightCategory'] : ['radar', 'satellite', 'lightning', 'flightCategory'] },
     { id: 'hazards', title: '위험기상', ids: ['sigmet', 'airmet', 'sigwx'] },
@@ -46,6 +73,62 @@ function WeatherOverlayPanel({
   const activeCountForGroup = (group) => (
     group.ids.filter((id) => visibility[id] && !isLayerDisabled(id)).length
   )
+
+  if (isMobile) {
+    return (
+      <MobileSheet
+        open
+        eyebrow="기상정보"
+        title="기상 레이어"
+        onClose={onClose}
+        headerExtra={(
+          <>
+            <button
+              type="button"
+              className="layer-sheet-clear"
+              onClick={onClearAll}
+              disabled={activeCount === 0}
+            >
+              전체 끄기
+            </button>
+            <span className="layer-drawer-status">{activeCount}개 켜짐</span>
+          </>
+        )}
+      >
+        <div className="layer-tile-groups">
+          {groups.map((group) => (
+            <section key={group.title} className="layer-tile-group">
+              <div className="layer-tile-group-title">{group.title}</div>
+              <div className="layer-tile-grid">
+                {group.ids.map((id) => {
+                  if (!layerById.has(id)) return null
+                  const Icon = WEATHER_TILE_ICON[id]
+                  const active = !!visibility[id] && !isLayerDisabled(id)
+                  const disabled = isLayerDisabled(id)
+                  const badge = getLayerBadge(id)
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      className={`layer-tile${active ? ' is-active' : ''}${disabled ? ' is-disabled' : ''}`}
+                      onClick={() => onToggle(id)}
+                      disabled={disabled}
+                      aria-pressed={active}
+                    >
+                      <span className="layer-tile-visual">{Icon && <Icon size={22} strokeWidth={2} />}</span>
+                      <span className="layer-tile-label">{layerLabels[id]}</span>
+                      {badge > 0 && <span className="layer-tile-badge">{badge}</span>}
+                      {active && <span className="layer-tile-check" aria-hidden="true">✓</span>}
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+      </MobileSheet>
+    )
+  }
 
   function renderWindControl(layer) {
     const disabled = isLayerDisabled(layer.id)
@@ -266,7 +349,7 @@ function WeatherOverlayPanel({
                 </label>
               )
             })}
-            {group.id === 'weather' && visibility.lightning && !isLayerDisabled('lightning') && (
+            {!isMobile && group.id === 'weather' && visibility.lightning && !isLayerDisabled('lightning') && (
               <label className="layer-toggle-row layer-toggle-row--sub">
                 <input
                   className="layer-toggle-input"

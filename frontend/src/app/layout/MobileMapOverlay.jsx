@@ -2,7 +2,7 @@ import { Layers, Cloud } from 'lucide-react'
 
 // Mobile 지도 task: status-first strip + on-map layer entry points
 // (the sidebar that normally opens these is hidden on mobile).
-export default function MobileMapOverlay({ activePanel, onToggle, warningCount }) {
+export default function MobileMapOverlay({ activePanel, onToggle, warningCount, aviationCount = 0, metCount = 0 }) {
   const hasWarn = warningCount > 0
   return (
     <>
@@ -18,6 +18,7 @@ export default function MobileMapOverlay({ activePanel, onToggle, warningCount }
         >
           <Layers size={20} strokeWidth={2} />
           <span>항공</span>
+          {aviationCount > 0 && <span className="mobile-map-layer-count">{aviationCount}</span>}
         </button>
         <button
           type="button"
@@ -27,6 +28,7 @@ export default function MobileMapOverlay({ activePanel, onToggle, warningCount }
         >
           <Cloud size={20} strokeWidth={2} />
           <span>기상</span>
+          {metCount > 0 && <span className="mobile-map-layer-count">{metCount}</span>}
         </button>
       </div>
     </>

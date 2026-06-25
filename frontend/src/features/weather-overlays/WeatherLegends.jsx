@@ -1,6 +1,10 @@
+import useIsMobile from '../../shared/ui/useIsMobile.js'
+
 function WeatherLegends({
   radarLegendVisible,
   lightningLegendVisible,
+  blinkLightning = false,
+  onBlinkLightningChange,
   radarRainrateLegend,
   lightningLegendEntries,
   windSpeedLegendVisible,
@@ -17,6 +21,7 @@ function WeatherLegends({
   lightningReferenceTimeMs,
   formatReferenceTimeLabel,
 }) {
+  const isMobile = useIsMobile()
   if (!radarLegendVisible && !lightningLegendVisible && !windSpeedLegendVisible && !temperatureLegendVisible && !cloudLegendVisible && !icingLegendVisible && !turbulenceLegendVisible) return null
 
   return (
@@ -57,6 +62,16 @@ function WeatherLegends({
               </div>
             ))}
           </div>
+          {isMobile && (
+            <button
+              type="button"
+              className={`lightning-legend-blink${blinkLightning ? ' is-on' : ''}`}
+              onClick={() => onBlinkLightningChange?.((prev) => !prev)}
+              aria-pressed={blinkLightning}
+            >
+              깜빡임 {blinkLightning ? 'ON' : 'OFF'}
+            </button>
+          )}
         </div>
       )}
       {windSpeedLegendVisible && (

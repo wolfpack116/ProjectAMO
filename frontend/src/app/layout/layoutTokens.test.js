@@ -108,9 +108,12 @@ test('monitoring phone settings task renders settings inline instead of a modal 
   assert.match(monitoringCss, /phone-settings-inline/)
 })
 
-test('route briefing phone map mode is parent-owned and does not use a fake map placeholder', () => {
+test('route briefing map mode is desktop-only (parent-owned) with no fake map placeholder', () => {
+  // Desktop keeps the parent-owned map-mode toggle on the live map wrapper.
   assert.match(mapView, /routeBriefingMapMode/)
   assert.match(mapView, /data-route-briefing-map-mode/)
-  assert.match(mapCss, /@media \(max-width: 719px\)[^]*data-route-briefing-map-mode/)
+  // The floating 지도 보기 toggle is rendered only on desktop; on mobile the
+  // briefing lives in a MobileSheet whose peek detent reveals the map instead.
+  assert.match(mapView, /!isMobile &&[^]*route-briefing-map-mode-toggle/)
   assert.doesNotMatch(mapView, /route-check-(fake|placeholder|preview-map)/i)
 })
