@@ -1579,12 +1579,32 @@
 }
 
 @media (max-width: 719px) {
+  /* Layer controls become bottom sheets flush to the task bar, with a scrollable body. */
   .map-view-wrapper .layer-drawer,
-  .dev-layer-panel {
-    left: var(--panel-inset);
-    right: var(--panel-inset);
+  .map-view-wrapper .dev-layer-panel {
+    top: auto;
+    /* wrapper already ends above the task bar, so 0 sits flush to it (no gap) */
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: auto;
     max-width: none;
+    height: min(58vh, 520px);
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px 16px 0 0;
+    border-bottom: 0;
+    box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.22);
+    overflow: hidden;
+  }
+
+  .map-view-wrapper .layer-drawer .layer-drawer-body,
+  .map-view-wrapper .dev-layer-panel .layer-drawer-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
   }
 
   .route-briefing-map-mode-toggle {

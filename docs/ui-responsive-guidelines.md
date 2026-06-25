@@ -75,6 +75,19 @@ On smaller viewports:
 
 If a narrower layout becomes harder to read, prefer structural simplification over smaller fonts, tighter spacing, or preserving the original composition at all costs.
 
+## Canonical Mobile Philosophy
+
+These eight principles are the canonical target for ProjectAMO mobile. The monitoring screens already embody them; the main app should converge on the same model rather than shrinking its desktop composition. Mechanical fixes may proceed against these principles immediately, but the structural changes they imply (task-tab model, map/data mode split, drawer-to-step-flow conversions) remain Proposal-First per the rule below.
+
+1. **One task per screen.** Mobile shows a single operational task at full width — never desktop panels, modals, or drawers shrunk to fit. Monitoring's task model is the reference.
+2. **Status before controls.** Every primary screen opens by answering "what and how safe": identity/scope (airport, route, mode) and current status (flight category, active warnings) appear before any layer toggle, form, or config. A bare map is not a status screen.
+3. **Top task tabs are the shared backbone.** A consistent top-level task switcher replaces the slide-over icon rail, using the same component and behavior across the main app and monitoring.
+4. **Map is a task, not a backdrop.** The map is a dedicated task view with its own controls layered on it. Do not pin data panels, forms, or modals over a live map on mobile.
+5. **Airport detail is full-screen with all sections one tap away.** Use a full-screen panel with a top tab bar that shows every section label (현재날씨/METAR/TAF/AMOS/공항경보/기상정보) at once — no clipped rails, no hidden tabs, no prev/next stepping. The persistent bottom task bar stays visible; switching task dismisses the panel. The summary (현재날씨) leads with flight category + warnings, and 공항경보 carries a count badge so warnings are never missed. (Supersedes the earlier step-flow direction, retired 2026-06-25 after operator review.)
+6. **Restructure dense desktop content, don't shrink it.** TAF periods, AMOS readouts, and minima settings become vertically stacked, per-item reading blocks. Horizontal panel scroll is a fallback only; never shrink type to make a desktop table "fit."
+7. **Lead reading surfaces with a takeaway.** Narrative weather discussion and changelogs open with a one-line summary/severity before the detail.
+8. **Decoration stays subordinate to status.** Mascot and illustrative art may appear but must never carry higher visual weight than flight category, warnings, or identity, and never crowd a primary status block.
+
 ## Mobile Direction Approved For Review
 
 These are the current preferred review directions for future mobile-focused proposals. They are not implementation instructions by themselves.
@@ -96,16 +109,14 @@ These are the current preferred review directions for future mobile-focused prop
 
 ### Airport panel mobile
 
-- The primary review direction is a full-screen step flow
-- Treat airport detail as a focused reading task instead of a desktop side drawer shrunk for mobile
-- Review sequence should assume a flow such as:
-  - summary
-  - METAR
-  - TAF
-  - warnings
-  - supporting information
+Implemented direction (operator decision, 2026-06-25):
 
-For now, do not treat bottom tabs or segmented controls as the default target pattern for the mobile airport panel unless product direction changes.
+- Full-screen panel, not a desktop side drawer shrunk for mobile.
+- A top tab bar shows every section label at once (현재날씨/METAR/TAF/AMOS/공항경보/기상정보) — all one tap away, no clipped rail, no prev/next stepping.
+- The persistent bottom task bar stays visible; switching task dismisses the panel.
+- 현재날씨 leads with flight category + warnings; 공항경보 carries a count badge.
+
+The earlier full-screen step-flow direction was tried and retired in favor of the all-tabs-visible model above.
 
 ## CSS And Layout Rules
 
@@ -242,6 +253,6 @@ If you only remember five things, remember these:
 
 1. Fit is not enough; operational clarity matters more.
 2. Core status and next-change information outrank secondary controls.
-3. Mobile does not need to preserve desktop composition.
+3. Mobile does not need to preserve desktop composition — one task per screen, status before controls (see Canonical Mobile Philosophy).
 4. Capture and review before fixing.
 5. Structural responsive changes are proposal-first until explicitly approved.

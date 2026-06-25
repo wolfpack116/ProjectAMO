@@ -403,6 +403,7 @@ export function addAviationWfsLayers(map) {
           'line-color': layer.color,
           'line-width': layer.lineWidth,
           'line-opacity': layer.lineOpacity,
+          ...(layer.lineDasharray ? { 'line-dasharray': layer.lineDasharray } : {}),
         },
         layout: {
           visibility,

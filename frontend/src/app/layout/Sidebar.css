@@ -1,3 +1,11 @@
+/* Mobile uses the bottom task bar instead of the icon rail.
+   `.app .sidebar` outranks the base `.sidebar { display: flex }` regardless of source order. */
+@media (max-width: 719px) {
+  .app .sidebar {
+    display: none;
+  }
+}
+
 .sidebar {
   position: fixed;
   top: 0;

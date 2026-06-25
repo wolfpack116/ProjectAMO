@@ -670,7 +670,12 @@ function MapView({
       ...AIRPORT_INTERACTIVE_LAYERS.flatMap((layerId) => [
         bindLayerEvent(map, 'click', layerId, (e) => {
           const icao = e.features?.[0]?.properties?.icao
-          if (icao) onSelectRef.current?.(icao)
+          if (!icao) return
+          // Touch fires no mouseleave, so clear the hover tooltip on selection.
+          tooltipIcaoRef.current = null
+          clearTimeout(tooltipTimerRef.current)
+          setHoveredAirportIcao(null)
+          onSelectRef.current?.(icao)
         }),
         bindLayerEvent(map, 'mouseenter', layerId, () => { map.getCanvas().style.cursor = 'pointer' }),
         bindLayerEvent(map, 'mouseleave', layerId, () => { map.getCanvas().style.cursor = '' }),

@@ -20,7 +20,13 @@ function tafWeatherClass(item, baseClass, { includeSpecial = true } = {}) {
 }
 
 export default function EnhancedTafTab({ taf, icao }) {
-  const [view, setView] = useState('timeline')
+  // Mobile lands on the per-period card view (readable reading blocks);
+  // desktop keeps the timeline. User can still switch.
+  const [view, setView] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 719px)').matches
+      ? 'grid'
+      : 'timeline',
+  )
   const { tz } = useTimeZone()
   if (!taf) return <div className="ap-empty">TAF 데이터 없음</div>
 

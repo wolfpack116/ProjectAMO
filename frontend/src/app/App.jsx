@@ -3,9 +3,13 @@ import AirportPanel from '../features/airport-panel/AirportPanel.jsx'
 import MapView from '../features/map/MapView.jsx'
 import useWeatherPolling from './useWeatherPolling.js'
 import Sidebar from './layout/Sidebar.jsx'
+import MobileTaskBar from './layout/MobileTaskBar.jsx'
+import MobileMapOverlay from './layout/MobileMapOverlay.jsx'
+import MobileMoreMenu from './layout/MobileMoreMenu.jsx'
 import SettingsModal from '../features/settings/SettingsModal.jsx'
 import UpdatesModal from '../features/about/UpdatesModal.jsx'
 import { useLastSeenVersion } from '../features/about/useLastSeenVersion.js'
+import useIsMobile from '../shared/ui/useIsMobile.js'
 import { TimeZoneProvider, useTimeZone } from '../shared/timezone/TimeZoneContext.jsx'
 
 const MonitoringPage = lazy(() => import('../features/monitoring/MonitoringPage.jsx'))
@@ -26,6 +30,8 @@ function MainAppShell() {
   const [activePanel, setActivePanel] = useState(null)
   const [selectedAirport, setSelectedAirport] = useState(null)
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
+  const [mobileTask, setMobileTask] = useState('map')
+  const isMobile = useIsMobile()
   const { weatherData, requestDeferredWeatherData } = useWeatherPolling()
   const { hasUpdate, markSeen } = useLastSeenVersion()
 
@@ -52,6 +58,20 @@ function MainAppShell() {
     () => weatherData?.airports?.find((a) => a.icao === selectedAirport) || null,
     [weatherData, selectedAirport],
   )
+
+  const warningAirportCount = useMemo(() => {
+    const byIcao = weatherData?.warning?.airports
+    if (!byIcao) return 0
+    return Object.values(byIcao).filter((w) => (w?.warnings?.length || 0) > 0).length
+  }, [weatherData])
+
+  // Map the mobile task switcher onto the existing activePanel mechanism.
+  function selectMobileTask(task) {
+    setMobileTask(task)
+    setSelectedAirport(null) // switching tasks dismisses the airport detail panel
+    if (task === 'route') setActivePanel('route-check')
+    else setActivePanel((cur) => (['aviation', 'met', 'route-check'].includes(cur) ? null : cur))
+  }
 
   return (
     <div className={`app ${isSidebarExpanded ? 'sidebar-is-expanded' : ''}`}>
@@ -87,6 +107,25 @@ function MainAppShell() {
         onClose={() => setSelectedAirport(null)}
         onRequestDeferredWeatherData={requestDeferredWeatherData}
       />
+
+      {isMobile && mobileTask === 'map' && !selectedAirport && (
+        <MobileMapOverlay
+          activePanel={activePanel}
+          onToggle={togglePanel}
+          warningCount={warningAirportCount}
+        />
+      )}
+      {isMobile && mobileTask === 'more' && !selectedAirport && (
+        <MobileMoreMenu
+          onSettings={() => togglePanel('settings')}
+          onUpdates={() => togglePanel('updates')}
+          hasUpdate={hasUpdate}
+        />
+      )}
+      {isMobile && (
+        <MobileTaskBar activeTask={mobileTask} onSelect={selectMobileTask} hasUpdate={hasUpdate} />
+      )}
+
       <div className="utc-bar">{formatTimeByTz(nowMs, tz)}</div>
       {activePanel === 'settings' && (
         <SettingsModal onClose={() => togglePanel('settings')} />

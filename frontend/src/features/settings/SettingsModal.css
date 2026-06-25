@@ -246,3 +246,43 @@
 .settings-btn-save:hover {
   background: #0a6b5d;
 }
+
+/* Mobile: full-screen task surface, tabs as a horizontal strip (no shrunk desktop 2-column). */
+@media (max-width: 719px) {
+  .settings-overlay {
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .settings-modal {
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .settings-layout {
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .settings-tabs {
+    flex-direction: row;
+    overflow-x: auto;
+    min-width: 0;
+    gap: 4px;
+    border-right: 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .settings-tab-btn {
+    flex: 0 0 auto;
+    min-height: var(--touch-target-min, 44px);
+  }
+
+  .minima-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}

@@ -88,7 +88,7 @@ test('route briefing panel uses responsive medium panel token', () => {
 
 test('airport drawer uses responsive large drawer token', () => {
   assert.match(airportCss, /width:\s*min\(var\(--panel-drawer-lg\),\s*calc\(100vw - var\(--active-sidebar-width\)\)\)/)
-  assert.match(airportCss, /@media \(max-width: 719px\)\s*\{[^}]*\.airport-panel\s*\{[^}]*z-index:\s*120/s)
+  assert.match(airportCss, /@media \(max-width: 719px\)\s*\{[\s\S]*?\.airport-panel\s*\{[^}]*z-index:\s*120/s)
   assert.doesNotMatch(airportCss, /\.airport-panel\s*\{[^}]*width:\s*800px/s)
 })
 

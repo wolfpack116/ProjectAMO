@@ -1928,7 +1928,7 @@
   }
 
   .ap-current-metar-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: none;
   }
 
@@ -1974,10 +1974,10 @@
   }
 
   .airport-panel-tab {
-    flex: 0 0 auto;
-    min-width: 72px;
-    min-height: 44px;
-    padding: 0 12px;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: var(--touch-target-min, 44px);
+    padding: 4px 6px;
     justify-content: center;
     font-size: 12px;
     white-space: nowrap;
@@ -1986,7 +1986,8 @@
   .airport-panel-body {
     min-width: 0;
     overflow-x: hidden;
-    padding: 20px 12px;
+    /* extra bottom space clears the persistent mobile task bar */
+    padding: 20px 12px calc(var(--mobile-task-bar-h, 60px) + 16px);
   }
 
   .ap-taf-table {

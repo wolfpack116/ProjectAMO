@@ -50,8 +50,12 @@ ProjectAMO/
 - `frontend/src/app/App.css` -> app shell and layout CSS entry.
 - `frontend/src/app/useWeatherPolling.js` -> initial weather load, deferred panel-data loading, plus snapshot-meta incremental polling.
 - `frontend/src/app/snapshotMeta.js` -> snapshot-meta comparison helpers.
-- `frontend/src/app/layout/Sidebar.jsx` -> sidebar item definitions and panel toggle UI.
+- `frontend/src/app/layout/Sidebar.jsx` -> sidebar item definitions and panel toggle UI (desktop/tablet; hidden at <=719px in favor of the mobile task bar).
 - `frontend/src/app/layout/Sidebar.css` -> sidebar styles.
+- `frontend/src/app/layout/MobileTaskBar.jsx` -> mobile (<=719px) bottom task switcher (지도/브리핑/더보기) that replaces the sidebar; drives `mobileTask` in `App.jsx`.
+- `frontend/src/app/layout/MobileMapOverlay.jsx` -> mobile 지도-task status strip (warning summary) plus on-map aviation/met layer entry buttons.
+- `frontend/src/app/layout/MobileMoreMenu.jsx` -> mobile 더보기-task list (updates/settings/monitoring; NOTAM/help disabled).
+- `frontend/src/shared/ui/useIsMobile.js` -> shared `<=719px` matchMedia hook (used by `App.jsx` for the mobile shell).
 - `frontend/src/app/layout/layoutTokens.css` -> shared responsive layout tokens for shell widths, panel widths, breakpoint policy, spacing, and minimum control sizes.
 - `frontend/src/api/weatherApi.js` -> initial weather bundle, deferred weather dataset, changed dataset, static airport/navdata fetch helpers.
 - `frontend/src/api/adsbApi.js` -> ADS-B fetch helper.

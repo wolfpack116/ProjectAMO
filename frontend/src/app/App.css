@@ -49,3 +49,161 @@ body {
   line-height: 23px;
   text-align: center;
 }
+
+/* ── Mobile shell (≤719px): task bar replaces the sidebar; map is a task. ── */
+@media (max-width: 719px) {
+  .app {
+    --active-sidebar-width: 0px;
+  }
+
+  .map-shell {
+    margin-left: 0;
+    width: 100vw;
+    height: calc(100dvh - var(--mobile-task-bar-h));
+  }
+
+  .utc-bar {
+    display: none;
+  }
+
+  /* Status-first strip on the map task. */
+  .mobile-status-strip {
+    position: fixed;
+    top: 10px;
+    left: 12px;
+    right: 88px;
+    z-index: 60;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .mobile-status-strip.is-ok {
+    background: rgba(220, 252, 231, 0.95);
+    color: #15803d;
+    border: 1px solid rgba(22, 163, 74, 0.3);
+  }
+
+  .mobile-status-strip.is-alert {
+    background: rgba(254, 226, 226, 0.96);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+  }
+
+  /* On-map layer entry points (sidebar is hidden). */
+  .mobile-map-layer-btns {
+    position: fixed;
+    top: 58px;
+    left: 12px;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mobile-map-layer-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 52px;
+    min-height: 52px;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #334155;
+    font-size: 11px;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+    cursor: pointer;
+  }
+
+  .mobile-map-layer-btn.is-active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+  }
+
+  /* "더보기" task surface. */
+  .mobile-more {
+    position: fixed;
+    inset: 0 0 var(--mobile-task-bar-h) 0;
+    z-index: 110;
+    padding: 18px 16px;
+    background: #f8fafc;
+    overflow-y: auto;
+  }
+
+  .mobile-more-title {
+    margin: 6px 4px 14px;
+    font-size: 20px;
+    font-weight: 850;
+    color: #0f172a;
+  }
+
+  .mobile-more-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mobile-more-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 56px;
+    padding: 0 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .mobile-more-item:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  .mobile-more-item-icon {
+    position: relative;
+    display: inline-flex;
+    color: #2563eb;
+  }
+
+  .mobile-more-item:disabled .mobile-more-item-icon {
+    color: #94a3b8;
+  }
+
+  .mobile-more-dot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #ef4444;
+    border: 1.5px solid #ffffff;
+  }
+
+  .mobile-more-item-label {
+    flex: 1 1 auto;
+    text-align: left;
+  }
+
+  .mobile-more-chevron {
+    color: #cbd5e1;
+  }
+}

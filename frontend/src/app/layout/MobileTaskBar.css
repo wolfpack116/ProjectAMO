@@ -1,0 +1,56 @@
+/* Mobile bottom task bar — shown only at <=719px (rendered conditionally). */
+.mobile-task-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 130;
+  display: flex;
+  height: var(--mobile-task-bar-h, 60px);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  border-top: 1px solid rgba(203, 213, 225, 0.85);
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.08);
+}
+
+.mobile-task-btn {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: var(--touch-target-min, 44px);
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mobile-task-btn.is-active {
+  color: #2563eb;
+}
+
+.mobile-task-icon {
+  position: relative;
+  display: inline-flex;
+}
+
+.mobile-task-dot {
+  position: absolute;
+  top: -2px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #ef4444;
+  border: 1.5px solid #ffffff;
+}
+
+.mobile-task-label {
+  line-height: 1;
+}
