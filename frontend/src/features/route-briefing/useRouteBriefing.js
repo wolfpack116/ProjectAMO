@@ -72,7 +72,11 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
   const isFirExitMode = routeForm.flightRule === 'IFR' && routeForm.arrivalAirport === FIR_EXIT_AIRPORT
   const selectedIap = iapData?.iapRoutes?.[selectedIapKey] ?? null
   const [alternateAirport, setAlternateAirport] = useState('')
-  const [etd, setEtd] = useState(() => new Date().toISOString().slice(0, 16)) // datetime-local
+  const [etd, setEtd] = useState(() => {
+    // datetime-local expects local wall-clock; toISOString() is UTC, so offset back to local first.
+    const now = new Date()
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+  })
   const [cruiseSpeedKt, setCruiseSpeedKt] = useState(120)
   const [briefing, setBriefing] = useState(null)
   const [briefingLoading, setBriefingLoading] = useState(false)
@@ -103,6 +107,8 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     setVerticalProfileWindowOpen(false)
     setVfrWaypoints([])
     setFitBoundsRequest(null)
+    setBriefing(null)
+    setBriefingError(null)
   }
 
   useEffect(() => {
@@ -497,6 +503,8 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     setVerticalProfileError(null)
     setVerticalProfileStale(false)
     setVerticalProfileWindowOpen(false)
+    setBriefing(null)
+    setBriefingError(null)
     try {
       const result = routeForm.flightRule === 'VFR'
         ? await buildVfrRoute(routeForm)
