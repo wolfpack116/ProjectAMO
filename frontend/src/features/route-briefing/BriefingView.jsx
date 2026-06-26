@@ -3,7 +3,13 @@ import VerticalProfileChart from './VerticalProfileChart.jsx'
 import './BriefingView.css'
 
 const LEVEL_CLASS = { green: 'bv-green', amber: 'bv-amber', red: 'bv-red', gray: 'bv-gray' }
+const CAT_CLASS = { VFR: 'bv-cat-vfr', MVFR: 'bv-cat-mvfr', IFR: 'bv-cat-ifr', LIFR: 'bv-cat-lifr' }
 const SEG_RANK = { '약': 1, '중': 2, '심': 3 }
+
+// 항공 표준 카테고리 색 어휘(VFR/MVFR/IFR/LIFR). 미지의 값은 level 색으로 폴백.
+function catClass(category, level) {
+  return CAT_CLASS[String(category ?? '').toUpperCase()] ?? LEVEL_CLASS[level] ?? ''
+}
 
 function worstInterval(intervals) {
   return (intervals ?? []).reduce((acc, iv) => (!acc || SEG_RANK[iv.level] > SEG_RANK[acc.level] ? iv : acc), null)
@@ -60,13 +66,20 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   return (
     <div className="briefing-view" ref={containerRef}>
       <div className="bv-header">
-        <div><b>{meta.departureAirport} → {meta.arrivalAirport}</b>{meta.alternateAirport ? ` (교체 ${meta.alternateAirport})` : ''} · {meta.flightRule}</div>
-        <button type="button" onClick={onClose}>{'지도로'}</button>
+        <div className="bv-head-main">
+          <div className="bv-eyebrow">비행 전 브리핑</div>
+          <div className="bv-route"><b>{meta.departureAirport} → {meta.arrivalAirport}</b></div>
+          <div className="bv-meta">{meta.alternateAirport ? `교체 ${meta.alternateAirport}` : '단일 목적지'}</div>
+        </div>
+        <div className="bv-head-side">
+          <span className="bv-rule-chip">{meta.flightRule}</span>
+          <button type="button" className="bv-map-btn" onClick={onClose}>{'지도로'}</button>
+        </div>
       </div>
 
       <nav className="bv-nav" aria-label="브리핑 순서">
         {steps.map((s) => (
-          <button key={s.id} type="button" className={`bv-nav-step${activeId === s.id ? ' is-active' : ''}`} onClick={() => jumpTo(s.id)}>
+          <button key={s.id} type="button" className={`bv-nav-step${activeId === s.id ? ' is-active' : ''}`} aria-current={activeId === s.id ? 'true' : undefined} onClick={() => jumpTo(s.id)}>
             {s.label}
           </button>
         ))}
@@ -97,10 +110,10 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
       <section data-bvid="current" className="bv-section">
         <h3>③ 현재 실황</h3>
         {sections.current.airports.map((a) => (
-          <div key={a.role} className="bv-airport">
+          <div key={a.role} className={`bv-airport ${catClass(a.category, a.level)}`}>
             <div className="bv-airport-title">
-              {a.role === 'departure' ? '출발' : a.role === 'arrival' ? '도착' : '교체'}공항 · {a.icao}
-              <span className={`bv-cat ${LEVEL_CLASS[a.level]}`}>{a.category}</span>
+              <span className="bv-airport-name">{a.icao}<span className="bv-airport-role">{a.role === 'departure' ? '출발공항' : a.role === 'arrival' ? '도착공항' : '교체공항'}</span></span>
+              <span className={`bv-cat ${catClass(a.category, a.level)}`}>{a.category}</span>
             </div>
             <table className="bv-table">
               <thead><tr><th>바람</th><th>시정</th><th>운고</th><th>기온/노점</th><th>현상</th><th>QNH</th></tr></thead>
@@ -116,7 +129,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
       {sections.enroute && (
         <section data-bvid="enroute" className={`bv-section ${LEVEL_CLASS[sections.enroute.level]}`}>
           <h3>④ 노선·공역</h3>
-          <p className="bv-muted">계획고도 {sections.enroute.plannedCruiseAltitudeFt}ft</p>
+          <p className="bv-plan">계획고도 <b>{sections.enroute.plannedCruiseAltitudeFt}ft</b></p>
           {sections.enroute.encounters.length === 0
             ? <p className="bv-muted">계획고도에서 조우하는 위험 없음</p>
             : <ul>{sections.enroute.encounters.map((h, i) => (

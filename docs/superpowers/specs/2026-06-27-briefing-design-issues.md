@@ -1,0 +1,67 @@
+# 비행 전 브리핑 — 디자인 이슈 로그 (편집 전 기록)
+
+> 캡처 기준: 데스크톱 1680×1000, RKSS→RKPC (교체 RKPK), IFR. 스모크 그린(scroll-sync / 리본↔단면도 정렬 / 지도 패닝 / payload 모두 정상).
+> 캡처물: `artifacts/briefing-phase2b/briefing-*.png`, 패널 상세는 세션 scratchpad(panel-top / section-current / section-enroute).
+> 분류: **[M]** 기계적 깨짐 · **[C]** 운영 명료성 · 각 항목 끝 `→ TopN`은 브리프 §6 우선순위 매핑.
+
+## A. 위계 · 레이아웃
+
+- **A1 [C] 패널/섹션 헤더 타이포 스케일 없음.** 패널 헤더(RKSS→RKPC)는 기본 `<b>`, 섹션 헤더 `h3`는 14px로 본문(13px)과 거의 동일. 위계가 평평함. 고정 스케일(라벨 11~12 / 본문 13 / 섹션 16~18 / 패널 20~24, 값=semibold·라벨=regular) 필요. → Top 2
+- **A2 [C] ④ 노선 헤더 정보 위계 역전.** "계획고도 9000ft"와 "조우 위험 없음"이 동일한 muted gray·동일 크기. 계획고도는 의사결정 핵심값인데 부가설명과 구분 안 됨(값=강조, 상태문구=본문). → Top 2
+- **A3 [C] 섹션이 모두 1px 테두리+radius 카드.** 브리프는 카드 중첩 금지·여백+초저대비 디바이더 지향. 현재 모든 섹션이 동급 카드라 상단 요약보드의 시각 우위가 없음. → Top 7
+- **A4 [C] 단면도가 카드 속 카드.** ④ 섹션(틴트 카드) 안에 흰 차트 카드가 다시 들어가 중첩. → Top 7
+- **A5 [M] 헤더 border-bottom 2px가 과함.** 디바이더는 1px 초저대비로. → Top 7
+- **A6 [C] 간격이 ad-hoc px(16/12/8/6).** layoutTokens.css의 공유 토큰 대신 하드코딩. 8pt 스케일(4/8/12/16/24/32) 토큰화 필요(필요하면 layoutTokens에 spacing 토큰 추가 후 참조). → Top 1
+
+## B. 색 · 심각도
+
+- **B1 [C] 항공 카테고리 색 어휘 미적용.** 카테고리 배지 `.bv-cat`가 level 클래스(green/amber/red/gray) 재사용. VFR=녹은 우연히 맞지만 **MVFR=파/IFR=적/LIFR=자홍** 매핑 없음 → MVFR이 amber로 표시될 위험. 카테고리 전용 색 클래스(VFR/MVFR/IFR/LIFR) 분리 필요. → Top 4
+- **B2 [C] 섹션 전체 배경 틴트 남발.** ①·④·⑤가 level에 따라 카드 배경 전체를 녹/황/적으로 칠함. 브리프 "정상=무채색, 임계 초과만 저채도 틴트(8~15%)"에 반함. 색을 예외 강조로 절약해야. 정상 섹션은 무채색, 상태는 헤더 옆 배지/칩으로. → Top 5
+- **B3 [C] 단면도 색 어휘 충돌(검토).** 차트의 습윤/구름=녹, 난류=황/적. 같은 녹색이 "구름장"과 "VFR-양호" 두 의미를 가짐. VerticalProfileChart 색 어휘 통일 검토 대상(별도, 우선순위 낮음). → Top 4(보조)
+- **B4 [C] 색약 대응 부족.** 표 flag 셀(`.bv-flag`)은 적색 틴트+굵기만 → 색+아이콘+텍스트 라벨 병기 필요. (해저드 칩 🔴/🟡, VFR 배지는 이미 텍스트 병기라 양호.) → Top 6
+
+## C. 표 (③ 현재 실황, 6열)
+
+- **C1 [M] 격자선(모든 셀 border) 사용.** 브리프는 수평선만. 세로 격자 제거. → Top 7
+- **C2 [C] 수치 가운데 정렬 + 비고정폭.** 라벨 좌측·수치 우측 정렬 + `tabular-nums` 필요(현재 전부 center, proportional). 29003KT / Q1006 등 자릿수 흔들림. → Top 3
+- **C3 [C] 3개 표 열폭 불일치.** 교체공항 표의 운고("SCT025 BKN250")가 길어 열폭이 출발/도착 표와 어긋남. 6열 고정 그리드(`table-layout:fixed`)로 정렬 통일. → Top 3
+- **C4 [C] 헤더 라벨 저대비(gray #666).** 11px 미만 아님은 OK지만 헤더 라벨 대비가 약함. 크기/굵기로 위계, 색 의존 줄이기. → Top 2
+- **C5 [C] 단위 줄바꿈 방지 미적용.** 값+단위(NM/ft/KT) nbsp 처리 검토. → Top 3
+
+## D. sticky 순서목차 (.bv-nav)
+
+- **D1 [C] active가 색 주도.** 파란 틴트+파란 테두리+파란 글자. 브리프는 굵기+2~3px 강조선+약한 틴트+이동 마커. → Top 8
+- **D2 [M] `aria-current` 없음.** active 스텝에 `aria-current="true"` 부여. → Top 8
+- **D3 [C] nav 강조색이 앱 색계와 이질(파랑).** 앱 카테고리 팔레트(녹 계열)와 다른 파랑 강조. 중립 강조(텍스트/굵기 위주)로 정리 검토. → Top 8
+
+## E. 상단 요약보드 (.bv-board)
+
+- **E1 [C] 보드 정보량 낮음.** "위험 / 출발 RKSS / 도착 RKPC / 교체 RKPK" — 공항 칩에 카테고리(VFR/IFR…) 색·라벨 없음. at-a-glance 보드인데 핵심 상태(공항별 카테고리·최악 위험)를 못 담음. 칩에 카테고리 병기 검토. → Top 4/5
+- **E2 [C] 보드와 섹션 카드 시각 동급.** 보드만 시각 우위여야 하는데 현재 작은 플랫 칩이라 섹션 카드보다 약함. → Top 7
+
+## F. 기타 / 회귀 주의
+
+- **F1** 다크모드: `#666/#888/#c0392b`/rgba 하드코딩 다수 → 토큰화 시 다크 대비 확인(부차).
+- **F2 [회귀금지]** 리본 track margin 6.04%/2.71% = 차트 plot 여백. 색/높이만 바꾸고 **margin·% 좌표 건드리지 말 것.**
+- **F3 [회귀금지]** `section[data-bvid]` / `.bv-nav-step` / `.bv-ribbon-row` / `.bv-chip` / `.bv-xsection svg` 셀렉터는 스모크·scroll-spy가 의존 → 클래스명 유지(스타일만 변경).
+
+## 적용 결과 (2026-06-27, 데스크톱 Top 8)
+- **해결:** A1·A2(타이포 스케일+계획고도 값 강조) · A3·A4·A5(카드→여백/1px 디바이더, ④ 차트 단일 카드) · A6(layoutTokens에 8pt `--space-1..6`+`--font-ui-lg/xl` 추가 후 참조) · B1(카테고리 색어휘 `bv-cat-vfr/mvfr/ifr/lifr`, 점+텍스트) · B2(정상 무채색, 경고만 8% 틴트+좌측 강조선) · B4(flag 셀 ▲+색+값) · C1·C2·C3·C5(수평선만·우측정렬·tabular-nums·`table-layout:fixed`로 3표 열정렬, 단위 nowrap은 클립 위험으로 철회) · D1·D2·D3(중립 active=굵기+밑줄 강조선+`aria-current`).
+- **검증:** 스모크 그린(nav active·단면도 4240셀·procedure line·지도·payload 불변) · `frontend build` 성공 · 리본 margin 6.04%/2.71% 불변 · 셀렉터 전부 유지.
+
+## 2차 라운드 — 레퍼런스 종합 후 P0+P1 시각 재디자인 (2026-06-27)
+근거: `refs/2026-06-27-refs-{aviation-efb,ops-design-systems,visual-polish}.md` (ForeFlight/Garmin/AWC + Carbon/USWDS + Stripe/Linear/Vercel). 세 리포트 공통 결론 = "색을 더 쓰지 말고 빼라".
+- **중립 회색 램프 토큰화**(`--n-0..900`) + **항공 카테고리 토큰**(`--fcat-vfr/mvfr/ifr/lifr/caveat`, 탈채도 운영톤) → layoutTokens.css. 하드코딩 `#666/#888` 제거, muted=`#6b7280`(AA↑).
+- **dot-first**: 카테고리 배지를 각 공항 행 **맨 앞**으로(ForeFlight 점-우선 읽기). 점+색+텍스트 병기.
+- **칩 정제**: 채도 솔리드 → 저틴트 배경+동일색 텍스트+1px 표면 stroke+상태 점.
+- **카드 1곳만**: 요약보드만 border-first elevation(`box-shadow:0 0 0 1px`), 섹션은 헤어라인만. 라디우스 일관(카드 6px / 칩 4px / pill nav).
+- **표/타이포**: 헤더 라벨 tracking+중립, 디바이더 램프 바인딩.
+- **검증**: 스모크 그린(단면도 5012셀·procedure line·nav·리본 불변) · build 성공 · 리본 margin 6.04%/2.71% 불변.
+- **미적용(범위 제외)**: VerticalProfileChart(지형 회색조·green 충돌·범례·0°C)는 사용자 선택상 이번 범위 밖.
+
+## 남은 항목 (다음 라운드 / Proposal-First)
+- **E1** 보드 칩 정보량: 공항 칩에 공항별 카테고리 색/점 병기 + 위험 상태칩 시각 분리(현재 전부 동일 연녹). 구조성 있어 제안서 검토.
+- **C(보조)** 6열 표를 공항 3개 → 단일 공유 헤더 테이블로 통합 검토(반복되는 바람/시정… 헤더 축소). 구조 변경 → 제안서.
+- **B3** VerticalProfileChart 색 어휘(습윤=녹 vs VFR=녹 충돌) 통일 검토.
+- **F1** muted `#888` 본문 대비 ~3.5:1 — AA 본문(4.5:1) 경계. 토큰화 시 다크/라이트 동시 검증.
+- **모바일** 바텀시트(peek/half/full)·airport 탭 등 구조 변경은 **Proposal-First** — 캡처+제안서 후 승인.

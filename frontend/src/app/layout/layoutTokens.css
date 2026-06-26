@@ -23,6 +23,13 @@
   --font-ui-xs: clamp(10px, 0.62vw, 11px);
   --font-ui-sm: clamp(11px, 0.68vw, 13px);
   --font-ui-md: clamp(13px, 0.78vw, 15px);
+  /* 8pt spacing scale (shared) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
   --media-header-sm: clamp(130px, 18dvh, 170px);
   --panel-radius: 10px;
   --control-target-min: 24px;
