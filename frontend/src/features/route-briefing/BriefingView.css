@@ -32,13 +32,16 @@
 .bv-muted { color:#888; }
 .bv-enc { padding:1px 7px; border-radius:10px; font-size:11px; font-weight:600; }
 .bv-link-btn { margin-top:6px; padding:4px 10px; border:1px solid var(--border,#e2e4e8); border-radius:6px; background:transparent; cursor:pointer; }
+/* 트랙 좌우 여백을 단면도(VerticalProfileChart)의 plot 영역(좌 58/960, 우 26/960)에 맞춰 정렬 */
 .bv-ribbons { margin:8px 0 2px; display:flex; flex-direction:column; gap:6px; }
-.bv-ribbon-row { display:flex; align-items:center; gap:8px; font-size:12px; }
-.bv-ribbon-label { width:42px; flex:none; color:var(--text,#333); }
-.bv-ribbon { position:relative; flex:1; height:12px; background:rgba(120,120,120,.14); border-radius:6px; overflow:hidden; }
+.bv-ribbon-row { font-size:12px; }
+.bv-ribbon-head { display:flex; justify-content:space-between; margin:0 2.71% 2px 6.04%; }
+.bv-ribbon-label { color:var(--text,#333); }
+.bv-ribbon-cap { color:#888; white-space:nowrap; }
+.bv-ribbon { position:relative; height:12px; margin-left:6.04%; margin-right:2.71%;
+  background:rgba(120,120,120,.14); border-radius:6px; overflow:hidden; }
 .bv-seg { position:absolute; top:0; height:100%; }
 .bv-seg.mod { background:rgba(224,168,0,.75); }
 .bv-seg.sev { background:rgba(192,57,43,.8); }
-.bv-ribbon-cap { width:118px; flex:none; color:#888; white-space:nowrap; text-align:right; }
 .bv-xsection { margin:10px 0 4px; }
 .bv-xsection svg { width:100%; height:auto; }

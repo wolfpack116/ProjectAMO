@@ -128,7 +128,10 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
                 const worst = worstInterval(el.intervals)
                 return (
                   <div key={i} className="bv-ribbon-row">
-                    <span className="bv-ribbon-label">{el.label}</span>
+                    <div className="bv-ribbon-head">
+                      <span className="bv-ribbon-label">{el.label}</span>
+                      {worst && <span className="bv-ribbon-cap">{worst.level} {worst.startNm}–{worst.endNm}NM</span>}
+                    </div>
                     <div className="bv-ribbon">
                       {el.intervals.map((iv, j) => (
                         <span key={j}
@@ -137,7 +140,6 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
                           title={`${iv.level} ${iv.startNm}–${iv.endNm}NM`} />
                       ))}
                     </div>
-                    {worst && <span className="bv-ribbon-cap">{worst.level} {worst.startNm}–{worst.endNm}NM</span>}
                   </div>
                 )
               })}
