@@ -321,6 +321,7 @@ function MapView({
     if (routeBriefing.state.briefing && routeBriefing.state.verticalProfile?.axis?.samples?.length) {
       focusBriefingSection('enroute')
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeBriefing.state.briefing, routeBriefing.state.verticalProfile, isStyleReady])
 
   const airportGeoJSON = useMemo(

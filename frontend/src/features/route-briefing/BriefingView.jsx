@@ -53,6 +53,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   const { meta, summary, sections } = briefing
 
   const jumpTo = (id) => {
+    setActiveId(id) // optimistic: scrollIntoView may land the section above the observer band
     containerRef.current?.querySelector(`section[data-bvid="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
