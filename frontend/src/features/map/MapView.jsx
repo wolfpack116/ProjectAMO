@@ -311,6 +311,15 @@ function MapView({
     }
   }
 
+  // When a briefing is completed (route + profile ready), center the route in the
+  // visible left map area (padding the right side for the briefing panel).
+  useEffect(() => {
+    if (!isStyleReady) return
+    if (routeBriefing.state.briefing && routeBriefing.state.verticalProfile?.axis?.samples?.length) {
+      focusBriefingSection('enroute')
+    }
+  }, [routeBriefing.state.briefing, routeBriefing.state.verticalProfile, isStyleReady])
+
   const airportGeoJSON = useMemo(
     () => createAirportGeoJSON(airports, metarData),
     [airports, metarData],

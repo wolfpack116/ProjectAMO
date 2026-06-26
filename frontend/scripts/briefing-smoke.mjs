@@ -59,6 +59,10 @@ try {
   // inline cross-section is best-effort (needs profile + KIM data) — wait briefly
   await page.locator('.bv-xsection svg').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {})
 
+  // capture the on-completion state (route should be centered in the left map area)
+  await page.waitForTimeout(1500)
+  await page.screenshot({ path: path.join(outDir, `briefing-oncomplete-${Date.now()}.png`), fullPage: false }).catch(() => {})
+
   // B2: form panel hidden + live map visible while briefing is open
   const formHidden = (await page.locator('.route-check-panel').count()) === 0
   const mapVisible = (await page.locator('.mapboxgl-canvas').count()) > 0
