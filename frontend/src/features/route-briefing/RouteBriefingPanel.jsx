@@ -47,6 +47,11 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     selectedIapKey,
     firInOptions,
     firExitOptions,
+    alternateAirport,
+    etd,
+    cruiseSpeedKt,
+    briefingLoading,
+    briefingError,
   } = state
   const { hideTimerRef } = refs
   const { isFirInMode, isFirExitMode, selectedIap, visibleSidOptions } = derived
@@ -71,6 +76,10 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     setEditingVfrAltitudeIndex,
     setVerticalProfileWindowOpen,
     setCruiseAltitudeFt,
+    setAlternateAirport,
+    setEtd,
+    setCruiseSpeedKt,
+    handleGenerateBriefing,
   } = actions
 
   const isIfr = routeForm.flightRule === 'IFR'
@@ -226,6 +235,38 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     </div>
   )
 
+  // Briefing inputs (교체공항 / ETD / 순항속도) + 브리핑 생성 trigger. Shared
+  // between desktop and mobile. 교체공항 options mirror the 출발/도착 airport
+  // source (KNOWN_AIRPORTS) plus a 없음 entry.
+  const briefingConditionsBlock = (
+    <div className="route-check-section route-check-section--briefing">
+      <div className="route-check-section-title">{'브리핑 조건'}</div>
+      <div className="route-check-section-grid">
+        <label>{'교체 공항'}
+          <select value={alternateAirport} onChange={(e) => setAlternateAirport(e.target.value)}>
+            <option value="">{'-- 없음 --'}</option>
+            {KNOWN_AIRPORTS.map((ap) => <option key={ap} value={ap}>{ap}</option>)}
+          </select>
+        </label>
+        <label>{'ETD'}
+          <input type="datetime-local" value={etd} onChange={(e) => setEtd(e.target.value)} />
+        </label>
+        <label>{'순항속도(kt)'}
+          <input type="number" min="1" step="1" value={cruiseSpeedKt} onChange={(e) => setCruiseSpeedKt(e.target.value)} />
+        </label>
+      </div>
+      <button
+        className="route-check-search-button"
+        type="button"
+        onClick={handleGenerateBriefing}
+        disabled={!routeResult || briefingLoading}
+      >
+        {briefingLoading ? '브리핑 생성 중...' : '브리핑 생성'}
+      </button>
+      {briefingError && <div className="route-check-error">{briefingError}</div>}
+    </div>
+  )
+
   // ── Desktop panel (unchanged): native selects in the floating panel ──
   function renderDesktopAirportSelect(label, value, onChange, firSentinel, firLabel) {
     return (
@@ -361,6 +402,8 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           </div>
         </div>
 
+        {briefingConditionsBlock}
+
         <div className={`route-check-actions${!isIfr ? ' is-vfr' : ''}`}>
           <button className="route-check-search-button" type="submit" disabled={routeLoading}>{routeLoading ? '검색 중...' : '검색'}</button>
           {isIfr && (
@@ -469,6 +512,8 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           />
         )}
       </div>
+
+      {briefingConditionsBlock}
 
       {errorBlock}
       {resultsBlock}

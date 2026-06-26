@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { fetchVerticalProfile, fetchCrossSection } from '../../api/briefingApi.js'
+import { fetchVerticalProfile, fetchCrossSection, fetchRouteBriefing } from '../../api/briefingApi.js'
 import { getProcedures, KNOWN_AIRPORTS } from './lib/procedureData.js'
 import { buildBriefingRoute, buildVfrRoute, canBuildBriefingRoutePath, loadIapData, loadNavpoints, loadRouteDirectionMetadata } from './lib/routePlanner.js'
-import { relabeledWaypoints } from './lib/routePreview.js'
+import { relabeledWaypoints, calcVfrDistance } from './lib/routePreview.js'
+import { computeEtaIso } from './lib/etaCalc.js'
 import { buildVerticalProfileRequest } from './lib/verticalProfileRequest.js'
 import {
   FIR_EXIT_AIRPORT,
   FIR_IN_AIRPORT,
   buildBoundaryFixOptions,
   buildIapCandidates,
+  buildIfrDistanceBreakdown,
   buildInitialVfrWaypoints,
   buildRoutePreviewModel,
   buildVisibleSidOptions,
@@ -69,6 +71,12 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
   const isFirInMode = routeForm.flightRule === 'IFR' && routeForm.departureAirport === FIR_IN_AIRPORT
   const isFirExitMode = routeForm.flightRule === 'IFR' && routeForm.arrivalAirport === FIR_EXIT_AIRPORT
   const selectedIap = iapData?.iapRoutes?.[selectedIapKey] ?? null
+  const [alternateAirport, setAlternateAirport] = useState('')
+  const [etd, setEtd] = useState(() => new Date().toISOString().slice(0, 16)) // datetime-local
+  const [cruiseSpeedKt, setCruiseSpeedKt] = useState(120)
+  const [briefing, setBriefing] = useState(null)
+  const [briefingLoading, setBriefingLoading] = useState(false)
+  const [briefingError, setBriefingError] = useState(null)
   const visibleSidOptions = useMemo(() => buildVisibleSidOptions(sidOptions, availableSidIds), [availableSidIds, sidOptions])
   const routePreviewModel = useMemo(() => buildRoutePreviewModel({
     routeForm,
@@ -589,6 +597,33 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     }
   }
 
+  async function handleGenerateBriefing() {
+    const routeGeometry = getCurrentRouteLineString({ routeResult, vfrWaypoints, selectedSid, selectedStar, selectedIap })
+    if (!routeGeometry) { setBriefingError('먼저 경로를 검색하세요.'); return }
+    // IFR routeResult.distanceNm is ENR-only; use total incl SID/STAR/IAP. VFR uses waypoint-summed distance.
+    const distanceNm = routeForm.flightRule === 'VFR'
+      ? calcVfrDistance(vfrWaypoints)
+      : (buildIfrDistanceBreakdown({ routeResult, selectedSid, selectedStar, selectedIap })?.totalDistanceNm
+          || Number(routeResult?.distanceNm) || 0)
+    const etdIso = new Date(etd).toISOString().replace('.000Z', 'Z')
+    const etaIso = computeEtaIso(etdIso, distanceNm, cruiseSpeedKt) || etdIso
+    setBriefingLoading(true); setBriefingError(null)
+    try {
+      const result = await fetchRouteBriefing({
+        flightRule: routeForm.flightRule,
+        departureAirport: routeForm.departureAirport,
+        arrivalAirport: routeForm.arrivalAirport,
+        alternateAirport: alternateAirport || null,
+        routeGeometry,
+        etd: etdIso,
+        eta: etaIso,
+        plannedCruiseAltitudeFt: Number(cruiseAltitudeFt) || DEFAULT_CRUISE_ALTITUDE_FT,
+      })
+      setBriefing(result)
+    } catch (err) { setBriefingError(err.message) }
+    finally { setBriefingLoading(false) }
+  }
+
   return {
     state: {
       routeForm,
@@ -618,6 +653,12 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       navpointsById,
       autoRecommendRequested,
       fitBoundsRequest,
+      alternateAirport,
+      etd,
+      cruiseSpeedKt,
+      briefing,
+      briefingLoading,
+      briefingError,
     },
     refs: {
       vfrWaypointsRef,
@@ -651,6 +692,11 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       setVerticalProfileWindowOpen,
       setCruiseAltitudeFt,
       setVfrWaypoints,
+      setAlternateAirport,
+      setEtd,
+      setCruiseSpeedKt,
+      handleGenerateBriefing,
+      setBriefing,
     },
     routePreviewModel,
   }
