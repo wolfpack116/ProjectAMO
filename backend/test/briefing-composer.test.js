@@ -17,7 +17,7 @@ const goodObs = (cat) => ({
 const data = {
   metar: { airports: { RKSI: { header:{icao:'RKSI'}, ...goodObs('VFR') }, RKPC: { header:{icao:'RKPC'}, ...goodObs('IFR') }, RKPK: { header:{icao:'RKPK'}, ...goodObs('VFR') } } },
   taf: { airports: { RKPC: { header:{icao:'RKPC'}, timeline:[{ time:'2026-06-26T10:00:00Z', visibility:{value:3000}, clouds:[{amount:'BKN',base:600,raw:'BKN006'}], display:{wind:'14020KT',clouds:'BKN006'} }] } } },
-  sigmet: { items: [{ id:'s1', phenomenon_code:'SEV_ICE', phenomenon_label:'Severe Icing', valid_from:'2026-06-26T08:00:00Z', valid_to:'2026-06-26T14:00:00Z', geometry:{type:'Polygon',coordinates:[[[125,32],[128,32],[128,35],[125,35],[125,32]]]} }] },
+  sigmet: { items: [{ id:'s1', phenomenon_code:'SEV_ICE', phenomenon_label:'Severe Icing', valid_from:'2026-06-26T08:00:00Z', valid_to:'2026-06-26T14:00:00Z', geometry:{type:'Polygon',coordinates:[[[125,32],[128,32],[128,35],[125,35],[125,32]]]}, altitude:{lower_fl:60,upper_fl:120,lower_uom:'FL',upper_uom:'FL'} }] },
   airmet: { items: [] },
 }
 
@@ -42,4 +42,14 @@ test('summary board has hazard + 3 airports', () => {
 test('alternate omitted when null', () => {
   const b = composeBriefing({ ...request, alternateAirport: null }, data)
   assert.equal(b.sections.current.airports.length, 2)
+})
+
+test('enroute section reflects 3D encounters', () => {
+  const b = composeBriefing(request, data)
+  assert.ok(b.sections.enroute)
+  assert.equal(b.sections.enroute.plannedCruiseAltitudeFt, 9000)
+  assert.equal(b.sections.enroute.crossSectionAvailable, true)
+  const onCount = b.sections.adverse.hazards.filter((h) => h.encounter === 'on').length
+  assert.equal(b.sections.enroute.encounters.length, onCount)
+  assert.equal(onCount, 1) // icing FL060-120 ∩ cruise 9000 → 조우
 })

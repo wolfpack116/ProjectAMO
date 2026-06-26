@@ -2,6 +2,7 @@ import { summarizeAirport } from './airport-summary.js'
 import { levelForCategory } from './flight-category.js'
 import { selectTafAtEta, alternateRequired } from './taf-window.js'
 import { buildHazardSection } from './hazard-section.js'
+import { buildRouteAxis } from './route-axis.js'
 
 function airportRoles(request) {
   const roles = [
@@ -18,12 +19,16 @@ export function composeBriefing(request, data) {
   const metarByIcao = data?.metar?.airports ?? {}
   const tafByIcao = data?.taf?.airports ?? {}
 
+  const axis = buildRouteAxis(request.routeGeometry, 2000)
+  const cruiseAltitudeFt = Number(request.plannedCruiseAltitudeFt) || 0
+
   const adverse = buildHazardSection({
     sigmet: data?.sigmet?.items ?? [],
     airmet: data?.airmet?.items ?? [],
-    routeGeometry: request.routeGeometry,
+    axis,
     etd: request.etd,
     eta: request.eta,
+    cruiseAltitudeFt,
   })
 
   const airports = airportRoles(request).map(({ role, icao }) =>
@@ -39,6 +44,14 @@ export function composeBriefing(request, data) {
     taf: tafAtEta,
     alternateRequired: alt.required,
     alternateReason: alt.reason,
+  }
+
+  const encounters = adverse.hazards.filter((h) => h.encounter === 'on')
+  const enroute = {
+    level: encounters.length > 0 ? 'red' : adverse.hazards.length > 0 ? 'amber' : 'green',
+    plannedCruiseAltitudeFt: cruiseAltitudeFt,
+    encounters,
+    crossSectionAvailable: true,
   }
 
   const summary = [
@@ -57,7 +70,7 @@ export function composeBriefing(request, data) {
       generatedAt: new Date().toISOString(),
     },
     summary,
-    sections: { adverse, current: { airports }, destination },
+    sections: { adverse, enroute, current: { airports }, destination },
     warnings: [],
   }
 }
