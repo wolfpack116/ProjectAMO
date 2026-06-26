@@ -1243,6 +1243,7 @@ function MapView({
               <BriefingView
                 briefing={routeBriefing.state.briefing}
                 onClose={() => routeBriefing.actions.setBriefing(null)}
+                onOpenProfile={routeBriefing.actions.handleVerticalProfileRequest}
               />
             </Suspense>
           )}

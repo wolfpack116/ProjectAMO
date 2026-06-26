@@ -6,7 +6,7 @@ function Cell({ field }) {
   return <td className={field?.flag ? 'bv-flag' : ''}>{field?.text ?? '-'}</td>
 }
 
-export default function BriefingView({ briefing, onClose }) {
+export default function BriefingView({ briefing, onClose, onOpenProfile }) {
   if (!briefing) return null
   const { meta, summary, sections } = briefing
   return (
@@ -25,7 +25,14 @@ export default function BriefingView({ briefing, onClose }) {
         {sections.adverse.hazards.length === 0
           ? <p className="bv-muted">경로·시간에 걸린 위험기상 없음</p>
           : <ul>{sections.adverse.hazards.map((h, i) => (
-              <li key={i}><b>{h.source}</b> {h.label} <span className="bv-muted">({h.validFrom}~{h.validTo})</span></li>
+              <li key={i}>
+                <span className={`bv-enc ${h.encounter === 'on' ? 'bv-red' : 'bv-amber'}`}>
+                  {h.encounter === 'on' ? '🔴 조우' : '🟡 주변'}{h.verticalKnown === false ? '?' : ''}
+                </span>{' '}
+                <b>{h.source}</b> {h.label}
+                {h.bandFt ? <span className="bv-muted"> {h.bandFt.lowFt}–{h.bandFt.highFt}ft</span> : null}
+                <span className="bv-muted"> ({h.validFrom}~{h.validTo})</span>
+              </li>
             ))}</ul>}
       </section>
       <section className="bv-section">
@@ -46,6 +53,20 @@ export default function BriefingView({ briefing, onClose }) {
           </div>
         ))}
       </section>
+      {sections.enroute && (
+        <section className={`bv-section ${LEVEL_CLASS[sections.enroute.level]}`}>
+          <h3>④ 노선·공역</h3>
+          <p className="bv-muted">계획고도 {sections.enroute.plannedCruiseAltitudeFt}ft</p>
+          {sections.enroute.encounters.length === 0
+            ? <p className="bv-muted">계획고도에서 조우하는 위험 없음</p>
+            : <ul>{sections.enroute.encounters.map((h, i) => (
+                <li key={i}><b>{h.label}</b>{h.bandFt ? ` ${h.bandFt.lowFt}–${h.bandFt.highFt}ft` : ''} · {h.routeIntervalNm.startNm}–{h.routeIntervalNm.endNm}NM</li>
+              ))}</ul>}
+          {sections.enroute.crossSectionAvailable && onOpenProfile && (
+            <button type="button" className="bv-link-btn" onClick={onOpenProfile}>{'단면도 열기'}</button>
+          )}
+        </section>
+      )}
       <section className={`bv-section ${LEVEL_CLASS[sections.destination.level]}`}>
         <h3>⑤ 목적지 예보</h3>
         {sections.destination.taf
