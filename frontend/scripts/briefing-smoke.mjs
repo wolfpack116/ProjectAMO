@@ -12,7 +12,7 @@ const outDir = path.resolve(__dirname, '../../artifacts/briefing-phase2b')
 mkdirSync(outDir, { recursive: true })
 
 const browser = await chromium.launch()
-const page = await browser.newPage({ viewport: { width: 1366, height: 900 } })
+const page = await browser.newPage({ viewport: { width: 1680, height: 1000 } })
 const fail = (msg) => { console.error('FAIL:', msg); throw new Error(msg) }
 
 try {
