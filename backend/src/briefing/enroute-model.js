@@ -1,6 +1,5 @@
 import { altitudeAtDistanceFt } from './planned-altitude.js'
 
-const KT_PER_MS = 1.94384
 const LEVEL_RANK = { '약': 1, '중': 2, '심': 3 }
 
 function sortedLevels(levels) {
@@ -69,12 +68,10 @@ function thresholdIntervals(series, classify) {
   return intervals
 }
 
-// 착빙 등급(정수)·KTG(EDR형). 임계값은 실측 분포 기반의 보수적 근사 — 추후 튜닝 대상.
-function classifyIcing(g) { return g >= 3 ? '심' : g >= 2 ? '중' : g >= 1 ? '약' : null }
-function classifyKtg(v) { return v >= 0.45 ? '심' : v >= 0.30 ? '중' : v >= 0.15 ? '약' : null }
-
-function peak(series) { let best = null; for (const p of series) if (p.value != null && (!best || p.value > best.value)) best = p; return best }
-function trough(series) { let best = null; for (const p of series) if (p.value != null && (!best || p.value < best.value)) best = p; return best }
+// 착빙 등급(정수)·KTG(EDR형). 중(moderate) 이상만 노출 — 약(light)은 단면도 색으로 충분.
+// 임계값은 실측 분포 기반의 보수적 근사 — 추후 튜닝 대상.
+function classifyIcing(g) { return g >= 3 ? '심' : g >= 2 ? '중' : null }
+function classifyKtg(v) { return v >= 0.45 ? '심' : v >= 0.30 ? '중' : null }
 
 export function summarizeEnrouteModel({ crossSection, turbulence, totalDistanceNm, cruiseAltitudeFt }) {
   const elements = []
@@ -84,17 +81,7 @@ export function summarizeEnrouteModel({ crossSection, turbulence, totalDistanceN
       seriesAtAltitude(kim, totalDistanceNm, cruiseAltitudeFt, (e) => e?.icing, { mode: 'worst' }),
       classifyIcing,
     )
-    if (icing.length) elements.push({ kind: 'icing', label: '착빙 가능성', intervals: icing })
-
-    const wind = peak(seriesAtAltitude(
-      kim, totalDistanceNm, cruiseAltitudeFt,
-      (e) => (e?.u != null && e?.v != null) ? Math.hypot(e.u, e.v) * KT_PER_MS : null,
-      { mode: 'interp' },
-    ))
-    if (wind) elements.push({ kind: 'wind', label: '순항 바람(최대)', valueKt: Math.round(wind.value), atNm: Math.round(wind.distanceNm) })
-
-    const temp = trough(seriesAtAltitude(kim, totalDistanceNm, cruiseAltitudeFt, (e) => e?.t, { mode: 'interp' }))
-    if (temp) elements.push({ kind: 'temp', label: '순항 기온(최저)', valueC: Math.round(temp.value) })
+    if (icing.length) elements.push({ kind: 'icing', label: '착빙', intervals: icing })
   }
   const ktg = turbulence?.levels ?? []
   if (ktg.length) {
@@ -104,7 +91,7 @@ export function summarizeEnrouteModel({ crossSection, turbulence, totalDistanceN
     )
     if (turb.length) elements.push({ kind: 'turbulence', label: '난류', intervals: turb })
   }
-  return { elements }
+  return { totalDistanceNm: Math.round(totalDistanceNm) || null, elements }
 }
 
 export default { summarizeEnrouteModel }

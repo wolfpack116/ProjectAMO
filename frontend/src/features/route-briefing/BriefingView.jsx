@@ -1,6 +1,11 @@
 import './BriefingView.css'
 
 const LEVEL_CLASS = { green: 'bv-green', amber: 'bv-amber', red: 'bv-red', gray: 'bv-gray' }
+const SEG_RANK = { '약': 1, '중': 2, '심': 3 }
+
+function worstInterval(intervals) {
+  return (intervals ?? []).reduce((acc, iv) => (!acc || SEG_RANK[iv.level] > SEG_RANK[acc.level] ? iv : acc), null)
+}
 
 function Cell({ field }) {
   return <td className={field?.flag ? 'bv-flag' : ''}>{field?.text ?? '-'}</td>
@@ -63,20 +68,26 @@ export default function BriefingView({ briefing, onClose, onOpenProfile }) {
                 <li key={i}><b>{h.label}</b>{h.bandFt ? ` ${h.bandFt.lowFt}–${h.bandFt.highFt}ft` : ''} · {h.routeIntervalNm.startNm}–{h.routeIntervalNm.endNm}NM</li>
               ))}</ul>}
           {sections.enroute.model?.elements?.length > 0 && (
-            <ul className="bv-model">
-              {sections.enroute.model.elements.map((el, i) => (
-                <li key={i}>
-                  <b>{el.label}</b>{' '}
-                  {el.kind === 'wind' ? `${el.valueKt}kt (${el.atNm}NM)`
-                    : el.kind === 'temp' ? `${el.valueC}°C`
-                    : el.intervals.map((iv, j) => (
-                        <span key={j} className={`bv-enc ${iv.level === '심' ? 'bv-red' : iv.level === '중' ? 'bv-amber' : ''}`}>
-                          {iv.level} {iv.startNm}–{iv.endNm}NM{' '}
-                        </span>
+            <div className="bv-ribbons">
+              {sections.enroute.model.elements.map((el, i) => {
+                const total = sections.enroute.model.totalDistanceNm || 1
+                const worst = worstInterval(el.intervals)
+                return (
+                  <div key={i} className="bv-ribbon-row">
+                    <span className="bv-ribbon-label">{el.label}</span>
+                    <div className="bv-ribbon">
+                      {el.intervals.map((iv, j) => (
+                        <span key={j}
+                          className={`bv-seg ${iv.level === '심' ? 'sev' : 'mod'}`}
+                          style={{ left: `${Math.max(0, (iv.startNm / total) * 100)}%`, width: `${Math.max(1.5, ((iv.endNm - iv.startNm) / total) * 100)}%` }}
+                          title={`${iv.level} ${iv.startNm}–${iv.endNm}NM`} />
                       ))}
-                </li>
-              ))}
-            </ul>
+                    </div>
+                    {worst && <span className="bv-ribbon-cap">{worst.level} {worst.startNm}–{worst.endNm}NM</span>}
+                  </div>
+                )
+              })}
+            </div>
           )}
           {sections.enroute.crossSectionAvailable && onOpenProfile && (
             <button type="button" className="bv-link-btn" onClick={onOpenProfile}>{'단면도 열기'}</button>

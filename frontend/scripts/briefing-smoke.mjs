@@ -59,7 +59,12 @@ try {
   const summary = await page.evaluate(() => {
     const text = (sel) => document.querySelector(sel)?.innerText ?? null
     const sections = [...document.querySelectorAll('.briefing-view h3')].map((e) => e.textContent.trim())
-    const model = [...document.querySelectorAll('.briefing-view .bv-model li')].map((li) => li.innerText.replace(/\s+/g, ' ').trim())
+    const model = [...document.querySelectorAll('.briefing-view .bv-ribbon-row')].map((row) => {
+      const label = row.querySelector('.bv-ribbon-label')?.textContent?.trim()
+      const cap = row.querySelector('.bv-ribbon-cap')?.textContent?.trim()
+      const segs = row.querySelectorAll('.bv-seg').length
+      return `${label}: ${segs} seg · ${cap ?? ''}`.trim()
+    })
     const board = [...document.querySelectorAll('.briefing-view .bv-chip')].map((c) => c.textContent.trim())
     return { sections, model, board, header: text('.briefing-view .bv-header') }
   })
