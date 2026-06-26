@@ -147,10 +147,12 @@ ProjectAMO/
 - `backend/src/briefing/vertical-profile.js` -> vertical profile response composition.
 - `backend/src/briefing/briefing-composer.js` -> assembles the AIM-ordered route-briefing payload (summary board + adverse/current/destination sections) from injected METAR/TAF/SIGMET/AIRMET cache.
 - `backend/src/briefing/flight-category.js` -> visibility/ceiling -> VFR/MVFR/IFR/LIFR classifier and category-to-level color mapping.
-- `backend/src/briefing/geo-time-match.js` -> point-in-polygon, route∩polygon (horizontal), and time-window overlap helpers for hazard matching (Phase 1: horizontal+time only).
+- `backend/src/briefing/geo-time-match.js` -> point-in-polygon, route∩polygon (horizontal), route∩polygon distance interval (`routeIntervalInGeometry`), and time-window overlap helpers for hazard matching.
+- `backend/src/briefing/planned-altitude.js` -> planned climb/cruise/descent altitude-by-distance model and advisory FL band -> ft conversion.
+- `backend/src/briefing/hazard-matcher.js` -> classifies a hazard as encounter `on`/`nearby` from planned altitude vs FL band (3D vertical match).
 - `backend/src/briefing/airport-summary.js` -> single-airport METAR -> flight category + threshold-flagged display fields.
 - `backend/src/briefing/taf-window.js` -> destination TAF selection at ETA and 1-2-3 alternate-required evaluation.
-- `backend/src/briefing/hazard-section.js` -> SIGMET/AIRMET adverse-hazard section matched to route + flight time window.
+- `backend/src/briefing/hazard-section.js` -> SIGMET/AIRMET adverse-hazard section with 3D matching (route∩time∩altitude); tags each hazard encounter `on`/`nearby` and applies a conservative level (SIGMET red unless confirmed off-altitude; AIRMET amber). Also feeds the briefing ④ enroute section.
 - `backend/server.js` -> exposes `POST /api/route-briefing` (composes briefing from `store.getCached` METAR/TAF/SIGMET/AIRMET).
 - `backend/src/terrain/terrain-cache.js` -> terrain tile metadata lookup and lazy tile cache.
 - `backend/src/terrain/terrain-sampler.js` -> terrain sampling along route-axis samples.
