@@ -1,8 +1,27 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { pointInPolygon, routeIntersectsGeometry, timeWindowsOverlap } from '../src/briefing/geo-time-match.js'
+import { pointInPolygon, routeIntersectsGeometry, timeWindowsOverlap, routeIntervalInGeometry } from '../src/briefing/geo-time-match.js'
 
 const square = { type: 'Polygon', coordinates: [[[0,0],[10,0],[10,10],[0,10],[0,0]]] }
+
+const intervalAxis = { samples: [
+  { distanceNm: 0, lon: -5, lat: -5 },
+  { distanceNm: 10, lon: 2, lat: 2 },
+  { distanceNm: 20, lon: 5, lat: 5 },
+  { distanceNm: 30, lon: 8, lat: 8 },
+  { distanceNm: 40, lon: 20, lat: 20 },
+] }
+
+test('routeIntervalInGeometry: returns entered interval by distance', () => {
+  const r = routeIntervalInGeometry(intervalAxis, square)
+  assert.equal(r.entered, true)
+  assert.equal(r.startNm, 10)
+  assert.equal(r.endNm, 30)
+})
+test('routeIntervalInGeometry: no entry', () => {
+  const out = { samples: [{ distanceNm: 0, lon: 20, lat: 20 }, { distanceNm: 5, lon: 30, lat: 30 }] }
+  assert.equal(routeIntervalInGeometry(out, square).entered, false)
+})
 
 test('pointInPolygon: inside', () => {
   assert.equal(pointInPolygon([5,5], square.coordinates[0]), true)

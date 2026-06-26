@@ -40,4 +40,23 @@ export function timeWindowsOverlap(aStart, aEnd, bStart, bEnd) {
   return a0 <= b1 && b0 <= a1
 }
 
-export default { pointInPolygon, routeIntersectsGeometry, timeWindowsOverlap }
+// route axis(샘플 배열)가 폴리곤 안에 드는 distanceNm 구간을 반환(Phase 2 수직 매칭용).
+export function routeIntervalInGeometry(axis, geometry) {
+  const samples = axis?.samples ?? []
+  const polygons = polygonsOf(geometry)
+  let startNm = null, endNm = null
+  for (const s of samples) {
+    let inside = false
+    for (const polygon of polygons) {
+      const outer = polygon[0]
+      if (outer && pointInPolygon([s.lon, s.lat], outer)) { inside = true; break }
+    }
+    if (inside) {
+      if (startNm == null) startNm = s.distanceNm
+      endNm = s.distanceNm
+    }
+  }
+  return { entered: startNm != null, startNm, endNm }
+}
+
+export default { pointInPolygon, routeIntersectsGeometry, timeWindowsOverlap, routeIntervalInGeometry }
