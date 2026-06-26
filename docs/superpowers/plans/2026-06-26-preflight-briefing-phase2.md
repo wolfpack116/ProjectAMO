@@ -325,6 +325,24 @@ test('on-route but above planned altitude -> nearby, amber', () => {
   assert.equal(sec.level, 'amber') // SIGMET이지만 조우 없음 → 완화
 })
 
+test('band-unknown SIGMET stays red (no under-alarm)', () => {
+  const tsNoBand = { id:'s3', phenomenon_code:'EMBD_TS', phenomenon_label:'Embedded TS',
+    valid_from:'2026-06-26T08:00:00Z', valid_to:'2026-06-26T14:00:00Z', geometry:onRoutePoly, altitude:null }
+  const sec = buildHazardSection({ sigmet:[tsNoBand], airmet:[], axis, ...ctxBase })
+  assert.equal(sec.hazards[0].verticalKnown, false)
+  assert.equal(sec.hazards[0].encounter, 'nearby')
+  assert.equal(sec.level, 'red')
+})
+
+test('AIRMET at planned altitude stays amber', () => {
+  const airmetOnAlt = { id:'a1', phenomenon_code:'MOD_TURB', phenomenon_label:'Moderate Turbulence',
+    valid_from:'2026-06-26T08:00:00Z', valid_to:'2026-06-26T14:00:00Z', geometry:onRoutePoly,
+    altitude:{ lower_fl:60, upper_fl:120, lower_uom:'FL', upper_uom:'FL' } }
+  const sec = buildHazardSection({ sigmet:[], airmet:[airmetOnAlt], axis, ...ctxBase })
+  assert.equal(sec.hazards[0].encounter, 'on')
+  assert.equal(sec.level, 'amber')
+})
+
 test('off-route dropped', () => {
   const offPoly = { type:'Polygon', coordinates: [[[100,10],[101,10],[101,11],[100,11],[100,10]]] }
   const off = { ...icingOnAlt, geometry: offPoly }
@@ -371,14 +389,24 @@ function matchItems(items, source, ctx) {
   return out
 }
 
+// 보수적 위험별 레벨: SIGMET은 red, 단 "수직 확인되고 내 고도 밖(nearby)"이면 amber로만 완화.
+// 밴드 미상 SIGMET(verticalKnown=false)은 under-alarm 금지로 red 유지. AIRMET은 항상 amber.
+function hazardLevel(h) {
+  if (h.source === 'SIGMET') return (h.verticalKnown && h.encounter === 'nearby') ? 'amber' : 'red'
+  return 'amber'
+}
+const LEVEL_RANK = { green: 0, amber: 1, red: 2 }
+
 export function buildHazardSection({ sigmet, airmet, axis, etd, eta, cruiseAltitudeFt }) {
   const ctx = { axis, etd, eta, cruiseAltitudeFt }
   const hazards = [
     ...matchItems(sigmet, 'SIGMET', ctx),
     ...matchItems(airmet, 'AIRMET', ctx),
   ]
-  const hasEncounter = hazards.some((h) => h.encounter === 'on')
-  const level = hazards.length === 0 ? 'green' : hasEncounter ? 'red' : 'amber'
+  const level = hazards.reduce(
+    (acc, h) => (LEVEL_RANK[hazardLevel(h)] > LEVEL_RANK[acc] ? hazardLevel(h) : acc),
+    'green',
+  )
   return { level, hazards }
 }
 
