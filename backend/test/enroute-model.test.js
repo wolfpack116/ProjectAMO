@@ -17,7 +17,7 @@ const crossSection = { levels: [
 ] }
 const turbulence = { levels: [
   { altFt: 3000, values: [ { distanceNm: 0, ktg: 0.1 }, { distanceNm: 50, ktg: 0.4 }, { distanceNm: 100, ktg: 0.1 } ] },
-  { altFt: 9000, values: [ { distanceNm: 0, ktg: 0.1 }, { distanceNm: 50, ktg: 0.5 }, { distanceNm: 100, ktg: 0.1 } ] },
+  { altFt: 9000, values: [ { distanceNm: 0, ktg: 0.1 }, { distanceNm: 50, ktg: 0.8 }, { distanceNm: 100, ktg: 0.1 } ] },
 ] }
 const ctx = { crossSection, turbulence, totalDistanceNm: 100, cruiseAltitudeFt: 9000 }
 

@@ -1,4 +1,5 @@
 import { altitudeAtDistanceFt } from './planned-altitude.js'
+import { ktgIntensity } from '../processors/ktg-model.js'
 
 const LEVEL_RANK = { '약': 1, '중': 2, '심': 3 }
 
@@ -71,7 +72,8 @@ function thresholdIntervals(series, classify) {
 // 착빙 등급(정수)·KTG(EDR형). 중(moderate) 이상만 노출 — 약(light)은 단면도 색으로 충분.
 // 임계값은 실측 분포 기반의 보수적 근사 — 추후 튜닝 대상.
 function classifyIcing(g) { return g >= 3 ? '심' : g >= 2 ? '중' : null }
-function classifyKtg(v) { return v >= 0.45 ? '심' : v >= 0.30 ? '중' : null }
+// KTG 강도는 저장소 단일 진실원(ktg-model.js: 약<0.475, 중<0.75, 심≥0.75)을 따른다. 약(LGT)은 제외.
+function classifyKtg(v) { const i = ktgIntensity(v); return i >= 3 ? '심' : i >= 2 ? '중' : null }
 
 export function summarizeEnrouteModel({ crossSection, turbulence, totalDistanceNm, cruiseAltitudeFt }) {
   const elements = []
