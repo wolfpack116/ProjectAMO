@@ -59,10 +59,17 @@ try {
   // inline cross-section is best-effort (needs profile + KIM data) — wait briefly
   await page.locator('.bv-xsection svg').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {})
 
+  // B2: form panel hidden + live map visible while briefing is open
+  const formHidden = (await page.locator('.route-check-panel').count()) === 0
+  const mapVisible = (await page.locator('.mapboxgl-canvas').count()) > 0
+
   // scroll-sync: click the ④ step in the sticky nav and confirm it becomes active
   await page.getByRole('button', { name: '④ 노선' }).click().catch(() => {})
   await page.waitForTimeout(900)
   const enrouteActive = await page.locator('.bv-nav-step.is-active', { hasText: '④' }).count().catch(() => 0)
+  // scroll to ⑤ destination to drive the map (flyTo arrival)
+  await page.getByRole('button', { name: '⑤ 목적지' }).click().catch(() => {})
+  await page.waitForTimeout(1200)
 
   const summary = await page.evaluate(() => {
     const text = (sel) => document.querySelector(sel)?.innerText ?? null
@@ -89,7 +96,7 @@ try {
   if (!summary.sections.some((s) => s.includes('노선·공역'))) fail('④ 노선·공역 section missing')
   if (!summary.sections.some((s) => s.includes('위험 요약'))) fail('① 위험 요약 section missing')
 
-  console.log(JSON.stringify({ ok: true, screenshot: shot, navActiveEnrouteOnClick: enrouteActive > 0, ...summary }, null, 2))
+  console.log(JSON.stringify({ ok: true, screenshot: shot, navActiveEnrouteOnClick: enrouteActive > 0, formHidden, mapVisible, ...summary }, null, 2))
 } catch (err) {
   const shot = path.join(outDir, `briefing-FAIL-${Date.now()}.png`)
   await page.screenshot({ path: shot, fullPage: true }).catch(() => {})

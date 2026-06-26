@@ -13,9 +13,16 @@ function Cell({ field }) {
   return <td className={field?.flag ? 'bv-flag' : ''}>{field?.text ?? '-'}</td>
 }
 
-export default function BriefingView({ briefing, verticalProfile = null, crossSection = null, onClose, onOpenProfile }) {
+export default function BriefingView({ briefing, verticalProfile = null, crossSection = null, onClose, onOpenProfile, onFocus }) {
   const containerRef = useRef(null)
   const [activeId, setActiveId] = useState(null)
+  const onFocusRef = useRef(onFocus)
+  onFocusRef.current = onFocus
+
+  // scroll-sync: drive the live map to the active section's spatial target
+  useEffect(() => {
+    if (activeId) onFocusRef.current?.(activeId)
+  }, [activeId])
 
   const hasEnroute = Boolean(briefing?.sections?.enroute)
   const steps = briefing

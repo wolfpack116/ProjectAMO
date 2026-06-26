@@ -286,6 +286,31 @@ function MapView({
     map.fitBounds(bounds, { padding: 80, maxZoom: fitBoundsRequest.maxZoom ?? 8, duration: 500 })
   }, [fitBoundsRequest, isStyleReady, styleRevision])
 
+  // Scroll-sync: pan/zoom the live map to the active briefing section's spatial target.
+  function focusBriefingSection(id) {
+    const map = mapRef.current
+    if (!map) return
+    const meta = routeBriefing.state.briefing?.meta
+    const byIcao = (icao) => airports.find((a) => a.icao === icao)
+    const padRight = Math.min(680, Math.round((map.getContainer()?.clientWidth || 1200) * 0.46))
+    const pad = { top: 60, bottom: 60, left: 60, right: padRight }
+    const fitPts = (pts) => {
+      if (pts.length < 1) return
+      const bounds = pts.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(pts[0], pts[0]))
+      map.fitBounds(bounds, { padding: pad, maxZoom: 8, duration: 600 })
+    }
+    if (id === 'destination') {
+      const ap = byIcao(meta?.arrivalAirport)
+      if (ap) map.flyTo({ center: [ap.lon, ap.lat], zoom: 8.5, padding: pad, duration: 600 })
+    } else if (id === 'current') {
+      fitPts([meta?.departureAirport, meta?.arrivalAirport, meta?.alternateAirport]
+        .map(byIcao).filter(Boolean).map((a) => [a.lon, a.lat]))
+    } else {
+      const samples = routeBriefing.state.verticalProfile?.axis?.samples ?? []
+      fitPts(samples.map((s) => [s.lon, s.lat]).filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1])))
+    }
+  }
+
   const airportGeoJSON = useMemo(
     () => createAirportGeoJSON(airports, metarData),
     [airports, metarData],
@@ -1219,24 +1244,28 @@ function MapView({
 
       {activePanel === 'route-check' && (
         <>
-          <Suspense fallback={null}>
-            <RouteBriefingPanel
-              state={routeBriefing.state}
-              refs={routeBriefing.refs}
-              derived={routeBriefing.derived}
-              actions={routeBriefing.actions}
-              airports={airports}
-              onClose={onClosePanel}
-            />
-          </Suspense>
-          {!isMobile && (
-            <button
-              type="button"
-              className="route-briefing-map-mode-toggle"
-              onClick={() => setRouteBriefingMapMode((prev) => !prev)}
-            >
-              {routeBriefingMapMode ? '입력 보기' : '지도 보기'}
-            </button>
+          {!routeBriefing.state.briefing && (
+            <>
+              <Suspense fallback={null}>
+                <RouteBriefingPanel
+                  state={routeBriefing.state}
+                  refs={routeBriefing.refs}
+                  derived={routeBriefing.derived}
+                  actions={routeBriefing.actions}
+                  airports={airports}
+                  onClose={onClosePanel}
+                />
+              </Suspense>
+              {!isMobile && (
+                <button
+                  type="button"
+                  className="route-briefing-map-mode-toggle"
+                  onClick={() => setRouteBriefingMapMode((prev) => !prev)}
+                >
+                  {routeBriefingMapMode ? '입력 보기' : '지도 보기'}
+                </button>
+              )}
+            </>
           )}
           {routeBriefing.state.briefing && (
             <Suspense fallback={null}>
@@ -1246,6 +1275,7 @@ function MapView({
                 crossSection={routeBriefing.state.crossSection}
                 onClose={() => routeBriefing.actions.setBriefing(null)}
                 onOpenProfile={routeBriefing.actions.handleVerticalProfileRequest}
+                onFocus={focusBriefingSection}
               />
             </Suspense>
           )}
