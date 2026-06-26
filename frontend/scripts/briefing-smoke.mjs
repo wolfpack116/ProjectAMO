@@ -59,6 +59,11 @@ try {
   // inline cross-section is best-effort (needs profile + KIM data) — wait briefly
   await page.locator('.bv-xsection svg').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {})
 
+  // scroll-sync: click the ④ step in the sticky nav and confirm it becomes active
+  await page.getByRole('button', { name: '④ 노선' }).click().catch(() => {})
+  await page.waitForTimeout(900)
+  const enrouteActive = await page.locator('.bv-nav-step.is-active', { hasText: '④' }).count().catch(() => 0)
+
   const summary = await page.evaluate(() => {
     const text = (sel) => document.querySelector(sel)?.innerText ?? null
     const sections = [...document.querySelectorAll('.briefing-view h3')].map((e) => e.textContent.trim())
@@ -73,7 +78,8 @@ try {
     const inlineCrossSection = xsec
       ? { present: true, weatherCells: xsec.querySelectorAll('rect[fill^="rgba"]').length, hasProcedureLine: !!xsec.querySelector('.vertical-profile-procedure-line') }
       : { present: false }
-    return { sections, model, board, inlineCrossSection, header: text('.briefing-view .bv-header') }
+    const navSteps = [...document.querySelectorAll('.briefing-view .bv-nav-step')].map((b) => b.textContent.trim())
+    return { sections, model, board, inlineCrossSection, navSteps, header: text('.briefing-view .bv-header') }
   })
 
   const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
@@ -83,7 +89,7 @@ try {
   if (!summary.sections.some((s) => s.includes('노선·공역'))) fail('④ 노선·공역 section missing')
   if (!summary.sections.some((s) => s.includes('위험 요약'))) fail('① 위험 요약 section missing')
 
-  console.log(JSON.stringify({ ok: true, screenshot: shot, ...summary }, null, 2))
+  console.log(JSON.stringify({ ok: true, screenshot: shot, navActiveEnrouteOnClick: enrouteActive > 0, ...summary }, null, 2))
 } catch (err) {
   const shot = path.join(outDir, `briefing-FAIL-${Date.now()}.png`)
   await page.screenshot({ path: shot, fullPage: true }).catch(() => {})

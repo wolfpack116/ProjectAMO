@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import VerticalProfileChart from './VerticalProfileChart.jsx'
 import './BriefingView.css'
 
@@ -13,20 +14,63 @@ function Cell({ field }) {
 }
 
 export default function BriefingView({ briefing, verticalProfile = null, crossSection = null, onClose, onOpenProfile }) {
+  const containerRef = useRef(null)
+  const [activeId, setActiveId] = useState(null)
+
+  const hasEnroute = Boolean(briefing?.sections?.enroute)
+  const steps = briefing
+    ? [
+        { id: 'adverse', label: '① 위험' },
+        { id: 'current', label: '③ 현재' },
+        ...(hasEnroute ? [{ id: 'enroute', label: '④ 노선' }] : []),
+        { id: 'destination', label: '⑤ 목적지' },
+      ]
+    : []
+
+  useEffect(() => {
+    const root = containerRef.current
+    if (!root) return undefined
+    const els = [...root.querySelectorAll('section[data-bvid]')]
+    if (els.length === 0) return undefined
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((e) => e.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+      if (visible[0]) setActiveId(visible[0].target.dataset.bvid)
+    }, { root, rootMargin: '-12% 0px -68% 0px', threshold: 0 })
+    els.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [briefing])
+
   if (!briefing) return null
   const { meta, summary, sections } = briefing
+
+  const jumpTo = (id) => {
+    containerRef.current?.querySelector(`section[data-bvid="${id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
-    <div className="briefing-view">
+    <div className="briefing-view" ref={containerRef}>
       <div className="bv-header">
         <div><b>{meta.departureAirport} → {meta.arrivalAirport}</b>{meta.alternateAirport ? ` (교체 ${meta.alternateAirport})` : ''} · {meta.flightRule}</div>
         <button type="button" onClick={onClose}>{'지도로'}</button>
       </div>
+
+      <nav className="bv-nav" aria-label="브리핑 순서">
+        {steps.map((s) => (
+          <button key={s.id} type="button" className={`bv-nav-step${activeId === s.id ? ' is-active' : ''}`} onClick={() => jumpTo(s.id)}>
+            {s.label}
+          </button>
+        ))}
+      </nav>
+
       <div className="bv-board">
         {summary.map((s) => (
           <span key={s.key} className={`bv-chip ${LEVEL_CLASS[s.level] || ''}`}>{s.label}</span>
         ))}
       </div>
-      <section className={`bv-section ${LEVEL_CLASS[sections.adverse.level]}`}>
+
+      <section data-bvid="adverse" className={`bv-section ${LEVEL_CLASS[sections.adverse.level]}`}>
         <h3>① 위험 요약</h3>
         {sections.adverse.hazards.length === 0
           ? <p className="bv-muted">경로·시간에 걸린 위험기상 없음</p>
@@ -41,7 +85,8 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
               </li>
             ))}</ul>}
       </section>
-      <section className="bv-section">
+
+      <section data-bvid="current" className="bv-section">
         <h3>③ 현재 실황</h3>
         {sections.current.airports.map((a) => (
           <div key={a.role} className="bv-airport">
@@ -59,8 +104,9 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
           </div>
         ))}
       </section>
+
       {sections.enroute && (
-        <section className={`bv-section ${LEVEL_CLASS[sections.enroute.level]}`}>
+        <section data-bvid="enroute" className={`bv-section ${LEVEL_CLASS[sections.enroute.level]}`}>
           <h3>④ 노선·공역</h3>
           <p className="bv-muted">계획고도 {sections.enroute.plannedCruiseAltitudeFt}ft</p>
           {sections.enroute.encounters.length === 0
@@ -100,7 +146,8 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
           )}
         </section>
       )}
-      <section className={`bv-section ${LEVEL_CLASS[sections.destination.level]}`}>
+
+      <section data-bvid="destination" className={`bv-section ${LEVEL_CLASS[sections.destination.level]}`}>
         <h3>⑤ 목적지 예보</h3>
         {sections.destination.taf
           ? <p>{sections.destination.taf.time} · {sections.destination.taf.clouds} · {sections.destination.taf.category}</p>

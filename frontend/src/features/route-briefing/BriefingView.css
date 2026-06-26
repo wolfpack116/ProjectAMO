@@ -3,6 +3,10 @@
 .bv-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;
   border-bottom:2px solid var(--border,#e2e4e8); padding-bottom:8px; }
 .bv-board { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+.bv-nav { position:sticky; top:0; z-index:5; display:flex; gap:6px; flex-wrap:wrap; padding:8px 0; margin-bottom:6px; background:var(--surface,#fff); border-bottom:1px solid var(--border,#e2e4e8); }
+.bv-nav-step { padding:4px 11px; border:1px solid var(--border,#e2e4e8); border-radius:14px; background:transparent; font-size:12px; cursor:pointer; color:var(--text-secondary,#666); }
+.bv-nav-step.is-active { background:rgba(58,123,213,.12); border-color:#3a7bd5; color:#2a5aa0; font-weight:600; }
+.bv-section { scroll-margin-top:48px; }
 .bv-chip { padding:3px 10px; border-radius:12px; font-size:12px; background:#eee; }
 .bv-green { background:rgba(46,158,91,.18); }
 .bv-amber { background:rgba(224,168,0,.20); }
