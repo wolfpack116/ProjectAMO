@@ -62,6 +62,22 @@ export default function BriefingView({ briefing, onClose, onOpenProfile }) {
             : <ul>{sections.enroute.encounters.map((h, i) => (
                 <li key={i}><b>{h.label}</b>{h.bandFt ? ` ${h.bandFt.lowFt}–${h.bandFt.highFt}ft` : ''} · {h.routeIntervalNm.startNm}–{h.routeIntervalNm.endNm}NM</li>
               ))}</ul>}
+          {sections.enroute.model?.elements?.length > 0 && (
+            <ul className="bv-model">
+              {sections.enroute.model.elements.map((el, i) => (
+                <li key={i}>
+                  <b>{el.label}</b>{' '}
+                  {el.kind === 'wind' ? `${el.valueKt}kt (${el.atNm}NM)`
+                    : el.kind === 'temp' ? `${el.valueC}°C`
+                    : el.intervals.map((iv, j) => (
+                        <span key={j} className={`bv-enc ${iv.level === '심' ? 'bv-red' : iv.level === '중' ? 'bv-amber' : ''}`}>
+                          {iv.level} {iv.startNm}–{iv.endNm}NM{' '}
+                        </span>
+                      ))}
+                </li>
+              ))}
+            </ul>
+          )}
           {sections.enroute.crossSectionAvailable && onOpenProfile && (
             <button type="button" className="bv-link-btn" onClick={onOpenProfile}>{'단면도 열기'}</button>
           )}
