@@ -1,4 +1,5 @@
 import { summarizeAirport } from './airport-summary.js'
+import { levelForCategory } from './flight-category.js'
 import { selectTafAtEta, alternateRequired } from './taf-window.js'
 import { buildHazardSection } from './hazard-section.js'
 
@@ -34,7 +35,7 @@ export function composeBriefing(request, data) {
     ? alternateRequired(arrivalTaf, request.eta)
     : { required: null, reason: 'VFR' }
   const destination = {
-    level: tafAtEta ? (tafAtEta.category === 'VFR' ? 'green' : tafAtEta.category === 'MVFR' ? 'amber' : 'red') : 'gray',
+    level: tafAtEta ? levelForCategory(tafAtEta.category) : 'gray',
     taf: tafAtEta,
     alternateRequired: alt.required,
     alternateReason: alt.reason,
