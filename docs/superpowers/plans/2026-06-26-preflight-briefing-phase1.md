@@ -41,7 +41,7 @@
         "ceiling":{"text":"FEW030","flag":false},"temp":{"text":"18/09","flag":false},"qnh":{"text":"Q1018","flag":false},"weather":{"text":"-","flag":false}},
         "raw":"..." } ] },
     "destination": { "level":"red","taf":{"time":"...","wind":"...","visibility":"3000","ceiling":"BKN008","category":"IFR"},
-        "alternateRequired":true,"alternateReason":"ETA±1h 운고<2000ft 또는 시정<3SM" }
+        "alternateRequired":true,"alternateReason":"ETA±1h 운고<2000ft 또는 시정<5000m(≈3SM)" }
   },
   "warnings": []
 }
@@ -911,8 +911,11 @@ export function fetchRouteBriefing(payload) {
 - [ ] **Step 2: 훅에 입력 상태 + fetch 추가**
 
 `useRouteBriefing.js`:
-1. import 추가: `import { fetchRouteBriefing } from '../../api/briefingApi.js'` 와 `import { computeEtaIso } from './lib/etaCalc.js'`.
-2. 상태 추가(다른 `useState` 근처):
+1. import 추가: `import { fetchRouteBriefing } from '../../api/briefingApi.js'` 와 `import { computeEtaIso } from './lib/etaCalc.js'`. 그리고 **기존 `./lib/routeBriefingModel.js` import 줄(이미 `getCurrentRouteLineString` 등을 가져옴)에 `buildIfrDistanceBreakdown, calcVfrDistance`를 추가**한다(ETA용 총거리 산출에 사용).
+
+> ⚠️ **순서 의존성(리뷰 B2/B4):** 아래 상태와 `handleGenerateBriefing`는 반드시 **훅 본문 안, `selectedIap`(지역 변수)가 정의된 줄 이후**에 둔다. 그리고 5번에서 **반환 객체의 `state`/`actions`에 등록**해야 패널·MapView가 접근할 수 있다(등록 안 하면 `briefing`이 `undefined`라 뷰가 안 뜸).
+
+2. 상태 추가(다른 `useState` 근처, 단 `selectedIap` 정의 이후):
 
 ```js
 const [alternateAirport, setAlternateAirport] = useState('')
@@ -929,7 +932,11 @@ const [briefingError, setBriefingError] = useState(null)
 async function handleGenerateBriefing() {
   const routeGeometry = getCurrentRouteLineString({ routeResult, vfrWaypoints, selectedSid, selectedStar, selectedIap })
   if (!routeGeometry) { setBriefingError('먼저 경로를 검색하세요.'); return }
-  const distanceNm = Number(routeResult?.distanceNm) || 0
+  // 리뷰 B1/Y4: IFR routeResult.distanceNm은 항로(ENR) 구간만 → SID/STAR/IAP 포함 총거리를 써야 ETA가 맞음.
+  const distanceNm = routeForm.flightRule === 'VFR'
+    ? calcVfrDistance(vfrWaypoints)
+    : (buildIfrDistanceBreakdown({ routeResult, selectedSid, selectedStar, selectedIap })?.totalDistanceNm
+        || Number(routeResult?.distanceNm) || 0)
   const etdIso = new Date(etd).toISOString().replace('.000Z', 'Z')
   const etaIso = computeEtaIso(etdIso, distanceNm, cruiseSpeedKt) || etdIso
   setBriefingLoading(true); setBriefingError(null)
@@ -954,7 +961,9 @@ async function handleGenerateBriefing() {
 
 - [ ] **Step 3: 폼에 입력 + 버튼 추가**
 
-`RouteBriefingPanel.jsx`의 도착 섹션(`route-check-section` "도착") 다음, actions(`route-check-actions`) 앞에 추가:
+`RouteBriefingPanel.jsx`의 도착 섹션(`route-check-section` "도착") 다음, actions(`route-check-actions`) 앞에 추가한다.
+
+> ⚠️ **교체공항 후보 목록(리뷰 B3):** 아래 예시는 `airports` prop을 쓰지만, 이는 지도 공항 메타 전체다. **출발/도착 드롭다운이 쓰는 것과 동일한 공항 목록 소스를 그대로 재사용**하라(같은 섹션의 출발/도착 `<select>` 옵션 생성 코드를 복사). 출발/도착과 후보가 일치해야 한다.
 
 ```jsx
 <div className="route-check-section">
