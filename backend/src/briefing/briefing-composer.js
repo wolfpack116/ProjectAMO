@@ -48,7 +48,8 @@ export function composeBriefing(request, data) {
 
   const encounters = adverse.hazards.filter((h) => h.encounter === 'on')
   const enroute = {
-    level: encounters.length > 0 ? 'red' : adverse.hazards.length > 0 ? 'amber' : 'green',
+    // adverse와 동일한 보수 레벨을 따른다(밴드 미상 SIGMET이 ④에서만 amber로 새지 않도록).
+    level: adverse.level,
     plannedCruiseAltitudeFt: cruiseAltitudeFt,
     encounters,
     crossSectionAvailable: true,
