@@ -13,6 +13,7 @@ import warningTypes from '../shared/warning-types.js'
 import alertDefaults from '../shared/alert-defaults.js'
 import { buildVerticalProfile } from './src/briefing/vertical-profile.js'
 import { buildCrossSection } from './src/briefing/cross-section-sampler.js'
+import { composeBriefing } from './src/briefing/briefing-composer.js'
 import { buildRouteAxis } from './src/briefing/route-axis.js'
 import { selectNearestForecastHour } from './src/processors/kim-forecast-hour.js'
 import { createDefaultTerrainSampler } from './src/terrain/terrain-sampler.js'
@@ -799,6 +800,29 @@ app.post('/api/vertical-profile', (req, res) => {
     }
 
     res.status(400).json({ error: error.message || 'failed to build vertical profile' })
+  }
+})
+
+app.post('/api/route-briefing', (req, res) => {
+  const body = req.body || {}
+  if (!body.departureAirport || !body.arrivalAirport || !body.routeGeometry?.coordinates?.length) {
+    return res.status(400).json({ error: 'departureAirport, arrivalAirport, routeGeometry are required' })
+  }
+  if (!body.etd || !body.eta) {
+    return res.status(400).json({ error: 'etd and eta are required' })
+  }
+  try {
+    const data = {
+      metar: store.getCached('metar'),
+      taf: store.getCached('taf'),
+      sigmet: store.getCached('sigmet'),
+      airmet: store.getCached('airmet'),
+    }
+    const briefing = composeBriefing(body, data)
+    res.set('Cache-Control', 'no-store')
+    res.json(briefing)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
   }
 })
 
