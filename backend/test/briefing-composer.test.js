@@ -1,0 +1,45 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { composeBriefing } from '../src/briefing/briefing-composer.js'
+
+const request = {
+  flightRule: 'IFR',
+  departureAirport: 'RKSI', arrivalAirport: 'RKPC', alternateAirport: 'RKPK',
+  routeGeometry: { type:'LineString', coordinates: [[126.45,37.46],[126.5,33.5]] },
+  etd: '2026-06-26T09:00:00Z', eta: '2026-06-26T10:30:00Z', plannedCruiseAltitudeFt: 9000,
+}
+
+const goodObs = (cat) => ({
+  observation: cat === 'VFR'
+    ? { wind:{raw:'27008KT',speed:8}, visibility:{value:9999}, clouds:[{amount:'FEW',base:3000}], weather:[], temperature:{air:18,dewpoint:9}, qnh:{value:1018}, display:{wind:'27008KT',clouds:'FEW030',temperature:'18/09',qnh:'Q1018',weather:'-'} }
+    : { wind:{raw:'14025G35KT',speed:25,gust:35}, visibility:{value:3000}, clouds:[{amount:'BKN',base:800}], weather:[{raw:'-RA'}], temperature:{air:14,dewpoint:12}, qnh:{value:1009}, display:{wind:'14025G35KT',clouds:'BKN008',temperature:'14/12',qnh:'Q1009',weather:'-RA'} },
+})
+const data = {
+  metar: { airports: { RKSI: { header:{icao:'RKSI'}, ...goodObs('VFR') }, RKPC: { header:{icao:'RKPC'}, ...goodObs('IFR') }, RKPK: { header:{icao:'RKPK'}, ...goodObs('VFR') } } },
+  taf: { airports: { RKPC: { header:{icao:'RKPC'}, timeline:[{ time:'2026-06-26T10:00:00Z', visibility:{value:3000}, clouds:[{amount:'BKN',base:600,raw:'BKN006'}], display:{wind:'14020KT',clouds:'BKN006'} }] } } },
+  sigmet: { items: [{ id:'s1', phenomenon_code:'SEV_ICE', phenomenon_label:'Severe Icing', valid_from:'2026-06-26T08:00:00Z', valid_to:'2026-06-26T14:00:00Z', geometry:{type:'Polygon',coordinates:[[[125,32],[128,32],[128,35],[125,35],[125,32]]]} }] },
+  airmet: { items: [] },
+}
+
+test('composeBriefing returns meta, summary, sections', () => {
+  const b = composeBriefing(request, data)
+  assert.equal(b.meta.departureAirport, 'RKSI')
+  assert.equal(b.sections.adverse.hazards.length, 1)
+  assert.equal(b.sections.current.airports.length, 3)
+  const dep = b.sections.current.airports.find((a) => a.role === 'departure')
+  assert.equal(dep.category, 'VFR')
+  assert.equal(b.sections.destination.taf.category, 'IFR')
+  assert.equal(b.sections.destination.alternateRequired, true)
+})
+
+test('summary board has hazard + 3 airports', () => {
+  const b = composeBriefing(request, data)
+  const keys = b.summary.map((s) => s.key)
+  assert.deepEqual(keys, ['hazard', 'RKSI', 'RKPC', 'RKPK'])
+  assert.equal(b.summary.find((s) => s.key === 'hazard').level, 'red')
+})
+
+test('alternate omitted when null', () => {
+  const b = composeBriefing({ ...request, alternateAirport: null }, data)
+  assert.equal(b.sections.current.airports.length, 2)
+})
