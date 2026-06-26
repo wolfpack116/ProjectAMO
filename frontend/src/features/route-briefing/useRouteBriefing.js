@@ -628,6 +628,18 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
         plannedCruiseAltitudeFt: Number(cruiseAltitudeFt) || DEFAULT_CRUISE_ALTITUDE_FT,
       })
       setBriefing(result)
+      // also load profile + cross-section so ④ can render the inline 단면도 (best-effort)
+      try {
+        const plannedCruiseAltitudeFt = Number(cruiseAltitudeFt) || DEFAULT_CRUISE_ALTITUDE_FT
+        const [profile, cs] = await Promise.all([
+          fetchVerticalProfile(buildVerticalProfileRequest({
+            routeGeometry, routeResult, selectedSid, selectedStar, selectedIap, vfrWaypoints, plannedCruiseAltitudeFt,
+          })),
+          fetchCrossSection({ routeGeometry }).catch(() => null),
+        ])
+        setVerticalProfile(profile)
+        setCrossSection(cs)
+      } catch { /* inline 단면도 optional */ }
     } catch (err) { setBriefingError(err.message) }
     finally { setBriefingLoading(false) }
   }

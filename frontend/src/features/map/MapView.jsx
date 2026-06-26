@@ -1242,6 +1242,8 @@ function MapView({
             <Suspense fallback={null}>
               <BriefingView
                 briefing={routeBriefing.state.briefing}
+                verticalProfile={routeBriefing.state.verticalProfile}
+                crossSection={routeBriefing.state.crossSection}
                 onClose={() => routeBriefing.actions.setBriefing(null)}
                 onOpenProfile={routeBriefing.actions.handleVerticalProfileRequest}
               />

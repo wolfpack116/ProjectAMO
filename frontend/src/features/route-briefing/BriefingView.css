@@ -29,3 +29,5 @@
 .bv-seg.mod { background:rgba(224,168,0,.75); }
 .bv-seg.sev { background:rgba(192,57,43,.8); }
 .bv-ribbon-cap { width:118px; flex:none; color:#888; white-space:nowrap; text-align:right; }
+.bv-xsection { margin:10px 0 4px; }
+.bv-xsection svg { width:100%; height:auto; }

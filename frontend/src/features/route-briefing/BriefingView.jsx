@@ -1,3 +1,4 @@
+import VerticalProfileChart from './VerticalProfileChart.jsx'
 import './BriefingView.css'
 
 const LEVEL_CLASS = { green: 'bv-green', amber: 'bv-amber', red: 'bv-red', gray: 'bv-gray' }
@@ -11,7 +12,7 @@ function Cell({ field }) {
   return <td className={field?.flag ? 'bv-flag' : ''}>{field?.text ?? '-'}</td>
 }
 
-export default function BriefingView({ briefing, onClose, onOpenProfile }) {
+export default function BriefingView({ briefing, verticalProfile = null, crossSection = null, onClose, onOpenProfile }) {
   if (!briefing) return null
   const { meta, summary, sections } = briefing
   return (
@@ -89,8 +90,13 @@ export default function BriefingView({ briefing, onClose, onOpenProfile }) {
               })}
             </div>
           )}
+          {verticalProfile && (
+            <div className="bv-xsection">
+              <VerticalProfileChart profile={verticalProfile} crossSection={crossSection} layers={{ icing: true, turbulence: true }} />
+            </div>
+          )}
           {sections.enroute.crossSectionAvailable && onOpenProfile && (
-            <button type="button" className="bv-link-btn" onClick={onOpenProfile}>{'단면도 열기'}</button>
+            <button type="button" className="bv-link-btn" onClick={onOpenProfile}>{'단면도 크게 열기'}</button>
           )}
         </section>
       )}

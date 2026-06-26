@@ -56,6 +56,9 @@ try {
     return h.some((t) => t && t.includes('노선·공역'))
   }, { timeout: 20000 })
 
+  // inline cross-section is best-effort (needs profile + KIM data) — wait briefly
+  await page.locator('.bv-xsection svg').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {})
+
   const summary = await page.evaluate(() => {
     const text = (sel) => document.querySelector(sel)?.innerText ?? null
     const sections = [...document.querySelectorAll('.briefing-view h3')].map((e) => e.textContent.trim())
@@ -66,7 +69,11 @@ try {
       return `${label}: ${segs} seg · ${cap ?? ''}`.trim()
     })
     const board = [...document.querySelectorAll('.briefing-view .bv-chip')].map((c) => c.textContent.trim())
-    return { sections, model, board, header: text('.briefing-view .bv-header') }
+    const xsec = document.querySelector('.bv-xsection svg')
+    const inlineCrossSection = xsec
+      ? { present: true, weatherCells: xsec.querySelectorAll('rect[fill^="rgba"]').length, hasProcedureLine: !!xsec.querySelector('.vertical-profile-procedure-line') }
+      : { present: false }
+    return { sections, model, board, inlineCrossSection, header: text('.briefing-view .bv-header') }
   })
 
   const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
