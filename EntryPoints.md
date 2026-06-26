@@ -101,3 +101,14 @@ Feature-specific model, source/layer, GeoJSON, popup, route, weather, or ADS-B l
 5. Airport drawer sizing -> `frontend/src/features/airport-panel/AirportPanel.css`.
 6. Monitoring dashboard density -> `frontend/src/features/monitoring/legacy/App.css`.
 7. Verify with `npm.cmd run test:layout --prefix frontend`, `npm.cmd run build --prefix frontend`, and `npm.cmd run smoke:responsive --prefix frontend` while the dev server is running.
+
+## 10. Modify pre-flight weather briefing (route-briefing payload + view)
+
+Spec: `docs/superpowers/specs/2026-06-26-preflight-weather-briefing-design.md`. Plans: `docs/superpowers/plans/2026-06-26-preflight-briefing-phase*.md`.
+
+1. Backend composition (interpretation/threshold/matching) -> `backend/src/briefing/briefing-composer.js`, which calls the pure modules `flight-category.js`, `geo-time-match.js`, `airport-summary.js`, `taf-window.js`, `hazard-section.js`. Keep interpretation in the backend; the frontend renders the payload only.
+2. New backend matching rule (e.g., vertical/altitude) -> extend `geo-time-match.js` and add to `hazard-section.js`; keep each module a pure, separately tested unit (`backend/test/*.test.js`).
+3. API route -> `POST /api/route-briefing` in `backend/server.js` (reads `store.getCached('metar'|'taf'|'sigmet'|'airmet')`).
+4. Briefing inputs (alternate, ETD, cruise speed) + fetch -> `frontend/src/features/route-briefing/useRouteBriefing.js`; ETA via `lib/etaCalc.js`; client in `frontend/src/api/briefingApi.js` (`fetchRouteBriefing`).
+5. Briefing rendering (sections, tables, summary board) -> `frontend/src/features/route-briefing/BriefingView.jsx` (+ `BriefingView.css`); overlay slot lives in `MapView.jsx` under `activePanel === 'route-check'`.
+6. Verify: `npm --prefix backend test`, `npm --prefix frontend run build`, then browser smoke (search route -> 브리핑 생성 -> view renders; over-threshold cells/chips colored).

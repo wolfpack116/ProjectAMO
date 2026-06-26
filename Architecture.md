@@ -115,6 +115,8 @@ ProjectAMO/
 - `frontend/src/features/route-briefing/VerticalProfileWindow.jsx` -> vertical profile modal shell.
 - `frontend/src/features/route-briefing/RouteBriefing.css` -> route panel, VFR waypoint, and vertical profile styles.
 - `frontend/src/features/route-briefing/VerticalProfileChart.jsx` -> SVG route vertical profile chart.
+- `frontend/src/features/route-briefing/BriefingView.jsx` -> pre-flight briefing view (summary board + ①adverse/③current/⑤destination sections, threshold-color tables); overlays the map within the route-check panel.
+- `frontend/src/features/route-briefing/lib/etaCalc.js` -> ETD + route distance / cruise speed -> ETA helper.
 - `frontend/src/features/route-briefing/lib/routeBriefingModel.js` -> pure route briefing view/model helpers.
 - `frontend/src/features/route-briefing/lib/routePreviewSync.js` -> route/procedure/VFR/boundary-fix/highlight Mapbox install/sync helpers and route preview source/layer ownership IDs.
 - `frontend/src/features/route-briefing/lib/routePreview.js` -> route/procedure/VFR GeoJSON helpers, layer installation, and VFR map interaction binding.
@@ -143,6 +145,13 @@ ProjectAMO/
 - `backend/src/briefing/route-axis.js` -> route LineString resampling, cumulative distance, and bearing helpers.
 - `backend/src/briefing/profile-composer.js` -> route-aware planned altitude profile, markers, and segment metadata composition.
 - `backend/src/briefing/vertical-profile.js` -> vertical profile response composition.
+- `backend/src/briefing/briefing-composer.js` -> assembles the AIM-ordered route-briefing payload (summary board + adverse/current/destination sections) from injected METAR/TAF/SIGMET/AIRMET cache.
+- `backend/src/briefing/flight-category.js` -> visibility/ceiling -> VFR/MVFR/IFR/LIFR classifier and category-to-level color mapping.
+- `backend/src/briefing/geo-time-match.js` -> point-in-polygon, route∩polygon (horizontal), and time-window overlap helpers for hazard matching (Phase 1: horizontal+time only).
+- `backend/src/briefing/airport-summary.js` -> single-airport METAR -> flight category + threshold-flagged display fields.
+- `backend/src/briefing/taf-window.js` -> destination TAF selection at ETA and 1-2-3 alternate-required evaluation.
+- `backend/src/briefing/hazard-section.js` -> SIGMET/AIRMET adverse-hazard section matched to route + flight time window.
+- `backend/server.js` -> exposes `POST /api/route-briefing` (composes briefing from `store.getCached` METAR/TAF/SIGMET/AIRMET).
 - `backend/src/terrain/terrain-cache.js` -> terrain tile metadata lookup and lazy tile cache.
 - `backend/src/terrain/terrain-sampler.js` -> terrain sampling along route-axis samples.
 - `backend/src/index.js` -> scheduled weather collection jobs, per-type locks, and UTC KIM NWP release-window scheduling.
