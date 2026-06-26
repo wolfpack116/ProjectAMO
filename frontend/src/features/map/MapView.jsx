@@ -292,7 +292,10 @@ function MapView({
     if (!map) return
     const meta = routeBriefing.state.briefing?.meta
     const byIcao = (icao) => airports.find((a) => a.icao === icao)
-    const padRight = Math.min(900, Math.round((map.getContainer()?.clientWidth || 1200) * 0.56))
+    const container = map.getContainer()
+    const containerWidth = container?.clientWidth || 1200
+    const panelWidth = container?.ownerDocument?.querySelector('.briefing-view')?.clientWidth || Math.round(containerWidth * 0.48)
+    const padRight = Math.min(panelWidth + 24, containerWidth - 120)
     const pad = { top: 60, bottom: 60, left: 60, right: padRight }
     const fitPts = (pts) => {
       if (pts.length < 1) return
