@@ -13,6 +13,7 @@ import useIsMobile from '../shared/ui/useIsMobile.js'
 import { TimeZoneProvider, useTimeZone } from '../shared/timezone/TimeZoneContext.jsx'
 
 const MonitoringPage = lazy(() => import('../features/monitoring/MonitoringPage.jsx'))
+const DesignTestPage = lazy(() => import('../features/design-test/DesignTestPage.jsx'))
 
 function formatTimeByTz(ms, tz) {
   const d = tz === 'KST' ? new Date(ms + 9 * 3600 * 1000) : new Date(ms)
@@ -137,9 +138,13 @@ function MainAppShell() {
 }
 
 function App() {
-  return window.location.pathname === '/monitoring'
-    ? <Suspense fallback={null}><MonitoringPage /></Suspense>
-    : <TimeZoneProvider><MainAppShell /></TimeZoneProvider>
+  if (window.location.pathname === '/monitoring') {
+    return <Suspense fallback={null}><MonitoringPage /></Suspense>
+  }
+  if (window.location.pathname === '/test') {
+    return <Suspense fallback={null}><DesignTestPage /></Suspense>
+  }
+  return <TimeZoneProvider><MainAppShell /></TimeZoneProvider>
 }
 
 export default App
