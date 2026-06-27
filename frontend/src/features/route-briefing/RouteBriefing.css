@@ -932,38 +932,43 @@
   cursor: default;
 }
 
-/* Action bar in the MobileSheet footer — same iOS pill-track style as the
-   segmented controls: gray track, 검색 = white pill + blue text (primary),
-   자동검색/초기화 = track-transparent slate. No solid-blue fill. */
+/* Action bar in the MobileSheet footer — primary action is a solid-blue CTA
+   (다음 / 브리핑 생성); 이전 is a white outline secondary. */
 .mobile-sheet-footer .route-check-actions {
   display: flex;
-  gap: 3px;
-  padding: 3px;
-  border-radius: 10px;
-  background: #eef2f7;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
 }
 
 .mobile-sheet-footer .route-check-actions button {
   flex: 1 1 0;
-  height: 40px;
+  height: 46px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 10px;
   background: transparent;
-  color: #64748b;
+  color: #475569;
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 850;
   cursor: pointer;
 }
 
 .mobile-sheet-footer .route-check-actions .route-check-search-button {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.mobile-sheet-footer .route-check-actions .route-check-secondary-button {
+  flex: 0 0 auto;
+  min-width: 96px;
   background: #ffffff;
-  color: #2563eb;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+  color: #475569;
+  border: 1px solid rgba(148, 163, 184, 0.5);
 }
 
 .mobile-sheet-footer .route-check-actions button:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: wait;
 }
 
@@ -1000,6 +1005,26 @@
 .route-check-section--briefing .route-check-section-title { margin-bottom: 2px; }
 .rb-altn { display: grid; gap: 4px; color: #64748b; font-size: 10px; font-weight: 800; }
 .rb-altn select { height: 36px; padding: 0 8px; border: 1px solid rgba(148,163,184,0.58); border-radius: 7px; font-size: 13px; font-weight: 700; color: #0f172a; }
+/* Mobile: match the 출발/도착 picker — label inside a bordered box, borderless select. */
+.rb-mobile .rb-altn {
+  gap: 1px;
+  padding: 6px 12px;
+  border: 0.8px solid rgba(148, 163, 184, 0.5);
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 11px;
+}
+.rb-mobile .rb-altn select {
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
 
 /* ETD 필드: 데스크톱 타이핑 / 모바일 휠 + 상대 칩 */
 .etd-field { display: grid; gap: 7px; }
@@ -1051,13 +1076,17 @@
 /* Step ② auto-recommend: same handleAutoRecommend as desktop, surfaced as a
    full-width primary suggestion (inherits the form's solid-blue button) ahead
    of the manual SID/STAR pickers. */
-.rb-auto-search {
+.rb-mobile .rb-auto-search {
   width: 100%;
   min-height: 44px;
-  margin-bottom: 4px;
+  border: 1px solid #d4e3f7;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
   font-size: 13px;
+  font-weight: 800;
 }
-.rb-auto-search:disabled { opacity: 0.6; cursor: default; }
+.rb-mobile .rb-auto-search:disabled { opacity: 0.6; cursor: default; }
 
 /* Mobile touch targets ≥ 44px (WCAG 2.5.5). Scoped to the mobile wizard /
    sheet footer so desktop density is unchanged. */
@@ -1118,6 +1147,11 @@
   position: relative;
   flex-direction: row;
   align-items: center;
+  margin-top: 0;
+}
+/* Even vertical rhythm: let the form gap own spacing, drop ad-hoc margins. */
+.rb-mobile .route-type-segmented {
+  margin-top: 0;
 }
 .rb-mobile .rb-route > .apf {
   flex: 1 1 0;
