@@ -82,6 +82,7 @@ import {
   registerAirportWindBarbImages,
 } from './lib/airportStationImages.js'
 import {
+  PROC_WP_CIRCLE,
   VFR_WP_CIRCLE,
   bindVfrInteractions,
 } from '../route-briefing/lib/routePreview.js'
@@ -701,6 +702,21 @@ function MapView({
       if (!vfrInteractionsBound) {
         vfrInteractionsBound = true
         bindVfrInteractions(map, vfrWaypointsRef, setVfrWaypoints)
+        // Procedure waypoint name on hover (dot labels are hidden to declutter).
+        const procPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 8, className: 'proc-wp-popup' })
+        map.on('mouseenter', PROC_WP_CIRCLE, (e) => {
+          map.getCanvas().style.cursor = 'pointer'
+          const f = e.features?.[0]
+          if (f) procPopup.setLngLat(f.geometry.coordinates).setText(f.properties.label ?? '').addTo(map)
+        })
+        map.on('mousemove', PROC_WP_CIRCLE, (e) => {
+          const f = e.features?.[0]
+          if (f) procPopup.setLngLat(f.geometry.coordinates)
+        })
+        map.on('mouseleave', PROC_WP_CIRCLE, () => {
+          map.getCanvas().style.cursor = ''
+          procPopup.remove()
+        })
       }
 
       // Weather overlays
