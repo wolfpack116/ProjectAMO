@@ -179,9 +179,12 @@ export function syncRoutePreviewLayers(map, model) {
     fitCoordinates = augmented.features.flatMap((feature) =>
       feature.geometry.type === 'Point' ? [feature.geometry.coordinates] : feature.geometry.coordinates,
     )
+    // Feed the full procedure geojson (lines + waypoints). The SID/STAR/IAP line
+    // layers draw their phase colors on top of the orange enroute line; the
+    // procedure waypoint layers are hidden (visibility:none), so only the
+    // colored segments show — enroute stays orange, SID/STAR/IAP get their hue.
     const procGeojson = buildProcedureGeoJSON(selectedSid, selectedStar, selectedIap)
-    const wpOnly = { ...procGeojson, features: procGeojson.features.filter((f) => !f.properties.role.endsWith('-line')) }
-    map.getSource(PROC_PREVIEW_SOURCE)?.setData(wpOnly)
+    map.getSource(PROC_PREVIEW_SOURCE)?.setData(procGeojson)
   } else if (routeResult?.flightRule === 'IFR') {
     map.getSource(ROUTE_PREVIEW_SOURCE)?.setData(routeResult.previewGeojson ?? emptyGeoJSON)
     map.getSource(PROC_PREVIEW_SOURCE)?.setData(emptyGeoJSON)

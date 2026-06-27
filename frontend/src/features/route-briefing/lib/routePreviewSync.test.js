@@ -36,7 +36,7 @@ function createMockMap() {
   }
 }
 
-test('syncRoutePreviewLayers writes IFR route and procedure waypoint-only preview data', () => {
+test('syncRoutePreviewLayers writes IFR route and full procedure preview data (lines + waypoints)', () => {
   const map = createMockMap()
   const routeLine = { type: 'Feature', properties: { role: 'route-preview-line' }, geometry: { type: 'LineString', coordinates: [[126, 37], [127, 36]] } }
   const selectedSid = {
@@ -56,7 +56,7 @@ test('syncRoutePreviewLayers writes IFR route and procedure waypoint-only previe
   })
 
   assert.equal(map.sourceData.get(ROUTE_PREVIEW_SOURCE).features[0].geometry.coordinates[1][0], 126.5)
-  assert.ok(map.sourceData.get(PROC_PREVIEW_SOURCE).features.every((feature) => !feature.properties.role.endsWith('-line')))
+  assert.ok(map.sourceData.get(PROC_PREVIEW_SOURCE).features.some((feature) => feature.properties.role === 'sid-line'))
 })
 
 test('syncRoutePreviewLayers clears stale route line when route result is removed', () => {
