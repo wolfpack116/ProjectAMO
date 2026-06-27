@@ -9,8 +9,8 @@ export const ROUTE_SEQUENCE_COLORS = {
   sid: '#2563eb',
   star: '#7c3aed',
   iap: '#0ea5e9',
-  airway: '#1f2933',
-  enr: '#1f2933',
+  airway: '#f97316',
+  enr: '#f97316',
   waypoint: '#0f766e',
 }
 export const M_TO_FT = 3.28084

@@ -187,7 +187,7 @@ export function addProcedurePreviewLayers(map) {
       id: PROC_SID_LINE, type: 'line', source: PROC_PREVIEW_SOURCE, slot: 'top',
       filter: ['==', ['get', 'role'], 'sid-line'],
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#2563eb', 'line-width': 2, 'line-dasharray': [5, 3] },
+      paint: { 'line-color': '#2563eb', 'line-width': 4, 'line-opacity': 0.9 },
     })
   }
   if (!map.getLayer(PROC_STAR_LINE)) {
@@ -195,7 +195,7 @@ export function addProcedurePreviewLayers(map) {
       id: PROC_STAR_LINE, type: 'line', source: PROC_PREVIEW_SOURCE, slot: 'top',
       filter: ['==', ['get', 'role'], 'star-line'],
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#7c3aed', 'line-width': 2, 'line-dasharray': [5, 3] },
+      paint: { 'line-color': '#7c3aed', 'line-width': 4, 'line-opacity': 0.9 },
     })
   }
   if (!map.getLayer(PROC_IAP_LINE)) {
@@ -203,13 +203,14 @@ export function addProcedurePreviewLayers(map) {
       id: PROC_IAP_LINE, type: 'line', source: PROC_PREVIEW_SOURCE, slot: 'top',
       filter: ['==', ['get', 'role'], 'iap-line'],
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#0ea5e9', 'line-width': 2, 'line-dasharray': [3, 3] },
+      paint: { 'line-color': '#0ea5e9', 'line-width': 4, 'line-opacity': 0.9 },
     })
   }
   if (!map.getLayer(PROC_WP_CIRCLE)) {
     map.addLayer({
       id: PROC_WP_CIRCLE, type: 'circle', source: PROC_PREVIEW_SOURCE, slot: 'top',
       filter: ['any', ['==', ['get', 'role'], 'sid-wp'], ['==', ['get', 'role'], 'star-wp'], ['==', ['get', 'role'], 'iap-wp']],
+      layout: { visibility: 'none' },
       paint: {
         'circle-radius': 4,
         'circle-color': ['case',
@@ -227,6 +228,7 @@ export function addProcedurePreviewLayers(map) {
       id: PROC_WP_LABEL, type: 'symbol', source: PROC_PREVIEW_SOURCE, slot: 'top',
       filter: ['any', ['==', ['get', 'role'], 'sid-wp'], ['==', ['get', 'role'], 'star-wp'], ['==', ['get', 'role'], 'iap-wp']],
       layout: {
+        visibility: 'none',
         'text-field': ['get', 'label'],
         'text-font': ['Noto Sans CJK JP Bold'],
         'text-size': 10,
