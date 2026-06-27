@@ -73,9 +73,10 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
   const selectedIap = iapData?.iapRoutes?.[selectedIapKey] ?? null
   const [alternateAirport, setAlternateAirport] = useState('')
   const [etd, setEtd] = useState(() => {
-    // datetime-local expects local wall-clock; toISOString() is UTC, so offset back to local first.
-    const now = new Date()
-    return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+    // Absolute UTC instant; the ETD field renders/edits it in the app timezone.
+    const d = new Date()
+    d.setUTCSeconds(0, 0)
+    return d.toISOString().replace('.000Z', 'Z')
   })
   const [cruiseSpeedKt, setCruiseSpeedKt] = useState(120)
   const [briefing, setBriefing] = useState(null)
@@ -605,14 +606,20 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     }
   }
 
-  async function handleGenerateBriefing() {
-    const routeGeometry = getCurrentRouteLineString({ routeResult, vfrWaypoints, selectedSid, selectedStar, selectedIap })
-    if (!routeGeometry) { setBriefingError('먼저 경로를 검색하세요.'); return }
-    // IFR routeResult.distanceNm is ENR-only; use total incl SID/STAR/IAP. VFR uses waypoint-summed distance.
-    const distanceNm = routeForm.flightRule === 'VFR'
+  // Planned total distance (IFR total incl SID/STAR/IAP; VFR waypoint-summed).
+  // Shared by 브리핑 생성 and the live ETA readout in the form.
+  const plannedDistanceNm = useMemo(() => {
+    if (!routeResult) return 0
+    return routeForm.flightRule === 'VFR'
       ? calcVfrDistance(vfrWaypoints)
       : (buildIfrDistanceBreakdown({ routeResult, selectedSid, selectedStar, selectedIap })?.totalDistanceNm
           || Number(routeResult?.distanceNm) || 0)
+  }, [routeResult, routeForm.flightRule, vfrWaypoints, selectedSid, selectedStar, selectedIap])
+
+  async function handleGenerateBriefing() {
+    const routeGeometry = getCurrentRouteLineString({ routeResult, vfrWaypoints, selectedSid, selectedStar, selectedIap })
+    if (!routeGeometry) { setBriefingError('먼저 경로를 검색하세요.'); return }
+    const distanceNm = plannedDistanceNm
     const etdIso = new Date(etd).toISOString().replace('.000Z', 'Z')
     const etaIso = computeEtaIso(etdIso, distanceNm, cruiseSpeedKt) || etdIso
     setBriefingLoading(true); setBriefingError(null)
@@ -689,6 +696,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       isFirExitMode,
       selectedIap,
       visibleSidOptions,
+      plannedDistanceNm,
     },
     actions: {
       updateRouteField,
