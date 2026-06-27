@@ -136,23 +136,16 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
         return (
           <>
             <div className="route-check-total-dist">
-              {'총 거리'}: <strong>{totalDistanceNm} NM</strong>
+              <div className="route-check-total-dist-head">{'총 거리'} <strong>{totalDistanceNm} NM</strong></div>
               {distanceBreakdown.length > 0 && (
-                <span className="dist-breakdown">
-                  {' ('}
-                  {distanceBreakdown.map((item, index) => (
-                    <span key={`${item.kind}-${item.label}`}>
-                      {index > 0 && <span className="dist-breakdown-sep">{' + '}</span>}
-                      <span
-                        className={`dist-breakdown-token is-${item.kind}`}
-                        style={{ color: ROUTE_SEQUENCE_COLORS[item.kind] }}
-                      >
-                        {`${item.label} ${item.value.toFixed(1)}`}
-                      </span>
+                <div className="dist-breakdown">
+                  {distanceBreakdown.map((item) => (
+                    <span key={`${item.kind}-${item.label}`} className={`dist-breakdown-token is-${item.kind}`}>
+                      <span className="dist-breakdown-dot" style={{ background: ROUTE_SEQUENCE_COLORS[item.kind] }} aria-hidden="true" />
+                      {`${item.label} ${item.value.toFixed(1)}`}
                     </span>
                   ))}
-                  {')'}
-                </span>
+                </div>
               )}
             </div>
             <div className="route-check-sequence">
@@ -449,7 +442,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
 
   const stepNav = (
     <div className="rb-steps">
-      {[[1, '① 경로'], [2, '② 절차'], [3, '③ 성능·시간']].map(([n, label]) => (
+      {[[1, '① 경로'], [2, '② 성능·시간']].map(([n, label]) => (
         <button key={n} type="button" className={`rb-step${mobileStep === n ? ' is-active' : ''}`} onClick={() => setMobileStep(n)}>{label}</button>
       ))}
     </div>
@@ -475,10 +468,6 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
               {KNOWN_AIRPORTS.map((ap) => <option key={ap} value={ap}>{ap}</option>)}
             </select>
           </label>
-        </>
-      )}
-      {mobileStep === 2 && (
-        <>
           {isIfr && (
             <div className="route-type-segmented">
               {[['ALL', '전체'], ['RNAV', 'RNAV'], ['ATS', 'ATS']].map(([val, lbl]) => (
@@ -503,11 +492,11 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
             )}
             {!isIfr && <div className="rb-vfr-note">VFR — 지도에서 경유점을 추가하세요</div>}
           </div>
+          {errorBlock}
+          {resultsBlock}
         </>
       )}
-      {mobileStep === 3 && perfTimeBlock}
-      {errorBlock}
-      {resultsBlock}
+      {mobileStep === 2 && perfTimeBlock}
     </form>
   )
 
@@ -516,14 +505,17 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   // Progressive footer: before a route exists, the primary action is 검색
   // (+자동검색/초기화). Once a route is found, the footer's primary action
   // advances to 브리핑 생성 (the final deliverable) with 초기화 alongside.
-  const mobileFooter = mobileStep < 3 ? (
+  const mobileFooter = mobileStep === 1 ? (
     <div className="route-check-actions is-step">
-      {mobileStep > 1 && <button type="button" className="route-check-secondary-button" onClick={() => setMobileStep((s) => s - 1)}>{'이전'}</button>}
-      <button type="button" className="route-check-search-button" onClick={() => { if (mobileStep === 2) handleRouteSearch({ preventDefault() {} }); setMobileStep((s) => Math.min(3, s + 1)) }} disabled={routeLoading}>{routeLoading ? '검색 중...' : '다음'}</button>
+      {routeResult ? (
+        <button type="button" className="route-check-search-button" onClick={() => setMobileStep(2)}>{'다음'}</button>
+      ) : (
+        <button type="button" className="route-check-search-button" onClick={() => handleRouteSearch({ preventDefault() {} })} disabled={routeLoading}>{routeLoading ? '검색 중...' : '경로 검색'}</button>
+      )}
     </div>
   ) : (
     <div className="route-check-actions is-step">
-      <button type="button" className="route-check-secondary-button" onClick={() => setMobileStep((s) => s - 1)}>{'이전'}</button>
+      <button type="button" className="route-check-secondary-button" onClick={() => setMobileStep(1)}>{'이전'}</button>
       <button type="button" className="route-check-search-button" onClick={handleGenerateBriefing} disabled={!routeResult || briefingLoading}>{briefingLoading ? '브리핑 생성 중...' : '브리핑 생성'}</button>
     </div>
   )

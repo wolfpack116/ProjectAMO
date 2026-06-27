@@ -235,12 +235,13 @@
 
 .route-check-sequence {
   margin-top: 8px;
-  padding: 9px 10px;
-  border-radius: 7px;
-  background: rgba(248, 250, 252, 0.92);
-  font-size: 11px;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+  background: #ffffff;
+  font-size: 12px;
   font-weight: 800;
-  line-height: 1.45;
+  line-height: 1.6;
 }
 
 .route-check-sequence-token {
@@ -253,14 +254,28 @@
 }
 
 .route-check-total-dist {
-  margin-top: 8px;
-  padding: 9px 10px;
-  border: 1px dashed rgba(148, 163, 184, 0.7);
-  border-radius: 7px;
+  margin-top: 10px;
+  padding: 11px 13px;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
   background: #ffffff;
-  color: #475569;
+  color: #64748b;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.route-check-total-dist-head {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.route-check-total-dist strong {
+  font-size: 16px;
+  font-weight: 850;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
 }
 
 .vfr-altitude-tools {
@@ -276,11 +291,11 @@
 
 .vfr-altitude-tools button {
   height: 26px;
-  padding: 0 8px;
-  border: 1px solid rgba(15, 118, 110, 0.25);
+  padding: 0 10px;
+  border: 1px solid #d4e3f7;
   border-radius: 999px;
-  background: #f0fdfa;
-  color: #0f766e;
+  background: #eff6ff;
+  color: #1d4ed8;
   font-size: 10px;
   font-weight: 850;
   cursor: pointer;
@@ -382,10 +397,10 @@
 
 .vertical-profile-control button {
   height: 34px;
-  padding: 0 10px;
+  padding: 0 12px;
   border: none;
   border-radius: 7px;
-  background: #0f766e;
+  background: #2563eb;
   color: #ffffff;
   font-size: 11px;
   font-weight: 850;
@@ -402,10 +417,10 @@
   width: 100%;
   height: 34px;
   margin-top: 8px;
-  border: 1px solid rgba(15, 118, 110, 0.28);
+  border: 1px solid #d4e3f7;
   border-radius: 7px;
-  background: #f0fdfa;
-  color: #0f766e;
+  background: #eff6ff;
+  color: #1d4ed8;
   font-size: 12px;
   font-weight: 850;
   cursor: pointer;
@@ -743,17 +758,30 @@
 }
 
 .dist-breakdown {
-  color: #94a3b8;
-  font-weight: 600;
-  font-size: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
 }
 
 .dist-breakdown-token {
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
-.dist-breakdown-sep {
-  color: #94a3b8;
+.dist-breakdown-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
 }
 
 .proc-direct-input {
@@ -1057,5 +1085,11 @@
 }
 .rb-mobile select,
 .rb-mobile .apf-row {
+  min-height: 44px;
+}
+.rb-mobile .vertical-profile-control input,
+.rb-mobile .vertical-profile-control button,
+.rb-mobile .vertical-profile-open-button {
+  height: 44px;
   min-height: 44px;
 }
