@@ -442,7 +442,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
 
   const stepNav = (
     <div className="rb-steps">
-      {[[1, '① 경로'], [2, '② 성능·시간']].map(([n, label]) => (
+      {[[1, '경로'], [2, '성능·시간']].map(([n, label]) => (
         <button key={n} type="button" className={`rb-step${mobileStep === n ? ' is-active' : ''}`} onClick={() => setMobileStep(n)}>{label}</button>
       ))}
     </div>
@@ -450,7 +450,6 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
 
   const mobileBody = (
     <form id="rb-mobile-form" className="route-check-form rb-mobile" onSubmit={handleRouteSearch}>
-      {stepNav}
       {mobileStep === 1 && (
         <>
           <div className="route-type-segmented">
@@ -564,7 +563,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           onClose={() => setSheetDetent('peek')}
           detent={sheetDetent}
           onDetentChange={setSheetDetent}
-          headerExtra={<span className="route-check-status">{routeForm.flightRule}</span>}
+          headerExtra={stepNav}
           peekContent={peekSummary}
           footer={mobileFooter}
         >

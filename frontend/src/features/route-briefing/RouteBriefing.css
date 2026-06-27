@@ -1093,3 +1093,71 @@
   height: 44px;
   min-height: 44px;
 }
+
+/* Compact: step tabs live in the sheet header (right of the title). */
+.mobile-sheet-header-extra .rb-steps {
+  margin: 0;
+  padding: 2px;
+  gap: 2px;
+}
+.mobile-sheet-header-extra .rb-step {
+  min-height: 38px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.mobile-sheet-header-extra .rb-step.is-active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+/* Compact: route preview matches the full width of the inputs above it. */
+.rb-mobile .route-check-result {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Compact: 출발 · ⇅ · 도착 on one row; expand to a column when a picker opens
+   so its airport grid spans full width. */
+.rb-mobile .rb-route {
+  position: relative;
+  flex-direction: row;
+  align-items: center;
+}
+.rb-mobile .rb-route > .apf {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.rb-mobile .rb-route > .rb-swap {
+  flex: 0 0 auto;
+  margin: 0;
+}
+.rb-mobile .rb-route .apf-row {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  padding: 0 10px;
+}
+/* Keep the row compact when a picker opens — float its airport grid below the
+   whole row as a full-width dropdown instead of reflowing to a column. */
+.rb-mobile .rb-route .apf-picker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 6px;
+  z-index: 20;
+  padding: 10px;
+  border: 0;
+  border-radius: 11px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+}
