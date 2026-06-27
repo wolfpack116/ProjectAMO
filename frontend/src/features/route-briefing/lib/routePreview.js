@@ -210,9 +210,8 @@ export function addProcedurePreviewLayers(map) {
     map.addLayer({
       id: PROC_WP_CIRCLE, type: 'circle', source: PROC_PREVIEW_SOURCE, slot: 'top',
       filter: ['any', ['==', ['get', 'role'], 'sid-wp'], ['==', ['get', 'role'], 'star-wp'], ['==', ['get', 'role'], 'iap-wp']],
-      layout: { visibility: 'none' },
       paint: {
-        'circle-radius': 4,
+        'circle-radius': 3,
         'circle-color': ['case',
           ['==', ['get', 'role'], 'sid-wp'], '#2563eb',
           ['==', ['get', 'role'], 'iap-wp'], '#0ea5e9',
