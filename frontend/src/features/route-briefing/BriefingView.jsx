@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import VerticalProfileChart from './VerticalProfileChart.jsx'
 import useIsMobile from '../../shared/ui/useIsMobile.js'
 import MobileSheet from '../../shared/ui/MobileSheet.jsx'
+import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
+import { formatBriefingTime } from './lib/briefingTime.js'
 import './BriefingView.css'
 
 const LEVEL_CLASS = { green: 'bv-green', amber: 'bv-amber', red: 'bv-red', gray: 'bv-gray' }
@@ -36,6 +38,7 @@ function Cell({ field }) {
 
 export default function BriefingView({ briefing, verticalProfile = null, crossSection = null, onClose, onOpenProfile, onFocus }) {
   const isMobile = useIsMobile()
+  const { tz } = useTimeZone()
   const containerRef = useRef(null)
   const [activeId, setActiveId] = useState(null)
   const [detent, setDetent] = useState('half')
@@ -82,6 +85,10 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
 
   if (!briefing) return null
   const { meta, summary, sections } = briefing
+
+  const etdEtaLine = (meta.etd || meta.eta)
+    ? `ETD ${formatBriefingTime(meta.etd, tz)} → ETA ${formatBriefingTime(meta.eta, tz, { withDate: (meta.eta || '').slice(0, 10) !== (meta.etd || '').slice(0, 10) })}`
+    : null
 
   const jumpTo = (id) => {
     setActiveId(id) // optimistic: scrollIntoView may land the section above the observer band
@@ -236,7 +243,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
     <section data-bvid="destination" className={`bv-section ${LEVEL_CLASS[sections.destination.level]}`}>
       <h3>⑤ 목적지 예보</h3>
       {sections.destination.taf
-        ? <p>{sections.destination.taf.time} · {sections.destination.taf.clouds} · {sections.destination.taf.category}</p>
+        ? <p><b>ETA {formatBriefingTime(meta.eta, tz)} 기준 예보</b> · {sections.destination.taf.clouds} · {sections.destination.taf.category}</p>
         : <p className="bv-muted">TAF 없음</p>}
       {sections.destination.alternateRequired === true &&
         <p className="bv-flag-text">⚠️ 교체공항 필요 — {sections.destination.alternateReason}</p>}
@@ -265,6 +272,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
           peekContent={peekSummary}
         >
           <div className="bv-mobile" ref={containerRef}>
+            {etdEtaLine && <div className="bv-time">{etdEtaLine}</div>}
             {navEl}
             {boardEl}
             {adverseSection}
@@ -292,6 +300,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
           <div className="bv-eyebrow">비행 전 브리핑</div>
           <div className="bv-route"><b>{meta.departureAirport} → {meta.arrivalAirport}</b></div>
           <div className="bv-meta">{meta.alternateAirport ? `교체 ${meta.alternateAirport}` : '단일 목적지'}</div>
+          {etdEtaLine && <div className="bv-time">{etdEtaLine}</div>}
         </div>
         <div className="bv-head-side">
           <span className="bv-rule-chip">{meta.flightRule}</span>
