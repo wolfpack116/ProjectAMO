@@ -156,6 +156,14 @@ body {
     border-color: #2563eb;
   }
 
+  /* A full-detent mobile sheet owns the whole surface — hide the map chrome
+     (status strip, layer chips, basemap switcher) that would otherwise sit on top. */
+  .amo-sheet-full .mobile-status-strip,
+  .amo-sheet-full .mobile-map-layer-btns,
+  .amo-sheet-full .basemap-switcher {
+    display: none;
+  }
+
   /* "더보기" task surface. */
   .mobile-more {
     position: fixed;

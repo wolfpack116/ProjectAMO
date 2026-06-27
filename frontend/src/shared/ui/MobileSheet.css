@@ -23,6 +23,13 @@
   transition: none;
 }
 
+/* Full detent: flush to the top of the map wrapper, so square the top corners
+   (rounded corners would let the map show through at the very top). */
+.mobile-sheet.is-full {
+  border-top: 0;
+  border-radius: 0;
+}
+
 .mobile-sheet-grab {
   flex: 0 0 auto;
   display: flex;
