@@ -518,6 +518,9 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   // advances to 브리핑 생성 (the final deliverable) with 초기화 alongside.
   const mobileFooter = mobileStep === 1 ? (
     <div className="route-check-actions is-step">
+      {(depChosen || arrChosen || routeResult) && (
+        <button type="button" className="route-check-secondary-button" onClick={handleRouteReset} disabled={routeLoading}>{'초기화'}</button>
+      )}
       {routeResult ? (
         <button type="button" className="route-check-search-button" onClick={() => setMobileStep(2)}>{'다음'}</button>
       ) : (

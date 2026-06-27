@@ -272,24 +272,32 @@
   gap: 7px;
 }
 
-.rb-detail-toggle {
+.rb-mobile .rb-detail-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  height: 30px;
-  padding: 0 11px;
-  border: 1px solid #d4e3f7;
-  border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
+  gap: 4px;
+  height: auto;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: #64748b;
   font-size: 11px;
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
 }
 
+.rb-mobile .rb-detail-toggle[aria-expanded="true"] {
+  color: #2563eb;
+}
+
 .rb-detail-caret {
   font-size: 9px;
+  color: #94a3b8;
+}
+
+.rb-mobile .rb-detail-toggle[aria-expanded="true"] .rb-detail-caret {
+  color: #2563eb;
 }
 
 .route-check-total-dist strong {
