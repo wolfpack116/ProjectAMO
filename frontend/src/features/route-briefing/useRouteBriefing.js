@@ -4,6 +4,8 @@ import { getProcedures, KNOWN_AIRPORTS } from './lib/procedureData.js'
 import { buildBriefingRoute, buildVfrRoute, canBuildBriefingRoutePath, loadIapData, loadNavpoints, loadRouteDirectionMetadata } from './lib/routePlanner.js'
 import { relabeledWaypoints, calcVfrDistance } from './lib/routePreview.js'
 import { computeEtaIso } from './lib/etaCalc.js'
+import { getLastUsed } from './lib/aircraftProfiles.js'
+import { initialBearingDeg, magneticCourse } from './lib/altitude.js'
 import { buildVerticalProfileRequest } from './lib/verticalProfileRequest.js'
 import {
   FIR_EXIT_AIRPORT,
@@ -34,7 +36,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
   const [routeResult, setRouteResult] = useState(null)
   const [routeError, setRouteError] = useState(null)
   const [routeLoading, setRouteLoading] = useState(false)
-  const [cruiseAltitudeFt, setCruiseAltitudeFt] = useState(DEFAULT_CRUISE_ALTITUDE_FT)
+  const [cruiseAltitudeFt, setCruiseAltitudeFt] = useState(() => getLastUsed()?.altitudeFt ?? DEFAULT_CRUISE_ALTITUDE_FT)
   const [verticalProfile, setVerticalProfile] = useState(null)
   const [crossSection, setCrossSection] = useState(null)
   const [verticalProfileLoading, setVerticalProfileLoading] = useState(false)
@@ -78,7 +80,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     d.setUTCSeconds(0, 0)
     return d.toISOString().replace('.000Z', 'Z')
   })
-  const [cruiseSpeedKt, setCruiseSpeedKt] = useState(120)
+  const [cruiseSpeedKt, setCruiseSpeedKt] = useState(() => getLastUsed()?.tasKt ?? 120)
   const [briefing, setBriefing] = useState(null)
   const [briefingLoading, setBriefingLoading] = useState(false)
   const [briefingError, setBriefingError] = useState(null)
@@ -616,6 +618,14 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
           || Number(routeResult?.distanceNm) || 0)
   }, [routeResult, routeForm.flightRule, vfrWaypoints, selectedSid, selectedStar, selectedIap])
 
+  // dep→arr magnetic course (for the VFR cruising-altitude hint). Hint only.
+  const magCourseDeg = useMemo(() => {
+    const dep = airports.find((a) => a.icao === routeForm.departureAirport)
+    const arr = airports.find((a) => a.icao === routeForm.arrivalAirport)
+    if (!dep || !arr || !Number.isFinite(dep.lat) || !Number.isFinite(arr.lat)) return null
+    return magneticCourse(initialBearingDeg(dep.lat, dep.lon, arr.lat, arr.lon))
+  }, [airports, routeForm.departureAirport, routeForm.arrivalAirport])
+
   async function handleGenerateBriefing() {
     const routeGeometry = getCurrentRouteLineString({ routeResult, vfrWaypoints, selectedSid, selectedStar, selectedIap })
     if (!routeGeometry) { setBriefingError('먼저 경로를 검색하세요.'); return }
@@ -697,6 +707,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       selectedIap,
       visibleSidOptions,
       plannedDistanceNm,
+      magCourseDeg,
     },
     actions: {
       updateRouteField,

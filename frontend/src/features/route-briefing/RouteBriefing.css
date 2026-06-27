@@ -977,36 +977,57 @@
   color: #64748b;
 }
 
-/* Mobile: 브리핑 조건을 카드(테두리+틴트)가 아니라 다른 입력칸과 같은 깔끔한 스타일로
-   통일. 브리핑 생성 버튼은 시트 footer로 이동했으므로 여기엔 입력만 남는다. */
-.rb-mobile .route-check-section--briefing {
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-.rb-mobile .route-check-section--briefing .route-check-section-title {
-  margin-bottom: 2px;
-}
-/* 교체공항/ETD/순항속도를 2x2 그리드가 아니라 출발·도착 픽커처럼 전폭 세로 스택으로 */
-.rb-mobile .route-check-section--briefing .route-check-section-grid {
-  grid-template-columns: 1fr;
-  gap: 10px;
-}
+/* 브리핑 조건 = 내 항공기 + 교체 + ETD + 요약 세로 스택 (카드 테두리 제거, 깔끔한 입력) */
+.rb-mobile .route-check-section--briefing { padding: 0; border: 0; background: transparent; }
+.route-check-section--briefing { display: grid; gap: 10px; }
+.route-check-section--briefing .route-check-section-title { margin-bottom: 2px; }
+.rb-altn { display: grid; gap: 4px; color: #64748b; font-size: 10px; font-weight: 800; }
+.rb-altn select { height: 36px; padding: 0 8px; border: 1px solid rgba(148,163,184,0.58); border-radius: 7px; font-size: 13px; font-weight: 700; color: #0f172a; }
 
-/* ETD = 월 / 일 / 시각 (연도 없음) + 자동 계산 ETA 읽기전용.
-   2열 그리드에서 반쪽에 끼면 월/일이 잘려 → 전폭으로 빼고 순서상 마지막에 둠. */
-.route-check-section--briefing .route-check-field--etd { grid-column: 1 / -1; order: 1; }
-.etd-input { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 6px; }
-.etd-input select,
-.etd-input input {
-  height: 36px;
-  padding: 0 8px;
-  border: 1px solid rgba(148, 163, 184, 0.58);
-  border-radius: 7px;
-  background: #ffffff;
-  color: #0f172a;
-  font-size: 13px;
-  font-weight: 700;
-}
-.eta-readout { margin-top: 6px; font-size: 11px; font-weight: 800; color: #64748b; }
-.eta-readout strong { color: #0f172a; font-variant-numeric: tabular-nums; }
+/* ETD 필드: 데스크톱 타이핑 / 모바일 휠 + 상대 칩 */
+.etd-field { display: grid; gap: 7px; }
+.etd-row { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 6px; }
+.etd-field select, .etd-field input[type="time"] { height: 36px; padding: 0 8px; border: 1px solid rgba(148,163,184,0.58); border-radius: 7px; background: #fff; color: #0f172a; font-size: 13px; font-weight: 700; }
+.etd-chips, .etd-day-chips { display: flex; gap: 5px; }
+.route-check-form .etd-chip { border: 0; border-radius: 999px; padding: 5px 12px; background: #eef2f7; color: #475569; font-size: 11px; font-weight: 800; cursor: pointer; }
+.route-check-form .etd-chip.is-active { background: #eff6ff; color: #2563eb; }
+.etd-field--mobile .etd-time-wheel { width: 100%; }
+
+/* 내 항공기 프로파일 + 직접 입력 */
+.acp { display: grid; gap: 8px; }
+.acp-head { display: flex; align-items: center; gap: 8px; }
+.route-check-form .acp-select { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 1px solid #e7ebf2; border-radius: 10px; background: #fff; padding: 7px 11px; cursor: pointer; }
+.acp-label { font-size: 10px; font-weight: 800; color: #94a3b8; }
+.acp-value { font-size: 14px; font-weight: 850; color: #0f172a; }
+.route-check-form .acp-save { border: 0; background: transparent; color: #2563eb; font-size: 11px; font-weight: 800; cursor: pointer; }
+.acp-list { border: 1px solid #e7ebf2; border-radius: 10px; background: #fff; padding: 4px; }
+.acp-empty { font-size: 12px; color: #94a3b8; padding: 8px; }
+.acp-item { display: flex; align-items: center; }
+.route-check-form .acp-item-pick { flex: 1; text-align: left; border: 0; background: transparent; padding: 8px; font-size: 13px; font-weight: 800; color: #0f172a; cursor: pointer; }
+.acp-item-pick span { color: #94a3b8; font-weight: 600; }
+.route-check-form .acp-item-del { border: 0; background: transparent; color: #c0291f; font-size: 16px; cursor: pointer; padding: 0 8px; }
+.acp-perf { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.acp-field { display: grid; gap: 4px; font-size: 10px; font-weight: 800; color: #94a3b8; position: relative; }
+.acp-field input { height: 36px; padding: 0 8px; border: 1px solid rgba(148,163,184,0.58); border-radius: 7px; font-size: 14px; font-weight: 800; color: #0f172a; }
+.acp-field em { position: absolute; right: 10px; bottom: 9px; font-style: normal; font-size: 11px; color: #94a3b8; }
+.acp-alt { position: relative; }
+.acp-alt input { width: 100%; }
+.acp-alt-fmt { position: absolute; right: 30px; bottom: 9px; font-size: 11px; font-weight: 700; color: #64748b; }
+.acp-step { position: absolute; right: 6px; bottom: 5px; display: flex; flex-direction: column; line-height: .7; }
+.route-check-form .acp-step button { border: 0; background: transparent; color: #94a3b8; font-size: 10px; cursor: pointer; padding: 0; }
+.acp-hint { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 6px 10px; }
+
+/* 파생 요약 strip: 거리 · ETD→ETA */
+.rb-summary { display: flex; align-items: center; gap: 12px; background: #eff6ff; border: 1px solid #d4e3f7; border-radius: 11px; padding: 10px 12px; }
+.rb-summary-dist { flex: 0 0 auto; padding-right: 12px; border-right: 1px solid #d4e3f7; text-align: center; }
+.rb-summary-time { flex: 1; text-align: center; }
+.rb-summary span { display: block; font-size: 10px; font-weight: 800; color: #5b7da8; }
+.rb-summary strong { font-size: 16px; font-weight: 850; color: #0f2742; font-variant-numeric: tabular-nums; }
+.rb-summary em { font-size: 11px; font-style: normal; }
+
+/* 모바일 3단계 위저드 */
+.rb-steps { display: flex; gap: 3px; padding: 3px; border-radius: 10px; background: #eef2f7; margin-bottom: 12px; }
+.route-check-form .rb-step { flex: 1; border: 0; border-radius: 8px; background: transparent; padding: 8px 4px; font-size: 12px; font-weight: 800; color: #64748b; cursor: pointer; }
+.route-check-form .rb-step.is-active { background: #fff; color: #2563eb; box-shadow: 0 1px 2px rgba(15,23,42,.12); }
+.rb-procedures { display: grid; gap: 8px; }
+.rb-vfr-note { font-size: 12px; font-weight: 700; color: #64748b; padding: 8px; }

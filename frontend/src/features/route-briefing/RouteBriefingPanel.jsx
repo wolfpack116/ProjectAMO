@@ -15,7 +15,9 @@ import AirportPickerField from '../../shared/ui/AirportPickerField.jsx'
 import PickerField from '../../shared/ui/PickerField.jsx'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
 import { computeEtaIso } from './lib/etaCalc.js'
-import { buildEtdIso, etdFields, formatBriefingTime } from './lib/briefingTime.js'
+import { formatBriefingTime } from './lib/briefingTime.js'
+import EtdField from './EtdField.jsx'
+import AircraftProfileField from './AircraftProfileField.jsx'
 import './RouteBriefing.css'
 
 const AIRPORT_KO = {
@@ -31,6 +33,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   // The briefing stays an active task; the sheet × collapses to the peek summary
   // instead of closing (use the bottom task bar to leave 브리핑).
   const [sheetDetent, setSheetDetent] = useState('half')
+  const [mobileStep, setMobileStep] = useState(1)
   const {
     routeForm,
     routeResult,
@@ -88,10 +91,26 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
 
   const isIfr = routeForm.flightRule === 'IFR'
 
-  // ETD edited as 월/일 + 시각 in the app timezone; ETA is auto-computed read-only.
-  const etdParts = etdFields(etd, tz)
+  // ETA is auto-computed read-only from ETD + planned distance + TAS.
   const etaIso = computeEtaIso(etd, derived.plannedDistanceNm, cruiseSpeedKt)
-  const setEtdPart = (patch) => setEtd(buildEtdIso({ ...etdParts, ...patch }, tz))
+  const applyPerf = ({ tasKt, altitudeFt }) => { setCruiseSpeedKt(tasKt); setCruiseAltitudeFt(altitudeFt) }
+  const summaryStrip = (
+    <div className="rb-summary">
+      <div className="rb-summary-dist"><span>거리</span><strong>{Math.round(derived.plannedDistanceNm)}<em>NM</em></strong></div>
+      <div className="rb-summary-time"><span>ETD → ETA</span><strong>{formatBriefingTime(etd, tz)} → {etaIso ? formatBriefingTime(etaIso, tz) : '—'}</strong></div>
+    </div>
+  )
+  // 내 항공기(속도·고도 직접입력) + ETD + 파생 요약. 데스크톱 섹션과 모바일 ③단계에서 공유.
+  const perfTimeBlock = (
+    <>
+      <AircraftProfileField tasKt={cruiseSpeedKt} altitudeFt={Number(cruiseAltitudeFt) || 0} magCourseDeg={derived.magCourseDeg} onChange={applyPerf} />
+      <div className="route-check-field">
+        <div className="route-check-field-label">{`ETD (${tz})`}</div>
+        <EtdField etd={etd} tz={tz} variant={isMobile ? 'mobile' : 'desktop'} onChange={setEtd} />
+      </div>
+      {summaryStrip}
+    </>
+  )
 
   function swapAirports() {
     const dep = routeForm.departureAirport
@@ -252,38 +271,13 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   const renderBriefingConditions = (showGenerate) => (
     <div className="route-check-section route-check-section--briefing">
       <div className="route-check-section-title">{'브리핑 조건'}</div>
-      <div className="route-check-section-grid">
-        <label>{'교체 공항'}
-          <select value={alternateAirport} onChange={(e) => setAlternateAirport(e.target.value)}>
-            <option value="">{'-- 없음 --'}</option>
-            {KNOWN_AIRPORTS.map((ap) => <option key={ap} value={ap}>{ap}</option>)}
-          </select>
-        </label>
-        <div className="route-check-field route-check-field--etd">
-          <div className="route-check-field-label">{`ETD (${tz})`}</div>
-          <div className="etd-input">
-            <select value={etdParts.month} onChange={(e) => setEtdPart({ month: Number(e.target.value) })} aria-label="출발 월">
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => <option key={m} value={m}>{m}월</option>)}
-            </select>
-            <select value={etdParts.day} onChange={(e) => setEtdPart({ day: Number(e.target.value) })} aria-label="출발 일">
-              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{d}일</option>)}
-            </select>
-            <input
-              type="time"
-              value={`${String(etdParts.hour).padStart(2, '0')}:${String(etdParts.minute).padStart(2, '0')}`}
-              onChange={(e) => {
-                const [h, mi] = e.target.value.split(':').map(Number)
-                if (Number.isFinite(h) && Number.isFinite(mi)) setEtdPart({ hour: h, minute: mi })
-              }}
-              aria-label="출발 시각"
-            />
-          </div>
-          <div className="eta-readout">{'ETA'} <strong>{etaIso ? formatBriefingTime(etaIso, tz, { withDate: etaIso.slice(0, 10) !== etd.slice(0, 10) }) : '—'}</strong></div>
-        </div>
-        <label>{'순항속도(kt)'}
-          <input type="number" min="1" step="1" value={cruiseSpeedKt} onChange={(e) => setCruiseSpeedKt(e.target.value)} />
-        </label>
-      </div>
+      <label className="rb-altn">{'교체 공항'}
+        <select value={alternateAirport} onChange={(e) => setAlternateAirport(e.target.value)}>
+          <option value="">{'-- 없음 --'}</option>
+          {KNOWN_AIRPORTS.map((ap) => <option key={ap} value={ap}>{ap}</option>)}
+        </select>
+      </label>
+      {perfTimeBlock}
       {showGenerate && (
         <button
           className="route-check-search-button"
@@ -453,99 +447,60 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   const arrChosen = !!routeForm.arrivalAirport
   const firOnEitherSide = routeForm.departureAirport === FIR_IN_AIRPORT || routeForm.arrivalAirport === FIR_EXIT_AIRPORT
 
+  const stepNav = (
+    <div className="rb-steps">
+      {[[1, '① 경로'], [2, '② 절차'], [3, '③ 성능·시간']].map(([n, label]) => (
+        <button key={n} type="button" className={`rb-step${mobileStep === n ? ' is-active' : ''}`} onClick={() => setMobileStep(n)}>{label}</button>
+      ))}
+    </div>
+  )
+
   const mobileBody = (
     <form id="rb-mobile-form" className="route-check-form rb-mobile" onSubmit={handleRouteSearch}>
-      <div className="route-type-segmented">
-        <button type="button" className={`route-type-seg${isIfr ? ' is-active' : ''}`} onClick={() => switchFlightRule('IFR')}>IFR</button>
-        <button type="button" className={`route-type-seg${!isIfr ? ' is-active' : ''}`} onClick={() => switchFlightRule('VFR')}>VFR</button>
-      </div>
-      {isIfr && (
-        <div className="route-type-segmented" style={{ marginTop: 8 }}>
-          {[['ALL', '전체'], ['RNAV', 'RNAV'], ['ATS', 'ATS']].map(([val, lbl]) => (
-            <button
-              key={val}
-              type="button"
-              className={`route-type-seg${routeForm.routeType === val ? ' is-active' : ''}`}
-              onClick={() => updateRouteField('routeType', val)}
-            >
-              {lbl}
-            </button>
-          ))}
-        </div>
+      {stepNav}
+      {mobileStep === 1 && (
+        <>
+          <div className="route-type-segmented">
+            <button type="button" className={`route-type-seg${isIfr ? ' is-active' : ''}`} onClick={() => switchFlightRule('IFR')}>IFR</button>
+            <button type="button" className={`route-type-seg${!isIfr ? ' is-active' : ''}`} onClick={() => switchFlightRule('VFR')}>VFR</button>
+          </div>
+          <div className="rb-route">
+            <AirportPickerField label="출발" value={routeForm.departureAirport} options={AIRPORT_OPTIONS} firOption={{ value: FIR_IN_AIRPORT, label: 'FIR 진입' }} onChange={handleDepartureAirportChange} disabledValue={routeForm.arrivalAirport} />
+            <div className="rb-swap"><button type="button" className="rb-swap-btn" onClick={swapAirports} disabled={firOnEitherSide} aria-label="출발 도착 교환">⇅</button></div>
+            <AirportPickerField label="도착" value={routeForm.arrivalAirport} options={AIRPORT_OPTIONS} firOption={{ value: FIR_EXIT_AIRPORT, label: 'FIR 이탈' }} onChange={handleArrivalAirportChange} disabledValue={routeForm.departureAirport} />
+          </div>
+          <label className="rb-altn">{'교체 공항'}
+            <select value={alternateAirport} onChange={(e) => setAlternateAirport(e.target.value)}>
+              <option value="">{'-- 없음 --'}</option>
+              {KNOWN_AIRPORTS.map((ap) => <option key={ap} value={ap}>{ap}</option>)}
+            </select>
+          </label>
+        </>
       )}
-
-      <div className="rb-route">
-        <AirportPickerField
-          label="출발"
-          value={routeForm.departureAirport}
-          options={AIRPORT_OPTIONS}
-          firOption={{ value: FIR_IN_AIRPORT, label: 'FIR 진입' }}
-          onChange={handleDepartureAirportChange}
-          disabledValue={routeForm.arrivalAirport}
-        />
-        {isIfr && depChosen && (
-          isFirInMode
-            ? (
-              <PickerField
-                label="진입 FIX"
-                value={routeForm.entryFix}
-                options={[NONE_OPTION, ...firInOptions.map((o) => ({ value: o.value, label: o.label }))]}
-                onChange={handleEntryFixChange}
-              />
-            )
-            : (
-              <PickerField
-                label="SID"
-                value={selectedSid?.id ?? ''}
-                options={[NONE_OPTION, ...visibleSidOptions.map((p) => ({ value: p.id, label: p.label }))]}
-                onChange={(id) => handleSidChange(id ? (visibleSidOptions.find((p) => p.id === id) ?? null) : null)}
-              />
-            )
-        )}
-
-        <div className="rb-swap">
-          <button type="button" className="rb-swap-btn" onClick={swapAirports} disabled={firOnEitherSide} aria-label="출발 도착 교환">⇅</button>
-        </div>
-
-        <AirportPickerField
-          label="도착"
-          value={routeForm.arrivalAirport}
-          options={AIRPORT_OPTIONS}
-          firOption={{ value: FIR_EXIT_AIRPORT, label: 'FIR 이탈' }}
-          onChange={handleArrivalAirportChange}
-          disabledValue={routeForm.departureAirport}
-        />
-        {isIfr && arrChosen && (
-          isFirExitMode
-            ? (
-              <PickerField
-                label="이탈 FIX"
-                value={routeForm.exitFix}
-                options={[NONE_OPTION, ...firExitOptions.map((o) => ({ value: o.value, label: o.label }))]}
-                onChange={handleExitFixChange}
-              />
-            )
-            : (
-              <PickerField
-                label="STAR"
-                value={selectedStar?.id ?? ''}
-                options={[NONE_OPTION, ...starOptions.map((p) => ({ value: p.id, label: p.label }))]}
-                onChange={(id) => handleStarChange(id ? (starOptions.find((p) => p.id === id) ?? null) : null)}
-              />
-            )
-        )}
-        {isIfr && arrChosen && !isFirExitMode && iapCandidates.length > 1 && (
-          <PickerField
-            label="RWY"
-            value={selectedIapKey ?? ''}
-            options={iapCandidates.map(({ key, label }) => ({ value: key, label }))}
-            onChange={handleIapChange}
-          />
-        )}
-      </div>
-
-      {renderBriefingConditions(false)}
-
+      {mobileStep === 2 && (
+        <>
+          {isIfr && (
+            <div className="route-type-segmented">
+              {[['ALL', '전체'], ['RNAV', 'RNAV'], ['ATS', 'ATS']].map(([val, lbl]) => (
+                <button key={val} type="button" className={`route-type-seg${routeForm.routeType === val ? ' is-active' : ''}`} onClick={() => updateRouteField('routeType', val)}>{lbl}</button>
+              ))}
+            </div>
+          )}
+          <div className="rb-procedures">
+            {isIfr && depChosen && (isFirInMode
+              ? <PickerField label="진입 FIX" value={routeForm.entryFix} options={[NONE_OPTION, ...firInOptions.map((o) => ({ value: o.value, label: o.label }))]} onChange={handleEntryFixChange} />
+              : <PickerField label="SID" value={selectedSid?.id ?? ''} options={[NONE_OPTION, ...visibleSidOptions.map((p) => ({ value: p.id, label: p.label }))]} onChange={(id) => handleSidChange(id ? (visibleSidOptions.find((p) => p.id === id) ?? null) : null)} />)}
+            {isIfr && arrChosen && (isFirExitMode
+              ? <PickerField label="이탈 FIX" value={routeForm.exitFix} options={[NONE_OPTION, ...firExitOptions.map((o) => ({ value: o.value, label: o.label }))]} onChange={handleExitFixChange} />
+              : <PickerField label="STAR" value={selectedStar?.id ?? ''} options={[NONE_OPTION, ...starOptions.map((p) => ({ value: p.id, label: p.label }))]} onChange={(id) => handleStarChange(id ? (starOptions.find((p) => p.id === id) ?? null) : null)} />)}
+            {isIfr && arrChosen && !isFirExitMode && iapCandidates.length > 1 && (
+              <PickerField label="RWY" value={selectedIapKey ?? ''} options={iapCandidates.map(({ key, label }) => ({ value: key, label }))} onChange={handleIapChange} />
+            )}
+            {!isIfr && <div className="rb-vfr-note">VFR — 지도에서 경유점을 추가하세요</div>}
+          </div>
+        </>
+      )}
+      {mobileStep === 3 && perfTimeBlock}
       {errorBlock}
       {resultsBlock}
     </form>
@@ -556,18 +511,15 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   // Progressive footer: before a route exists, the primary action is 검색
   // (+자동검색/초기화). Once a route is found, the footer's primary action
   // advances to 브리핑 생성 (the final deliverable) with 초기화 alongside.
-  const mobileFooter = routeResult ? (
-    <div className="route-check-actions is-briefing">
-      <button className="route-check-search-button" type="button" onClick={handleGenerateBriefing} disabled={briefingLoading}>{briefingLoading ? '브리핑 생성 중...' : '브리핑 생성'}</button>
-      <button className="route-check-secondary-button" type="button" onClick={handleRouteReset} disabled={routeLoading}>{'초기화'}</button>
+  const mobileFooter = mobileStep < 3 ? (
+    <div className="route-check-actions is-step">
+      {mobileStep > 1 && <button type="button" className="route-check-secondary-button" onClick={() => setMobileStep((s) => s - 1)}>{'이전'}</button>}
+      <button type="button" className="route-check-search-button" onClick={() => { if (mobileStep === 2) handleRouteSearch({ preventDefault() {} }); setMobileStep((s) => Math.min(3, s + 1)) }} disabled={routeLoading}>{routeLoading ? '검색 중...' : '다음'}</button>
     </div>
   ) : (
-    <div className={`route-check-actions${!isIfr ? ' is-vfr' : ''}`}>
-      <button className="route-check-search-button" type="submit" form="rb-mobile-form" disabled={routeLoading}>{routeLoading ? '검색 중...' : '검색'}</button>
-      {isIfr && (
-        <button className="route-check-secondary-button" type="button" onClick={handleAutoRecommend} disabled={routeLoading}>{'자동검색'}</button>
-      )}
-      <button className="route-check-secondary-button" type="button" onClick={handleRouteReset} disabled={routeLoading}>{'초기화'}</button>
+    <div className="route-check-actions is-step">
+      <button type="button" className="route-check-secondary-button" onClick={() => setMobileStep((s) => s - 1)}>{'이전'}</button>
+      <button type="button" className="route-check-search-button" onClick={handleGenerateBriefing} disabled={!routeResult || briefingLoading}>{briefingLoading ? '브리핑 생성 중...' : '브리핑 생성'}</button>
     </div>
   )
 
