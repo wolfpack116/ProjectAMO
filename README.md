@@ -197,5 +197,5 @@ artifacts/responsive-screenshots/<phase>/
 
 - 코드 변경 전 `agents.md`, `Architecture.md`, `EntryPoints.md`를 먼저 확인하세요.
 - 지도 관련 기능은 가능하면 소유 feature 모듈에 둡니다. `MapView.jsx`는 Mapbox 생명주기, basemap 전환, style readiness, 고수준 composition에 집중해야 합니다.
-- UI, CSS, 레이아웃, 반응형 작업은 `docs/ui-responsive-guidelines.md`를 따르세요.
+- UI, CSS, 레이아웃, 반응형, 디자인 작업은 `docs/design/design-language.md`(디자인 헌법, 단일 출처)를 따르세요.
 - 로컬 서버 실행, Playwright 스크린샷, Codex App Browser 캡처 작업은 `docs/dev-server-and-capture.md`를 따르세요.
