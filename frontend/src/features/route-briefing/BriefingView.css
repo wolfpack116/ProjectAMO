@@ -38,7 +38,7 @@
 .bv-chip { display:inline-flex; align-items:center; gap:var(--space-1); padding:4px 11px; border-radius:999px;
   font-size:12px; font-weight:800; background:#eef2f7; color:#475569; }
 .bv-chip::before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.9; }
-.bv-chip.bv-green { background:#dcefe2; color:#15803d; }
+.bv-chip.bv-green { background:#dcefe2; color:#166534; }
 .bv-chip.bv-amber { background:#fdecc8; color:#92400e; }
 .bv-chip.bv-red { background:#f7dcd9; color:#c0291f; }
 .bv-chip.bv-gray { background:#eef2f7; color:#64748b; }
@@ -72,7 +72,7 @@
 .bv-cat { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:6px;
   font-size:11px; font-weight:850; letter-spacing:.02em; }
 .bv-cat::before { content:""; width:7px; height:7px; border-radius:50%; background:currentColor; }
-.bv-cat-vfr { background:#dcefe2; color:#15803d; }
+.bv-cat-vfr { background:#dcefe2; color:#166534; }
 .bv-cat-mvfr { background:#e0eafb; color:#1d4ed8; }
 .bv-cat-ifr { background:#f7dcd9; color:#c0291f; }
 .bv-cat-lifr { background:#f0d9f0; color:#9d2c9d; }
