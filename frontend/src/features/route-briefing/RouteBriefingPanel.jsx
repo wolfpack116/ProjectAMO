@@ -34,6 +34,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   // instead of closing (use the bottom task bar to leave 브리핑).
   const [sheetDetent, setSheetDetent] = useState('half')
   const [mobileStep, setMobileStep] = useState(1)
+  const [showDetailRoute, setShowDetailRoute] = useState(false)
   const {
     routeForm,
     routeResult,
@@ -122,7 +123,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   // Shared between the desktop panel and the mobile sheet.
   const errorBlock = routeError && <div className="route-check-error">{routeError}</div>
 
-  const resultsBlock = routeResult && (
+  const routePreview = routeResult && (
     <div className="route-check-result">
       {routeResult.flightRule === 'IFR' && (() => {
         const displayTokens = buildIfrSequenceTokens(routeResult, { selectedSid, selectedStar, selectedIap })
@@ -132,11 +133,19 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           selectedStar,
           selectedIap,
         })
+        const sequenceVisible = !isMobile || showDetailRoute
 
         return (
           <>
             <div className="route-check-total-dist">
-              <div className="route-check-total-dist-head">{'총 거리'} <strong>{totalDistanceNm} NM</strong></div>
+              <div className="route-check-total-dist-head">
+                <span>{'총 거리'} <strong>{totalDistanceNm} NM</strong></span>
+                {isMobile && (
+                  <button type="button" className="rb-detail-toggle" onClick={() => setShowDetailRoute((v) => !v)} aria-expanded={showDetailRoute}>
+                    {'상세경로'}<span className="rb-detail-caret" aria-hidden="true">{showDetailRoute ? '▴' : '▾'}</span>
+                  </button>
+                )}
+              </div>
               {distanceBreakdown.length > 0 && (
                 <div className="dist-breakdown">
                   {distanceBreakdown.map((item) => (
@@ -148,19 +157,21 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
                 </div>
               )}
             </div>
-            <div className="route-check-sequence">
-              {displayTokens.map((token, index) => (
-                <span key={`${token.kind}-${token.text}-${index}`}>
-                  {index > 0 && <span className="route-check-sequence-sep">{' -> '}</span>}
-                  <span
-                    className={`route-check-sequence-token is-${token.kind}`}
-                    style={{ color: ROUTE_SEQUENCE_COLORS[token.kind] }}
-                  >
-                    {token.text}
+            {sequenceVisible && (
+              <div className="route-check-sequence">
+                {displayTokens.map((token, index) => (
+                  <span key={`${token.kind}-${token.text}-${index}`}>
+                    {index > 0 && <span className="route-check-sequence-sep">{' -> '}</span>}
+                    <span
+                      className={`route-check-sequence-token is-${token.kind}`}
+                      style={{ color: ROUTE_SEQUENCE_COLORS[token.kind] }}
+                    >
+                      {token.text}
+                    </span>
                   </span>
-                </span>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </>
         )
       })()}
@@ -223,21 +234,16 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           </div>
         </>
       )}
-      <div className="vertical-profile-control">
-        <label>
-          <span>{'순항고도(ft)'}</span>
-          <input
-            type="number"
-            min="100"
-            step="100"
-            value={cruiseAltitudeFt}
-            onChange={(e) => setCruiseAltitudeFt(e.target.value)}
-          />
-        </label>
-        <button type="button" onClick={handleVerticalProfileRequest} disabled={verticalProfileLoading}>
-          {verticalProfileLoading ? '생성 중...' : '연직단면도 생성'}
-        </button>
-      </div>
+    </div>
+  )
+
+  // Cross-section generation moves to the 성능·시간 step (mobile) / below the route
+  // (desktop). Cruise altitude comes from 내 항공기 above — no separate input here.
+  const crossSectionBlock = routeResult && (
+    <div className="route-check-result">
+      <button type="button" className="vertical-profile-generate" onClick={handleVerticalProfileRequest} disabled={verticalProfileLoading}>
+        {verticalProfileLoading ? '생성 중...' : '연직단면도 생성'}
+      </button>
       {verticalProfileStale && (
         <div className="vertical-profile-stale">
           {'경로가 변경되었습니다. 연직단면도를 다시 생성해주세요.'}
@@ -431,7 +437,8 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
         </div>
       </form>
       {errorBlock}
-      {resultsBlock}
+      {routePreview}
+      {crossSectionBlock}
     </>
   )
 
@@ -492,10 +499,15 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
             {!isIfr && <div className="rb-vfr-note">VFR — 지도에서 경유점을 추가하세요</div>}
           </div>
           {errorBlock}
-          {resultsBlock}
+          {routePreview}
         </>
       )}
-      {mobileStep === 2 && perfTimeBlock}
+      {mobileStep === 2 && (
+        <>
+          {perfTimeBlock}
+          {crossSectionBlock}
+        </>
+      )}
     </form>
   )
 
