@@ -1031,3 +1031,13 @@
 .route-check-form .rb-step.is-active { background: #fff; color: #2563eb; box-shadow: 0 1px 2px rgba(15,23,42,.12); }
 .rb-procedures { display: grid; gap: 8px; }
 .rb-vfr-note { font-size: 12px; font-weight: 700; color: #64748b; padding: 8px; }
+/* Step ② auto-recommend: same handleAutoRecommend as desktop, surfaced as a
+   full-width primary suggestion (inherits the form's solid-blue button) ahead
+   of the manual SID/STAR pickers. */
+.rb-auto-search {
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+.rb-auto-search:disabled { opacity: 0.6; cursor: default; }

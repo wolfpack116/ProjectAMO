@@ -486,6 +486,11 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
               ))}
             </div>
           )}
+          {isIfr && (depChosen || arrChosen) && (
+            <button type="button" className="route-check-secondary-button rb-auto-search" onClick={handleAutoRecommend} disabled={routeLoading}>
+              {routeLoading ? '검색 중...' : '자동검색 (SID·STAR 추천)'}
+            </button>
+          )}
           <div className="rb-procedures">
             {isIfr && depChosen && (isFirInMode
               ? <PickerField label="진입 FIX" value={routeForm.entryFix} options={[NONE_OPTION, ...firInOptions.map((o) => ({ value: o.value, label: o.label }))]} onChange={handleEntryFixChange} />
