@@ -13,6 +13,9 @@ import useIsMobile from '../../shared/ui/useIsMobile.js'
 import MobileSheet from '../../shared/ui/MobileSheet.jsx'
 import AirportPickerField from '../../shared/ui/AirportPickerField.jsx'
 import PickerField from '../../shared/ui/PickerField.jsx'
+import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
+import { computeEtaIso } from './lib/etaCalc.js'
+import { buildEtdIso, etdFields, formatBriefingTime } from './lib/briefingTime.js'
 import './RouteBriefing.css'
 
 const AIRPORT_KO = {
@@ -24,6 +27,7 @@ const NONE_OPTION = { value: '', label: '-- 없음 --' }
 
 export default function RouteBriefingPanel({ state, refs = {}, derived, actions, airports = [] }) {
   const isMobile = useIsMobile()
+  const { tz } = useTimeZone()
   // The briefing stays an active task; the sheet × collapses to the peek summary
   // instead of closing (use the bottom task bar to leave 브리핑).
   const [sheetDetent, setSheetDetent] = useState('half')
@@ -83,6 +87,11 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   } = actions
 
   const isIfr = routeForm.flightRule === 'IFR'
+
+  // ETD edited as 월/일 + 시각 in the app timezone; ETA is auto-computed read-only.
+  const etdParts = etdFields(etd, tz)
+  const etaIso = computeEtaIso(etd, derived.plannedDistanceNm, cruiseSpeedKt)
+  const setEtdPart = (patch) => setEtd(buildEtdIso({ ...etdParts, ...patch }, tz))
 
   function swapAirports() {
     const dep = routeForm.departureAirport
@@ -250,9 +259,27 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
             {KNOWN_AIRPORTS.map((ap) => <option key={ap} value={ap}>{ap}</option>)}
           </select>
         </label>
-        <label>{'ETD'}
-          <input type="datetime-local" value={etd} onChange={(e) => setEtd(e.target.value)} />
-        </label>
+        <div className="route-check-field route-check-field--etd">
+          <div className="route-check-field-label">{`ETD (${tz})`}</div>
+          <div className="etd-input">
+            <select value={etdParts.month} onChange={(e) => setEtdPart({ month: Number(e.target.value) })} aria-label="출발 월">
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => <option key={m} value={m}>{m}월</option>)}
+            </select>
+            <select value={etdParts.day} onChange={(e) => setEtdPart({ day: Number(e.target.value) })} aria-label="출발 일">
+              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{d}일</option>)}
+            </select>
+            <input
+              type="time"
+              value={`${String(etdParts.hour).padStart(2, '0')}:${String(etdParts.minute).padStart(2, '0')}`}
+              onChange={(e) => {
+                const [h, mi] = e.target.value.split(':').map(Number)
+                if (Number.isFinite(h) && Number.isFinite(mi)) setEtdPart({ hour: h, minute: mi })
+              }}
+              aria-label="출발 시각"
+            />
+          </div>
+          <div className="eta-readout">{'ETA'} <strong>{etaIso ? formatBriefingTime(etaIso, tz, { withDate: etaIso.slice(0, 10) !== etd.slice(0, 10) }) : '—'}</strong></div>
+        </div>
         <label>{'순항속도(kt)'}
           <input type="number" min="1" step="1" value={cruiseSpeedKt} onChange={(e) => setCruiseSpeedKt(e.target.value)} />
         </label>

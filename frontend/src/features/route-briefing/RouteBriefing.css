@@ -992,3 +992,21 @@
   grid-template-columns: 1fr;
   gap: 10px;
 }
+
+/* ETD = 월 / 일 / 시각 (연도 없음) + 자동 계산 ETA 읽기전용.
+   2열 그리드에서 반쪽에 끼면 월/일이 잘려 → 전폭으로 빼고 순서상 마지막에 둠. */
+.route-check-section--briefing .route-check-field--etd { grid-column: 1 / -1; order: 1; }
+.etd-input { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 6px; }
+.etd-input select,
+.etd-input input {
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid rgba(148, 163, 184, 0.58);
+  border-radius: 7px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 700;
+}
+.eta-readout { margin-top: 6px; font-size: 11px; font-weight: 800; color: #64748b; }
+.eta-readout strong { color: #0f172a; font-variant-numeric: tabular-nums; }
