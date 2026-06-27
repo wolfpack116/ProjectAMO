@@ -60,12 +60,6 @@ function MainAppShell() {
     [weatherData, selectedAirport],
   )
 
-  const warningAirportCount = useMemo(() => {
-    const byIcao = weatherData?.warning?.airports
-    if (!byIcao) return 0
-    return Object.values(byIcao).filter((w) => (w?.warnings?.length || 0) > 0).length
-  }, [weatherData])
-
   // Map the mobile task switcher onto the existing activePanel mechanism.
   function selectMobileTask(task) {
     setMobileTask(task)
@@ -116,7 +110,6 @@ function MainAppShell() {
         <MobileMapOverlay
           activePanel={activePanel}
           onToggle={togglePanel}
-          warningCount={warningAirportCount}
           aviationCount={layerCounts.aviation}
           metCount={layerCounts.met}
         />

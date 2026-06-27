@@ -1,14 +1,10 @@
 import { Layers, Cloud } from 'lucide-react'
 
-// Mobile 지도 task: status-first strip + on-map layer entry points
-// (the sidebar that normally opens these is hidden on mobile).
-export default function MobileMapOverlay({ activePanel, onToggle, warningCount, aviationCount = 0, metCount = 0 }) {
-  const hasWarn = warningCount > 0
+// Mobile 지도 task: on-map layer entry points (the sidebar that normally opens
+// these is hidden on mobile).
+export default function MobileMapOverlay({ activePanel, onToggle, aviationCount = 0, metCount = 0 }) {
   return (
     <>
-      <div className={`mobile-status-strip${hasWarn ? ' is-alert' : ' is-ok'}`}>
-        {hasWarn ? `⚠ 공항경보 ${warningCount}곳 발효 중` : '✓ 활성 공항경보 없음'}
-      </div>
       <div className="mobile-map-layer-btns">
         <button
           type="button"
