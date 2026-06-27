@@ -83,6 +83,7 @@ import {
 } from './lib/airportStationImages.js'
 import {
   PROC_WP_CIRCLE,
+  PROC_WP_LABEL,
   VFR_WP_CIRCLE,
   bindVfrInteractions,
 } from '../route-briefing/lib/routePreview.js'
@@ -702,20 +703,19 @@ function MapView({
       if (!vfrInteractionsBound) {
         vfrInteractionsBound = true
         bindVfrInteractions(map, vfrWaypointsRef, setVfrWaypoints)
-        // Procedure waypoint name on hover (dot labels are hidden to declutter).
-        const procPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, offset: 8, className: 'proc-wp-popup' })
+        // Procedure waypoint name on hover, in the original label style (small
+        // colored text beside the dot) — reveal only the hovered fix's label.
+        const procWpRoleFilter = ['any', ['==', ['get', 'role'], 'sid-wp'], ['==', ['get', 'role'], 'star-wp'], ['==', ['get', 'role'], 'iap-wp']]
         map.on('mouseenter', PROC_WP_CIRCLE, (e) => {
           map.getCanvas().style.cursor = 'pointer'
           const f = e.features?.[0]
-          if (f) procPopup.setLngLat(f.geometry.coordinates).setText(f.properties.label ?? '').addTo(map)
-        })
-        map.on('mousemove', PROC_WP_CIRCLE, (e) => {
-          const f = e.features?.[0]
-          if (f) procPopup.setLngLat(f.geometry.coordinates)
+          if (!f) return
+          map.setFilter(PROC_WP_LABEL, ['all', procWpRoleFilter, ['==', ['get', 'label'], f.properties.label]])
+          map.setLayoutProperty(PROC_WP_LABEL, 'visibility', 'visible')
         })
         map.on('mouseleave', PROC_WP_CIRCLE, () => {
           map.getCanvas().style.cursor = ''
-          procPopup.remove()
+          map.setLayoutProperty(PROC_WP_LABEL, 'visibility', 'none')
         })
       }
 
