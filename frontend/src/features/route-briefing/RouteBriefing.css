@@ -976,3 +976,19 @@
   font-weight: 700;
   color: #64748b;
 }
+
+/* Mobile: 브리핑 조건을 카드(테두리+틴트)가 아니라 다른 입력칸과 같은 깔끔한 스타일로
+   통일. 브리핑 생성 버튼은 시트 footer로 이동했으므로 여기엔 입력만 남는다. */
+.rb-mobile .route-check-section--briefing {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.rb-mobile .route-check-section--briefing .route-check-section-title {
+  margin-bottom: 2px;
+}
+/* 교체공항/ETD/순항속도를 2x2 그리드가 아니라 출발·도착 픽커처럼 전폭 세로 스택으로 */
+.rb-mobile .route-check-section--briefing .route-check-section-grid {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}

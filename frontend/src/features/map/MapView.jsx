@@ -257,13 +257,25 @@ function MapView({
 
   // ???? Procedure preview on map ????????????????????????????????????????????????????????????????????????????????????????????
 
+  // Mobile: when a bottom sheet (route form or briefing) covers the lower screen,
+  // fit the route into the visible map ABOVE the sheet by padding the bottom.
+  // Desktop keeps its supplied padding (right-side panel handled separately).
+  const fitPaddingFor = (desktopPad) => {
+    const sheet = mapRef.current?.getContainer()?.ownerDocument?.querySelector('.mobile-sheet')
+    if (sheet) {
+      const h = Math.round(sheet.getBoundingClientRect().height) || 0
+      return { top: 40, left: 30, right: 30, bottom: h + 30 }
+    }
+    return desktopPad
+  }
+
   useEffect(() => {
     const map = mapRef.current
     if (!map || !isStyleReady) return
     const { fitCoordinates } = syncRoutePreviewLayers(map, routePreviewModel)
     if (fitCoordinates.length > 0 && !routeResult) {
       const bounds = fitCoordinates.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(fitCoordinates[0], fitCoordinates[0]))
-      map.fitBounds(bounds, { padding: 80, maxZoom: 9, duration: 500 })
+      map.fitBounds(bounds, { padding: fitPaddingFor(80), maxZoom: 9, duration: 500 })
     }
   }, [routePreviewModel, routeResult, isStyleReady, styleRevision])
 
@@ -274,7 +286,7 @@ function MapView({
     const { fitCoordinates } = syncBoundaryFixPreview(map, routePreviewModel)
     if (fitCoordinates.length > 0 && !routeResult) {
       const bounds = fitCoordinates.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(fitCoordinates[0], fitCoordinates[0]))
-      map.fitBounds(bounds, { padding: 80, maxZoom: 9, duration: 500 })
+      map.fitBounds(bounds, { padding: fitPaddingFor(80), maxZoom: 9, duration: 500 })
     }
   }, [routePreviewModel, isStyleReady, routeResult, styleRevision])
 
@@ -283,7 +295,7 @@ function MapView({
     const coords = fitBoundsRequest?.coordinates ?? []
     if (!map || !isStyleReady || coords.length === 0) return
     const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]))
-    map.fitBounds(bounds, { padding: 80, maxZoom: fitBoundsRequest.maxZoom ?? 8, duration: 500 })
+    map.fitBounds(bounds, { padding: fitPaddingFor(80), maxZoom: fitBoundsRequest.maxZoom ?? 8, duration: 500 })
   }, [fitBoundsRequest, isStyleReady, styleRevision])
 
   // Scroll-sync: pan/zoom the live map to the active briefing section's spatial target.
@@ -294,9 +306,18 @@ function MapView({
     const byIcao = (icao) => airports.find((a) => a.icao === icao)
     const container = map.getContainer()
     const containerWidth = container?.clientWidth || 1200
-    const panelWidth = container?.ownerDocument?.querySelector('.briefing-view')?.clientWidth || Math.round(containerWidth * 0.48)
-    const padRight = Math.min(panelWidth + 24, containerWidth - 120)
-    const pad = { top: 60, bottom: 60, left: 60, right: padRight }
+    // Mobile: sheet covers the bottom → center in the visible map above it.
+    // Desktop: panel covers the right → pad the right side.
+    const sheet = container?.ownerDocument?.querySelector('.mobile-sheet')
+    let pad
+    if (sheet) {
+      const h = Math.round(sheet.getBoundingClientRect().height) || 0
+      pad = { top: 40, left: 30, right: 30, bottom: h + 30 }
+    } else {
+      const panelWidth = container?.ownerDocument?.querySelector('.briefing-view')?.clientWidth || Math.round(containerWidth * 0.48)
+      const padRight = Math.min(panelWidth + 24, containerWidth - 120)
+      pad = { top: 60, bottom: 60, left: 60, right: padRight }
+    }
     const fitPts = (pts) => {
       if (pts.length < 1) return
       const bounds = pts.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(pts[0], pts[0]))

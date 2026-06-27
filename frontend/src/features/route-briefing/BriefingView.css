@@ -104,3 +104,46 @@
 .bv-seg.sev { background:rgba(192,57,43,.82); }
 .bv-xsection { margin:var(--space-2) 0 var(--space-1); }
 .bv-xsection svg { width:100%; height:auto; }
+
+/* ── 모바일: MobileSheet 내부 (pill nav + 공항 탭 + 세로 스택 리드아웃) ── */
+.bv-mobile { display:flex; flex-direction:column; gap:var(--space-3);
+  color:#334155; font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+.bv-mobile .bv-nav { position:static; margin-bottom:0; }
+.bv-mobile .bv-board { margin-bottom:0; }
+.bv-mobile .bv-section { margin-bottom:0; }
+
+/* 공항 탭 = pill 트랙 (기존 nav 트랙과 동일 언어) */
+.bv-airport-tabs { display:flex; gap:3px; padding:3px; border-radius:11px; background:#e9eef5; margin-bottom:var(--space-2); }
+.bv-airport-tab { flex:1 1 0; display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  padding:9px 4px; border:0; border-radius:8px; background:transparent; color:#64748b; font-size:13px; font-weight:800; cursor:pointer; }
+.bv-airport-tab.is-active { background:#fff; color:#0f172a; box-shadow:0 1px 2px rgba(15,23,42,.12); }
+.bv-tab-dot { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+
+/* 세로 스택 리드아웃 (6열 표를 축소하지 않고 모바일용으로 재구성) */
+.bv-readout { display:flex; flex-direction:column; }
+.bv-readout-row { display:flex; justify-content:space-between; align-items:center; padding:10px 2px; border-bottom:1px solid #eef2f7; }
+.bv-readout-row:last-child { border-bottom:none; }
+.bv-readout-label { font-size:12px; font-weight:800; color:#64748b; }
+.bv-readout-val { font-size:15px; font-weight:850; color:#0f172a; font-variant-numeric:tabular-nums; }
+
+/* peek(접힘) 요약 — status-first: 노선 + 규칙 + 최악 카테고리 */
+.bv-peek { display:inline-flex; align-items:center; gap:8px; font-size:15px; font-weight:850; color:#0f172a; }
+.bv-peek-rule { font-size:11px; font-weight:850; color:#1d4ed8; background:#eff6ff;
+  border:1px solid rgba(37,99,235,.18); border-radius:999px; padding:3px 9px; }
+
+/* ④ 단면도 모바일: 전폭 가로 스크롤 (2D 콘텐츠 폴백) */
+.bv-xsection-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.bv-xsection-scroll svg { min-width:680px; }
+
+/* 단면도 "크게 열기" = landscape 풀스크린: 폰 세로 화면을 90° 회전해 가로로 꽉 채움 */
+.bv-xfull { position:fixed; inset:0; z-index:9999; background:#fff; }
+/* 회전 박스 폭 = 화면 높이(100vh) → 90° 회전하면 화면 세로를 가득 채움.
+   flex 자식으로 두면 부모 폭(100vw)에 맞춰 shrink되므로 절대위치 중앙정렬 사용. */
+.bv-xfull-rotate { position:absolute; top:50%; left:50%; width:100vh;
+  transform:translate(-50%, -50%) rotate(90deg); transform-origin:center center; }
+.bv-xfull-rotate .vertical-profile-chart { width:100%; border:none; padding:0; background:transparent; }
+.bv-xfull-rotate svg { display:block; width:100%; height:auto; }
+.bv-xfull-close { position:absolute; top:10px; right:12px; z-index:2;
+  width:36px; height:36px; border-radius:999px; border:1px solid #e2e8f0; background:#fff;
+  color:#334155; font-size:20px; font-weight:800; line-height:1; cursor:pointer;
+  box-shadow:0 2px 8px rgba(15,23,42,.15); }

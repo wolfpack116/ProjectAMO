@@ -238,7 +238,9 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   // Briefing inputs (교체공항 / ETD / 순항속도) + 브리핑 생성 trigger. Shared
   // between desktop and mobile. 교체공항 options mirror the 출발/도착 airport
   // source (KNOWN_AIRPORTS) plus a 없음 entry.
-  const briefingConditionsBlock = (
+  // showGenerate: desktop keeps the 브리핑 생성 button inside this section; mobile
+  // moves it to the sheet footer (progressive primary action), so pass false there.
+  const renderBriefingConditions = (showGenerate) => (
     <div className="route-check-section route-check-section--briefing">
       <div className="route-check-section-title">{'브리핑 조건'}</div>
       <div className="route-check-section-grid">
@@ -255,14 +257,16 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           <input type="number" min="1" step="1" value={cruiseSpeedKt} onChange={(e) => setCruiseSpeedKt(e.target.value)} />
         </label>
       </div>
-      <button
-        className="route-check-search-button"
-        type="button"
-        onClick={handleGenerateBriefing}
-        disabled={!routeResult || briefingLoading}
-      >
-        {briefingLoading ? '브리핑 생성 중...' : '브리핑 생성'}
-      </button>
+      {showGenerate && (
+        <button
+          className="route-check-search-button"
+          type="button"
+          onClick={handleGenerateBriefing}
+          disabled={!routeResult || briefingLoading}
+        >
+          {briefingLoading ? '브리핑 생성 중...' : '브리핑 생성'}
+        </button>
+      )}
       {briefingError && <div className="route-check-error">{briefingError}</div>}
     </div>
   )
@@ -402,7 +406,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           </div>
         </div>
 
-        {briefingConditionsBlock}
+        {renderBriefingConditions(true)}
 
         <div className={`route-check-actions${!isIfr ? ' is-vfr' : ''}`}>
           <button className="route-check-search-button" type="submit" disabled={routeLoading}>{routeLoading ? '검색 중...' : '검색'}</button>
@@ -513,7 +517,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
         )}
       </div>
 
-      {briefingConditionsBlock}
+      {renderBriefingConditions(false)}
 
       {errorBlock}
       {resultsBlock}
@@ -522,7 +526,15 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
 
   // Action bar lives in the sheet footer (outside the scroll area) so it stays
   // flush to the bottom task bar regardless of form height.
-  const mobileFooter = (
+  // Progressive footer: before a route exists, the primary action is 검색
+  // (+자동검색/초기화). Once a route is found, the footer's primary action
+  // advances to 브리핑 생성 (the final deliverable) with 초기화 alongside.
+  const mobileFooter = routeResult ? (
+    <div className="route-check-actions is-briefing">
+      <button className="route-check-search-button" type="button" onClick={handleGenerateBriefing} disabled={briefingLoading}>{briefingLoading ? '브리핑 생성 중...' : '브리핑 생성'}</button>
+      <button className="route-check-secondary-button" type="button" onClick={handleRouteReset} disabled={routeLoading}>{'초기화'}</button>
+    </div>
+  ) : (
     <div className={`route-check-actions${!isIfr ? ' is-vfr' : ''}`}>
       <button className="route-check-search-button" type="submit" form="rb-mobile-form" disabled={routeLoading}>{routeLoading ? '검색 중...' : '검색'}</button>
       {isIfr && (
