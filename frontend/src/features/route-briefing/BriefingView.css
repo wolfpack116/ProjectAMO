@@ -66,7 +66,7 @@
 .bv-airport.bv-cat-lifr { background:#fbf5fb; border-color:#eed6ee; }
 .bv-airport-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
 .bv-airport-name { font-size:14px; font-weight:850; color:#0f172a; }
-.bv-airport-role { font-size:11px; font-weight:700; color:#94a3b8; margin-left:4px; }
+.bv-airport-role { font-size:11px; font-weight:700; color:#6b7280; margin-left:4px; }
 
 /* 항공 카테고리 칩: 점+라벨. VFR=녹 / MVFR=파 / IFR=적 / LIFR=자홍 */
 .bv-cat { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:6px;
@@ -79,11 +79,11 @@
 
 /* 표: 격자선 없이 라벨(상)·값(하) 6열, tabular-nums, 3표 열폭 통일 */
 .bv-table { width:100%; border-collapse:collapse; table-layout:fixed; font-variant-numeric:tabular-nums; }
-.bv-table th { padding:0 4px 6px; text-align:center; font-size:10px; font-weight:800; color:#94a3b8; }
+.bv-table th { padding:0 4px 6px; text-align:center; font-size:10px; font-weight:800; color:#6b7280; }
 .bv-table td { padding:3px 4px 0; text-align:center; font-size:14px; font-weight:850; color:#0f172a; }
 .bv-flag { color:#c0291f; }
 .bv-flag-text { color:#c0291f; font-weight:800; }
-.bv-muted { color:#94a3b8; font-weight:700; }
+.bv-muted { color:#4b5563; font-weight:700; }
 
 /* ④ 계획고도: 값 강조 */
 .bv-plan { margin:0 0 var(--space-2); font-size:13px; font-weight:700; color:#334155; }

@@ -870,7 +870,7 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #64748b;
+  color: #475569;
   font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
@@ -899,8 +899,8 @@
 }
 
 .rb-mobile .rb-swap-btn {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 0.5px solid rgba(148, 163, 184, 0.5);
   background: #ffffff;
@@ -1027,7 +1027,7 @@
 
 /* 모바일 3단계 위저드 */
 .rb-steps { display: flex; gap: 3px; padding: 3px; border-radius: 10px; background: #eef2f7; margin-bottom: 12px; }
-.route-check-form .rb-step { flex: 1; border: 0; border-radius: 8px; background: transparent; padding: 8px 4px; font-size: 12px; font-weight: 800; color: #64748b; cursor: pointer; }
+.route-check-form .rb-step { flex: 1; border: 0; border-radius: 8px; background: transparent; padding: 8px 4px; font-size: 12px; font-weight: 800; color: #475569; cursor: pointer; }
 .route-check-form .rb-step.is-active { background: #fff; color: #2563eb; box-shadow: 0 1px 2px rgba(15,23,42,.12); }
 .rb-procedures { display: grid; gap: 8px; }
 .rb-vfr-note { font-size: 12px; font-weight: 700; color: #64748b; padding: 8px; }
@@ -1041,3 +1041,21 @@
   font-size: 13px;
 }
 .rb-auto-search:disabled { opacity: 0.6; cursor: default; }
+
+/* Mobile touch targets ≥ 44px (WCAG 2.5.5). Scoped to the mobile wizard /
+   sheet footer so desktop density is unchanged. */
+.rb-mobile .route-type-seg,
+.rb-mobile .rb-step {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.route-check-actions.is-step .route-check-search-button,
+.route-check-actions.is-step .route-check-secondary-button {
+  min-height: 44px;
+}
+.rb-mobile select,
+.rb-mobile .apf-row {
+  min-height: 44px;
+}
