@@ -55,7 +55,7 @@ Do not overwrite UTF-8 files with PowerShell `Set-Content`/`Out-File`/`>`. Use `
 
 ## 7. Code Knowledge Graph (graphify)
 
-For non-trivial refactors, reviews, dependency changes, or impact analysis, query the **graphify** knowledge graph before reading broad parts of the codebase. Build/refresh with `graphify update .` (code-only, no API key — plain `graphify .` tries semantic doc/image extraction and needs an LLM key). Do not treat graph results as a replacement for build/runtime/browser verification.
+Query the **graphify** knowledge graph before broad code reading — this is auto-enforced by a PreToolUse hook in `.claude/settings.json` (grep/source-read inject a "use graphify first" reminder) and detailed in the graphify section at the end of this file. Refresh with `graphify update .` (code-only, no API key; auto-runs via the post-commit git hook). Graph results never replace build/runtime/browser verification.
 
 ## 8. Browser Verification
 
@@ -87,3 +87,13 @@ When it applies, read the policy first and follow its procedure. When it does no
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
