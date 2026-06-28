@@ -10,3 +10,6 @@ artifacts/
 # graphify code knowledge graph artifacts
 graphify-out/
 .graphify/
+
+# brainstorming working artifacts
+.superpowers/
