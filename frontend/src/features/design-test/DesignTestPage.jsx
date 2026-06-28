@@ -27,6 +27,7 @@ import {
   Carousel, CarouselSlider, CarouselCard,
   Link, Divider,
   LargeTitle, Title3, Subtitle1, Subtitle2, Body1, Body2, Caption1,
+  tokens,
 } from '@fluentui/react-components'
 import { appLightTheme, appDarkTheme } from '../../shared/theme/fluentTheme.js'
 import './DesignTestPage.css'
@@ -57,6 +58,26 @@ function Section({ title, children }) {
     </section>
   )
 }
+
+// Fluent 색상 토큰 스와치 (FluentProvider 안에서 CSS 변수로 해석됨, 다크 토글도 반영)
+function Swatch({ token }) {
+  const value = tokens[token]
+  if (!value) return null
+  return (
+    <div style={{ width: 104, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ height: 44, borderRadius: 6, background: value, border: `1px solid ${tokens.colorNeutralStroke2}` }} />
+      <Caption1 style={{ fontSize: 10, lineHeight: 1.25, wordBreak: 'break-word', opacity: 0.8 }}>{token.replace(/^color/, '')}</Caption1>
+    </div>
+  )
+}
+
+const FLUENT_PALETTE = [
+  ['Neutral · Background', ['colorNeutralBackground1', 'colorNeutralBackground2', 'colorNeutralBackground3', 'colorNeutralBackground4', 'colorNeutralBackground5', 'colorNeutralBackground6', 'colorNeutralBackgroundInverted', 'colorNeutralBackgroundDisabled']],
+  ['Neutral · Foreground', ['colorNeutralForeground1', 'colorNeutralForeground2', 'colorNeutralForeground3', 'colorNeutralForeground4', 'colorNeutralForegroundDisabled', 'colorNeutralForegroundInverted']],
+  ['Neutral · Stroke', ['colorNeutralStroke1', 'colorNeutralStroke2', 'colorNeutralStroke3', 'colorNeutralStrokeAccessible', 'colorNeutralStrokeDisabled']],
+  ['Brand (accent)', ['colorBrandBackground', 'colorBrandBackground2', 'colorBrandBackgroundHover', 'colorBrandForeground1', 'colorBrandForeground2', 'colorBrandForegroundLink', 'colorBrandStroke1', 'colorBrandStroke2', 'colorCompoundBrandBackground']],
+  ['Status (semantic)', ['colorStatusSuccessBackground3', 'colorStatusSuccessForeground1', 'colorStatusWarningBackground3', 'colorStatusWarningForeground1', 'colorStatusDangerBackground3', 'colorStatusDangerForeground1', 'colorPaletteRedForeground1', 'colorPaletteGreenForeground1', 'colorPaletteYellowBackground3']],
+]
 
 const GRID_ITEMS = [
   { icao: 'RKSS', cat: 'VFR', vis: '9999' },
@@ -154,6 +175,12 @@ function Gallery() {
           <ColorSwatch color="#9d2c9d" value="lifr" aria-label="LIFR" />
         </SwatchPicker>
       </Section>
+
+      {FLUENT_PALETTE.map(([title, toks]) => (
+        <Section key={title} title={`Fluent 색상 팔레트 · ${title}`}>
+          {toks.map((t) => <Swatch key={t} token={t} />)}
+        </Section>
+      ))}
 
       <Section title="Tabs · Breadcrumb · Toolbar · Nav">
         <TabList selectedValue={tab} onTabSelect={(_, d) => setTab(d.value)}>

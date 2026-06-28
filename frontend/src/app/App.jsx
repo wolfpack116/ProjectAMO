@@ -29,7 +29,11 @@ function MainAppShell() {
   const { tz } = useTimeZone()
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [activePanel, setActivePanel] = useState(null)
-  const [selectedAirport, setSelectedAirport] = useState(null)
+  const [selectedAirport, setSelectedAirport] = useState(() => {
+    // 딥링크: ?airport=RKSI 로 공항패널 바로 열기 (공유 링크 + Playwright 캡처용)
+    const p = new URLSearchParams(window.location.search).get('airport')
+    return p ? p.toUpperCase() : null
+  })
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
   const [mobileTask, setMobileTask] = useState('map')
   const [layerCounts, setLayerCounts] = useState({ aviation: 0, met: 0 })

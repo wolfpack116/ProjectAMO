@@ -2,9 +2,9 @@
    폭은 단면도 기준 유지. 색/두께/라디우스는 형제 RouteBriefing 패널 토큰에 정렬. */
 .briefing-view { position:absolute; top:0; right:0; bottom:0; width:clamp(480px, 52%, 1040px);
   z-index:20; overflow-y:auto; padding:var(--space-4);
-  background:#f4f6fb; color:#334155;
+  background:#f4f6fb; color:var(--accent);
   font-family:var(--app-font, system-ui, sans-serif);
-  border-left:1px solid #e2e8f0; box-shadow:-4px 0 16px rgba(15,23,42,.06); }
+  border-left:1px solid var(--stroke-2); box-shadow:-4px 0 16px rgba(15,23,42,.06); }
 @media (max-width: 719px) {
   .briefing-view { width:100%; border-left:none; box-shadow:none; }
 }
@@ -12,52 +12,52 @@
 /* 헤더: eyebrow + 노선 타이틀 + IFR 칩 + 지도로 */
 .bv-header { display:flex; justify-content:space-between; align-items:flex-start; gap:var(--space-3);
   padding-bottom:var(--space-3); margin-bottom:var(--space-3); border-bottom:1px solid #e7ebf2; }
-.bv-eyebrow { font-size:10px; font-weight:850; color:#64748b; letter-spacing:.01em; }
-.bv-route { font-size:21px; font-weight:850; color:#0f172a; margin-top:3px; line-height:1.15; letter-spacing:-.01em; }
+.bv-eyebrow { font-size:10px; font-weight:850; color:var(--text-3); letter-spacing:.01em; }
+.bv-route { font-size:21px; font-weight:850; color:var(--text-1); margin-top:3px; line-height:1.15; letter-spacing:-.01em; }
 .bv-route b { font-weight:850; }
-.bv-meta { font-size:12px; font-weight:700; color:#64748b; margin-top:3px; }
-.bv-time { font-size:12px; font-weight:800; color:#1d4ed8; font-variant-numeric:tabular-nums; margin-top:3px; }
+.bv-meta { font-size:12px; font-weight:700; color:var(--text-3); margin-top:3px; }
+.bv-time { font-size:12px; font-weight:800; color:var(--accent); font-variant-numeric:tabular-nums; margin-top:3px; }
 .bv-mobile .bv-time { margin:0 0 var(--space-2); }
 .bv-head-side { flex:0 0 auto; display:flex; align-items:center; gap:var(--space-2); }
-.bv-rule-chip { border:1px solid rgba(37,99,235,.18); border-radius:999px; background:#eff6ff; color:#1d4ed8;
+.bv-rule-chip { border:1px solid rgba(37,99,235,.18); border-radius:999px; background:color-mix(in srgb, var(--accent) 8%, var(--bg-1)); color:var(--accent);
   font-size:11px; font-weight:850; padding:6px 11px; line-height:1; }
-.bv-map-btn { height:32px; padding:0 12px; border:1px solid #e2e8f0; border-radius:8px; background:#fff;
-  color:#475569; font-size:12px; font-weight:800; cursor:pointer; }
-.bv-map-btn:hover { background:#f8fafc; }
+.bv-map-btn { height:32px; padding:0 12px; border:1px solid var(--stroke-2); border-radius:8px; background:var(--bg-1);
+  color:var(--text-2); font-size:12px; font-weight:800; cursor:pointer; }
+.bv-map-btn:hover { background:var(--bg-2); }
 
 /* sticky 순서목차 = iOS pill 트랙 (회색 트랙 + 흰 active pill + 블루) */
 .bv-nav { position:sticky; top:0; z-index:5; display:flex; gap:3px; padding:3px; margin-bottom:var(--space-3);
   border-radius:11px; background:#e9eef5; }
 .bv-nav-step { flex:1 1 0; text-align:center; padding:9px 4px; border:0; border-radius:8px; background:transparent;
-  font-size:13px; font-weight:800; color:#64748b; cursor:pointer; }
-.bv-nav-step:hover { color:#334155; }
-.bv-nav-step.is-active { background:#fff; color:#2563eb; font-weight:850; box-shadow:0 1px 2px rgba(15,23,42,.12); }
+  font-size:13px; font-weight:800; color:var(--text-3); cursor:pointer; }
+.bv-nav-step:hover { color:var(--accent); }
+.bv-nav-step.is-active { background:var(--bg-1); color:var(--accent); font-weight:850; box-shadow:0 1px 2px rgba(15,23,42,.12); }
 
 /* 상단 요약보드: 부드러운 칩 */
 .bv-board { display:flex; gap:var(--space-2); flex-wrap:wrap; margin-bottom:var(--space-4); }
 .bv-chip { display:inline-flex; align-items:center; gap:var(--space-1); padding:4px 11px; border-radius:999px;
-  font-size:12px; font-weight:800; background:#eef2f7; color:#475569; }
+  font-size:12px; font-weight:800; background:#eef2f7; color:var(--text-2); }
 .bv-chip::before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.9; }
-.bv-chip.bv-green { background:#dcefe2; color:#166534; }
-.bv-chip.bv-amber { background:#fdecc8; color:#92400e; }
-.bv-chip.bv-red { background:#f7dcd9; color:#c0291f; }
-.bv-chip.bv-gray { background:#eef2f7; color:#64748b; }
+.bv-chip.bv-green { background:var(--level-green-bg); color:var(--level-green); }
+.bv-chip.bv-amber { background:var(--level-amber-bg); color:var(--level-amber); }
+.bv-chip.bv-red { background:var(--level-red-bg); color:var(--level-red); }
+.bv-chip.bv-gray { background:#eef2f7; color:var(--text-3); }
 
 /* 섹션: 카드 대신 작은 라벨 헤더 + 여백. 강조는 안쪽 카드/칩이 담당 */
 .bv-section { scroll-margin-top:56px; margin-bottom:var(--space-4); }
 .bv-section:last-child { margin-bottom:0; }
-.bv-section h3 { margin:0 0 var(--space-2); font-size:11px; font-weight:850; letter-spacing:.02em; color:#64748b; }
+.bv-section h3 { margin:0 0 var(--space-2); font-size:11px; font-weight:850; letter-spacing:.02em; color:var(--text-3); }
 
 /* ① 위험 요약 */
 .bv-section ul { margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:var(--space-1); }
-.bv-section li { display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:13px; font-weight:700; color:#334155;
-  background:#fff; border:1px solid #eef2f7; border-radius:10px; padding:9px 12px; line-height:1.4; }
+.bv-section li { display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:13px; font-weight:700; color:var(--accent);
+  background:var(--bg-1); border:1px solid #eef2f7; border-radius:10px; padding:9px 12px; line-height:1.4; }
 .bv-enc { padding:2px 8px; border-radius:6px; font-size:11px; font-weight:850; }
-.bv-enc.bv-red { background:#f7dcd9; color:#c0291f; }
-.bv-enc.bv-amber { background:#fdecc8; color:#92400e; }
+.bv-enc.bv-red { background:var(--level-red-bg); color:var(--level-red); }
+.bv-enc.bv-amber { background:var(--level-amber-bg); color:var(--level-amber); }
 
 /* ③ 현재 실황 — 공항별 소프트 라운드 카드 (카테고리 틴트) */
-.bv-airport { background:#fff; border:1px solid #e7ebf2; border-radius:12px; padding:12px 15px;
+.bv-airport { background:var(--bg-1); border:1px solid #e7ebf2; border-radius:12px; padding:12px 15px;
   margin-bottom:var(--space-2); box-shadow:0 1px 3px rgba(15,23,42,.05); }
 .bv-airport:last-child { margin-bottom:0; }
 .bv-airport.bv-cat-vfr { background:#f8fbf9; border-color:#e3efe8; }
@@ -65,40 +65,40 @@
 .bv-airport.bv-cat-ifr { background:#fdf6f5; border-color:#f3dad6; }
 .bv-airport.bv-cat-lifr { background:#fbf5fb; border-color:#eed6ee; }
 .bv-airport-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-.bv-airport-name { font-size:14px; font-weight:850; color:#0f172a; }
-.bv-airport-role { font-size:11px; font-weight:700; color:#6b7280; margin-left:4px; }
+.bv-airport-name { font-size:14px; font-weight:850; color:var(--text-1); }
+.bv-airport-role { font-size:11px; font-weight:700; color:var(--text-3); margin-left:4px; }
 
 /* 항공 카테고리 칩: 점+라벨. VFR=녹 / MVFR=파 / IFR=적 / LIFR=자홍 */
 .bv-cat { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:6px;
   font-size:11px; font-weight:850; letter-spacing:.02em; }
 .bv-cat::before { content:""; width:7px; height:7px; border-radius:50%; background:currentColor; }
-.bv-cat-vfr { background:#dcefe2; color:#166534; }
-.bv-cat-mvfr { background:#e0eafb; color:#1d4ed8; }
-.bv-cat-ifr { background:#f7dcd9; color:#c0291f; }
-.bv-cat-lifr { background:#f0d9f0; color:#9d2c9d; }
+.bv-cat-vfr { background:var(--level-green-bg); color:var(--level-green); }
+.bv-cat-mvfr { background:#e0eafb; color:var(--accent); }
+.bv-cat-ifr { background:var(--level-red-bg); color:var(--level-red); }
+.bv-cat-lifr { background:#f0d9f0; color:var(--cat-lifr); }
 
 /* 표: 격자선 없이 라벨(상)·값(하) 6열, tabular-nums, 3표 열폭 통일 */
 .bv-table { width:100%; border-collapse:collapse; table-layout:fixed; font-variant-numeric:tabular-nums; }
-.bv-table th { padding:0 4px 6px; text-align:center; font-size:10px; font-weight:800; color:#6b7280; }
-.bv-table td { padding:3px 4px 0; text-align:center; font-size:14px; font-weight:850; color:#0f172a; }
-.bv-flag { color:#c0291f; }
-.bv-flag-text { color:#c0291f; font-weight:800; }
-.bv-muted { color:#4b5563; font-weight:700; }
+.bv-table th { padding:0 4px 6px; text-align:center; font-size:10px; font-weight:800; color:var(--text-3); }
+.bv-table td { padding:3px 4px 0; text-align:center; font-size:14px; font-weight:850; color:var(--text-1); }
+.bv-flag { color:var(--level-red); }
+.bv-flag-text { color:var(--level-red); font-weight:800; }
+.bv-muted { color:var(--text-2); font-weight:700; }
 
 /* ④ 계획고도: 값 강조 */
-.bv-plan { margin:0 0 var(--space-2); font-size:13px; font-weight:700; color:#334155; }
-.bv-plan b { font-weight:850; color:#0f172a; font-variant-numeric:tabular-nums; }
+.bv-plan { margin:0 0 var(--space-2); font-size:13px; font-weight:700; color:var(--accent); }
+.bv-plan b { font-weight:850; color:var(--text-1); font-variant-numeric:tabular-nums; }
 
-.bv-link-btn { margin-top:var(--space-2); height:34px; padding:0 14px; border:1px solid #e2e8f0; border-radius:8px;
-  background:#fff; color:#475569; font-size:12px; font-weight:800; cursor:pointer; }
-.bv-link-btn:hover { background:#f8fafc; color:#334155; }
+.bv-link-btn { margin-top:var(--space-2); height:34px; padding:0 14px; border:1px solid var(--stroke-2); border-radius:8px;
+  background:var(--bg-1); color:var(--text-2); font-size:12px; font-weight:800; cursor:pointer; }
+.bv-link-btn:hover { background:var(--bg-2); color:var(--accent); }
 
 /* 트랙 좌우 여백을 단면도(VerticalProfileChart)의 plot 영역(좌 58/960, 우 26/960)에 맞춰 정렬 */
 .bv-ribbons { margin:var(--space-2) 0 2px; display:flex; flex-direction:column; gap:var(--space-1); }
 .bv-ribbon-row { font-size:12px; }
 .bv-ribbon-head { display:flex; justify-content:space-between; margin:0 2.71% 2px 6.04%; }
-.bv-ribbon-label { color:#334155; font-weight:800; }
-.bv-ribbon-cap { color:#64748b; white-space:nowrap; font-weight:700; font-variant-numeric:tabular-nums; }
+.bv-ribbon-label { color:var(--accent); font-weight:800; }
+.bv-ribbon-cap { color:var(--text-3); white-space:nowrap; font-weight:700; font-variant-numeric:tabular-nums; }
 .bv-ribbon { position:relative; height:12px; margin-left:6.04%; margin-right:2.71%;
   background:#e9eef5; border-radius:6px; overflow:hidden; }
 .bv-seg { position:absolute; top:0; height:100%; }
@@ -109,7 +109,7 @@
 
 /* ── 모바일: MobileSheet 내부 (pill nav + 공항 탭 + 세로 스택 리드아웃) ── */
 .bv-mobile { display:flex; flex-direction:column; gap:var(--space-3);
-  color:#334155; font-family:var(--app-font, system-ui, sans-serif); }
+  color:var(--accent); font-family:var(--app-font, system-ui, sans-serif); }
 .bv-mobile .bv-nav { position:static; margin-bottom:0; }
 .bv-mobile .bv-board { margin-bottom:0; }
 .bv-mobile .bv-section { margin-bottom:0; }
@@ -117,20 +117,20 @@
 /* 공항 탭 = pill 트랙 (기존 nav 트랙과 동일 언어) */
 .bv-airport-tabs { display:flex; gap:3px; padding:3px; border-radius:11px; background:#e9eef5; margin-bottom:var(--space-2); }
 .bv-airport-tab { flex:1 1 0; display:inline-flex; align-items:center; justify-content:center; gap:6px;
-  padding:9px 4px; border:0; border-radius:8px; background:transparent; color:#64748b; font-size:13px; font-weight:800; cursor:pointer; }
-.bv-airport-tab.is-active { background:#fff; color:#0f172a; box-shadow:0 1px 2px rgba(15,23,42,.12); }
+  padding:9px 4px; border:0; border-radius:8px; background:transparent; color:var(--text-3); font-size:13px; font-weight:800; cursor:pointer; }
+.bv-airport-tab.is-active { background:var(--bg-1); color:var(--text-1); box-shadow:0 1px 2px rgba(15,23,42,.12); }
 .bv-tab-dot { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
 
 /* 세로 스택 리드아웃 (6열 표를 축소하지 않고 모바일용으로 재구성) */
 .bv-readout { display:flex; flex-direction:column; }
 .bv-readout-row { display:flex; justify-content:space-between; align-items:center; padding:10px 2px; border-bottom:1px solid #eef2f7; }
 .bv-readout-row:last-child { border-bottom:none; }
-.bv-readout-label { font-size:12px; font-weight:800; color:#64748b; }
-.bv-readout-val { font-size:15px; font-weight:850; color:#0f172a; font-variant-numeric:tabular-nums; }
+.bv-readout-label { font-size:12px; font-weight:800; color:var(--text-3); }
+.bv-readout-val { font-size:15px; font-weight:850; color:var(--text-1); font-variant-numeric:tabular-nums; }
 
 /* peek(접힘) 요약 — status-first: 노선 + 규칙 + 최악 카테고리 */
-.bv-peek { display:inline-flex; align-items:center; gap:8px; font-size:15px; font-weight:850; color:#0f172a; }
-.bv-peek-rule { font-size:11px; font-weight:850; color:#1d4ed8; background:#eff6ff;
+.bv-peek { display:inline-flex; align-items:center; gap:8px; font-size:15px; font-weight:850; color:var(--text-1); }
+.bv-peek-rule { font-size:11px; font-weight:850; color:var(--accent); background:color-mix(in srgb, var(--accent) 8%, var(--bg-1));
   border:1px solid rgba(37,99,235,.18); border-radius:999px; padding:3px 9px; }
 
 /* ④ 단면도 모바일: 전폭 가로 스크롤 (2D 콘텐츠 폴백) */
@@ -138,7 +138,7 @@
 .bv-xsection-scroll svg { min-width:680px; }
 
 /* 단면도 "크게 열기" = landscape 풀스크린: 폰 세로 화면을 90° 회전해 가로로 꽉 채움 */
-.bv-xfull { position:fixed; inset:0; z-index:9999; background:#fff; }
+.bv-xfull { position:fixed; inset:0; z-index:9999; background:var(--bg-1); }
 /* 회전 박스 폭 = 화면 높이(100vh) → 90° 회전하면 화면 세로를 가득 채움.
    flex 자식으로 두면 부모 폭(100vw)에 맞춰 shrink되므로 절대위치 중앙정렬 사용. */
 .bv-xfull-rotate { position:absolute; top:50%; left:50%; width:100vh;
@@ -146,6 +146,6 @@
 .bv-xfull-rotate .vertical-profile-chart { width:100%; border:none; padding:0; background:transparent; }
 .bv-xfull-rotate svg { display:block; width:100%; height:auto; }
 .bv-xfull-close { position:absolute; top:10px; right:12px; z-index:2;
-  width:36px; height:36px; border-radius:999px; border:1px solid #e2e8f0; background:#fff;
-  color:#334155; font-size:20px; font-weight:800; line-height:1; cursor:pointer;
+  width:36px; height:36px; border-radius:999px; border:1px solid var(--stroke-2); background:var(--bg-1);
+  color:var(--accent); font-size:20px; font-weight:800; line-height:1; cursor:pointer;
   box-shadow:0 2px 8px rgba(15,23,42,.15); }

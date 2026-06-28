@@ -9,7 +9,8 @@ import {
 import { convertWeatherToKorean } from '../../../shared/weather/visual-mapper.js'
 import { resolveWeatherVisual } from '../../../shared/weather/weather-visual-resolver.js'
 
-export const TAF_CATEGORY_COLOR = { VFR: '#15803d', IFR: '#f59e0b', LIFR: '#dc2626' }
+// 비행 카테고리 3단계(초록/주황/빨강) — 헌법 §5 레벨 토큰 값 미러(단일 출처). JS 인라인 스타일이라 hex로 보관.
+export const TAF_CATEGORY_COLOR = { VFR: '#166534', IFR: '#92400e', LIFR: '#c0291f' }
 
 function getTafCeiling(slot) {
   return slot?.clouds

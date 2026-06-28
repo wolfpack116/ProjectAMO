@@ -25,14 +25,14 @@
   min-height: var(--touch-target-min, 44px);
   border: 0;
   background: transparent;
-  color: #64748b;
+  color: var(--text-3);
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
 }
 
 .mobile-task-btn.is-active {
-  color: #2563eb;
+  color: var(--accent);
 }
 
 .mobile-task-icon {

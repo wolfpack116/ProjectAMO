@@ -9,6 +9,7 @@ import {
   buildIfrSequenceTokens,
   getVfrAirportAltitudeFt,
 } from './lib/routeBriefingModel.js'
+import { Button, Field, Dropdown, Option, Input, SpinButton, TabList, Tab, Badge, MessageBar, MessageBarBody, DatePicker, TimePicker, makeStyles, mergeClasses, tokens } from '../../shared/ui/fluent.js'
 import useIsMobile from '../../shared/ui/useIsMobile.js'
 import MobileSheet from '../../shared/ui/MobileSheet.jsx'
 import AirportPickerField from '../../shared/ui/AirportPickerField.jsx'
@@ -16,8 +17,6 @@ import PickerField from '../../shared/ui/PickerField.jsx'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
 import { computeEtaIso } from './lib/etaCalc.js'
 import { formatBriefingTime } from './lib/briefingTime.js'
-import EtdField from './EtdField.jsx'
-import AircraftProfileField from './AircraftProfileField.jsx'
 import './RouteBriefing.css'
 
 const AIRPORT_KO = {
@@ -27,8 +26,65 @@ const AIRPORT_KO = {
 const AIRPORT_OPTIONS = KNOWN_AIRPORTS.map((icao) => ({ value: icao, ko: AIRPORT_KO[icao] ?? icao }))
 const NONE_OPTION = { value: '', label: '-- 없음 --' }
 
+// 데스크톱 폼 레이아웃 — 커스텀 .css 대신 Fluent griffel + 토큰
+const useStyles = makeStyles({
+  form: { display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalL, padding: `${tokens.spacingVerticalL} ${tokens.spacingHorizontalL} ${tokens.spacingVerticalXXL}` },
+  section: { display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalS },
+  sectionTitle: {
+    fontSize: tokens.fontSizeBase200,
+    fontWeight: tokens.fontWeightSemibold,
+    color: tokens.colorNeutralForeground3,
+    letterSpacing: '0.04em',
+  },
+  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: tokens.spacingHorizontalM, alignItems: 'end' },
+  field: { minWidth: 0 },
+  fieldFull: { gridColumn: '1 / -1', minWidth: 0 },
+  routeRow: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: tokens.spacingHorizontalS, alignItems: 'end' },
+  swapBtn: { minWidth: '32px', marginBottom: tokens.spacingVerticalXS },
+  actions: { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: tokens.spacingHorizontalS },
+  actionsVfr: { gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' },
+  etdQuick: { display: 'flex', flexWrap: 'wrap', gap: tokens.spacingHorizontalXS },
+  detailToggleRow: { display: 'flex', justifyContent: 'flex-end' },
+  etdRow: { display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 1fr)', gap: tokens.spacingHorizontalS },
+  // DatePicker/TimePicker 내부 Combobox 기본 min-width(250px)를 눌러 좁은 패널에서 한 줄에 맞춤
+  picker: {
+    width: '100%', minWidth: 0,
+    '& .fui-Combobox': { minWidth: 0 },
+    '& .fui-Combobox__input': { minWidth: 0, width: '100%' },
+    '& .fui-Input__input': { minWidth: 0, width: '100%' },
+  },
+  summary: {
+    display: 'flex', justifyContent: 'space-between', gap: tokens.spacingHorizontalS,
+    padding: tokens.spacingVerticalS + ' ' + tokens.spacingHorizontalM,
+    background: tokens.colorNeutralBackground3, borderRadius: tokens.borderRadiusMedium,
+    fontSize: tokens.fontSizeBase200,
+  },
+  result: { display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalS, borderTop: `${tokens.strokeWidthThin} solid ${tokens.colorNeutralStroke2}`, paddingTop: tokens.spacingVerticalM },
+  totalDist: { fontSize: tokens.fontSizeBase300, fontWeight: tokens.fontWeightSemibold, color: tokens.colorNeutralForeground1 },
+  ctrl: { width: '100%', minWidth: 0 },
+  full: { width: '100%' },
+})
+
+// 목록 선택 Dropdown(타이핑 없음) — value↔표시텍스트↔selectedOptions 처리 한 곳에
+function FDropdown({ value, onChange, options, placeholder = '선택', disabled, className }) {
+  const v = String(value ?? '')
+  const sel = options.find((o) => String(o.value) === v)
+  return (
+    <Dropdown
+      className={className}
+      disabled={disabled}
+      value={sel ? sel.label : placeholder}
+      selectedOptions={[v]}
+      onOptionSelect={(_, d) => onChange(d.optionValue)}
+    >
+      {options.map((o) => <Option key={o.value} value={String(o.value)}>{o.label}</Option>)}
+    </Dropdown>
+  )
+}
+
 export default function RouteBriefingPanel({ state, refs = {}, derived, actions, airports = [] }) {
   const isMobile = useIsMobile()
+  const s = useStyles()
   const { tz } = useTimeZone()
   // The briefing stays an active task; the sheet × collapses to the peek summary
   // instead of closing (use the bottom task bar to leave 브리핑).
@@ -94,24 +150,51 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
 
   // ETA is auto-computed read-only from ETD + planned distance + TAS.
   const etaIso = computeEtaIso(etd, derived.plannedDistanceNm, cruiseSpeedKt)
-  const applyPerf = ({ tasKt, altitudeFt }) => { setCruiseSpeedKt(tasKt); setCruiseAltitudeFt(altitudeFt) }
   const summaryStrip = (
-    <div className="rb-summary">
-      <div className="rb-summary-dist"><span>거리</span><strong>{Math.round(derived.plannedDistanceNm)}<em>NM</em></strong></div>
-      <div className="rb-summary-time"><span>ETD → ETA</span><strong>{formatBriefingTime(etd, tz)} → {etaIso ? formatBriefingTime(etaIso, tz) : '—'}</strong></div>
+    <div className={s.summary}>
+      <span style={{ color: tokens.colorNeutralForeground3 }}>거리 {Math.round(derived.plannedDistanceNm)} NM</span>
+      <span style={{ fontWeight: tokens.fontWeightSemibold }}>ETD → ETA {formatBriefingTime(etd, tz)} → {etaIso ? formatBriefingTime(etaIso, tz) : '—'}</span>
     </div>
   )
-  // 내 항공기(속도·고도 직접입력) + ETD + 파생 요약. 데스크톱 섹션과 모바일 ③단계에서 공유.
-  const perfTimeBlock = (
+  const setEtdFromNow = (mins) => setEtd(new Date(Date.now() + mins * 60000).toISOString())
+  // ETD(ISO/UTC) ↔ tz 벽시계 변환 — DatePicker/TimePicker는 Date의 로컬 필드를 쓰므로 tz 보정.
+  const tzOffsetMs = tz === 'KST' ? 9 * 3600 * 1000 : 0
+  const etdBaseMs = Number.isFinite(Date.parse(etd)) ? Date.parse(etd) : Date.now()
+  const w0 = new Date(etdBaseMs + tzOffsetMs)
+  const etdWall = new Date(w0.getUTCFullYear(), w0.getUTCMonth(), w0.getUTCDate(), w0.getUTCHours(), w0.getUTCMinutes())
+  const setEtdWall = (y, mo, d, h, mi) => setEtd(new Date(Date.UTC(y, mo, d, h, mi) - tzOffsetMs).toISOString())
+  // 속도·고도·ETD 입력(Fluent). 요약(summaryStrip)은 분리해 ④ 경로 결과에서 재사용.
+  const perfFields = (
     <>
-      <AircraftProfileField tasKt={cruiseSpeedKt} altitudeFt={Number(cruiseAltitudeFt) || 0} magCourseDeg={derived.magCourseDeg} onChange={applyPerf} />
-      <div className="route-check-field">
-        <div className="route-check-field-label">{`ETD (${tz})`}</div>
-        <EtdField etd={etd} tz={tz} variant={isMobile ? 'mobile' : 'desktop'} onChange={setEtd} />
+      <div className={s.grid}>
+        <Field label="순항속도 (TAS, kt)">
+          <SpinButton className={s.ctrl} value={Number(cruiseSpeedKt) || 0} min={60} max={600} step={5}
+            onChange={(_, d) => { const v = d.value ?? Number(d.displayValue); if (Number.isFinite(v)) setCruiseSpeedKt(v) }} />
+        </Field>
+        <Field label="순항고도 (ft)">
+          <SpinButton className={s.ctrl} value={Number(cruiseAltitudeFt) || 0} min={0} max={60000} step={500}
+            onChange={(_, d) => { const v = d.value ?? Number(d.displayValue); if (Number.isFinite(v)) setCruiseAltitudeFt(v) }} />
+        </Field>
       </div>
-      {summaryStrip}
+      <Field label={`ETD (${tz})`}>
+        <div className={s.etdRow}>
+          <DatePicker className={s.picker} value={etdWall}
+            formatDate={(d) => `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`}
+            onSelectDate={(date) => date && setEtdWall(date.getFullYear(), date.getMonth(), date.getDate(), etdWall.getHours(), etdWall.getMinutes())} />
+          <TimePicker key={etd} className={s.picker} freeform hourCycle="h23" increment={5} dateAnchor={etdWall} defaultSelectedTime={etdWall}
+            defaultValue={`${String(etdWall.getHours()).padStart(2, '0')}:${String(etdWall.getMinutes()).padStart(2, '0')}`}
+            onTimeChange={(_, data) => data.selectedTime && setEtdWall(etdWall.getFullYear(), etdWall.getMonth(), etdWall.getDate(), data.selectedTime.getHours(), data.selectedTime.getMinutes())} />
+        </div>
+      </Field>
+      <div className={s.etdQuick}>
+        {[['지금', 0], ['+30분', 30], ['+1시간', 60], ['+2시간', 120]].map(([lbl, m]) => (
+          <Button key={lbl} size="small" appearance="secondary" onClick={() => setEtdFromNow(m)}>{lbl}</Button>
+        ))}
+      </div>
     </>
   )
+  // 모바일 ③단계에서 사용(입력 + 요약)
+  const perfTimeBlock = (<>{perfFields}{summaryStrip}</>)
 
   function swapAirports() {
     const dep = routeForm.departureAirport
@@ -121,41 +204,27 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   }
 
   // Shared between the desktop panel and the mobile sheet.
-  const errorBlock = routeError && <div className="route-check-error">{routeError}</div>
+  const errorBlock = routeError && (
+    <MessageBar intent="error"><MessageBarBody>{routeError}</MessageBarBody></MessageBar>
+  )
 
   const routePreview = routeResult && (
     <div className="route-check-result">
       {routeResult.flightRule === 'IFR' && (() => {
         const displayTokens = buildIfrSequenceTokens(routeResult, { selectedSid, selectedStar, selectedIap })
-        const { totalDistanceNm, items: distanceBreakdown } = buildIfrDistanceBreakdown({
-          routeResult,
-          selectedSid,
-          selectedStar,
-          selectedIap,
-        })
-        const sequenceVisible = !isMobile || showDetailRoute
+        const { totalDistanceNm } = buildIfrDistanceBreakdown({ routeResult, selectedSid, selectedStar, selectedIap })
+        const sequenceVisible = showDetailRoute
 
         return (
           <>
             <div className="route-check-total-dist">
               <div className="route-check-total-dist-head">
                 <span>{'총 거리'} <strong>{totalDistanceNm} NM</strong></span>
-                {isMobile && (
-                  <button type="button" className="rb-detail-toggle" onClick={() => setShowDetailRoute((v) => !v)} aria-expanded={showDetailRoute}>
-                    {'상세경로'}<span className="rb-detail-caret" aria-hidden="true">{showDetailRoute ? '▴' : '▾'}</span>
-                  </button>
-                )}
+                <Button appearance="subtle" size="small" type="button" aria-expanded={showDetailRoute}
+                  onClick={() => setShowDetailRoute((v) => !v)}>
+                  {'세부경로'} {showDetailRoute ? '▴' : '▾'}
+                </Button>
               </div>
-              {distanceBreakdown.length > 0 && (
-                <div className="dist-breakdown">
-                  {distanceBreakdown.map((item) => (
-                    <span key={`${item.kind}-${item.label}`} className={`dist-breakdown-token is-${item.kind}`}>
-                      <span className="dist-breakdown-dot" style={{ background: ROUTE_SEQUENCE_COLORS[item.kind] }} aria-hidden="true" />
-                      {`${item.label} ${item.value.toFixed(1)}`}
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
             {sequenceVisible && (
               <div className="route-check-sequence">
@@ -237,28 +306,18 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     </div>
   )
 
-  // Cross-section generation moves to the 성능·시간 step (mobile) / below the route
-  // (desktop). Cruise altitude comes from 내 항공기 above — no separate input here.
+  // 연직단면도: 버튼 하나로 — 생성되면 같은 버튼이 '열기'로 전환(경로 변경 시 다시 '생성').
+  const profileReady = verticalProfile && !verticalProfileStale
   const crossSectionBlock = routeResult && (
     <div className="route-check-result">
-      <button type="button" className="vertical-profile-generate" onClick={handleVerticalProfileRequest} disabled={verticalProfileLoading}>
-        {verticalProfileLoading ? '생성 중...' : '연직단면도 생성'}
-      </button>
-      {verticalProfileStale && (
-        <div className="vertical-profile-stale">
-          {'경로가 변경되었습니다. 연직단면도를 다시 생성해주세요.'}
-        </div>
+      <Button appearance="secondary" type="button" className={s.full} disabled={verticalProfileLoading}
+        onClick={profileReady ? () => setVerticalProfileWindowOpen(true) : handleVerticalProfileRequest}>
+        {verticalProfileLoading ? '생성 중...' : profileReady ? '연직단면도 열기' : '연직단면도 생성'}
+      </Button>
+      {verticalProfileStale && verticalProfile && (
+        <MessageBar intent="warning"><MessageBarBody>경로가 변경되었습니다. 연직단면도를 다시 생성해주세요.</MessageBarBody></MessageBar>
       )}
-      {verticalProfileError && <div className="vertical-profile-error">{verticalProfileError}</div>}
-      {verticalProfile && (
-        <button
-          className="vertical-profile-open-button"
-          type="button"
-          onClick={() => setVerticalProfileWindowOpen(true)}
-        >
-          {'연직단면도 열기'}
-        </button>
-      )}
+      {verticalProfileError && <MessageBar intent="error"><MessageBarBody>{verticalProfileError}</MessageBarBody></MessageBar>}
     </div>
   )
 
@@ -267,178 +326,138 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   // source (KNOWN_AIRPORTS) plus a 없음 entry.
   // showGenerate: desktop keeps the 브리핑 생성 button inside this section; mobile
   // moves it to the sheet footer (progressive primary action), so pass false there.
-  const renderBriefingConditions = (showGenerate) => (
-    <div className="route-check-section route-check-section--briefing">
-      <div className="route-check-section-title">{'브리핑 조건'}</div>
-      <label className="rb-altn">{'교체 공항'}
-        <select value={alternateAirport} onChange={(e) => setAlternateAirport(e.target.value)}>
-          <option value="">{'-- 없음 --'}</option>
-          {KNOWN_AIRPORTS.map((ap) => <option key={ap} value={ap}>{ap}</option>)}
-        </select>
-      </label>
-      {perfTimeBlock}
-      {showGenerate && (
-        <button
-          className="route-check-search-button"
-          type="button"
-          onClick={handleGenerateBriefing}
-          disabled={!routeResult || briefingLoading}
-        >
-          {briefingLoading ? '브리핑 생성 중...' : '브리핑 생성'}
-        </button>
-      )}
-      {briefingError && <div className="route-check-error">{briefingError}</div>}
-    </div>
-  )
-
-  // ── Desktop panel (unchanged): native selects in the floating panel ──
+  // ── Desktop panel ──
   function renderDesktopAirportSelect(label, value, onChange, firSentinel, firLabel) {
+    const sel = KNOWN_AIRPORTS.includes(value) ? value : value === firSentinel ? firSentinel : ''
+    const options = [
+      { value: '', label: '-- 선택 --' },
+      ...KNOWN_AIRPORTS.map((ap) => ({ value: ap, label: ap })),
+      { value: firSentinel, label: firLabel },
+    ]
     return (
-      <label>{label}
-        <select
-          value={KNOWN_AIRPORTS.includes(value) ? value : value === firSentinel ? firSentinel : ''}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          <option value="" disabled>{'-- 선택 --'}</option>
-          {KNOWN_AIRPORTS.map((ap) => <option key={ap} value={ap}>{ap}</option>)}
-          <option value={firSentinel}>{firLabel}</option>
-        </select>
-      </label>
+      <Field className={s.field} label={label}>
+        <FDropdown className={s.ctrl} value={sel} onChange={onChange} placeholder="-- 선택 --" options={options} />
+      </Field>
     )
   }
 
+  const depProcControl = isFirInMode ? (
+    <FDropdown className={s.ctrl} disabled={firInOptions.length === 0} value={routeForm.entryFix} onChange={handleEntryFixChange}
+      options={firInOptions.length === 0 ? [{ value: '', label: '진입 FIX 없음' }] : [{ value: '', label: '-- 없음 --' }, ...firInOptions.map((o) => ({ value: o.value, label: o.label }))]} />
+  ) : visibleSidOptions.length > 0 ? (
+    <FDropdown className={s.ctrl} value={selectedSid?.id ?? ''} onChange={(id) => handleSidChange(visibleSidOptions.find((p) => p.id === id) ?? null)}
+      options={[{ value: '', label: '-- 없음 --' }, ...visibleSidOptions.map((p) => ({ value: p.id, label: p.label }))]} />
+  ) : (
+    <Input className={s.ctrl} value={routeForm.entryFix} onChange={(_, d) => handleEntryFixChange(d.value)} />
+  )
+
+  const arrProcControl = isFirExitMode ? (
+    <FDropdown className={s.ctrl} disabled={firExitOptions.length === 0} value={routeForm.exitFix} onChange={handleExitFixChange}
+      options={firExitOptions.length === 0 ? [{ value: '', label: '이탈 FIX 없음' }] : [{ value: '', label: '-- 없음 --' }, ...firExitOptions.map((o) => ({ value: o.value, label: o.label }))]} />
+  ) : starOptions.length > 0 ? (
+    <FDropdown className={s.ctrl} value={selectedStar?.id ?? ''} onChange={(id) => handleStarChange(starOptions.find((p) => p.id === id) ?? null)}
+      options={[{ value: '', label: '-- 없음 --' }, ...starOptions.map((p) => ({ value: p.id, label: p.label }))]} />
+  ) : (
+    <Input className={s.ctrl} value={routeForm.exitFix} onChange={(_, d) => handleExitFixChange(d.value)} />
+  )
+
   const desktopBody = (
     <>
-      <form className="route-check-form" onSubmit={handleRouteSearch}>
-        <div className="route-check-section route-check-section--conditions">
-          <div className="route-check-section-title">{'운항 조건'}</div>
-          <div className="route-check-section-grid">
-            <div className={`route-check-field route-check-flight-rule-field${routeForm.flightRule === 'VFR' ? ' full-width' : ''}`}>
-              <div className="route-check-field-label">{'비행 규칙'}</div>
-              <div className="route-check-flight-rule">
-                <label className={`route-check-radio route-check-flight-option${isIfr ? ' is-active' : ''}`}>
-                  <input type="radio" name="flightRule" value="IFR" checked={isIfr} onChange={() => switchFlightRule('IFR')} />
-                  <span>IFR</span>
-                </label>
-                <span className="route-check-flight-divider">/</span>
-                <label className={`route-check-radio route-check-flight-option${!isIfr ? ' is-active' : ''}`}>
-                  <input type="radio" name="flightRule" value="VFR" checked={!isIfr} onChange={() => switchFlightRule('VFR')} />
-                  <span>VFR</span>
-                </label>
-              </div>
-            </div>
-            {isIfr && (
-              <label>{'경로 유형'}
-                <select value={routeForm.routeType} onChange={(e) => updateRouteField('routeType', e.target.value)}>
-                  <option value="ALL">{'전체'}</option>
-                  <option value="RNAV">RNAV</option>
-                  <option value="ATS">ATS</option>
-                </select>
-              </label>
-            )}
-          </div>
+      <form className={s.form} onSubmit={handleRouteSearch}>
+        <div className={s.section}>
+          <div className={s.sectionTitle}>{'① 비행 규칙'}</div>
+          <TabList selectedValue={routeForm.flightRule} onTabSelect={(_, d) => switchFlightRule(d.value)}>
+            <Tab value="IFR">IFR</Tab>
+            <Tab value="VFR">VFR</Tab>
+          </TabList>
         </div>
 
-        <div className="route-check-section">
-          <div className="route-check-section-title">{'출발'}</div>
-          <div className="route-check-section-grid">
+        <div className={s.section}>
+          <div className={s.sectionTitle}>{'② 경로'}</div>
+          <div className={s.routeRow}>
             {renderDesktopAirportSelect('출발 공항', routeForm.departureAirport, handleDepartureAirportChange, FIR_IN_AIRPORT, 'FIR 진입')}
-            {isIfr && (
-            <label>{isFirInMode ? '진입 FIX' : visibleSidOptions.length > 0 ? 'SID' : '진입 FIX'}
-              {isFirInMode
-                ? (
-                    <select
-                    value={routeForm.entryFix}
-                    onChange={(e) => handleEntryFixChange(e.target.value)}
-                    disabled={firInOptions.length === 0}
-                  >
-                    {firInOptions.length === 0
-                      ? <option value="">{'진입 FIX 없음'}</option>
-                      : [
-                          <option key="__empty__" value="">{'-- 없음 --'}</option>,
-                          ...firInOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>),
-                        ]}
-                  </select>
-                )
-                : visibleSidOptions.length > 0
-                ? (
-                  <select value={selectedSid?.id ?? ''} onChange={(e) => {
-                    const proc = visibleSidOptions.find((p) => p.id === e.target.value) ?? null
-                    handleSidChange(proc)
-                  }}>
-                    <option value="">{'-- 없음 --'}</option>
-                    {visibleSidOptions.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
-                  </select>
-                )
-                : <input value={routeForm.entryFix} onChange={(e) => handleEntryFixChange(e.target.value)} />
-              }
-            </label>
-            )}
-          </div>
-        </div>
-
-        <div className="route-check-section">
-          <div className="route-check-section-title">{'도착'}</div>
-          <div className="route-check-section-grid">
+            <Button className={s.swapBtn} appearance="subtle" type="button" aria-label="출발 도착 교환"
+              disabled={routeForm.departureAirport === FIR_IN_AIRPORT || routeForm.arrivalAirport === FIR_EXIT_AIRPORT}
+              onClick={swapAirports}>⇄</Button>
             {renderDesktopAirportSelect('도착 공항', routeForm.arrivalAirport, handleArrivalAirportChange, FIR_EXIT_AIRPORT, 'FIR 이탈')}
-            {isIfr && (
-            <label>{isFirExitMode ? '이탈 FIX' : starOptions.length > 0 ? 'STAR' : '이탈 FIX'}
-              {isFirExitMode
-                ? (
-                  <select
-                    value={routeForm.exitFix}
-                    onChange={(e) => handleExitFixChange(e.target.value)}
-                    disabled={firExitOptions.length === 0}
-                  >
-                    {firExitOptions.length === 0
-                      ? <option value="">{'이탈 FIX 없음'}</option>
-                      : [
-                          <option key="__empty__" value="">{'-- 없음 --'}</option>,
-                          ...firExitOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>),
-                        ]}
-                  </select>
-                )
-                : starOptions.length > 0
-                ? (
-                  <select value={selectedStar?.id ?? ''} onChange={(e) => {
-                    const proc = starOptions.find((p) => p.id === e.target.value) ?? null
-                    handleStarChange(proc)
-                  }}>
-                    <option value="">{'-- 없음 --'}</option>
-                    {starOptions.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
-                  </select>
-                )
-                : <input value={routeForm.exitFix} onChange={(e) => handleExitFixChange(e.target.value)} />
-              }
-            </label>
-            )}
-            {!isFirExitMode && iapCandidates.length > 1 && (
-              <label>RWY
-                <select value={selectedIapKey ?? ''} onChange={(e) => {
-                  handleIapChange(e.target.value)
-                }}>
-                  {iapCandidates.map(({ key, label }) => (
-                    <option key={key} value={key}>{label}</option>
-                  ))}
-                </select>
-              </label>
+          </div>
+          {isIfr && (
+            <Field label="경로 유형">
+              <TabList selectedValue={routeForm.routeType} onTabSelect={(_, d) => updateRouteField('routeType', d.value)}>
+                <Tab value="ALL">전체</Tab><Tab value="RNAV">RNAV</Tab><Tab value="ATS">ATS</Tab>
+              </TabList>
+            </Field>
+          )}
+          {isIfr && (
+            <div className={s.grid}>
+              <Field className={s.field} label={isFirInMode ? '진입 FIX' : visibleSidOptions.length > 0 ? 'SID' : '진입 FIX'}>{depProcControl}</Field>
+              <Field className={s.field} label={isFirExitMode ? '이탈 FIX' : starOptions.length > 0 ? 'STAR' : '이탈 FIX'}>{arrProcControl}</Field>
+              {!isFirExitMode && iapCandidates.length > 1 && (
+                <Field className={s.field} label="RWY">
+                  <FDropdown className={s.ctrl} value={selectedIapKey ?? ''} onChange={handleIapChange}
+                    options={iapCandidates.map(({ key, label }) => ({ value: key, label }))} />
+                </Field>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className={mergeClasses(s.actions, !isIfr && s.actionsVfr)}>
+          <Button appearance="primary" type="submit" disabled={routeLoading}>{routeLoading ? '검색 중...' : '검색'}</Button>
+          {isIfr && (
+            <Button appearance="secondary" type="button" onClick={handleAutoRecommend} disabled={routeLoading}>{'자동검색'}</Button>
+          )}
+          <Button appearance="secondary" type="button" onClick={handleRouteReset} disabled={routeLoading}>{'초기화'}</Button>
+        </div>
+
+        {errorBlock}
+
+        <div className={s.section}>
+          <div className={s.sectionTitle}>{'③ 브리핑 조건'}</div>
+          <Field label="교체 공항">
+            <FDropdown className={s.ctrl} value={alternateAirport} onChange={setAlternateAirport} placeholder="-- 없음 --"
+              options={[{ value: '', label: '-- 없음 --' }, ...KNOWN_AIRPORTS.map((ap) => ({ value: ap, label: ap }))]} />
+          </Field>
+          {perfFields}
+        </div>
+
+        {routeResult && (
+          <div className={s.section}>
+            <div className={s.sectionTitle}>{'④ 경로 결과'}</div>
+            {routeResult.flightRule === 'IFR' ? (
+              <>
+                <div className={s.summary}>
+                  <span style={{ color: tokens.colorNeutralForeground3 }}>거리 {Math.round(derived.plannedDistanceNm)} NM</span>
+                  <Button appearance="subtle" size="small" type="button" aria-expanded={showDetailRoute} onClick={() => setShowDetailRoute((v) => !v)}>
+                    {'세부경로'} {showDetailRoute ? '▴' : '▾'}
+                  </Button>
+                </div>
+                <div className={s.detailToggleRow}>
+                  <span style={{ fontWeight: tokens.fontWeightSemibold }}>ETD {formatBriefingTime(etd, tz)} → ETA {etaIso ? formatBriefingTime(etaIso, tz) : '—'}</span>
+                </div>
+                {showDetailRoute && (
+                  <div className="route-check-sequence">
+                    {buildIfrSequenceTokens(routeResult, { selectedSid, selectedStar, selectedIap }).map((token, index) => (
+                      <span key={`${token.kind}-${token.text}-${index}`}>
+                        {index > 0 && <span className="route-check-sequence-sep">{' -> '}</span>}
+                        <span className={`route-check-sequence-token is-${token.kind}`} style={{ color: ROUTE_SEQUENCE_COLORS[token.kind] }}>{token.text}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              routePreview
             )}
           </div>
-        </div>
+        )}
 
-        {renderBriefingConditions(true)}
-
-        <div className={`route-check-actions${!isIfr ? ' is-vfr' : ''}`}>
-          <button className="route-check-search-button" type="submit" disabled={routeLoading}>{routeLoading ? '검색 중...' : '검색'}</button>
-          {isIfr && (
-            <button className="route-check-secondary-button" type="button" onClick={handleAutoRecommend} disabled={routeLoading}>{'자동검색'}</button>
-          )}
-          <button className="route-check-secondary-button" type="button" onClick={handleRouteReset} disabled={routeLoading}>{'초기화'}</button>
-        </div>
+        {briefingError && <MessageBar intent="error"><MessageBarBody>{briefingError}</MessageBarBody></MessageBar>}
+        {crossSectionBlock}
+        <Button appearance="primary" type="button" className={s.full} onClick={handleGenerateBriefing} disabled={!routeResult || briefingLoading}>
+          {briefingLoading ? '브리핑 생성 중...' : '브리핑 생성'}
+        </Button>
       </form>
-      {errorBlock}
-      {routePreview}
-      {crossSectionBlock}
     </>
   )
 
@@ -591,7 +610,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
               <div className="route-check-eyebrow">Flight Plan</div>
               <div className="route-check-title">{'경로 확인'}</div>
             </div>
-            <span className="route-check-status">{routeForm.flightRule}</span>
+            <Badge appearance="tint" color="informative">{routeForm.flightRule}</Badge>
           </div>
           {desktopBody}
         </section>

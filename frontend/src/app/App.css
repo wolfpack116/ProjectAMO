@@ -5,7 +5,9 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: #f0f4f8;
+  background: var(--bg-3);
+  /* 글꼴 단일 레버: --app-font 하나로 앱 전역(상속 텍스트 포함) 적용 */
+  font-family: var(--app-font, system-ui, sans-serif);
 }
 
 #root {
@@ -15,6 +17,15 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+/* 폼 요소는 기본적으로 글꼴을 상속하지 않음(브라우저 기본=Arial). 전역 --app-font를 따르게 강제. */
+button,
+input,
+select,
+textarea,
+optgroup {
+  font-family: inherit;
 }
 
 .app {
@@ -41,9 +52,9 @@ body {
   bottom: 0;
   z-index: 20;
   height: var(--app-bottom-bar);
-  border-top: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #94a3b8;
+  border-top: 1px solid var(--stroke-2);
+  background: var(--bg-1);
+  color: var(--text-3);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 11px;
   line-height: 23px;
@@ -89,7 +100,7 @@ body {
     border: 1px solid rgba(148, 163, 184, 0.5);
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.95);
-    color: #334155;
+    color: var(--accent);
     font-size: 11px;
     font-weight: 800;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
@@ -97,8 +108,8 @@ body {
   }
 
   .mobile-map-layer-btn.is-active {
-    background: #2563eb;
-    border-color: #2563eb;
+    background: var(--accent);
+    border-color: var(--accent);
     color: #ffffff;
   }
 
@@ -113,7 +124,7 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 999px;
-    background: #2563eb;
+    background: var(--accent);
     color: #ffffff;
     font-size: 11px;
     font-weight: 800;
@@ -122,9 +133,9 @@ body {
   }
 
   .mobile-map-layer-btn.is-active .mobile-map-layer-count {
-    background: #ffffff;
-    color: #2563eb;
-    border-color: #2563eb;
+    background: var(--bg-1);
+    color: var(--accent);
+    border-color: var(--accent);
   }
 
   /* A full-detent mobile sheet owns the whole surface — hide the map chrome
@@ -140,7 +151,7 @@ body {
     inset: 0 0 var(--mobile-task-bar-h) 0;
     z-index: 110;
     padding: 18px 16px;
-    background: #f8fafc;
+    background: var(--bg-2);
     overflow-y: auto;
   }
 
@@ -148,7 +159,7 @@ body {
     margin: 6px 4px 14px;
     font-size: 20px;
     font-weight: 850;
-    color: #0f172a;
+    color: var(--text-1);
   }
 
   .mobile-more-list {
@@ -167,10 +178,10 @@ body {
     gap: 14px;
     min-height: 56px;
     padding: 0 16px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--stroke-2);
     border-radius: 12px;
-    background: #ffffff;
-    color: #0f172a;
+    background: var(--bg-1);
+    color: var(--text-1);
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
@@ -184,11 +195,11 @@ body {
   .mobile-more-item-icon {
     position: relative;
     display: inline-flex;
-    color: #2563eb;
+    color: var(--accent);
   }
 
   .mobile-more-item:disabled .mobile-more-item-icon {
-    color: #94a3b8;
+    color: var(--text-3);
   }
 
   .mobile-more-dot {
@@ -208,6 +219,6 @@ body {
   }
 
   .mobile-more-chevron {
-    color: #cbd5e1;
+    color: var(--stroke-1);
   }
 }

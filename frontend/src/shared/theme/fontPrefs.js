@@ -2,7 +2,8 @@
 // --app-font / body에 적용 + localStorage 저장. 테스트 기간 팀 투표용 — 결정 후 제거 예정.
 // 기본(GOV)은 main.jsx에서 자체 호스팅됨. 주의: 자체 폰트 하드코딩 컴포넌트는 글꼴 통일 전까지 안 바뀜.
 const KEY = 'font_pref'
-const DEFAULT_ID = 'gov'
+// 임시: Wanted Sans를 기본으로 통일해 비교 중(투표 후 확정). 설정에서 글꼴 일괄 변경 가능.
+const DEFAULT_ID = 'wanted'
 
 export const FONT_OPTIONS = [
   // Pretendard GOV: main.jsx에서 자체 호스팅(이미 로드) → css 불필요
