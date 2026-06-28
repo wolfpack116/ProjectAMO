@@ -55,7 +55,7 @@ Do not overwrite UTF-8 files with PowerShell `Set-Content`/`Out-File`/`>`. Use `
 
 ## 7. Code Knowledge Graph (graphify)
 
-For non-trivial refactors, reviews, dependency changes, or impact analysis, query the **graphify** knowledge graph before reading broad parts of the codebase. Build with `graphify .` (code-only scope). Do not treat graph results as a replacement for build/runtime/browser verification.
+For non-trivial refactors, reviews, dependency changes, or impact analysis, query the **graphify** knowledge graph before reading broad parts of the codebase. Build/refresh with `graphify update .` (code-only, no API key — plain `graphify .` tries semantic doc/image extraction and needs an LLM key). Do not treat graph results as a replacement for build/runtime/browser verification.
 
 ## 8. Browser Verification
 
