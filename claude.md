@@ -14,33 +14,9 @@ Before implementing:
 - If a simpler approach exists, say so. Push back when warranted.
 - If something is unclear, stop. Name what's confusing. Ask.
 
-## 2. Simplicity First
+## 2. 단순성 · 외과적 변경
 
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-## 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
+과잉설계·범위 외 변경 차단은 **ponytail 플러그인**이 담당한다(결정 사다리 자동 검사). 별도 산문 규칙은 두지 않는다.
 
 ## 4. Goal-Driven Execution
 
@@ -77,16 +53,16 @@ For UI, CSS, layout, and responsive work:
 
 Do not overwrite UTF-8 files with PowerShell `Set-Content`/`Out-File`/`>`. Use `apply_patch` for edits and Node `fs.writeFileSync(... 'utf8')` for mechanical rewrites. See `docs/policies/encoding-safety.md` for details.
 
-## 7. Code Review Graph
+## 7. Code Knowledge Graph (graphify)
 
-For non-trivial refactors, reviews, dependency changes, or impact analysis, narrow scope with `code-review-graph` before reading broad parts of the codebase. See `docs/policies/code-review-graph.md` for install, CLI commands, and hook behavior.
+For non-trivial refactors, reviews, dependency changes, or impact analysis, query the **graphify** knowledge graph before reading broad parts of the codebase. Build with `graphify .` (code-only scope). Do not treat graph results as a replacement for build/runtime/browser verification.
 
 ## 8. Browser Verification
 
 For any browser-visible behavior (UI, layout, responsive, rendering), verify with **Playwright** — write/run Playwright scripts (`npx playwright ...`) and capture screenshots/assertions through it.
 
 - Do NOT use the Claude Preview (`preview_*`) MCP tools. They are disallowed for this project; use Playwright instead.
-- Work directly in Claude. Do not delegate implementation to Codex or external/`.codex` agents for now.
+- Before any local server or Playwright screenshot task: read `docs/dev-server-and-capture.md` and follow its verified ProjectAMO procedure.
 
 ## 9. Long Context Tasks
 
@@ -102,6 +78,11 @@ If a task matches **two or more** of the following, follow `docs/policies/long-c
 - Context utilization already at 40%+
 
 When it applies, read the policy first and follow its procedure. When it does not, ignore this section and proceed with a short prompt.
+
+## 10. Session Hygiene
+
+- 같은 문제 2회 연속 실패 시 `/clear` 후 재시작.
+- 긴 세션은 `/compact`에 "무엇을 남길지" 지시와 함께 사용.
 
 ---
 
