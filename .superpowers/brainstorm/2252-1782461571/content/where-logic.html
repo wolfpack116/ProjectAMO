@@ -1,0 +1,48 @@
+<h2>"기상 정리·위험 판단"을 누가 할까요?</h2>
+<p class="subtitle">우리는 <b>브리핑 화면</b>도 만들고 <b>PDF 내보내기</b>도 만들기로 했습니다. 이때 "어떤 기상이 위험한지 골라내고 순서를 맞추는 일"을 <b>서버</b>가 미리 할지, <b>화면</b>이 그때그때 할지의 선택입니다.</p>
+
+<div class="section">
+  <div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:15px;color:var(--text-secondary)">
+    <span style="padding:8px 12px;border:1px solid var(--border);border-radius:8px">🧑‍✈️ 경로 입력<br><small>출발·도착·교체공항</small></span>
+    <span style="font-size:20px">→</span>
+    <span style="padding:8px 12px;border:2px dashed #e0a800;border-radius:8px;background:rgba(224,168,0,.08)">⚙️ 위험 판단 + 정렬<br><small style="color:#e0a800">← 이걸 어디서?</small></span>
+    <span style="font-size:20px">→</span>
+    <span style="padding:8px 12px;border:1px solid var(--border);border-radius:8px">📋 브리핑 화면<br>📄 PDF</span>
+  </div>
+</div>
+
+<div class="cards">
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="font-size:13px;padding:14px;line-height:1.6;text-align:left">
+      <b>C. 서버가 정리 (딱 v1만큼만)</b><br>
+      🍳 주방(서버)에서 <b>요리를 접시에 담아</b> 내옴.<br>
+      화면과 PDF는 <b>똑같은 완성품</b>을 그대로 받아 보여주기만 함.<br>
+      <span style="color:#2e9e5b">✓ 화면·PDF 한 번에 해결</span><br>
+      <span style="color:#2e9e5b">✓ 우리 프로젝트 설계 방향과 일치</span><br>
+      <span style="color:#2e9e5b">✓ 위험 규칙 테스트하기 쉬움</span><br>
+      <span style="color:#888">· 지금 당장은 A보다 손이 더 감</span>
+    </div>
+    <div class="card-body"><h3>C. 하이브리드 (추천)</h3><p>딱 필요한 만큼만 서버가 완성품을 만든다</p></div>
+  </div>
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="font-size:13px;padding:14px;line-height:1.6;text-align:left">
+      <b>B. 서버가 정리 (미래까지 크게)</b><br>
+      🏗️ 주방을 <b>아예 크게 짓고</b> 나중 메뉴(노선 프로파일 등)까지 미리 대비.<br>
+      <span style="color:#2e9e5b">✓ 나중 확장 편함</span><br>
+      <span style="color:#c0392b">✗ 지금 안 쓸 것까지 만들어 과설계 위험</span>
+    </div>
+    <div class="card-body"><h3>B. 큰 서버 합성</h3><p>미래 비전까지 한 번에</p></div>
+  </div>
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="font-size:13px;padding:14px;line-height:1.6;text-align:left">
+      <b>A. 화면이 그때그때 정리</b><br>
+      🍽️ 재료를 <b>식탁에 주고</b> 화면이 직접 조립.<br>
+      <span style="color:#2e9e5b">✓ 가장 빠르게 시작</span><br>
+      <span style="color:#c0392b">✗ 화면용·PDF용을 <b>두 번</b> 만들 위험</span><br>
+      <span style="color:#c0392b">✗ 위험 규칙이 화면에 흩어짐</span>
+    </div>
+    <div class="card-body"><h3>A. 화면 합성</h3><p>서버 손 안 대고 빠르게</p></div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:16px">👉 제 추천은 <b>C</b>입니다. "화면도 PDF도 만든다"는 우리 결정 때문에, 서버가 완성품 하나를 만들어주면 그걸 양쪽이 똑같이 쓰면 되거든요. 클릭하거나 터미널에 말씀해주세요.</p>

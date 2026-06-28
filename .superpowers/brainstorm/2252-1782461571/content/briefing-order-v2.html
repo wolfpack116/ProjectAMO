@@ -1,0 +1,55 @@
+<h2>노선·공역 기상 + 연직 단면도를 끼워넣은 순서</h2>
+<p class="subtitle">"현재"와 "목적지" 사이에 <b>노선/공역</b>이 들어갑니다 = 지금 → 가는 길 → 도착할 때. 단면도는 <b>이미 구현된 기능</b>이라 통합만 하면 됩니다.</p>
+
+<div class="mockup">
+  <div class="mockup-header">통합 비행 전 브리핑 v2 (RKSI → RKPC, IFR)</div>
+  <div class="mockup-body" style="text-align:left;font-size:12.5px;line-height:1.5">
+
+    <div style="background:rgba(192,57,43,.06);border-left:4px solid #c0392b;padding:8px 10px;border-radius:6px;margin-bottom:8px">
+      <span class="label" style="color:#c0392b">① 위험 요약 · ADVERSE</span>
+      <div>SIGMET 착빙 FL080–140 · AIRMET 산악차폐/난류 · RKPC 급변풍 경보</div>
+    </div>
+
+    <div style="border:1px solid var(--border);padding:8px 10px;border-radius:6px;margin-bottom:8px">
+      <span class="label">② 현재 실황 · CURRENT</span>
+      <div>RKSI <b style="color:#2e9e5b">VFR</b> · RKPC <b style="color:#c0392b">IFR</b> · RKPK <b style="color:#c8960a">MVFR</b></div>
+    </div>
+
+    <!-- NEW: 노선/공역 + 단면도 -->
+    <div style="border:2px solid #3a7bd5;padding:8px 10px;border-radius:6px;margin-bottom:8px;background:rgba(58,123,213,.05)">
+      <span class="label" style="color:#3a7bd5">③ 노선 · 공역 기상 · EN-ROUTE  ◄ 새로 추가</span>
+      <div style="margin:4px 0 8px">경로 교차: 착빙대(FL080–140) 1구간 · 난류(KTG 중도) 제주 접근 · 상층풍 270/45kt</div>
+      <!-- 미니 단면도 -->
+      <div style="background:#0d1b2a;border-radius:6px;padding:8px;position:relative;height:120px;overflow:hidden">
+        <div style="position:absolute;left:10px;top:6px;color:#9bb;font-size:10px">FL120</div>
+        <div style="position:absolute;left:10px;bottom:34px;color:#9bb;font-size:10px">FL060</div>
+        <!-- 착빙 밴드 -->
+        <div style="position:absolute;left:30%;right:35%;top:30px;height:34px;background:rgba(120,180,255,.35);border:1px dashed #7ab;border-radius:3px;color:#cde;font-size:10px;text-align:center;line-height:34px">착빙</div>
+        <!-- 계획고도선 -->
+        <div style="position:absolute;left:8px;right:8px;top:40px;border-top:2px solid #ffd166"></div>
+        <div style="position:absolute;right:10px;top:28px;color:#ffd166;font-size:10px">계획 FL090</div>
+        <!-- terrain -->
+        <svg style="position:absolute;left:0;bottom:0;width:100%;height:40px" preserveAspectRatio="none" viewBox="0 0 100 40"><path d="M0,40 L0,28 L20,22 L40,30 L55,14 L70,26 L85,20 L100,32 L100,40 Z" fill="#4a3f35"/></svg>
+        <div style="position:absolute;left:50%;bottom:2px;transform:translateX(-50%);color:#bbb;font-size:10px">RKSI ───── 경로거리 ─────► RKPC</div>
+      </div>
+      <div style="margin-top:6px;color:#3a7bd5">↳ 클릭하면 전체 인터랙티브 단면도 열림</div>
+    </div>
+
+    <div style="border:1px solid var(--border);padding:8px 10px;border-radius:6px">
+      <span class="label">④ 목적지 예보 · DESTINATION (TAF)</span>
+      <div>RKPC TEMPO 2000 RA BKN006 (ETA 구간) · <span style="color:#c0392b">교체공항 필요(1-2-3)</span></div>
+    </div>
+
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:14px">단면도는 브리핑 안에서 <b>얼마나 깊게</b> 보여줄까요? 이게 다음 결정입니다.</p>
+
+<div class="options">
+  <div class="option" data-choice="summary_link" onclick="toggleSelect(this)">
+    <div class="letter">A</div><div class="content"><h3>요약 밴드 + "단면도 열기" 링크 (추천)</h3><p>브리핑엔 경로 위험 요약 + 작은 썸네일만. 전체 단면도는 기존 창을 띄움. 가볍고 PDF도 깔끔</p></div>
+  </div>
+  <div class="option" data-choice="inline_full" onclick="toggleSelect(this)">
+    <div class="letter">B</div><div class="content"><h3>전체 단면도를 브리핑 안에 인라인</h3><p>스크롤하면 큰 단면도가 그대로 박힘. 강력하지만 무겁고 PDF에선 정적 이미지로 변환 필요</p></div>
+  </div>
+</div>

@@ -1,0 +1,56 @@
+<h2>수평만? 아니면 수평 + 수직?</h2>
+<p class="subtitle">위험은 3D 볼륨입니다. 단면도가 만들어 둔 수직 컬럼을 쓰면 "내 계획고도에서 실제로 조우하느냐"까지 판정할 수 있습니다.</p>
+
+<div class="split">
+  <!-- 수평만 -->
+  <div class="mockup">
+    <div class="mockup-header" style="color:#c0392b">수평만 매칭 (부족)</div>
+    <div class="mockup-body" style="padding:12px">
+      <div style="color:#888;font-size:11px;margin-bottom:6px">평면도(위에서 본 그림)</div>
+      <svg viewBox="0 0 240 120" style="width:100%;background:#f3f4f6;border-radius:6px">
+        <polygon points="90,20 170,30 160,90 80,80" fill="rgba(192,57,43,.18)" stroke="#c0392b" stroke-dasharray="3"/>
+        <text x="120" y="58" font-size="9" fill="#c0392b" text-anchor="middle">착빙 SIGMET</text>
+        <line x1="20" y1="100" x2="220" y2="40" stroke="#222" stroke-width="2"/>
+        <circle cx="20" cy="100" r="3" fill="#2e9e5b"/><circle cx="220" cy="40" r="3" fill="#c0392b"/>
+      </svg>
+      <div style="font-size:11px;margin-top:8px;color:#c0392b">"경로가 착빙구역을 지난다 → 위험!" <br><span style="color:#888">…근데 내가 그 고도에 실제로 들어가는지는 모름</span></div>
+    </div>
+  </div>
+
+  <!-- 수평+수직 -->
+  <div class="mockup">
+    <div class="mockup-header" style="color:#2e9e5b">수평 + 수직 매칭 (단면도 활용)</div>
+    <div class="mockup-body" style="padding:12px">
+      <div style="color:#888;font-size:11px;margin-bottom:6px">연직 단면도(옆에서 본 그림) · x=거리, y=고도</div>
+      <svg viewBox="0 0 240 120" style="width:100%;background:#0d1b2a;border-radius:6px">
+        <!-- 착빙 밴드 FL080-140 -->
+        <rect x="80" y="35" width="90" height="40" fill="rgba(120,180,255,.30)" stroke="#7ab" stroke-dasharray="3"/>
+        <text x="125" y="58" font-size="8" fill="#cde" text-anchor="middle">착빙 FL080–140</text>
+        <!-- 계획 고도선: 상승→순항 FL090→강하 -->
+        <path d="M10,100 L60,62 L190,62 L230,95" fill="none" stroke="#ffd166" stroke-width="2.5"/>
+        <text x="120" y="55" font-size="8" fill="#ffd166" text-anchor="middle">계획 FL090</text>
+        <!-- 조우 구간 강조 -->
+        <circle cx="90" cy="62" r="4" fill="#c0392b"/><circle cx="168" cy="62" r="4" fill="#c0392b"/>
+        <text x="129" y="78" font-size="8" fill="#ff7b6b" text-anchor="middle">← 조우 구간 →</text>
+        <text x="10" y="113" font-size="8" fill="#9bb">RKSI</text><text x="218" y="113" font-size="8" fill="#9bb">RKPC</text>
+      </svg>
+      <div style="font-size:11px;margin-top:8px;color:#2e9e5b">"계획 FL090이 착빙 밴드(FL080–140)를 <b>실제로 관통</b> → 조우 구간 X~Y" <br><span style="color:#888">FL200이면 위를 지나가 '조우 아님(주변 인지)'로 구분</span></div>
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top:16px">그래서 매칭은 3D로</h3>
+<div style="font-size:13px;line-height:1.6">
+  <b>수평</b> (경로축 ∩ 위험 footprint) <b>×</b> <b>수직</b> (계획 고도 프로파일 ∩ 위험 FL밴드/3D격자) <b>×</b> <b>시간</b> ([ETD,ETA] ∩ 유효시간)<br>
+  → 판정을 두 단계로: <span style="color:#c0392b">🔴 <b>조우</b></span>(내 계획고도에서 실제 통과) / <span style="color:#e0a800">🟡 <b>주변 인지</b></span>(경로 컬럼엔 있으나 내 고도 밖, 상·하층)
+</div>
+<p class="subtitle" style="margin-top:10px">재사용: 단면도 3D 샘플링(cross-section)·계획고도 프로파일(profile-composer)은 이미 있음. 신규는 "위험 볼륨 ∩ 계획 트래젝토리" 판정 로직.</p>
+
+<div class="options">
+  <div class="option" data-choice="3d" onclick="toggleSelect(this)">
+    <div class="letter">✓</div><div class="content"><h3>3D 매칭 (수평+수직+시간)으로</h3><p>조우/주변 인지 2단계 판정. 단면도 자산 적극 활용</p></div>
+  </div>
+  <div class="option" data-choice="flat" onclick="toggleSelect(this)">
+    <div class="letter">2D</div><div class="content"><h3>일단 수평만, 수직은 나중</h3><p>v1은 평면 교차만, 고도 판정은 후속</p></div>
+  </div>
+</div>
