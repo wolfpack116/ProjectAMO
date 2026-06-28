@@ -29,6 +29,15 @@ import {
   LargeTitle, Title3, Subtitle1, Subtitle2, Body1, Body2, Caption1,
 } from '@fluentui/react-components'
 import { appLightTheme, appDarkTheme } from '../../shared/theme/fluentTheme.js'
+import './DesignTestPage.css'
+
+const FONTS = {
+  gov: "'Pretendard GOV', system-ui, sans-serif",
+  noto: "'Noto Sans KR', system-ui, sans-serif",
+  gothic: "'Gothic A1', system-ui, sans-serif",
+  wanted: "'Wanted Sans Variable', system-ui, sans-serif",
+  plex: "'IBM Plex Sans KR', system-ui, sans-serif",
+}
 
 class Boundary extends Component {
   constructor(p) { super(p); this.state = { err: null } }
@@ -300,15 +309,28 @@ function Gallery() {
 
 export default function DesignTestPage() {
   const [dark, setDark] = useState(false)
+  const [font, setFont] = useState('gov')
+  const stack = FONTS[font]
+  const base = dark ? appDarkTheme : appLightTheme
+  const theme = { ...base, fontFamilyBase: stack, fontFamilyNumeric: stack }
   return (
-    <FluentProvider theme={dark ? appDarkTheme : appLightTheme}>
-      <div style={{ height: '100vh', overflowY: 'auto', padding: 32, boxSizing: 'border-box' }}>
+    <FluentProvider theme={theme}>
+      <div style={{ height: '100vh', overflowY: 'auto', padding: 32, boxSizing: 'border-box', fontFamily: stack }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 16, flexWrap: 'wrap' }}>
-          <Title3>진짜 Fluent 2 컴포넌트 갤러리 (/test)</Title3>
-          <Switch label={dark ? '다크' : '라이트'} checked={dark} onChange={(_, d) => setDark(d.checked)} />
+          <Title3>글꼴 비교 — Fluent 갤러리 (/test)</Title3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <TabList selectedValue={font} onTabSelect={(_, d) => setFont(d.value)} size="small">
+              <Tab value="gov">Pretendard GOV (정부표준)</Tab>
+              <Tab value="noto">Noto Sans KR</Tab>
+              <Tab value="gothic">Gothic A1</Tab>
+              <Tab value="wanted">Wanted Sans</Tab>
+              <Tab value="plex">IBM Plex KR</Tab>
+            </TabList>
+            <Switch label={dark ? '다크' : '라이트'} checked={dark} onChange={(_, d) => setDark(d.checked)} />
+          </div>
         </div>
         <Body1 style={{ display: 'block', opacity: 0.7, marginBottom: 20 }}>
-          @fluentui/react-components 실물 + Pretendard(자체 호스팅) + 공용 토큰. 본체 미반영(미리보기 전용).
+          글꼴을 바꿔 비교해보세요. Pretendard는 자체 호스팅, 나머지는 비교용 CDN.
         </Body1>
         <Divider style={{ marginBottom: 24 }} />
         <Gallery />

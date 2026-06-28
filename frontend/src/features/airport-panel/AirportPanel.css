@@ -20,7 +20,7 @@
     -10px 0 40px rgba(15, 23, 42, 0.1),
     inset 1px 0 0 rgba(255, 255, 255, 0.8);
   color: #1e293b;
-  font-family: 'Karla', system-ui, -apple-system, sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
   font-size: 13px;
   overflow: hidden;
 }
@@ -694,7 +694,7 @@
   border-radius: 12px;
   color: #ffffff !important;
   text-align: center;
-  font-family: 'Pretendard', 'Inter', 'Noto Sans KR', sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
 }
 
 .ap-mv2-cat-banner--VFR { background-color: #1b7a3d !important; }
@@ -801,7 +801,7 @@
 }
 
 .ap-mv2-card-value--weather {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
   font-size: 20px;
 }
 
@@ -1008,7 +1008,7 @@
 
 /* ── AMOS ── */
 .ap-amos .ap-dl dd {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
 }
 
 /* ── WARNING ── */
@@ -1068,7 +1068,7 @@
   border-radius: 6px;
   padding: 14px 14px 10px;
   color: #222;
-  font-family: 'NotoSansKR', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
   font-size: 12px;
   line-height: 1.6;
   border: 1px solid #e2e8f0;

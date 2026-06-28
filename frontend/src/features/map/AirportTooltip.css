@@ -7,7 +7,7 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14), 0 2px 4px rgba(0, 0, 0, 0.08);
   border: 2px solid #94a3b8; /* color overridden by inline borderColor */
   pointer-events: none;
-  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
   overflow: hidden;
 }
 

@@ -15,7 +15,8 @@
   --space-xxxl: 32px;
 
   /* 타이포 (Pretendard) */
-  --font-base: Pretendard, system-ui, sans-serif;
+  --font-base: 'Pretendard GOV', system-ui, sans-serif;
+  --app-font: var(--font-base);
   --fs-100: 10px;
   --fs-200: 12px;
   --fs-300: 14px;

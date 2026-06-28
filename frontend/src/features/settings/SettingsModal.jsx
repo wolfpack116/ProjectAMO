@@ -5,6 +5,7 @@ import {
   normalizeAirportMinimaSettings,
 } from '../../shared/weather/helpers.js'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
+import { FONT_OPTIONS, applyFont, getFontPref } from '../../shared/theme/fontPrefs.js'
 import './SettingsModal.css'
 
 const AIRPORT_ORDER = ['RKSI', 'RKSS', 'RKPC', 'RKPK', 'RKTU', 'RKTN', 'RKTH', 'RKJB', 'RKJJ', 'RKJK', 'RKJY', 'RKNW', 'RKPS', 'RKPU', 'RKNY']
@@ -25,6 +26,7 @@ export default function SettingsModal({ onClose }) {
 
   const [timeZone, setTimeZone] = useState(() => localStorage.getItem('time_zone') || 'KST')
   const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'ko')
+  const [fontPref, setFontPref] = useState(() => getFontPref())
 
   const [minima, setMinima] = useState(() =>
     normalizeAirportMinimaSettings(loadMinima())
@@ -104,6 +106,17 @@ export default function SettingsModal({ onClose }) {
                   <select value={language} onChange={(e) => setLanguage(e.target.value)}>
                     <option value="ko">한국어</option>
                     <option value="en">English</option>
+                  </select>
+                </label>
+                <label className="settings-row">
+                  <span>글꼴 (테스트)</span>
+                  <select
+                    value={fontPref}
+                    onChange={(e) => { setFontPref(e.target.value); applyFont(e.target.value) }}
+                  >
+                    {FONT_OPTIONS.map((o) => (
+                      <option key={o.id} value={o.id}>{o.label}</option>
+                    ))}
                   </select>
                 </label>
               </fieldset>
