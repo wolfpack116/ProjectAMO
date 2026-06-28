@@ -7,5 +7,8 @@ reference/
 korea3sec.bin
 korea3sec.bin.Z
 artifacts/
-# Added by code-review-graph
-.code-review-graph/
+# graphify code knowledge graph artifacts
+.graphify/
+graph.json
+graph.html
+GRAPH_REPORT.md
