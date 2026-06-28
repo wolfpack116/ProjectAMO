@@ -12,9 +12,9 @@ describe('parseSfcAscii', () => {
     assert.equal(result.length, total)
   })
 
-  it('converts raw 10m units to metres (÷10)', () => {
+  it('converts raw km units to metres (×1000)', () => {
     const total = SFC_W * SFC_H
-    const text = `  ${SFC_W},  ${SFC_H},=\n${Array(total).fill('50000.0').join(',')}\n`
+    const text = `  ${SFC_W},  ${SFC_H},=\n${Array(total).fill('5.0').join(',')}\n`
     const result = parseSfcAscii(text)
     assert.ok(Math.abs(result[0] - 5000) < 0.1)
   })
