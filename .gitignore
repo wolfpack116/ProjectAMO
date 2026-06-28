@@ -8,7 +8,5 @@ korea3sec.bin
 korea3sec.bin.Z
 artifacts/
 # graphify code knowledge graph artifacts
+graphify-out/
 .graphify/
-graph.json
-graph.html
-GRAPH_REPORT.md
