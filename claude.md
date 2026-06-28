@@ -81,17 +81,12 @@ Do not overwrite UTF-8 files with PowerShell `Set-Content`/`Out-File`/`>`. Use `
 
 For non-trivial refactors, reviews, dependency changes, or impact analysis, narrow scope with `code-review-graph` before reading broad parts of the codebase. See `docs/policies/code-review-graph.md` for install, CLI commands, and hook behavior.
 
-## 8. Superpowers Subagent Orchestration
+## 8. Browser Verification
 
-For this repository, any user request to execute a Superpowers workflow, follow a Superpowers plan, or work from `docs/superpowers/plans/*` is an explicit user request to use subagents/delegation where the workflow calls for it.
+For any browser-visible behavior (UI, layout, responsive, rendering), verify with **Playwright** — write/run Playwright scripts (`npx playwright ...`) and capture screenshots/assertions through it.
 
-When using Superpowers workflows, the main agent must act as the orchestrator and assign suitable subagents from `.codex/agents/` whenever the task has cleanly separable planning, investigation, implementation, review, QA, security, or architecture work.
-
-- Prefer the workflow-support roles: `task-distributor`, `code-mapper`, `implementer`, `spec-reviewer`, `reviewer`, `test-gap-finder`, `debugger`, `security-auditor`, `ui-qa-reviewer`, `architect-reviewer`, and `design-reviewer`.
-- Keep review, mapping, QA, security, and architecture agents read-only. Use `implementer` for file edits.
-- Use parallel subagents primarily for read-heavy exploration, tests, triage, log analysis, QA, security review, architecture review, and summarization.
-- Keep write-heavy implementation sequential unless file ownership is clearly disjoint and integration ownership is explicit.
-- Subagents must still follow this file, `Architecture.md`, and `EntryPoints.md` when present.
+- Do NOT use the Claude Preview (`preview_*`) MCP tools. They are disallowed for this project; use Playwright instead.
+- Work directly in Claude. Do not delegate implementation to Codex or external/`.codex` agents for now.
 
 ## 9. Long Context Tasks
 
