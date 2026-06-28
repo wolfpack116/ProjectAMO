@@ -5,8 +5,8 @@ Spec: docs/superpowers/specs/2026-06-28-workflow-constitution-redesign-design.md
 Plan: docs/superpowers/plans/2026-06-28-workflow-constitution-redesign.md
 
 ## Resume Point
-- Last completed: Task 11 (final verification). Phase 1 implementation complete.
-- Next: ponytail 설치만 사용자 액션으로 남음 (아래 Unverified). 이후 Phase 2(청소) 별도 진행.
+- Last completed: Phase 1 전체 완료 (Task 1~11 + ponytail 설치/강도 설정).
+- Next: Phase 2(청소) 별도 진행 또는 브랜치 마무리.
 
 ## Verified
 - `.codex/` 삭제, 전역·프로젝트 라이브 지침/설정에 codex 0건 (rg)
@@ -20,8 +20,10 @@ Plan: docs/superpowers/plans/2026-06-28-workflow-constitution-redesign.md
 - 옛 code-review-graph `.git/hooks/pre-commit` 제거
 - `frontend` build 성공(10.31s), test:layout 10/10, tokens.test.js 1/1
 
-## Unverified / Pending (user action)
-- ponytail 설치: 이 환경에서 `/plugin` 미지원 → 사용자가 `claude` 터미널에서 `/plugin marketplace add DietrichGebert/ponytail` → `/plugin install ponytail@ponytail` → `/ponytail lite`
+## Verified (user action 완료)
+- ponytail 설치 완료: settings `ponytail@ponytail: true` + 마켓 등록, 강도 `full` (`~/.claude/.ponytail-active` = full)
+
+## Unverified / Pending
 - graphify 자동 재빌드 훅(`graphify hook install`)은 선택 — 미설정
 
 ## Deviations from Plan
