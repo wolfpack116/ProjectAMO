@@ -1307,6 +1307,10 @@ function MapView({
                 briefing={routeBriefing.state.briefing}
                 verticalProfile={routeBriefing.state.verticalProfile}
                 crossSection={routeBriefing.state.crossSection}
+                advisories={[
+                  ...sigmetItems.map((item) => ({ ...item, kind: 'sigmet' })),
+                  ...airmetItems.map((item) => ({ ...item, kind: 'airmet' })),
+                ]}
                 onClose={() => routeBriefing.actions.setBriefing(null)}
                 onOpenProfile={routeBriefing.actions.handleVerticalProfileRequest}
                 onFocus={focusBriefingSection}

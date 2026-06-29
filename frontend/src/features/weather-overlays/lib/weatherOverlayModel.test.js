@@ -14,11 +14,18 @@ test('formatSigwxStamp formats tmfc values as KST labels', () => {
   assert.equal(formatSigwxStamp('202605140300'), '05/14 03:00 KST')
 })
 
-test('formatAdvisoryPanelLabel includes kind, sequence, and phenomenon', () => {
+test('formatAdvisoryPanelLabel includes kind, sequence, and 한글 phenomenon (+code)', () => {
   assert.equal(formatAdvisoryPanelLabel({
     sequence_number: '1',
     phenomenon_code: 'TS',
-  }, 'sigmet'), 'SIGMET 1 TS')
+  }, 'sigmet'), 'SIGMET 1 뇌우 (TS)')
+})
+
+test('formatAdvisoryPanelLabel falls back to label/code when no 한글 mapping', () => {
+  assert.equal(formatAdvisoryPanelLabel({
+    phenomenon_code: 'UNKNOWN_X',
+    phenomenon_label: 'Unknown X',
+  }, 'airmet'), 'AIRMET Unknown X')
 })
 
 test('buildWeatherOverlayModel selects latest visible timeline frame by default', () => {

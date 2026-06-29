@@ -5,6 +5,7 @@ import {
   pickNearestPreviousFrame,
 } from './weatherTimeline.js'
 import { advisoryItemsToFeatureCollection, advisoryItemsToLabelFeatureCollection } from './advisoryLayers.js'
+import { phenomenonText } from '../../../shared/weather/phenomenonKo.js'
 import { sigwxLowToMapboxData } from './sigwxData.js'
 import { LIGHTNING_AGE_BANDS, createLightningGeoJSON } from './lightningLayers.js'
 
@@ -66,7 +67,7 @@ export function formatSigwxStamp(value, tz = 'KST') {
 export function formatAdvisoryPanelLabel(item, kind) {
   const base = kind === 'sigmet' ? 'SIGMET' : 'AIRMET'
   const sequence = item?.sequence_number ? ` ${item.sequence_number}` : ''
-  const phenomenon = item?.phenomenon_code || item?.phenomenon_label || ''
+  const phenomenon = phenomenonText(item?.phenomenon_code, item?.phenomenon_label || '')
   return `${base}${sequence}${phenomenon ? ` ${phenomenon}` : ''}`
 }
 
@@ -139,10 +140,10 @@ export function buildWeatherOverlayModel({
     ...airmetData,
     items: airmetItems.filter((item) => !(hiddenAdvisoryKeys.airmet || []).includes(item.mapKey)),
   }
-  const sigmetFeatures = advisoryItemsToFeatureCollection(visibleSigmetPayload, 'sigmet')
-  const sigmetLabels = advisoryItemsToLabelFeatureCollection(visibleSigmetPayload, 'sigmet')
-  const airmetFeatures = advisoryItemsToFeatureCollection(visibleAirmetPayload, 'airmet')
-  const airmetLabels = advisoryItemsToLabelFeatureCollection(visibleAirmetPayload, 'airmet')
+  const sigmetFeatures = advisoryItemsToFeatureCollection(visibleSigmetPayload, 'sigmet', tz)
+  const sigmetLabels = advisoryItemsToLabelFeatureCollection(visibleSigmetPayload, 'sigmet', tz)
+  const airmetFeatures = advisoryItemsToFeatureCollection(visibleAirmetPayload, 'airmet', tz)
+  const airmetLabels = advisoryItemsToLabelFeatureCollection(visibleAirmetPayload, 'airmet', tz)
 
   const sigwxHistoryEntries = Array.isArray(sigwxLowHistoryData) && sigwxLowHistoryData.length > 0
     ? sigwxLowHistoryData

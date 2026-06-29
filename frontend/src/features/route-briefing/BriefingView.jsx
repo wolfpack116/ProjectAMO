@@ -10,6 +10,8 @@ import useIsMobile from '../../shared/ui/useIsMobile.js'
 import MobileSheet from '../../shared/ui/MobileSheet.jsx'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
 import { formatBriefingTime } from './lib/briefingTime.js'
+import { phenomenonKo } from '../../shared/weather/phenomenonKo.js'
+import { useCrossSectionLayers, CrossSectionToggles } from './crossSectionLayers.jsx'
 import './BriefingView.css'
 
 const LEVEL_BADGE = { green: 'success', amber: 'warning', red: 'danger', gray: 'subtle' }
@@ -27,7 +29,7 @@ function CatBadge({ category }) {
   return <Badge appearance="filled" style={{ backgroundColor: CAT_COLOR[category] || '#94a3b8', color: '#fff' }}>{category}</Badge>
 }
 
-export default function BriefingView({ briefing, verticalProfile = null, crossSection = null, onClose, onOpenProfile, onFocus }) {
+export default function BriefingView({ briefing, verticalProfile = null, crossSection = null, advisories = [], onClose, onOpenProfile, onFocus }) {
   const isMobile = useIsMobile()
   const { tz } = useTimeZone()
   const containerRef = useRef(null)
@@ -35,6 +37,17 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   const [detent, setDetent] = useState('half')
   const [activeAirport, setActiveAirport] = useState(null)
   const [xsectionFull, setXsectionFull] = useState(false)
+  // 인라인 단면도 레이어 토글 — 해당 현상이 있으면 그 레이어를 기본 ON.
+  // 현상 출처: SIGMET/AIRMET 위험기상 + enroute 모델(KTG 난류·KIM 착빙) 둘 다.
+  const hazardCodes = (briefing?.sections?.adverse?.hazards ?? []).map((h) => h.code)
+  const modelKinds = new Set((briefing?.sections?.enroute?.model?.elements ?? []).map((e) => e.kind))
+  const hazHas = (codes) => codes.some((c) => hazardCodes.includes(c))
+  const [xLayers, toggleXLayer] = useCrossSectionLayers({
+    temp: false, wind: false, moisture: false,
+    icing: hazHas(['SEV_ICE', 'MOD_ICE']) || modelKinds.has('icing'),
+    turbulence: hazHas(['SEV_TURB', 'MOD_TURB']) || modelKinds.has('turbulence'),
+    advisories: hazardCodes.length > 0,
+  })
   const onFocusRef = useRef(onFocus)
   onFocusRef.current = onFocus
 
@@ -44,9 +57,9 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   const steps = briefing
     ? [
         { id: 'adverse', label: '① 위험' },
-        { id: 'current', label: '③ 현재' },
-        ...(hasEnroute ? [{ id: 'enroute', label: '④ 노선' }] : []),
-        { id: 'destination', label: '⑤ 목적지' },
+        { id: 'current', label: '② 현재' },
+        ...(hasEnroute ? [{ id: 'enroute', label: '③ 노선' }] : []),
+        { id: 'destination', label: '④ 목적지' },
       ]
     : []
 
@@ -94,7 +107,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   const adverse = (
     <section data-bvid="adverse" className="bv-section">
       <Card>
-        <Subtitle2>① 위험 요약</Subtitle2>
+        <Subtitle2 as="h3">① 위험 요약</Subtitle2>
         {sections.adverse.hazards.length === 0
           ? <Body1 style={{ color: 'var(--text-3)' }}>경로·시간에 걸린 위험기상 없음</Body1>
           : sections.adverse.hazards.map((h, i) => (
@@ -102,7 +115,12 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
                 <Badge appearance="tint" color={h.encounter === 'on' ? 'danger' : 'warning'}>
                   {h.encounter === 'on' ? '조우' : '주변'}{h.verticalKnown === false ? '?' : ''}
                 </Badge>
-                <Body1><b>{h.source}</b> {h.label}{h.bandFt ? ` ${h.bandFt.lowFt}–${h.bandFt.highFt}ft` : ''} <Caption1 style={{ color: 'var(--text-3)' }}>({h.validFrom}~{h.validTo})</Caption1></Body1>
+                <Body1>
+                  <b>{h.source}</b> {phenomenonKo(h.code) || h.label}
+                  {phenomenonKo(h.code) && h.code ? <Caption1 style={{ color: 'var(--text-3)' }}> ({h.code})</Caption1> : null}
+                  {h.bandFt ? ` ${h.bandFt.lowFt}–${h.bandFt.highFt}ft` : ''}{' '}
+                  <Caption1 style={{ color: 'var(--text-3)' }}>({formatBriefingTime(h.validFrom, tz, { withDate: true })}~{formatBriefingTime(h.validTo, tz, { withDate: true })})</Caption1>
+                </Body1>
               </div>
             ))}
       </Card>
@@ -124,7 +142,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   const currentDesktop = (
     <section data-bvid="current" className="bv-section">
       <Card>
-        <Subtitle2>③ 현재 실황</Subtitle2>
+        <Subtitle2 as="h3">② 현재 실황</Subtitle2>
         {airports.map((a) => (
           <div key={a.role} style={{ marginBottom: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -141,7 +159,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   const currentMobile = (
     <section data-bvid="current" className="bv-section">
       <Card>
-        <Subtitle2>③ 현재 실황</Subtitle2>
+        <Subtitle2 as="h3">② 현재 실황</Subtitle2>
         <TabList selectedValue={activeAirportObj?.role} onTabSelect={(_, d) => setActiveAirport(d.value)} size="small">
           {airports.map((a) => <Tab key={a.role} value={a.role}>{a.icao}</Tab>)}
         </TabList>
@@ -173,13 +191,23 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   const enroute = sections.enroute && (
     <section data-bvid="enroute" className="bv-section">
       <Card>
-        <Subtitle2>④ 노선·공역</Subtitle2>
+        <Subtitle2 as="h3">③ 노선·공역</Subtitle2>
         <Body1>계획고도 <b style={{ fontVariantNumeric: 'tabular-nums' }}>{sections.enroute.plannedCruiseAltitudeFt}ft</b></Body1>
         {sections.enroute.encounters.length === 0
           ? <Body1 style={{ color: 'var(--text-3)' }}>계획고도에서 조우하는 위험 없음</Body1>
           : sections.enroute.encounters.map((h, i) => (
-              <Body1 key={i}><b>{h.label}</b>{h.bandFt ? ` ${h.bandFt.lowFt}–${h.bandFt.highFt}ft` : ''} · {h.routeIntervalNm.startNm}–{h.routeIntervalNm.endNm}NM</Body1>
+              <Body1 key={i}>
+                <b>{phenomenonKo(h.code) || h.label}</b>
+                {phenomenonKo(h.code) && h.code ? <Caption1 style={{ color: 'var(--text-3)' }}> ({h.code})</Caption1> : null}
+                {h.bandFt ? ` ${h.bandFt.lowFt}–${h.bandFt.highFt}ft` : ''} · {h.routeIntervalNm.startNm}–{h.routeIntervalNm.endNm}NM
+              </Body1>
             ))}
+        {sections.enroute.model?.elements?.length > 0 && (
+          <div className="bv-ribbon-legend" aria-label="난기류 강도 범례">
+            <span><i style={{ background: 'var(--turb-mod)' }} />중(MOD)</span>
+            <span><i style={{ background: 'var(--level-red)' }} />심(SEV)</span>
+          </div>
+        )}
         {sections.enroute.model?.elements?.length > 0 && (
           <div className="bv-ribbons">
             {sections.enroute.model.elements.map((el, i) => {
@@ -204,9 +232,12 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
           </div>
         )}
         {verticalProfile && (
-          <div className={`bv-xsection${isMobile ? ' bv-xsection-scroll' : ''}`}>
-            <VerticalProfileChart profile={verticalProfile} crossSection={crossSection} layers={{ icing: true, turbulence: true }} />
-          </div>
+          <>
+            <CrossSectionToggles layers={xLayers} onToggle={toggleXLayer} />
+            <div className={`bv-xsection${isMobile ? ' bv-xsection-scroll' : ''}`}>
+              <VerticalProfileChart profile={verticalProfile} crossSection={crossSection} layers={xLayers} advisories={advisories} />
+            </div>
+          </>
         )}
         {sections.enroute.crossSectionAvailable && (isMobile ? verticalProfile : onOpenProfile) && (
           <Button appearance="secondary" size="small" onClick={isMobile ? () => setXsectionFull(true) : onOpenProfile}>단면도 크게 열기</Button>
@@ -218,7 +249,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   const destination = (
     <section data-bvid="destination" className="bv-section">
       <Card>
-        <Subtitle2>⑤ 목적지 예보</Subtitle2>
+        <Subtitle2 as="h3">④ 목적지 예보</Subtitle2>
         {sections.destination.taf
           ? <Body1><b>ETA {formatBriefingTime(meta.eta, tz)} 기준 예보</b> · {sections.destination.taf.clouds} · {sections.destination.taf.category}</Body1>
           : <Body1 style={{ color: 'var(--text-3)' }}>TAF 없음</Body1>}
@@ -265,7 +296,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
       <div className="bv-header">
         <div>
           <Caption1 style={{ color: 'var(--text-3)' }}>비행 전 브리핑</Caption1>
-          <Title3 block>{meta.departureAirport} → {meta.arrivalAirport}</Title3>
+          <Title3 as="h2" block>{meta.departureAirport} → {meta.arrivalAirport}</Title3>
           <Caption1 style={{ color: 'var(--text-3)', display: 'block' }}>{meta.alternateAirport ? `교체 ${meta.alternateAirport}` : '단일 목적지'}</Caption1>
           {etdEtaLine && <Caption1 style={{ color: 'var(--accent)', display: 'block', fontVariantNumeric: 'tabular-nums' }}>{etdEtaLine}</Caption1>}
         </div>

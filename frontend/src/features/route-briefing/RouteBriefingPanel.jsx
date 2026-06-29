@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { KNOWN_AIRPORTS } from './lib/procedureData.js'
 import { calcVfrDistance } from './lib/routePreview.js'
 import {
@@ -31,6 +31,7 @@ const useStyles = makeStyles({
   form: { display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalL, padding: `${tokens.spacingVerticalL} ${tokens.spacingHorizontalL} ${tokens.spacingVerticalXXL}` },
   section: { display: 'flex', flexDirection: 'column', gap: tokens.spacingVerticalS },
   sectionTitle: {
+    margin: 0,
     fontSize: tokens.fontSizeBase200,
     fontWeight: tokens.fontWeightSemibold,
     color: tokens.colorNeutralForeground3,
@@ -39,13 +40,14 @@ const useStyles = makeStyles({
   grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: tokens.spacingHorizontalM, alignItems: 'end' },
   field: { minWidth: 0 },
   fieldFull: { gridColumn: '1 / -1', minWidth: 0 },
+  // ⇄ 교환 버튼은 가운데 전용 칸(auto). 출발/도착은 좌우 대칭. (1fr 1fr로 키우면 ⇄ 자리가 없어 겹침)
   routeRow: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: tokens.spacingHorizontalS, alignItems: 'end' },
   swapBtn: { minWidth: '32px', marginBottom: tokens.spacingVerticalXS },
   actions: { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: tokens.spacingHorizontalS },
   actionsVfr: { gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' },
   etdQuick: { display: 'flex', flexWrap: 'wrap', gap: tokens.spacingHorizontalXS },
   detailToggleRow: { display: 'flex', justifyContent: 'flex-end' },
-  etdRow: { display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 1fr)', gap: tokens.spacingHorizontalS },
+  etdRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: tokens.spacingHorizontalM },
   // DatePicker/TimePicker 내부 Combobox 기본 min-width(250px)를 눌러 좁은 패널에서 한 줄에 맞춤
   picker: {
     width: '100%', minWidth: 0,
@@ -147,6 +149,22 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   } = actions
 
   const isIfr = routeForm.flightRule === 'IFR'
+  // 출발·도착이 모두 있어야 검색 가능(빈 입력으로 검색→서버 오류를 사전 차단).
+  const canSearch = !!routeForm.departureAirport && !!routeForm.arrivalAirport
+  // 초기화 오클릭 방지: 잃을 입력이 있으면 한 번 더 눌러 확인(3초 후 자동 해제).
+  const [resetArmed, setResetArmed] = useState(false)
+  const resetArmTimerRef = useRef(null)
+  const hasInput = !!routeResult || !!routeForm.departureAirport || !!routeForm.arrivalAirport
+  function armOrReset() {
+    if (resetArmed || !hasInput) {
+      clearTimeout(resetArmTimerRef.current)
+      setResetArmed(false)
+      handleRouteReset()
+      return
+    }
+    setResetArmed(true)
+    resetArmTimerRef.current = setTimeout(() => setResetArmed(false), 3000)
+  }
 
   // ETA is auto-computed read-only from ETD + planned distance + TAS.
   const etaIso = computeEtaIso(etd, derived.plannedDistanceNm, cruiseSpeedKt)
@@ -172,7 +190,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
             onChange={(_, d) => { const v = d.value ?? Number(d.displayValue); if (Number.isFinite(v)) setCruiseSpeedKt(v) }} />
         </Field>
         <Field label="순항고도 (ft)">
-          <SpinButton className={s.ctrl} value={Number(cruiseAltitudeFt) || 0} min={0} max={60000} step={500}
+          <SpinButton className={s.ctrl} value={Number(cruiseAltitudeFt) || 0} min={500} max={60000} step={500}
             onChange={(_, d) => { const v = d.value ?? Number(d.displayValue); if (Number.isFinite(v)) setCruiseAltitudeFt(v) }} />
         </Field>
       </div>
@@ -365,7 +383,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     <>
       <form className={s.form} onSubmit={handleRouteSearch}>
         <div className={s.section}>
-          <div className={s.sectionTitle}>{'① 비행 규칙'}</div>
+          <h3 className={s.sectionTitle}>{'① 비행 규칙'}</h3>
           <TabList selectedValue={routeForm.flightRule} onTabSelect={(_, d) => switchFlightRule(d.value)}>
             <Tab value="IFR">IFR</Tab>
             <Tab value="VFR">VFR</Tab>
@@ -373,7 +391,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
         </div>
 
         <div className={s.section}>
-          <div className={s.sectionTitle}>{'② 경로'}</div>
+          <h3 className={s.sectionTitle}>{'② 경로'}</h3>
           <div className={s.routeRow}>
             {renderDesktopAirportSelect('출발 공항', routeForm.departureAirport, handleDepartureAirportChange, FIR_IN_AIRPORT, 'FIR 진입')}
             <Button className={s.swapBtn} appearance="subtle" type="button" aria-label="출발 도착 교환"
@@ -403,27 +421,28 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
         </div>
 
         <div className={mergeClasses(s.actions, !isIfr && s.actionsVfr)}>
-          <Button appearance="primary" type="submit" disabled={routeLoading}>{routeLoading ? '검색 중...' : '검색'}</Button>
+          <Button appearance="primary" type="submit" disabled={routeLoading || !canSearch}
+            title={canSearch ? undefined : '출발·도착 공항을 먼저 선택하세요'}>{routeLoading ? '검색 중...' : '검색'}</Button>
           {isIfr && (
             <Button appearance="secondary" type="button" onClick={handleAutoRecommend} disabled={routeLoading}>{'자동검색'}</Button>
           )}
-          <Button appearance="secondary" type="button" onClick={handleRouteReset} disabled={routeLoading}>{'초기화'}</Button>
+          <Button appearance="secondary" type="button" onClick={armOrReset} disabled={routeLoading}>{resetArmed ? '초기화 확인' : '초기화'}</Button>
         </div>
 
         {errorBlock}
 
         <div className={s.section}>
-          <div className={s.sectionTitle}>{'③ 브리핑 조건'}</div>
+          <h3 className={s.sectionTitle}>{'③ 브리핑 조건'}</h3>
           <Field label="교체 공항">
             <FDropdown className={s.ctrl} value={alternateAirport} onChange={setAlternateAirport} placeholder="-- 없음 --"
-              options={[{ value: '', label: '-- 없음 --' }, ...KNOWN_AIRPORTS.map((ap) => ({ value: ap, label: ap }))]} />
+              options={[{ value: '', label: '-- 없음 --' }, ...KNOWN_AIRPORTS.filter((ap) => ap !== routeForm.departureAirport && ap !== routeForm.arrivalAirport).map((ap) => ({ value: ap, label: ap }))]} />
           </Field>
           {perfFields}
         </div>
 
         {routeResult && (
           <div className={s.section}>
-            <div className={s.sectionTitle}>{'④ 경로 결과'}</div>
+            <h3 className={s.sectionTitle}>{'④ 경로 결과'}</h3>
             {routeResult.flightRule === 'IFR' ? (
               <>
                 <div className={s.summary}>
@@ -490,7 +509,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           <label className="rb-altn">{'교체 공항'}
             <select value={alternateAirport} onChange={(e) => setAlternateAirport(e.target.value)}>
               <option value="">{'-- 없음 --'}</option>
-              {KNOWN_AIRPORTS.map((ap) => <option key={ap} value={ap}>{ap}</option>)}
+              {KNOWN_AIRPORTS.filter((ap) => ap !== routeForm.departureAirport && ap !== routeForm.arrivalAirport).map((ap) => <option key={ap} value={ap}>{ap}</option>)}
             </select>
           </label>
           {isIfr && (
@@ -538,12 +557,12 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   const mobileFooter = mobileStep === 1 ? (
     <div className="route-check-actions is-step">
       {(depChosen || arrChosen || routeResult) && (
-        <button type="button" className="route-check-secondary-button" onClick={handleRouteReset} disabled={routeLoading}>{'초기화'}</button>
+        <button type="button" className="route-check-secondary-button" onClick={armOrReset} disabled={routeLoading}>{resetArmed ? '초기화 확인' : '초기화'}</button>
       )}
       {routeResult ? (
         <button type="button" className="route-check-search-button" onClick={() => setMobileStep(2)}>{'다음'}</button>
       ) : (
-        <button type="button" className="route-check-search-button" onClick={() => handleRouteSearch({ preventDefault() {} })} disabled={routeLoading}>{routeLoading ? '검색 중...' : '경로 검색'}</button>
+        <button type="button" className="route-check-search-button" onClick={() => handleRouteSearch({ preventDefault() {} })} disabled={routeLoading || !canSearch}>{routeLoading ? '검색 중...' : '경로 검색'}</button>
       )}
     </div>
   ) : (
@@ -608,7 +627,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           <div className="route-check-header">
             <div>
               <div className="route-check-eyebrow">Flight Plan</div>
-              <div className="route-check-title">{'경로 확인'}</div>
+              <h2 className="route-check-title">{'경로 확인'}</h2>
             </div>
             <Badge appearance="tint" color="informative">{routeForm.flightRule}</Badge>
           </div>

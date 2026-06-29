@@ -1,3 +1,5 @@
+import { phenomenonKo } from '../../../shared/weather/phenomenonKo.js'
+
 export const ADVISORY_LAYER_DEFS = {
   sigmet: {
     sourceId: 'kma-sigmet-advisories',
@@ -17,7 +19,7 @@ export const ADVISORY_LAYER_DEFS = {
   },
 }
 
-function advisorySymbolUrl(kind, phenomenonCode) {
+export function advisorySymbolUrl(kind, phenomenonCode) {
   const code = String(phenomenonCode || '').trim().toUpperCase()
   if (!code) return null
   const folder = kind === 'sigmet' ? 'icon_SIGMET' : 'icon_AIRMET'
@@ -62,17 +64,28 @@ function formatMotion(item) {
     : `${Math.round(motion.speed_kt)}KT`
 }
 
+// 지도 라벨은 공간이 좁아 한글명만(코드 생략). 없으면 영문 라벨→코드.
 function formatLabel(item, kind) {
   const base = kind === 'sigmet' ? 'SIGMET' : 'AIRMET'
-  const phenomenon = item?.phenomenon_code || item?.phenomenon_label || ''
+  const phenomenon = phenomenonKo(item?.phenomenon_code)
+    || item?.phenomenon_label || item?.phenomenon_code || ''
   const sequence = item?.sequence_number ? ` ${item.sequence_number}` : ''
   return `${base}${sequence}${phenomenon ? ` ${phenomenon}` : ''}`
 }
 
-function formatDescription(item, kind) {
+// ponytail: weatherOverlayModel.formatSigwxStamp와 동일한 분단위 포맷. 순환참조 피하려 로컬.
+function fmtMinute(iso, tz = 'KST') {
+  const ms = Date.parse(iso)
+  if (!Number.isFinite(ms)) return ''
+  const d = new Date(ms + (tz === 'KST' ? 9 * 3600000 : 0))
+  const p = (n) => String(n).padStart(2, '0')
+  return `${p(d.getUTCMonth() + 1)}/${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())} ${tz}`
+}
+
+function formatDescription(item, kind, tz = 'KST') {
   const parts = [
     formatLabel(item, kind),
-    item?.valid_from && item?.valid_to ? `${item.valid_from} - ${item.valid_to}` : '',
+    item?.valid_from && item?.valid_to ? `${fmtMinute(item.valid_from, tz)} ~ ${fmtMinute(item.valid_to, tz)}` : '',
     formatAltitude(item),
     formatMotion(item),
   ].filter(Boolean)
@@ -116,7 +129,7 @@ function geometryCenter(geometry) {
   ]
 }
 
-export function advisoryItemsToFeatureCollection(payload, kind) {
+export function advisoryItemsToFeatureCollection(payload, kind, tz = 'KST') {
   const items = Array.isArray(payload?.items) ? payload.items : []
 
   return {
@@ -137,14 +150,14 @@ export function advisoryItemsToFeatureCollection(payload, kind) {
           validTo: item.valid_to || '',
           altitude: formatAltitude(item),
           motion: formatMotion(item),
-          description: formatDescription(item, kind),
+          description: formatDescription(item, kind, tz),
         },
         geometry: item.geometry,
       })),
   }
 }
 
-export function advisoryItemsToLabelFeatureCollection(payload, kind) {
+export function advisoryItemsToLabelFeatureCollection(payload, kind, tz = 'KST') {
   const items = Array.isArray(payload?.items) ? payload.items : []
 
   return {
@@ -166,7 +179,7 @@ export function advisoryItemsToLabelFeatureCollection(payload, kind) {
           label: formatLabel(item, kind),
           iconKey: item.phenomenon_code ? `${kind}-${item.phenomenon_code}` : '',
           iconUrl: advisorySymbolUrl(kind, item.phenomenon_code) || '',
-          description: formatDescription(item, kind),
+          description: formatDescription(item, kind, tz),
         },
           geometry: {
             type: 'Point',
@@ -242,13 +255,16 @@ export function addAdvisoryLayers(map, kind, featureData, labelData) {
       slot: 'top',
       layout: {
         'icon-image': ['get', 'iconKey'],
-        'icon-size': 0.5,
+        'icon-size': 1.0,
         'icon-allow-overlap': true,
+        'icon-ignore-placement': true,
         'icon-offset': [0, -22],
       },
       filter: ['!=', ['get', 'iconKey'], ''],
     })
   }
+  // 공항 기호·이름 레이어 위로 올려 가려지지 않게(데이터 갱신마다 최상단 재확정).
+  if (map.getLayer(def.iconLayerId) && typeof map.moveLayer === 'function') map.moveLayer(def.iconLayerId)
 }
 
 export function updateAdvisoryLayerData(map, kind, featureData, labelData) {

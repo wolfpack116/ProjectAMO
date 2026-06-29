@@ -19,6 +19,9 @@
 .bv-section:last-child { margin-bottom: 0; }
 
 /* hazard ribbon — 단면도 plot 영역(좌 6.04% / 우 2.71%)에 정렬. 좌표 건드리지 말 것. */
+.bv-ribbon-legend { display: flex; gap: var(--space-m); margin: var(--space-s) 0 0 6.04%; font-size: var(--fs-200); color: var(--text-3); }
+.bv-ribbon-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.bv-ribbon-legend i { width: 10px; height: 10px; border-radius: 2px; }
 .bv-ribbons { margin: var(--space-s) 0 2px; display: flex; flex-direction: column; gap: var(--space-xs); }
 .bv-ribbon-row { font-size: var(--fs-200); }
 .bv-ribbon-head { display: flex; justify-content: space-between; margin: 0 2.71% 2px 6.04%; }

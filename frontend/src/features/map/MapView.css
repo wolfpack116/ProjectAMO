@@ -218,8 +218,8 @@
 
 .layer-drawer-eyebrow {
   color: var(--text-3);
-  font-size: 10px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 700;
   line-height: 1.1;
   letter-spacing: 0;
 }
@@ -228,7 +228,7 @@
   margin-top: 3px;
   color: var(--text-1);
   font-size: 15px;
-  font-weight: 850;
+  font-weight: 700;
   line-height: 1.15;
   letter-spacing: 0;
 }
@@ -242,7 +242,7 @@
   background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
   color: var(--accent);
   font-size: 11px;
-  font-weight: 850;
+  font-weight: 700;
   line-height: 1;
   text-align: center;
 }
@@ -1716,7 +1716,7 @@
   background: var(--bg-1);
   color: var(--text-2);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
   cursor: pointer;
 }
@@ -1736,7 +1736,7 @@
   margin-bottom: 8px;
   color: var(--text-2);
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .layer-tile-grid {
@@ -1787,7 +1787,7 @@
 
 .layer-tile-label {
   font-size: 11px;
-  font-weight: 750;
+  font-weight: 600;
   line-height: 1.15;
   text-align: center;
 }
@@ -1797,7 +1797,7 @@
   top: 5px;
   right: 7px;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--accent);
   line-height: 1;
 }
@@ -1816,7 +1816,7 @@
   background: var(--level-red);
   color: #ffffff;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
 }
 

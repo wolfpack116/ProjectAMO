@@ -38,17 +38,17 @@
 
 .route-check-eyebrow {
   color: var(--text-3);
-  font-size: 10px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 700;
   line-height: 1.1;
   letter-spacing: 0;
 }
 
 .route-check-title {
-  margin-top: 3px;
+  margin: 3px 0 0;
   color: var(--text-1);
   font-size: 15px;
-  font-weight: 850;
+  font-weight: 700;
   line-height: 1.15;
   letter-spacing: 0;
 }
@@ -57,12 +57,12 @@
   flex: 0 0 auto;
   min-width: 44px;
   padding: 5px 9px;
-  border: 1px solid rgba(37, 99, 235, 0.18);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
   color: var(--accent);
   font-size: 11px;
-  font-weight: 850;
+  font-weight: 700;
   line-height: 1;
   text-align: center;
 }
@@ -83,8 +83,8 @@
 
 .route-check-field-label {
   color: var(--text-3);
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -93,8 +93,8 @@
   flex-direction: column;
   gap: 4px;
   color: var(--text-3);
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 600;
   letter-spacing: 0;
 }
 
@@ -113,7 +113,7 @@
 
 .route-check-form input:focus,
 .route-check-form select:focus {
-  outline: 2px solid rgba(56, 189, 248, 0.34);
+  outline: 2px solid var(--accent);
   border-color: var(--accent);
 }
 
@@ -128,14 +128,14 @@
   background: var(--accent);
   color: #ffffff;
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 700;
   cursor: pointer;
   transition: none;
 }
 
 .route-check-form button:not(.fui-Button):disabled {
   background: var(--text-3);
-  cursor: wait;
+  cursor: not-allowed;
 }
 
 .route-check-error {
@@ -160,12 +160,12 @@
   border-radius: 11px;
   background: var(--bg-1);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.6;
 }
 
 .route-check-sequence-token {
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .route-check-sequence-sep {
@@ -181,7 +181,7 @@
   background: var(--bg-1);
   color: var(--text-3);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.55;
 }
 
@@ -202,7 +202,7 @@
   background: transparent;
   color: var(--text-3);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -222,7 +222,7 @@
 
 .route-check-total-dist strong {
   font-size: 16px;
-  font-weight: 850;
+  font-weight: 700;
   color: var(--text-1);
   font-variant-numeric: tabular-nums;
 }
@@ -234,8 +234,8 @@
   justify-content: space-between;
   margin-top: 8px;
   color: var(--text-3);
-  font-size: 10px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .vfr-altitude-tools button {
@@ -245,8 +245,8 @@
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
   color: var(--accent);
-  font-size: 10px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -271,7 +271,7 @@
   min-width: 0;
   color: var(--text-1);
   font-size: 11px;
-  font-weight: 850;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -286,7 +286,7 @@
   background: var(--bg-2);
   color: var(--accent);
   font-size: 11px;
-  font-weight: 850;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -309,7 +309,7 @@
   background: var(--bg-1);
   color: var(--text-1);
   font-size: 11px;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .vertical-profile-generate {
@@ -321,13 +321,13 @@
   background: var(--accent);
   color: #ffffff;
   font-size: 13px;
-  font-weight: 850;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .vertical-profile-generate:disabled {
   background: var(--text-3);
-  cursor: wait;
+  cursor: not-allowed;
 }
 
 .vertical-profile-open-button {
@@ -339,7 +339,7 @@
   background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
   color: var(--accent);
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -350,7 +350,7 @@
   padding: 8px 10px;
   border-radius: 7px;
   font-size: 11px;
-  font-weight: 750;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -386,8 +386,8 @@
   align-items: center;
   margin-bottom: 10px;
   color: var(--text-3);
-  font-size: 10px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .vertical-profile-meta-item {
@@ -410,8 +410,8 @@
   border-radius: 999px;
   background: #fffbeb;
   color: #b45309;
-  font-size: 10px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .vertical-profile-chart svg {
@@ -455,15 +455,15 @@
 
 .vertical-profile-window-eyebrow {
   color: var(--text-3);
-  font-size: 10px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .vertical-profile-window-title {
   margin-top: 3px;
   color: var(--text-1);
   font-size: 16px;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .vertical-profile-window-close {
@@ -475,7 +475,7 @@
   background: var(--bg-1);
   color: var(--accent);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -498,8 +498,8 @@
 }
 
 .cs-toggle.is-on {
-  background: #0ea5e9;
-  border-color: #0284c7;
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
 }
 
@@ -572,8 +572,8 @@
 
 .vertical-profile-cruise-axis-label {
   fill: var(--accent);
-  font-size: 10px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .vertical-profile-marker-tick {
@@ -584,7 +584,7 @@
 .vertical-profile-marker-label {
   fill: var(--text-1);
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .vertical-profile-terrain-area {
@@ -608,7 +608,7 @@
 .vertical-profile-tod-summary {
   color: var(--level-amber);
   font-size: 11px;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .vertical-profile-model-info {
@@ -690,7 +690,7 @@
   background: var(--bg-3);
   color: var(--accent);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
@@ -817,7 +817,7 @@
   background: transparent;
   color: var(--text-2);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -878,7 +878,7 @@
   color: var(--text-2);
   font-family: inherit;
   font-size: 14px;
-  font-weight: 850;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -897,7 +897,7 @@
 
 .mobile-sheet-footer .route-check-actions button:disabled {
   opacity: 0.5;
-  cursor: wait;
+  cursor: not-allowed;
 }
 
 /* Peek (collapsed) summary — centered route + rule + distance */
@@ -907,7 +907,7 @@
   justify-content: center;
   gap: 8px;
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-1);
 }
 
@@ -929,7 +929,7 @@
 
 /* 브리핑 조건 = 내 항공기 + 교체 + ETD + 요약 세로 스택 (카드 테두리 제거, 깔끔한 입력) */
 /* (route-check-section--briefing → Fluent griffel로 이전, 삭제) */
-.rb-altn { display: grid; gap: 4px; color: var(--text-3); font-size: 10px; font-weight: 800; }
+.rb-altn { display: grid; gap: 4px; color: var(--text-3); font-size: 12px; font-weight: 600; }
 .rb-altn select { height: 36px; padding: 0 8px; border: 1px solid rgba(148,163,184,0.58); border-radius: 7px; font-size: 13px; font-weight: 700; color: var(--text-1); }
 /* Mobile: match the 출발/도착 picker — label inside a bordered box, borderless select. */
 .rb-mobile .rb-altn {
@@ -957,7 +957,7 @@
 .etd-row { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 6px; }
 .etd-field select, .etd-field input[type="time"] { height: 36px; padding: 0 8px; border: 1px solid rgba(148,163,184,0.58); border-radius: 7px; background: var(--bg-1); color: var(--text-1); font-size: 13px; font-weight: 700; }
 .etd-chips, .etd-day-chips { display: flex; gap: 5px; }
-.route-check-form .etd-chip { border: 0; border-radius: 999px; padding: 5px 12px; background: #eef2f7; color: var(--text-2); font-size: 11px; font-weight: 800; cursor: pointer; }
+.route-check-form .etd-chip { border: 0; border-radius: 999px; padding: 5px 12px; background: #eef2f7; color: var(--text-2); font-size: 11px; font-weight: 600; cursor: pointer; }
 .route-check-form .etd-chip.is-active { background: color-mix(in srgb, var(--accent) 8%, var(--bg-1)); color: var(--accent); }
 .etd-field--mobile .etd-time-wheel { width: 100%; }
 
@@ -965,37 +965,37 @@
 .acp { display: grid; gap: 8px; }
 .acp-head { display: flex; align-items: center; gap: 8px; }
 .route-check-form .acp-select { flex: 1; height: auto; min-height: 46px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 1px solid #e7ebf2; border-radius: 10px; background: var(--bg-1); padding: 7px 11px; cursor: pointer; }
-.acp-label { font-size: 10px; font-weight: 800; color: var(--text-3); }
-.acp-value { font-size: 14px; font-weight: 850; color: var(--text-1); }
-.route-check-form .acp-save { border: 0; background: transparent; color: var(--accent); font-size: 11px; font-weight: 800; cursor: pointer; }
+.acp-label { font-size: 12px; font-weight: 600; color: var(--text-3); }
+.acp-value { font-size: 14px; font-weight: 700; color: var(--text-1); }
+.route-check-form .acp-save { border: 0; background: transparent; color: var(--accent); font-size: 11px; font-weight: 600; cursor: pointer; }
 .acp-list { border: 1px solid #e7ebf2; border-radius: 10px; background: var(--bg-1); padding: 4px; }
 .acp-empty { font-size: 12px; color: var(--text-3); padding: 8px; }
 .acp-item { display: flex; align-items: center; }
-.route-check-form .acp-item-pick { flex: 1; text-align: left; border: 0; background: transparent; padding: 8px; font-size: 13px; font-weight: 800; color: var(--text-1); cursor: pointer; }
+.route-check-form .acp-item-pick { flex: 1; text-align: left; border: 0; background: transparent; padding: 8px; font-size: 13px; font-weight: 600; color: var(--text-1); cursor: pointer; }
 .acp-item-pick span { color: var(--text-3); font-weight: 600; }
 .route-check-form .acp-item-del { border: 0; background: transparent; color: var(--level-red); font-size: 16px; cursor: pointer; padding: 0 8px; }
 .acp-perf { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.acp-field { display: grid; gap: 4px; font-size: 10px; font-weight: 800; color: var(--text-3); position: relative; }
-.acp-field input { height: 36px; padding: 0 8px; border: 1px solid rgba(148,163,184,0.58); border-radius: 7px; font-size: 14px; font-weight: 800; color: var(--text-1); }
+.acp-field { display: grid; gap: 4px; font-size: 12px; font-weight: 600; color: var(--text-3); position: relative; }
+.acp-field input { height: 36px; padding: 0 8px; border: 1px solid rgba(148,163,184,0.58); border-radius: 7px; font-size: 14px; font-weight: 600; color: var(--text-1); }
 .acp-field em { position: absolute; right: 10px; bottom: 9px; font-style: normal; font-size: 11px; color: var(--text-3); }
 .acp-alt { position: relative; }
 .acp-alt input { width: 100%; }
 .acp-alt-fmt { position: absolute; right: 30px; bottom: 9px; font-size: 11px; font-weight: 700; color: var(--text-3); }
 .acp-step { position: absolute; right: 6px; bottom: 5px; display: flex; flex-direction: column; line-height: .7; }
-.route-check-form .acp-step button { height: auto; border: 0; background: transparent; color: var(--text-3); font-size: 10px; cursor: pointer; padding: 0; }
+.route-check-form .acp-step button { height: auto; border: 0; background: transparent; color: var(--text-3); font-size: 12px; cursor: pointer; padding: 0; }
 .acp-hint { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--level-amber); background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 6px 10px; }
 
 /* 파생 요약 strip: 거리 · ETD→ETA */
 .rb-summary { display: flex; align-items: center; gap: 12px; background: color-mix(in srgb, var(--accent) 8%, var(--bg-1)); border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--bg-1)); border-radius: 11px; padding: 10px 12px; }
 .rb-summary-dist { flex: 0 0 auto; padding-right: 12px; border-right: 1px solid color-mix(in srgb, var(--accent) 18%, var(--bg-1)); text-align: center; }
 .rb-summary-time { flex: 1; text-align: center; }
-.rb-summary span { display: block; font-size: 10px; font-weight: 800; color: #5b7da8; }
-.rb-summary strong { font-size: 16px; font-weight: 850; color: #0f2742; font-variant-numeric: tabular-nums; }
+.rb-summary span { display: block; font-size: 12px; font-weight: 600; color: #5b7da8; }
+.rb-summary strong { font-size: 16px; font-weight: 700; color: #0f2742; font-variant-numeric: tabular-nums; }
 .rb-summary em { font-size: 11px; font-style: normal; }
 
 /* 모바일 3단계 위저드 */
 .rb-steps { display: flex; gap: 3px; padding: 3px; border-radius: 10px; background: #eef2f7; margin-bottom: 12px; }
-.route-check-form .rb-step { flex: 1; border: 0; border-radius: 8px; background: transparent; padding: 8px 4px; font-size: 12px; font-weight: 800; color: var(--text-2); cursor: pointer; }
+.route-check-form .rb-step { flex: 1; border: 0; border-radius: 8px; background: transparent; padding: 8px 4px; font-size: 12px; font-weight: 600; color: var(--text-2); cursor: pointer; }
 .route-check-form .rb-step.is-active { background: var(--bg-1); color: var(--accent); box-shadow: 0 1px 2px rgba(15,23,42,.12); }
 .rb-procedures { display: grid; gap: 8px; }
 .rb-vfr-note { font-size: 12px; font-weight: 700; color: var(--text-3); padding: 8px; }
@@ -1010,7 +1010,7 @@
   background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
   color: var(--accent);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .rb-mobile .rb-auto-search:disabled { opacity: 0.6; cursor: default; }
 
@@ -1051,7 +1051,7 @@
   background: transparent;
   color: var(--text-2);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 }

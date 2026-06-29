@@ -1,4 +1,7 @@
 import { msToKt, windBarbFeathers, windDirectionFromUV, isothermSegments, pressureToFallbackFt } from './lib/crossSectionGrid.js'
+import { advisorySymbolUrl } from '../weather-overlays/lib/advisoryLayers.js'
+
+const ADVISORY_ICON_PX = 32 // 평면도 기호의 ~2배. 단면도 맨 앞에 그림.
 
 const M_TO_FT = 3.28084
 
@@ -133,7 +136,8 @@ function pointInGeometry(lon, lat, geometry) {
   return false
 }
 
-const PHEN_LABEL = { SEV_TURB: 'TURB', MOD_TURB: 'TURB', SEV_ICE: 'ICE', MOD_ICE: 'ICE', TS: 'TS', CB: 'CB', TC: 'TC' }
+// 단면도 마커는 공간이 좁아 짧은 한글. (오버레이/브리핑은 phenomenonKo 전체명 사용)
+const PHEN_LABEL = { SEV_TURB: '난기류', MOD_TURB: '난기류', SEV_ICE: '착빙', MOD_ICE: '착빙', TS: '뇌우', CB: '적란운', TC: '태풍' }
 function phenLabel(code) {
   if (!code) return '?'
   return PHEN_LABEL[code] ?? code.split('_')[0].slice(0, 4)
@@ -402,6 +406,8 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
               w: xRight - xLeft,
               h: yFor(clampedLower) - yFor(clampedUpper),
               label: phenLabel(item.phenomenon_code),
+              code: item.phenomenon_code,
+              kind,
               color: ADVISORY_COLORS[kind] ?? '#888',
             })
           }
@@ -467,27 +473,15 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
           )}
           {windBarbs.map((wb) => <WindBarb key={wb.key} cx={wb.cx} cy={wb.cy} u={wb.u} v={wb.v} />)}
           {advisoryBands.map((band) => (
-            <g key={band.key}>
-              <rect
-                x={band.x} y={band.y} width={band.w} height={band.h}
-                fill="none"
-                stroke={band.color}
-                strokeWidth={1.5}
-                strokeDasharray="6,4"
-                opacity={0.85}
-              />
-              <text
-                x={band.x + band.w / 2}
-                y={band.y + band.h / 2 + 5}
-                textAnchor="middle"
-                fontSize={11}
-                fontWeight="bold"
-                fill={band.color}
-                opacity={0.9}
-              >
-                {band.label}
-              </text>
-            </g>
+            <rect
+              key={band.key}
+              x={band.x} y={band.y} width={band.w} height={band.h}
+              fill="none"
+              stroke={band.color}
+              strokeWidth={1.5}
+              strokeDasharray="6,4"
+              opacity={0.85}
+            />
           ))}
         </g>
         {isothermlabels.map(({ level, y, bold }) => (
@@ -552,6 +546,27 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
             />
           </g>
         )}
+        {/* SIGMET/AIRMET 기호 — 맨 앞(다른 요소 위)에 평면도와 같은 아이콘으로, 2배 크기. */}
+        {advisoryBands.map((band) => {
+          const url = advisorySymbolUrl(band.kind, band.code)
+          const cx = band.x + band.w / 2
+          const cy = band.y + band.h / 2
+          return url ? (
+            <image
+              key={`sym-${band.key}`}
+              href={url}
+              x={cx - ADVISORY_ICON_PX / 2}
+              y={cy - ADVISORY_ICON_PX / 2}
+              width={ADVISORY_ICON_PX}
+              height={ADVISORY_ICON_PX}
+              preserveAspectRatio="xMidYMid meet"
+            />
+          ) : (
+            <text key={`sym-${band.key}`} x={cx} y={cy + 5} textAnchor="middle" fontSize={11} fontWeight="bold" fill={band.color}>
+              {band.label}
+            </text>
+          )
+        })}
       </svg>
     </div>
   )
