@@ -278,30 +278,57 @@ function fileMtimeMs(filePath) {
   }
 }
 
+const snapshotMetaFile = (...p) => path.join(DATA_ROOT, ...p)
+const snapshotMetaLatest = (type) => snapshotMetaFile(type, 'latest.json')
+
+function buildKimSurfaceWindEntry() {
+  const data = readLatest('kim_surface_wind')
+  if (!data) return null
+  return {
+    hash: data.content_hash || store.canonicalHash(data),
+    tmfc: data.time?.tmfc || null,
+    hf: data.time?.hf ?? null,
+    updated_at: data.fetched_at || null,
+  }
+}
+
+function buildKtgSnapshotEntry() {
+  const ktgLatest = readKtgLatest(DATA_ROOT)
+  return ktgLatest ? { hash: store.canonicalHash(ktgLatest), tmfc: ktgLatest.tmfc || null } : null
+}
+
+// snapshot-meta의 단일 소스 테이블 — payload와 캐시키가 모두 여기서 파생된다(두 목록 표류 제거).
+// keys: 출력 키(이중 키는 둘 다) · files: mtime로 캐시 무효화할 정적 파일 · build: 소스별 차이를 숨긴 thunk.
+const SNAPSHOT_SOURCES = [
+  { keys: ['metar'], files: [snapshotMetaLatest('metar')], build: () => buildHashEntry('metar') },
+  { keys: ['taf'], files: [snapshotMetaLatest('taf')], build: () => buildHashEntry('taf') },
+  { keys: ['warning'], files: [snapshotMetaLatest('warning')], build: () => buildHashEntry('warning') },
+  { keys: ['sigmet'], files: [snapshotMetaLatest('sigmet')], build: () => buildHashEntry('sigmet') },
+  { keys: ['airmet'], files: [snapshotMetaLatest('airmet')], build: () => buildHashEntry('airmet') },
+  { keys: ['sigwxLow', 'sigwx_low'], files: [snapshotMetaLatest('sigwx_low')], build: () => buildHashEntry('sigwx_low') },
+  { keys: ['amos'], files: [snapshotMetaLatest('amos')], build: () => buildHashEntry('amos') },
+  { keys: ['lightning'], files: [snapshotMetaLatest('lightning')], build: () => buildHashEntry('lightning') },
+  { keys: ['adsb'], files: [snapshotMetaLatest('adsb')], build: () => buildHashEntry('adsb') },
+  { keys: ['kimNwp', 'kim_nwp'], files: [snapshotMetaFile('kim_nwp', 'index.json'), snapshotMetaFile('kim_nwp', 'latest.json')], build: buildKimNwpSnapshotEntry },
+  { keys: ['kimSurfaceWind', 'kim_surface_wind'], files: [snapshotMetaLatest('kim_surface_wind')], build: buildKimSurfaceWindEntry },
+  { keys: ['groundForecast', 'ground_forecast'], files: [snapshotMetaLatest('ground_forecast')], build: () => buildHashEntry('ground_forecast') },
+  { keys: ['groundOverview', 'ground_overview'], files: [snapshotMetaLatest('ground_overview')], build: () => buildHashEntry('ground_overview') },
+  { keys: ['environment'], files: [snapshotMetaLatest('environment')], build: () => buildHashEntry('environment') },
+  { keys: ['airportInfo'], files: [snapshotMetaLatest('airport_info')], build: () => buildHashEntry('airport_info') },
+  { keys: ['echoMeta', 'echo'], files: [snapshotMetaFile('radar', 'echo_meta.json')], build: () => buildFrameEntry(snapshotMetaFile('radar', 'echo_meta.json')) },
+  { keys: ['satMeta', 'satellite'], files: [snapshotMetaFile('satellite', 'sat_meta.json')], build: () => buildFrameEntry(snapshotMetaFile('satellite', 'sat_meta.json')) },
+  // ponytail: sigwx 오버레이는 파일 경로가 tmfc 동적 → 정적 files 없음(5s TTL로 커버). 정적화는 필요할 때.
+  { keys: ['sigwxFrontMeta'], files: [], build: () => buildSigwxOverlaySnapshotEntry('fronts') },
+  { keys: ['sigwxCloudMeta'], files: [], build: () => buildSigwxOverlaySnapshotEntry('clouds') },
+  { keys: ['flightCategory'], files: [snapshotMetaLatest('flight_category_overlay')], build: () => buildHashEntry('flight_category_overlay') },
+  { keys: ['ktg'], files: [snapshotMetaLatest('ktg')], build: buildKtgSnapshotEntry },
+]
+
 function buildSnapshotMetaCacheKey() {
-  const files = [
-    path.join(DATA_ROOT, 'kim_nwp', 'index.json'),
-    path.join(DATA_ROOT, 'kim_nwp', 'latest.json'),
-    path.join(DATA_ROOT, 'kim_surface_wind', 'latest.json'),
-    path.join(DATA_ROOT, 'metar', 'latest.json'),
-    path.join(DATA_ROOT, 'taf', 'latest.json'),
-    path.join(DATA_ROOT, 'warning', 'latest.json'),
-    path.join(DATA_ROOT, 'sigmet', 'latest.json'),
-    path.join(DATA_ROOT, 'airmet', 'latest.json'),
-    path.join(DATA_ROOT, 'sigwx_low', 'latest.json'),
-    path.join(DATA_ROOT, 'amos', 'latest.json'),
-    path.join(DATA_ROOT, 'lightning', 'latest.json'),
-    path.join(DATA_ROOT, 'adsb', 'latest.json'),
-    path.join(DATA_ROOT, 'ground_forecast', 'latest.json'),
-    path.join(DATA_ROOT, 'ground_overview', 'latest.json'),
-    path.join(DATA_ROOT, 'environment', 'latest.json'),
-    path.join(DATA_ROOT, 'airport_info', 'latest.json'),
-    path.join(DATA_ROOT, 'radar', 'echo_meta.json'),
-    path.join(DATA_ROOT, 'satellite', 'sat_meta.json'),
-    path.join(DATA_ROOT, 'flight_category_overlay', 'latest.json'),
-    path.join(DATA_ROOT, 'ktg', 'latest.json'),
-  ]
-  return files.map((filePath) => `${filePath}:${fileMtimeMs(filePath)}`).join('|')
+  return SNAPSHOT_SOURCES
+    .flatMap((source) => source.files)
+    .map((filePath) => `${filePath}:${fileMtimeMs(filePath)}`)
+    .join('|')
 }
 
 function getCachedSnapshotMeta(nowMs = Date.now()) {
@@ -317,57 +344,12 @@ function getCachedSnapshotMeta(nowMs = Date.now()) {
 }
 
 function buildSnapshotMeta() {
-  const sigwxLow = buildHashEntry('sigwx_low')
-  const echoMeta = buildFrameEntry(path.join(DATA_ROOT, 'radar', 'echo_meta.json'))
-  const satMeta = buildFrameEntry(path.join(DATA_ROOT, 'satellite', 'sat_meta.json'))
-  const sigwxFrontMeta = buildSigwxOverlaySnapshotEntry('fronts')
-  const sigwxCloudMeta = buildSigwxOverlaySnapshotEntry('clouds')
-  const groundForecast = buildHashEntry('ground_forecast')
-  const groundOverview = buildHashEntry('ground_overview')
-  const kimSurfaceWindData = readLatest('kim_surface_wind')
-  const kimSurfaceWind = kimSurfaceWindData ? {
-    hash: kimSurfaceWindData.content_hash || store.canonicalHash(kimSurfaceWindData),
-    tmfc: kimSurfaceWindData.time?.tmfc || null,
-    hf: kimSurfaceWindData.time?.hf ?? null,
-    updated_at: kimSurfaceWindData.fetched_at || null,
-  } : null
-  const kimNwp = buildKimNwpSnapshotEntry()
-
-  return {
-    metar: buildHashEntry('metar'),
-    taf: buildHashEntry('taf'),
-    warning: buildHashEntry('warning'),
-    sigmet: buildHashEntry('sigmet'),
-    airmet: buildHashEntry('airmet'),
-    sigwxLow,
-    sigwx_low: sigwxLow,
-    amos: buildHashEntry('amos'),
-    lightning: buildHashEntry('lightning'),
-    adsb: buildHashEntry('adsb'),
-    kimNwp,
-    kim_nwp: kimNwp,
-    kimWind: kimNwp || kimSurfaceWind,
-    kim_wind: kimNwp || kimSurfaceWind,
-    kimSurfaceWind,
-    kim_surface_wind: kimSurfaceWind,
-    groundForecast,
-    ground_forecast: groundForecast,
-    groundOverview,
-    ground_overview: groundOverview,
-    environment: buildHashEntry('environment'),
-    airportInfo: buildHashEntry('airport_info'),
-    echoMeta,
-    echo: echoMeta,
-    satMeta,
-    satellite: satMeta,
-    sigwxFrontMeta,
-    sigwxCloudMeta,
-    flightCategory: buildHashEntry('flight_category_overlay'),
-    ktg: (() => {
-      const ktgLatest = readKtgLatest(DATA_ROOT)
-      return ktgLatest ? { hash: store.canonicalHash(ktgLatest), tmfc: ktgLatest.tmfc || null } : null
-    })(),
+  const out = {}
+  for (const source of SNAPSHOT_SOURCES) {
+    const value = source.build()
+    for (const key of source.keys) out[key] = value
   }
+  return out
 }
 
 export function filterKimNwpIndexForMap(index, nowMs = Date.now()) {
@@ -853,7 +835,7 @@ app.post('/api/briefing/cross-section', (req, res) => {
   }
 })
 
-export { app, buildSnapshotMeta, getCachedSnapshotMeta, readSelectedKimCloudField, readSelectedKimIcingField }
+export { app, getCachedSnapshotMeta, readSelectedKimCloudField, readSelectedKimIcingField }
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, HOST, () => console.log(`[server] Backend running on ${HOST}:${PORT}`))

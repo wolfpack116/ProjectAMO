@@ -28,6 +28,9 @@ test('getCachedSnapshotMeta reuses cache within TTL and invalidates on source mt
   const second = getCachedSnapshotMeta(1001)
   assert.equal(second, first)
   assert.equal(second.metar.hash, 'hash-1')
+  // 죽은 별칭 kimWind/kim_wind는 제거됨 (소비처 0건) — 되살아나지 않도록 가드
+  assert.equal('kimWind' in second, false)
+  assert.equal('kim_wind' in second, false)
 
   writeLatest(root, 'metar', 'hash-2')
   fs.utimesSync(metarPath, new Date('2099-01-01T00:00:00.000Z'), new Date('2099-01-01T00:00:00.000Z'))
