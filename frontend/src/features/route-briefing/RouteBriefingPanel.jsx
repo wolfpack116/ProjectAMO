@@ -11,6 +11,7 @@ import {
 } from './lib/routeBriefingModel.js'
 import { Button, Field, Dropdown, Combobox, Option, Input, SpinButton, TabList, Tab, Badge, MessageBar, MessageBarBody, DatePicker, TimePicker, Menu, MenuTrigger, MenuButton, MenuPopover, MenuList, MenuItem, Divider, makeStyles, mergeClasses, tokens } from '../../shared/ui/fluent.js'
 import { listSavedRoutes, saveRoute, deleteSavedRoute } from './lib/routeStore.js'
+import { Folder, Trash2, GripVertical, Undo2, X } from 'lucide-react'
 import useIsMobile from '../../shared/ui/useIsMobile.js'
 import MobileSheet from '../../shared/ui/MobileSheet.jsx'
 import AirportPickerField from '../../shared/ui/AirportPickerField.jsx'
@@ -85,17 +86,6 @@ function FDropdown({ value, onChange, options, placeholder = '선택', disabled,
   )
 }
 
-const FolderIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M1.5 4.5A1.5 1.5 0 0 1 3 3h3l1.5 1.5H13A1.5 1.5 0 0 1 14.5 6v5.5A1.5 1.5 0 0 1 13 13H3a1.5 1.5 0 0 1-1.5-1.5v-7Z" stroke="currentColor" strokeWidth="1.2" fill="none" />
-  </svg>
-)
-const TrashIcon = () => (
-  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-    <path d="M3 4.5h10M6.5 4.5V3.5h3v1M5 4.5l.5 8h5l.5-8M7 7v3M9 7v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
-
 // FLIP: 리스트 자식들의 이전 위치를 기억했다가 순서가 바뀌면 부드럽게 미끄러뜨림.
 // data-flip-key(안정적 uid)로 같은 줄을 추적 — 없으면 React가 remount해 애니메이션이 안 됨.
 function useFlipRows(ref, dep) {
@@ -103,13 +93,15 @@ function useFlipRows(ref, dep) {
   useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
+    // 모션 민감 사용자: 슬라이드 애니메이션 생략(위치만 기록).
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     for (const child of el.children) {
       const key = child.dataset.flipKey
       if (!key) continue
       const top = child.getBoundingClientRect().top
       const old = prevTop.current.get(key)
       // 현재 끌고 있는 줄은 커서를 따라가므로 FLIP 미적용(이중 움직임 방지).
-      if (old !== undefined && Math.abs(old - top) > 0.5 && !child.classList.contains('is-dragging')) {
+      if (!reduce && old !== undefined && Math.abs(old - top) > 0.5 && !child.classList.contains('is-dragging')) {
         child.style.transition = 'none'
         child.style.transform = `translateY(${old - top}px)`
         requestAnimationFrame(() => {
@@ -151,7 +143,9 @@ function VfrFixSearch({ airports, navpointsById, onAdd }) {
     for (const p of Object.values(navpointsById ?? {})) {
       const lon = p?.coordinates?.lon, lat = p?.coordinates?.lat
       if (Number.isFinite(lon) && Number.isFinite(lat)) {
-        list.push({ key: `np:${p.id}`, id: p.id, label: p.id, lon, lat })
+        // navaid는 종류(VORTAC 등)를, 일반 지점은 '지점'을 붙여 무엇인지 알아보게.
+        const kindLabel = p.kind === 'navaid' ? (p.type || 'NAVAID') : '지점'
+        list.push({ key: `np:${p.id}`, id: p.id, label: `${p.id} · ${kindLabel}`, lon, lat })
       }
     }
     return list
@@ -162,6 +156,7 @@ function VfrFixSearch({ airports, navpointsById, onAdd }) {
   return (
     <Combobox
       className="vfr-fix-search-input"
+      aria-label="경유점 추가 검색 (공항·VOR·지점)"
       placeholder="공항·VOR·지점 검색…"
       freeform
       value={query}
@@ -286,7 +281,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   const routeMenu = (
     <Menu open={menuOpen} onOpenChange={(_, d) => { setMenuOpen(d.open); if (d.open) refreshSaved() }}>
       <MenuTrigger disableButtonEnhancement>
-        <MenuButton appearance="outline" size="small" icon={<FolderIcon />}>{'경로'}</MenuButton>
+        <MenuButton appearance="outline" size="small" icon={<Folder size={16} />}>{'경로'}</MenuButton>
       </MenuTrigger>
       <MenuPopover>
         <MenuList>
@@ -296,7 +291,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
             <div key={r.id} className="rb-saved-row">
               <span className="rb-saved-name">{r.name}<span className="rb-saved-meta"> · {relativeTime(r.savedAt)}</span></span>
               <button type="button" className="rb-saved-load" onClick={() => { setMenuOpen(false); loadSavedRoute(r) }}>{'로드'}</button>
-              <button type="button" className="rb-saved-del" aria-label="경로 삭제" onClick={() => { deleteSavedRoute(r.id); refreshSaved() }}>×</button>
+              <button type="button" className="rb-saved-del" aria-label="경로 삭제" onClick={() => { deleteSavedRoute(r.id); refreshSaved() }}><X size={14} /></button>
             </div>
           ))}
           {savedRoutes.length === 0 && <MenuItem disabled>{'저장된 경로 없음'}</MenuItem>}
@@ -309,8 +304,8 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   const etaIso = computeEtaIso(etd, derived.plannedDistanceNm, cruiseSpeedKt)
   const summaryStrip = (
     <div className={s.summary}>
-      <span style={{ color: tokens.colorNeutralForeground3 }}>거리 {Math.round(derived.plannedDistanceNm)} NM</span>
-      <span style={{ fontWeight: tokens.fontWeightSemibold }}>ETD → ETA {formatBriefingTime(etd, tz)} → {etaIso ? formatBriefingTime(etaIso, tz) : '—'}</span>
+      <span style={{ color: tokens.colorNeutralForeground3 }}>거리 {routeResult ? `${Math.round(derived.plannedDistanceNm)} NM` : '—'}</span>
+      <span style={{ fontWeight: tokens.fontWeightSemibold }}>ETD → ETA {formatBriefingTime(etd, tz)} → {routeResult && etaIso ? formatBriefingTime(etaIso, tz) : '—'}</span>
     </div>
   )
   const setEtdFromNow = (mins) => setEtd(new Date(Date.now() + mins * 60000).toISOString())
@@ -383,7 +378,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
       </div>
       <div className="vfr-waypoint-list-head">
         <span className="vfr-waypoint-list-title">{'경유점 · 계획고도'}</span>
-        <Button appearance="subtle" size="small" type="button" disabled={!canUndoVfr} onClick={undoVfrWaypoints}>{'↩ 되돌리기'}</Button>
+        <Button appearance="subtle" size="small" type="button" icon={<Undo2 size={14} />} disabled={!canUndoVfr} onClick={undoVfrWaypoints}>{'되돌리기'}</Button>
       </div>
       <div className="vfr-waypoint-altitude-list" ref={vfrListRef}>
         {vfrWaypoints.map((wp, index) => {
@@ -419,7 +414,16 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
             >
               {wp.fixed
                 ? <span className="vfr-waypoint-handle is-placeholder" aria-hidden="true" />
-                : <span className="vfr-waypoint-handle" aria-hidden="true">⠿</span>}
+                : <button
+                    type="button"
+                    className="vfr-waypoint-handle"
+                    aria-label={`${wp.id} 순서 변경 (방향키 위/아래)`}
+                    title="끌거나 방향키(↑/↓)로 순서 변경"
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowUp') { e.preventDefault(); beginVfrReorder(); reorderVfrWaypoint(index, index - 1) }
+                      else if (e.key === 'ArrowDown') { e.preventDefault(); beginVfrReorder(); reorderVfrWaypoint(index, index + 1) }
+                    }}
+                  ><GripVertical size={16} /></button>}
               <span className="vfr-waypoint-altitude-id">
                 {wp.id}{endpointLabel && <span className="vfr-waypoint-endpoint">{endpointLabel}</span>}
               </span>
@@ -459,7 +463,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
                   className="vfr-waypoint-delete-btn"
                   aria-label="경유점 삭제"
                   onClick={() => deleteVfrWaypoint(index)}
-                ><TrashIcon /></button>
+                ><Trash2 size={16} /></button>
               ) : <span className="vfr-waypoint-delete-placeholder" aria-hidden="true" />}
             </div>
           )

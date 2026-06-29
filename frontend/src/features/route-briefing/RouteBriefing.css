@@ -369,13 +369,29 @@
 }
 
 .vfr-waypoint-handle {
-  width: 18px;
+  width: 22px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
   color: var(--text-3);
-  font-size: 16px;
   line-height: 1;
-  text-align: center;
   cursor: grab;
   user-select: none;
+}
+
+button.vfr-waypoint-handle:hover {
+  background: var(--bg-2);
+  color: var(--text-1);
+}
+
+button.vfr-waypoint-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .vfr-waypoint-handle.is-placeholder {
@@ -434,6 +450,15 @@
   background: var(--level-red-bg);
 }
 
+/* 키보드 포커스 표시 — raw 버튼들은 Fluent 포커스 링이 없어 직접 부여 */
+.vfr-waypoint-delete-btn:focus-visible,
+.vfr-altitude-apply button:focus-visible,
+.rb-saved-load:focus-visible,
+.rb-saved-del:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .vfr-waypoint-altitude-id {
   min-width: 0;
   color: var(--text-1);
@@ -455,15 +480,28 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
+/* 편집 가능한 알약: 호버/포커스로 '누를 수 있음'을 알림 */
+button.vfr-waypoint-altitude-pill:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-1));
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+button.vfr-waypoint-altitude-pill:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* 고정(출발·도착) 표고: 경고색(호박) 대신 중립 회색 — 단순 지상고도라 시선 끌 필요 없음 */
 .vfr-waypoint-altitude-pill.is-fixed {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-color: rgba(217, 119, 6, 0.22);
-  background: #fff7ed;
-  color: #9a3412;
+  border-color: var(--stroke-2);
+  background: var(--bg-2);
+  color: var(--text-2);
   cursor: default;
 }
 
