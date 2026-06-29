@@ -155,6 +155,22 @@ function bindSectorHover(map) {
 
 // ???? Component ??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
+// 좌표 배열을 감싸는 LngLatBounds를 만든다. (fitBounds 호출 전 공통 단계)
+function boundsFromCoords(coords) {
+  return coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]))
+}
+
+// 맵 스타일이 준비됐을 때만 run(map)을 실행하는 공통 훅.
+// 오버레이 sync 효과들이 반복하던 map/isStyleReady 가드와 styleRevision 의존성을 통합한다.
+function useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, run, deps) {
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !isStyleReady) return
+    return run(map)
+    // run/mapRef는 매 렌더 새로 생성되므로 의도적으로 deps에서 제외(기존 효과 동작 유지).
+  }, [isStyleReady, styleRevision, ...deps])
+}
+
 function MapView({
   activePanel,
   airports = [],
@@ -276,7 +292,7 @@ function MapView({
     if (!map || !isStyleReady) return
     const { fitCoordinates } = syncRoutePreviewLayers(map, routePreviewModel)
     if (fitCoordinates.length > 0 && !routeResult) {
-      const bounds = fitCoordinates.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(fitCoordinates[0], fitCoordinates[0]))
+      const bounds = boundsFromCoords(fitCoordinates)
       map.fitBounds(bounds, { padding: fitPaddingFor(80), maxZoom: 9, duration: 500 })
     }
   }, [routePreviewModel, routeResult, isStyleReady, styleRevision])
@@ -287,7 +303,7 @@ function MapView({
 
     const { fitCoordinates } = syncBoundaryFixPreview(map, routePreviewModel)
     if (fitCoordinates.length > 0 && !routeResult) {
-      const bounds = fitCoordinates.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(fitCoordinates[0], fitCoordinates[0]))
+      const bounds = boundsFromCoords(fitCoordinates)
       map.fitBounds(bounds, { padding: fitPaddingFor(80), maxZoom: 9, duration: 500 })
     }
   }, [routePreviewModel, isStyleReady, routeResult, styleRevision])
@@ -296,7 +312,7 @@ function MapView({
     const map = mapRef.current
     const coords = fitBoundsRequest?.coordinates ?? []
     if (!map || !isStyleReady || coords.length === 0) return
-    const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]))
+    const bounds = boundsFromCoords(coords)
     map.fitBounds(bounds, { padding: fitPaddingFor(80), maxZoom: fitBoundsRequest.maxZoom ?? 8, duration: 500 })
   }, [fitBoundsRequest, isStyleReady, styleRevision])
 
@@ -322,7 +338,7 @@ function MapView({
     }
     const fitPts = (pts) => {
       if (pts.length < 1) return
-      const bounds = pts.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(pts[0], pts[0]))
+      const bounds = boundsFromCoords(pts)
       map.fitBounds(bounds, { padding: pad, maxZoom: 8, duration: 600 })
     }
     if (id === 'destination') {
@@ -874,32 +890,24 @@ function MapView({
 
   // ???? Sync MET overlays ??????????????????????????????????????????????????????????????????????????????????????????????????????????
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !isStyleReady) return
-
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
     syncRasterAndSigwxLayers(map, rasterAndSigwxModel)
-  }, [rasterAndSigwxModel, isStyleReady, styleRevision])
+  }, [rasterAndSigwxModel])
 
   // ???? Sync SIGMET / AIRMET ????????????????????????????????????????????????????????????????????????????????????????????????????
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !isStyleReady) return
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
     syncAdvisoryLayers(map, advisoryLayerModel)
-  }, [advisoryLayerModel, isStyleReady, styleRevision])
+  }, [advisoryLayerModel])
 
   // ???? Sync lightning ????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !isStyleReady) return
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
     syncLightningLayers(map, lightningLayerModel)
-  }, [lightningLayerModel, isStyleReady, styleRevision])
+  }, [lightningLayerModel])
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !isStyleReady || !enableWindOverlay) return
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+    if (!enableWindOverlay) return
     syncWindOverlay(map, {
       windField,
       rendererOptions: windRendererOptions,
@@ -916,13 +924,10 @@ function MapView({
     metVisibility.wind,
     metVisibility.windFlow,
     metVisibility.windSpeed,
-    isStyleReady,
-    styleRevision,
   ])
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !isStyleReady || !enableWindOverlay) return
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+    if (!enableWindOverlay) return
     syncTemperatureOverlay(map, {
       temperatureField,
       isVisible: metVisibility.temp,
@@ -931,13 +936,10 @@ function MapView({
     enableWindOverlay,
     temperatureField,
     metVisibility.temp,
-    isStyleReady,
-    styleRevision,
   ])
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !isStyleReady || !enableWindOverlay) return
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+    if (!enableWindOverlay) return
     syncCloudPotentialOverlay(map, {
       cloudPotentialField: cloudField,
       isVisible: metVisibility.cloud,
@@ -946,13 +948,10 @@ function MapView({
     enableWindOverlay,
     cloudField,
     metVisibility.cloud,
-    isStyleReady,
-    styleRevision,
   ])
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !isStyleReady || !enableWindOverlay) return
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+    if (!enableWindOverlay) return
     syncIcingPotentialOverlay(map, {
       icingField,
       isVisible: metVisibility.icing,
@@ -961,13 +960,10 @@ function MapView({
     enableWindOverlay,
     icingField,
     metVisibility.icing,
-    isStyleReady,
-    styleRevision,
   ])
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !isStyleReady || !enableWindOverlay) return
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+    if (!enableWindOverlay) return
     syncKtgTurbulenceOverlay(map, {
       ktgGrid,
       isVisible: metVisibility.turbulence,
@@ -976,8 +972,6 @@ function MapView({
     enableWindOverlay,
     ktgGrid,
     metVisibility.turbulence,
-    isStyleReady,
-    styleRevision,
   ])
 
   useEffect(() => () => {
@@ -994,9 +988,7 @@ function MapView({
 
   // ???? Sync geo boundaries ??????????????????????????????????????????????????????????????????????????????????????????????????????
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !isStyleReady) return
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
     setGeoBoundaryVisibility(map, shouldShowGeoBoundaries({ basemapId, metVisibility, enableWindOverlay }))
   }, [
     basemapId,
@@ -1007,31 +999,25 @@ function MapView({
     metVisibility.temp,
     metVisibility.cloud,
     metVisibility.icing,
-    isStyleReady,
-    styleRevision,
   ])
 
   // ???? Sync ADS-B ????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !isStyleReady) return
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
     registerAircraftImages(map)
     registerAirlineLogos(map)
     syncAdsbLayer(map, { geojson: adsbGeoJSON, trailGeojson: adsbTrailGeoJSON, isVisible: metVisibility.adsb })
-  }, [adsbGeoJSON, adsbTrailGeoJSON, metVisibility.adsb, isStyleReady, styleRevision])
+  }, [adsbGeoJSON, adsbTrailGeoJSON, metVisibility.adsb])
 
   // ???? Sync flight category overlay ??????????????????????????????????????????????????????????????????????????????????????????????????
 
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !isStyleReady) return
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
     syncFlightCategoryLayer(map, {
       geojson: flightCategoryGeojson,
       visible: !!metVisibility.flightCategory,
       beforeLayerId: AIRPORT_CIRCLE_LAYER,
     })
-  }, [flightCategoryGeojson, metVisibility.flightCategory, isStyleReady, styleRevision])
+  }, [flightCategoryGeojson, metVisibility.flightCategory])
 
   useEffect(() => {
     const map = mapRef.current
