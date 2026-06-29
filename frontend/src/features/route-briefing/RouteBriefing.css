@@ -36,6 +36,70 @@
   background: linear-gradient(180deg, rgba(248, 250, 252, 0.99), rgba(255, 255, 255, 0.9));
 }
 
+.route-check-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 저장된 경로 메뉴 행: 이름 + 규칙 + 로드/삭제 (MenuPopover 내 커스텀 행) */
+.rb-saved-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  min-width: 240px;
+}
+
+.rb-saved-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.rb-saved-meta {
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+.rb-saved-load {
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--bg-1));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rb-saved-load:hover {
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-1));
+}
+
+.rb-saved-del {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--stroke-2);
+  border-radius: 6px;
+  background: var(--bg-1);
+  color: var(--text-3);
+  cursor: pointer;
+}
+
+.rb-saved-del:hover {
+  background: var(--level-red-bg);
+}
+
 .route-check-eyebrow {
   color: var(--text-3);
   font-size: 12px;
@@ -149,7 +213,7 @@
 }
 
 .route-check-result {
-  margin: 0 10px 10px;
+  margin: 0 0 10px;
   color: var(--accent);
 }
 
@@ -180,7 +244,7 @@
   border-radius: 11px;
   background: var(--bg-1);
   color: var(--text-3);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.55;
 }
@@ -227,27 +291,48 @@
   font-variant-numeric: tabular-nums;
 }
 
-.vfr-altitude-tools {
-  display: flex;
+/* 경유점 추가: 강조 박스(헤드라인 + 검색·추가 배지 + 검색 입력) */
+.vfr-fix-search {
+  display: grid;
   gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--bg-1));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg-1));
+}
+
+.vfr-fix-search-head {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 8px;
-  color: var(--text-3);
-  font-size: 12px;
+  gap: 8px;
+}
+
+.vfr-fix-search-title {
+  color: var(--accent);
+  font-size: 13px;
   font-weight: 700;
 }
 
-.vfr-altitude-tools button {
-  height: 26px;
-  padding: 0 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--bg-1));
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
-  color: var(--accent);
-  font-size: 12px;
+.vfr-fix-search-input {
+  width: 100%;
+  min-width: 0;
+}
+
+/* 경유점 리스트 헤더: 제목 + 되돌리기 */
+.vfr-waypoint-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.vfr-waypoint-list-title {
+  color: var(--text-3);
+  font-size: 13px;
   font-weight: 700;
-  cursor: pointer;
 }
 
 .vfr-waypoint-altitude-list {
@@ -262,15 +347,97 @@
 
 .vfr-waypoint-altitude-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: 8px;
   align-items: center;
+  padding: 2px;
+  border-radius: 6px;
+}
+
+.vfr-waypoint-altitude-row.is-fixed {
+  background: color-mix(in srgb, var(--text-3) 6%, transparent);
+}
+
+.vfr-waypoint-altitude-row.is-dragging {
+  opacity: 0.4;
+}
+
+/* 드래그 중 '여기 들어감' 강조(실제 교체는 놓을 때). */
+.vfr-waypoint-altitude-row.is-drop-target {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.vfr-waypoint-handle {
+  width: 18px;
+  color: var(--text-3);
+  font-size: 16px;
+  line-height: 1;
+  text-align: center;
+  cursor: grab;
+  user-select: none;
+}
+
+.vfr-waypoint-handle.is-placeholder {
+  cursor: default;
+}
+
+.vfr-waypoint-endpoint {
+  margin-left: 6px;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.vfr-waypoint-delete-placeholder {
+  width: 28px;
+}
+
+/* 순항고도 전체 적용: 리스트 아래 우측 정렬 */
+.vfr-altitude-apply {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.vfr-altitude-apply button {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--stroke-2);
+  border-radius: 7px;
+  background: var(--bg-1);
+  color: var(--text-1);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.vfr-altitude-apply button:hover {
+  background: var(--bg-2);
+}
+
+.vfr-waypoint-delete-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--stroke-2);
+  border-radius: 6px;
+  background: var(--bg-1);
+  color: var(--level-red);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.vfr-waypoint-delete-btn:hover {
+  background: var(--level-red-bg);
 }
 
 .vfr-waypoint-altitude-id {
   min-width: 0;
   color: var(--text-1);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -278,14 +445,14 @@
 }
 
 .vfr-waypoint-altitude-pill {
-  height: 26px;
-  min-width: 78px;
-  padding: 0 8px;
+  height: 30px;
+  min-width: 86px;
+  padding: 0 10px;
   border: 1px solid rgba(148, 163, 184, 0.35);
   border-radius: 999px;
   background: var(--bg-2);
   color: var(--accent);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -301,14 +468,14 @@
 }
 
 .vfr-waypoint-altitude-input {
-  width: 86px;
-  height: 26px;
-  padding: 0 7px;
+  width: 92px;
+  height: 30px;
+  padding: 0 9px;
   border: 1px solid rgba(15, 118, 110, 0.42);
   border-radius: 999px;
   background: var(--bg-1);
   color: var(--text-1);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
 }
 

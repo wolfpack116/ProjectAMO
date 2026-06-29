@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo, useLayoutEffect } from 'react'
 import { KNOWN_AIRPORTS } from './lib/procedureData.js'
 import { calcVfrDistance } from './lib/routePreview.js'
 import {
@@ -9,7 +9,8 @@ import {
   buildIfrSequenceTokens,
   getVfrAirportAltitudeFt,
 } from './lib/routeBriefingModel.js'
-import { Button, Field, Dropdown, Option, Input, SpinButton, TabList, Tab, Badge, MessageBar, MessageBarBody, DatePicker, TimePicker, makeStyles, mergeClasses, tokens } from '../../shared/ui/fluent.js'
+import { Button, Field, Dropdown, Combobox, Option, Input, SpinButton, TabList, Tab, Badge, MessageBar, MessageBarBody, DatePicker, TimePicker, Menu, MenuTrigger, MenuButton, MenuPopover, MenuList, MenuItem, Divider, makeStyles, mergeClasses, tokens } from '../../shared/ui/fluent.js'
+import { listSavedRoutes, saveRoute, deleteSavedRoute } from './lib/routeStore.js'
 import useIsMobile from '../../shared/ui/useIsMobile.js'
 import MobileSheet from '../../shared/ui/MobileSheet.jsx'
 import AirportPickerField from '../../shared/ui/AirportPickerField.jsx'
@@ -84,6 +85,97 @@ function FDropdown({ value, onChange, options, placeholder = '선택', disabled,
   )
 }
 
+const FolderIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M1.5 4.5A1.5 1.5 0 0 1 3 3h3l1.5 1.5H13A1.5 1.5 0 0 1 14.5 6v5.5A1.5 1.5 0 0 1 13 13H3a1.5 1.5 0 0 1-1.5-1.5v-7Z" stroke="currentColor" strokeWidth="1.2" fill="none" />
+  </svg>
+)
+const TrashIcon = () => (
+  <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M3 4.5h10M6.5 4.5V3.5h3v1M5 4.5l.5 8h5l.5-8M7 7v3M9 7v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+// FLIP: 리스트 자식들의 이전 위치를 기억했다가 순서가 바뀌면 부드럽게 미끄러뜨림.
+// data-flip-key(안정적 uid)로 같은 줄을 추적 — 없으면 React가 remount해 애니메이션이 안 됨.
+function useFlipRows(ref, dep) {
+  const prevTop = useRef(new Map())
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    for (const child of el.children) {
+      const key = child.dataset.flipKey
+      if (!key) continue
+      const top = child.getBoundingClientRect().top
+      const old = prevTop.current.get(key)
+      // 현재 끌고 있는 줄은 커서를 따라가므로 FLIP 미적용(이중 움직임 방지).
+      if (old !== undefined && Math.abs(old - top) > 0.5 && !child.classList.contains('is-dragging')) {
+        child.style.transition = 'none'
+        child.style.transform = `translateY(${old - top}px)`
+        requestAnimationFrame(() => {
+          child.style.transition = 'transform 180ms ease'
+          child.style.transform = ''
+        })
+      }
+      prevTop.current.set(key, top)
+    }
+  }, [ref, dep])
+}
+
+// 상대 시간 라벨: 방금/N분 전/N시간 전/오늘/어제/N일 전.
+function relativeTime(ts) {
+  if (!Number.isFinite(ts)) return ''
+  const diff = Date.now() - ts
+  const min = Math.floor(diff / 60000)
+  if (min < 1) return '방금'
+  if (min < 60) return `${min}분 전`
+  const hr = Math.floor(min / 60)
+  if (hr < 24) return `${hr}시간 전`
+  const day = Math.floor(hr / 24)
+  if (day === 1) return '어제'
+  if (day < 7) return `${day}일 전`
+  return new Date(ts).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })
+}
+
+// 검색-추가: airport·navaid·waypoint 후보를 좌표와 함께 인덱싱 → Combobox로 골라
+// 경로 중간(가장 가까운 구간)에 삽입. 좌표: airports는 평면 lon/lat, navpoint는 coordinates.{lon,lat}.
+function VfrFixSearch({ airports, navpointsById, onAdd }) {
+  const [query, setQuery] = useState('')
+  const candidates = useMemo(() => {
+    const list = []
+    for (const a of airports) {
+      if (Number.isFinite(a.lon) && Number.isFinite(a.lat)) {
+        list.push({ key: `ap:${a.icao}`, id: a.icao, label: `${a.icao} 공항`, lon: a.lon, lat: a.lat })
+      }
+    }
+    for (const p of Object.values(navpointsById ?? {})) {
+      const lon = p?.coordinates?.lon, lat = p?.coordinates?.lat
+      if (Number.isFinite(lon) && Number.isFinite(lat)) {
+        list.push({ key: `np:${p.id}`, id: p.id, label: p.id, lon, lat })
+      }
+    }
+    return list
+  }, [airports, navpointsById])
+  const byKey = useMemo(() => new Map(candidates.map((c) => [c.key, c])), [candidates])
+  const q = query.trim().toUpperCase()
+  const matches = (q ? candidates.filter((c) => c.id.toUpperCase().includes(q)) : candidates).slice(0, 20)
+  return (
+    <Combobox
+      className="vfr-fix-search-input"
+      placeholder="공항·VOR·지점 검색…"
+      freeform
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+      onOptionSelect={(_, d) => {
+        const cand = byKey.get(d.optionValue)
+        if (cand) { onAdd(cand); setQuery('') }
+      }}
+    >
+      {matches.map((c) => <Option key={c.key} value={c.key} text={c.label}>{c.label}</Option>)}
+    </Combobox>
+  )
+}
+
 export default function RouteBriefingPanel({ state, refs = {}, derived, actions, airports = [] }) {
   const isMobile = useIsMobile()
   const s = useStyles()
@@ -105,6 +197,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     verticalProfileStale,
     editingVfrAltitudeIndex,
     vfrWaypoints,
+    navpointsById,
     hoveredWpInfo,
     starOptions,
     selectedSid,
@@ -120,7 +213,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     briefingError,
   } = state
   const { hideTimerRef } = refs
-  const { isFirInMode, isFirExitMode, selectedIap, visibleSidOptions } = derived
+  const { isFirInMode, isFirExitMode, selectedIap, visibleSidOptions, canUndoVfr } = derived
   const {
     updateRouteField,
     handleDepartureAirportChange,
@@ -134,7 +227,12 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     handleIapChange,
     handleRouteReset,
     deleteVfrWaypoint,
+    addVfrWaypointByFix,
+    beginVfrReorder,
+    reorderVfrWaypoint,
+    undoVfrWaypoints,
     handleRouteSearch,
+    loadSavedRoute,
     updateVfrWaypointAltitude,
     applyCruiseAltitudeToVfrWaypoints,
     handleVerticalProfileRequest,
@@ -165,6 +263,47 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     setResetArmed(true)
     resetArmTimerRef.current = setTimeout(() => setResetArmed(false), 3000)
   }
+
+  // 경유점 순서 변경(드래그)용 + 리스트 FLIP 애니메이션.
+  // 드래그 소스 인덱스는 ref로(드래그 이벤트는 빠르게 연속 발생 → state는 stale 위험).
+  // 순서 교체는 '놓을 때' 1회만(드래그 중 라이브 교체는 native DnD와 충돌해 튐/잔상).
+  const [dragIndex, setDragIndex] = useState(null)
+  const [dragOverIndex, setDragOverIndex] = useState(null)
+  const dragFromRef = useRef(null)
+  const vfrListRef = useRef(null)
+  useFlipRows(vfrListRef, vfrWaypoints)
+  // 경로 저장/불러오기 (localStorage). 저장은 입력값만; 로드는 재검색으로 복원.
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [savedRoutes, setSavedRoutes] = useState([])
+  const refreshSaved = () => setSavedRoutes(listSavedRoutes())
+  function handleSaveCurrentRoute() {
+    const def = `${routeForm.departureAirport || '?'} → ${routeForm.arrivalAirport || '?'}`
+    const name = window.prompt('경로 이름', def)
+    if (name == null) return
+    saveRoute(name.trim() || def, { routeForm, vfrWaypoints, cruiseAltitudeFt, alternateAirport, etd })
+    refreshSaved()
+  }
+  const routeMenu = (
+    <Menu open={menuOpen} onOpenChange={(_, d) => { setMenuOpen(d.open); if (d.open) refreshSaved() }}>
+      <MenuTrigger disableButtonEnhancement>
+        <MenuButton appearance="outline" size="small" icon={<FolderIcon />}>{'경로'}</MenuButton>
+      </MenuTrigger>
+      <MenuPopover>
+        <MenuList>
+          <MenuItem onClick={handleSaveCurrentRoute} disabled={!routeResult}>{'＋ 현재 경로 저장…'}</MenuItem>
+          {savedRoutes.length > 0 && <Divider />}
+          {savedRoutes.map((r) => (
+            <div key={r.id} className="rb-saved-row">
+              <span className="rb-saved-name">{r.name}<span className="rb-saved-meta"> · {relativeTime(r.savedAt)}</span></span>
+              <button type="button" className="rb-saved-load" onClick={() => { setMenuOpen(false); loadSavedRoute(r) }}>{'로드'}</button>
+              <button type="button" className="rb-saved-del" aria-label="경로 삭제" onClick={() => { deleteSavedRoute(r.id); refreshSaved() }}>×</button>
+            </div>
+          ))}
+          {savedRoutes.length === 0 && <MenuItem disabled>{'저장된 경로 없음'}</MenuItem>}
+        </MenuList>
+      </MenuPopover>
+    </Menu>
+  )
 
   // ETA is auto-computed read-only from ETD + planned distance + TAS.
   const etaIso = computeEtaIso(etd, derived.plannedDistanceNm, cruiseSpeedKt)
@@ -226,6 +365,114 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     <MessageBar intent="error"><MessageBarBody>{routeError}</MessageBarBody></MessageBar>
   )
 
+  // VFR 결과 조각 — 레이아웃별로 다르게 배치(데스크톱은 경유점 구성과 총거리 요약을 분리).
+  const isVfrResult = routeResult?.flightRule === 'VFR' && vfrWaypoints.length >= 2
+  const vfrTotalDist = isVfrResult && (
+    <div className="route-check-total-dist">
+      {'총 거리'}: <strong>{calcVfrDistance(vfrWaypoints).toFixed(1)} NM</strong>
+    </div>
+  )
+  const vfrRouteBuilder = isVfrResult && (
+    <>
+      <div className="vfr-fix-search">
+        <div className="vfr-fix-search-head">
+          <span className="vfr-fix-search-title">{'＋ 경유점 추가'}</span>
+          <Badge appearance="tint" color="brand" size="small">{'검색·추가'}</Badge>
+        </div>
+        <VfrFixSearch airports={airports} navpointsById={navpointsById} onAdd={addVfrWaypointByFix} />
+      </div>
+      <div className="vfr-waypoint-list-head">
+        <span className="vfr-waypoint-list-title">{'경유점 · 계획고도'}</span>
+        <Button appearance="subtle" size="small" type="button" disabled={!canUndoVfr} onClick={undoVfrWaypoints}>{'↩ 되돌리기'}</Button>
+      </div>
+      <div className="vfr-waypoint-altitude-list" ref={vfrListRef}>
+        {vfrWaypoints.map((wp, index) => {
+          const fallbackAltitudeFt = Number(cruiseAltitudeFt)
+          const displayAltitudeFt = wp.fixed
+            ? getVfrAirportAltitudeFt(airports, wp)
+            : Number.isFinite(Number(wp.altitudeFt))
+            ? Number(wp.altitudeFt)
+            : fallbackAltitudeFt
+          const isEditing = !wp.fixed && editingVfrAltitudeIndex === index
+          const endpointLabel = wp.fixed ? (index === 0 ? '출발' : '도착') : null
+          return (
+            <div
+              className={`vfr-waypoint-altitude-row${wp.fixed ? ' is-fixed' : ''}${dragIndex === index ? ' is-dragging' : ''}${dragOverIndex === index && dragIndex !== index ? ' is-drop-target' : ''}`}
+              key={wp.uid ?? wp.id}
+              data-flip-key={wp.uid ?? wp.id}
+              draggable={!wp.fixed}
+              onDragStart={!wp.fixed ? () => { dragFromRef.current = index; beginVfrReorder(); setDragIndex(index) } : undefined}
+              onDragOver={(e) => {
+                if (dragFromRef.current === null) return
+                e.preventDefault()
+                // 끄는 동안엔 '들어갈 자리'만 강조(실제 교체는 drop에서). 양끝/자기 자신 제외.
+                const target = wp.fixed ? null : index
+                if (target !== dragOverIndex) setDragOverIndex(target)
+              }}
+              onDrop={(e) => {
+                e.preventDefault()
+                const from = dragFromRef.current
+                if (from !== null && !wp.fixed && from !== index) reorderVfrWaypoint(from, index)
+                dragFromRef.current = null; setDragIndex(null); setDragOverIndex(null)
+              }}
+              onDragEnd={() => { dragFromRef.current = null; setDragIndex(null); setDragOverIndex(null) }}
+            >
+              {wp.fixed
+                ? <span className="vfr-waypoint-handle is-placeholder" aria-hidden="true" />
+                : <span className="vfr-waypoint-handle" aria-hidden="true">⠿</span>}
+              <span className="vfr-waypoint-altitude-id">
+                {wp.id}{endpointLabel && <span className="vfr-waypoint-endpoint">{endpointLabel}</span>}
+              </span>
+              {isEditing ? (
+                <input
+                  className="vfr-waypoint-altitude-input"
+                  type="number"
+                  min="100"
+                  step="100"
+                  autoFocus
+                  value={Number.isFinite(displayAltitudeFt) ? Math.round(displayAltitudeFt) : ''}
+                  onChange={(e) => updateVfrWaypointAltitude(index, e.target.value)}
+                  onBlur={() => setEditingVfrAltitudeIndex(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') e.currentTarget.blur()
+                    if (e.key === 'Escape') setEditingVfrAltitudeIndex(null)
+                  }}
+                />
+              ) : wp.fixed ? (
+                <span className="vfr-waypoint-altitude-pill is-fixed" title="공항 고도">
+                  {`${Math.round(displayAltitudeFt).toLocaleString()} ft`}
+                </span>
+              ) : (
+                <button
+                  className="vfr-waypoint-altitude-pill"
+                  type="button"
+                  onClick={() => setEditingVfrAltitudeIndex(index)}
+                >
+                  {Number.isFinite(displayAltitudeFt)
+                    ? `${Math.round(displayAltitudeFt).toLocaleString()} ft`
+                    : '고도 입력'}
+                </button>
+              )}
+              {!wp.fixed ? (
+                <button
+                  type="button"
+                  className="vfr-waypoint-delete-btn"
+                  aria-label="경유점 삭제"
+                  onClick={() => deleteVfrWaypoint(index)}
+                ><TrashIcon /></button>
+              ) : <span className="vfr-waypoint-delete-placeholder" aria-hidden="true" />}
+            </div>
+          )
+        })}
+      </div>
+      <div className="vfr-altitude-apply">
+        <button type="button" onClick={applyCruiseAltitudeToVfrWaypoints}>
+          {'순항고도 전체 적용'}
+        </button>
+      </div>
+    </>
+  )
+
   const routePreview = routeResult && (
     <div className="route-check-result">
       {routeResult.flightRule === 'IFR' && (() => {
@@ -262,65 +509,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           </>
         )
       })()}
-      {routeResult.flightRule === 'VFR' && vfrWaypoints.length >= 2 && (
-        <>
-          <div className="route-check-total-dist">
-            {'총 거리'}: <strong>{calcVfrDistance(vfrWaypoints).toFixed(1)} NM</strong>
-          </div>
-          <div className="vfr-altitude-tools">
-            <span>{'VFR WP 계획고도'}</span>
-            <button type="button" onClick={applyCruiseAltitudeToVfrWaypoints}>
-              {'순항고도 전체 적용'}
-            </button>
-          </div>
-          <div className="vfr-waypoint-altitude-list">
-            {vfrWaypoints.map((wp, index) => {
-              const fallbackAltitudeFt = Number(cruiseAltitudeFt)
-              const displayAltitudeFt = wp.fixed
-                ? getVfrAirportAltitudeFt(airports, wp)
-                : Number.isFinite(Number(wp.altitudeFt))
-                ? Number(wp.altitudeFt)
-                : fallbackAltitudeFt
-              const isEditing = !wp.fixed && editingVfrAltitudeIndex === index
-              return (
-                <div className="vfr-waypoint-altitude-row" key={`${wp.id}-${index}`}>
-                  <span className="vfr-waypoint-altitude-id">{wp.id}</span>
-                  {isEditing ? (
-                    <input
-                      className="vfr-waypoint-altitude-input"
-                      type="number"
-                      min="100"
-                      step="100"
-                      autoFocus
-                      value={Number.isFinite(displayAltitudeFt) ? Math.round(displayAltitudeFt) : ''}
-                      onChange={(e) => updateVfrWaypointAltitude(index, e.target.value)}
-                      onBlur={() => setEditingVfrAltitudeIndex(null)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') e.currentTarget.blur()
-                        if (e.key === 'Escape') setEditingVfrAltitudeIndex(null)
-                      }}
-                    />
-                  ) : wp.fixed ? (
-                    <span className="vfr-waypoint-altitude-pill is-fixed" title="공항 고도">
-                      {`${Math.round(displayAltitudeFt).toLocaleString()} ft`}
-                    </span>
-                  ) : (
-                    <button
-                      className="vfr-waypoint-altitude-pill"
-                      type="button"
-                      onClick={() => setEditingVfrAltitudeIndex(index)}
-                    >
-                      {Number.isFinite(displayAltitudeFt)
-                        ? `${Math.round(displayAltitudeFt).toLocaleString()} ft`
-                        : '고도 입력'}
-                    </button>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </>
-      )}
+      {isVfrResult && <>{vfrTotalDist}{vfrRouteBuilder}</>}
     </div>
   )
 
@@ -379,6 +568,62 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     <Input className={s.ctrl} value={routeForm.exitFix} onChange={(_, d) => handleExitFixChange(d.value)} />
   )
 
+  // 데스크톱 섹션 번호 — VFR 경유점(③)이 떠 있을 때만 브리핑/결과가 ④⑤로 밀림(없으면 ③④, 번호 빈칸 방지).
+  const vfrExpanded = !isIfr && isVfrResult
+  const condNo = vfrExpanded ? '④' : '③'
+  const resultNo = vfrExpanded ? '⑤' : '④'
+  const briefingCondSection = (
+    <div className={s.section}>
+      <h3 className={s.sectionTitle}>{`${condNo} 브리핑 조건`}</h3>
+      <Field label="교체 공항">
+        <FDropdown className={s.ctrl} value={alternateAirport} onChange={setAlternateAirport} placeholder="-- 없음 --"
+          options={[{ value: '', label: '-- 없음 --' }, ...KNOWN_AIRPORTS.filter((ap) => ap !== routeForm.departureAirport && ap !== routeForm.arrivalAirport).map((ap) => ({ value: ap, label: ap }))]} />
+      </Field>
+      {perfFields}
+    </div>
+  )
+
+  // VFR 전용: ② 경로 다음에 오는 경유점 구성(추가 + 계획고도).
+  const vfrWaypointSection = isVfrResult && (
+    <div className={s.section}>
+      <h3 className={s.sectionTitle}>{'③ 경유점'}</h3>
+      <div className="route-check-result">{vfrRouteBuilder}</div>
+    </div>
+  )
+
+  // 경로 결과 요약 — IFR: 거리/세부경로/ETD→ETA, VFR: 총거리 + ETD→ETA(요약 strip).
+  // VFR은 공항 입력 전에도 껍데기로 노출(거리 0 NM, ETA —). IFR은 호출부에서 routeResult로 게이트.
+  const resultSummarySection = (
+    <div className={s.section}>
+      <h3 className={s.sectionTitle}>{`${resultNo} 경로 결과`}</h3>
+      {isIfr ? (
+        <>
+          <div className={s.summary}>
+            <span style={{ color: tokens.colorNeutralForeground3 }}>거리 {Math.round(derived.plannedDistanceNm)} NM</span>
+            <Button appearance="subtle" size="small" type="button" aria-expanded={showDetailRoute} onClick={() => setShowDetailRoute((v) => !v)}>
+              {'세부경로'} {showDetailRoute ? '▴' : '▾'}
+            </Button>
+          </div>
+          <div className={s.detailToggleRow}>
+            <span style={{ fontWeight: tokens.fontWeightSemibold }}>ETD {formatBriefingTime(etd, tz)} → ETA {etaIso ? formatBriefingTime(etaIso, tz) : '—'}</span>
+          </div>
+          {showDetailRoute && (
+            <div className="route-check-sequence">
+              {buildIfrSequenceTokens(routeResult, { selectedSid, selectedStar, selectedIap }).map((token, index) => (
+                <span key={`${token.kind}-${token.text}-${index}`}>
+                  {index > 0 && <span className="route-check-sequence-sep">{' -> '}</span>}
+                  <span className={`route-check-sequence-token is-${token.kind}`} style={{ color: ROUTE_SEQUENCE_COLORS[token.kind] }}>{token.text}</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        summaryStrip
+      )}
+    </div>
+  )
+
   const desktopBody = (
     <>
       <form className={s.form} onSubmit={handleRouteSearch}>
@@ -431,44 +676,11 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
 
         {errorBlock}
 
-        <div className={s.section}>
-          <h3 className={s.sectionTitle}>{'③ 브리핑 조건'}</h3>
-          <Field label="교체 공항">
-            <FDropdown className={s.ctrl} value={alternateAirport} onChange={setAlternateAirport} placeholder="-- 없음 --"
-              options={[{ value: '', label: '-- 없음 --' }, ...KNOWN_AIRPORTS.filter((ap) => ap !== routeForm.departureAirport && ap !== routeForm.arrivalAirport).map((ap) => ({ value: ap, label: ap }))]} />
-          </Field>
-          {perfFields}
-        </div>
-
-        {routeResult && (
-          <div className={s.section}>
-            <h3 className={s.sectionTitle}>{'④ 경로 결과'}</h3>
-            {routeResult.flightRule === 'IFR' ? (
-              <>
-                <div className={s.summary}>
-                  <span style={{ color: tokens.colorNeutralForeground3 }}>거리 {Math.round(derived.plannedDistanceNm)} NM</span>
-                  <Button appearance="subtle" size="small" type="button" aria-expanded={showDetailRoute} onClick={() => setShowDetailRoute((v) => !v)}>
-                    {'세부경로'} {showDetailRoute ? '▴' : '▾'}
-                  </Button>
-                </div>
-                <div className={s.detailToggleRow}>
-                  <span style={{ fontWeight: tokens.fontWeightSemibold }}>ETD {formatBriefingTime(etd, tz)} → ETA {etaIso ? formatBriefingTime(etaIso, tz) : '—'}</span>
-                </div>
-                {showDetailRoute && (
-                  <div className="route-check-sequence">
-                    {buildIfrSequenceTokens(routeResult, { selectedSid, selectedStar, selectedIap }).map((token, index) => (
-                      <span key={`${token.kind}-${token.text}-${index}`}>
-                        {index > 0 && <span className="route-check-sequence-sep">{' -> '}</span>}
-                        <span className={`route-check-sequence-token is-${token.kind}`} style={{ color: ROUTE_SEQUENCE_COLORS[token.kind] }}>{token.text}</span>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              routePreview
-            )}
-          </div>
+        {/* IFR: 브리핑 조건 → (검색 후)결과. VFR: (검색 후)경유점 → 브리핑 조건 → 결과(껍데기라도 항상). */}
+        {isIfr ? (
+          <>{briefingCondSection}{routeResult && resultSummarySection}</>
+        ) : (
+          <>{vfrWaypointSection}{briefingCondSection}{resultSummarySection}</>
         )}
 
         {briefingError && <MessageBar intent="error"><MessageBarBody>{briefingError}</MessageBarBody></MessageBar>}
@@ -629,7 +841,10 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
               <div className="route-check-eyebrow">Flight Plan</div>
               <h2 className="route-check-title">{'경로 확인'}</h2>
             </div>
-            <Badge appearance="tint" color="informative">{routeForm.flightRule}</Badge>
+            <div className="route-check-header-actions">
+              <Badge appearance="tint" color="informative">{routeForm.flightRule}</Badge>
+              {routeMenu}
+            </div>
           </div>
           {desktopBody}
         </section>

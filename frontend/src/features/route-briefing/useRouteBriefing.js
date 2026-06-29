@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { fetchVerticalProfile, fetchCrossSection, fetchRouteBriefing } from '../../api/briefingApi.js'
 import { getProcedures, KNOWN_AIRPORTS } from './lib/procedureData.js'
 import { buildBriefingRoute, buildVfrRoute, canBuildBriefingRoutePath, loadIapData, loadNavpoints, loadRouteDirectionMetadata } from './lib/routePlanner.js'
-import { relabeledWaypoints, calcVfrDistance } from './lib/routePreview.js'
+import { relabeledWaypoints, calcVfrDistance, findInsertIndex } from './lib/routePreview.js'
 import { computeEtaIso } from './lib/etaCalc.js'
 import { getLastUsed } from './lib/aircraftProfiles.js'
 import { initialBearingDeg, magneticCourse } from './lib/altitude.js'
@@ -45,6 +45,8 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
   const [verticalProfileWindowOpen, setVerticalProfileWindowOpen] = useState(false)
   const [editingVfrAltitudeIndex, setEditingVfrAltitudeIndex] = useState(null)
   const [vfrWaypoints, setVfrWaypoints] = useState([])
+  // 되돌리기: 패널에서의 경유점 편집(추가/삭제/순서/전체고도) 직전 스냅샷 스택.
+  const [vfrUndoStack, setVfrUndoStack] = useState([])
   const [hoveredWpInfo, setHoveredWpInfo] = useState(null)
   const [sidOptions, setSidOptions] = useState([])
   const [availableSidIds, setAvailableSidIds] = useState(null)
@@ -109,6 +111,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     setVerticalProfileStale(false)
     setVerticalProfileWindowOpen(false)
     setVfrWaypoints([])
+    setVfrUndoStack([])
     setFitBoundsRequest(null)
     setBriefing(null)
     setBriefingError(null)
@@ -490,17 +493,65 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     setAutoRecommendRequested(false)
   }
 
+  // Snapshot the committed waypoints before a panel edit so 되돌리기 can restore.
+  function snapshotVfr() {
+    setVfrUndoStack((s) => [...s.slice(-19), vfrWaypointsRef.current])
+  }
+
   function deleteVfrWaypoint(idx) {
+    snapshotVfr()
     const next = relabeledWaypoints(vfrWaypoints.filter((_, i) => i !== idx))
     setVfrWaypoints(next)
     setHoveredWpInfo(null)
   }
 
-  async function handleRouteSearch(e) {
-    e.preventDefault()
+  // 검색-추가: insert a named fix (airport/navaid) at its best segment position.
+  function addVfrWaypointByFix(cand) {
+    if (!cand || !Number.isFinite(cand.lon) || !Number.isFinite(cand.lat)) return
+    snapshotVfr()
+    setVfrWaypoints((prev) => {
+      if (prev.length < 2) return prev
+      const idx = findInsertIndex(prev, { lng: cand.lon, lat: cand.lat })
+      const wp = { id: cand.id, uid: crypto.randomUUID(), lon: cand.lon, lat: cand.lat, named: true }
+      return relabeledWaypoints([...prev.slice(0, idx), wp, ...prev.slice(idx)])
+    })
+  }
+
+  // 드래그 시작 시 1회 스냅샷(되돌리기용). 드래그 중 매 단계 reorder는 스냅샷하지 않음.
+  function beginVfrReorder() {
+    snapshotVfr()
+  }
+
+  // 순서 변경: 비고정 경유점만(고정 출/도착은 양끝 유지). to는 [1, len-2]로 클램프.
+  // 드래그 중 라이브로 여러 번 호출되므로 스냅샷은 beginVfrReorder에서 1회만.
+  function reorderVfrWaypoint(from, to) {
+    setVfrWaypoints((prev) => {
+      if (from < 0 || from >= prev.length || prev[from]?.fixed) return prev
+      const lastMid = prev.length - 2
+      const target = Math.max(1, Math.min(lastMid, to))
+      if (target === from) return prev
+      const arr = [...prev]
+      const [moved] = arr.splice(from, 1)
+      arr.splice(target, 0, moved)
+      return relabeledWaypoints(arr)
+    })
+  }
+
+  function undoVfrWaypoints() {
+    if (vfrUndoStack.length === 0) return
+    const prev = vfrUndoStack[vfrUndoStack.length - 1]
+    setVfrUndoStack((s) => s.slice(0, -1))
+    setVfrWaypoints(prev)
+    setHoveredWpInfo(null)
+  }
+
+  // Core search by explicit form (so 불러오기 can search the saved form without
+  // waiting for a setRouteForm state flush). Returns the result or null.
+  async function runRouteSearch(form) {
     const requestId = ++routeSearchRequestRef.current
     setRouteLoading(true)
     setRouteError(null)
+    setVfrUndoStack([])
     setVerticalProfile(null)
     setCrossSection(null)
     setVerticalProfileError(null)
@@ -509,10 +560,10 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     setBriefing(null)
     setBriefingError(null)
     try {
-      const result = routeForm.flightRule === 'VFR'
-        ? await buildVfrRoute(routeForm)
-        : await buildBriefingRoute(routeForm)
-      if (requestId !== routeSearchRequestRef.current) return
+      const result = form.flightRule === 'VFR'
+        ? await buildVfrRoute(form)
+        : await buildBriefingRoute(form)
+      if (requestId !== routeSearchRequestRef.current) return null
       setRouteResult(result)
       if (result.flightRule === 'VFR') {
         const initialWaypoints = buildInitialVfrWaypoints(result, airports)
@@ -535,12 +586,40 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
           setFitBoundsRequest({ id: ++fitBoundsRequestRef.current, coordinates: coords, maxZoom: 8 })
         }
       }
+      return result
     } catch (err) {
-      if (requestId !== routeSearchRequestRef.current) return
+      if (requestId !== routeSearchRequestRef.current) return null
       setRouteResult(null)
       setRouteError(err.message)
+      return null
     } finally {
       if (requestId === routeSearchRequestRef.current) setRouteLoading(false)
+    }
+  }
+
+  async function handleRouteSearch(e) {
+    e.preventDefault()
+    return runRouteSearch(routeForm)
+  }
+
+  // 불러오기: restore saved inputs, re-search, then overlay saved VFR waypoints.
+  async function loadSavedRoute(saved) {
+    if (!saved?.routeForm) return
+    clearRouteDisplay()
+    setRouteForm(saved.routeForm)
+    setSelectedSid(null)
+    setSelectedStar(null)
+    setIapCandidates([])
+    setSelectedIapKey(null)
+    setAvailableSidIds(null)
+    setAutoRecommendRequested(false)
+    if (Number.isFinite(Number(saved.cruiseAltitudeFt))) setCruiseAltitudeFt(Number(saved.cruiseAltitudeFt))
+    setAlternateAirport(saved.alternateAirport || '')
+    if (saved.etd) setEtd(saved.etd)
+    const result = await runRouteSearch(saved.routeForm)
+    if (result?.flightRule === 'VFR' && Array.isArray(saved.vfrWaypoints) && saved.vfrWaypoints.length >= 2) {
+      // Backfill uid for routes saved before uids existed (stable React keys).
+      setVfrWaypoints(saved.vfrWaypoints.map((wp) => (wp.uid ? wp : { ...wp, uid: crypto.randomUUID() })))
     }
   }
 
@@ -553,6 +632,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
   function applyCruiseAltitudeToVfrWaypoints() {
     const plannedCruiseAltitudeFt = Number(cruiseAltitudeFt)
     if (!Number.isFinite(plannedCruiseAltitudeFt) || plannedCruiseAltitudeFt <= 0) return
+    snapshotVfr()
     setVfrWaypoints((prev) => prev.map((wp) => {
       if (!wp.fixed) return { ...wp, altitudeFt: Math.round(plannedCruiseAltitudeFt) }
       const airportElevationFt = getVfrAirportAltitudeFt(airports, wp)
@@ -708,6 +788,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       visibleSidOptions,
       plannedDistanceNm,
       magCourseDeg,
+      canUndoVfr: vfrUndoStack.length > 0,
     },
     actions: {
       updateRouteField,
@@ -722,7 +803,12 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       handleIapChange,
       handleRouteReset,
       deleteVfrWaypoint,
+      addVfrWaypointByFix,
+      beginVfrReorder,
+      reorderVfrWaypoint,
+      undoVfrWaypoints,
       handleRouteSearch,
+      loadSavedRoute,
       updateVfrWaypointAltitude,
       applyCruiseAltitudeToVfrWaypoints,
       handleVerticalProfileRequest,

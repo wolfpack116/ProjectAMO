@@ -172,6 +172,7 @@ export function buildInitialVfrWaypoints(routeResult, airports) {
   return [
     {
       id: routeResult.departureAirport,
+      uid: crypto.randomUUID(),
       lon: pts[0].geometry.coordinates[0],
       lat: pts[0].geometry.coordinates[1],
       fixed: true,
@@ -180,6 +181,7 @@ export function buildInitialVfrWaypoints(routeResult, airports) {
     },
     {
       id: routeResult.arrivalAirport,
+      uid: crypto.randomUUID(),
       lon: pts[1].geometry.coordinates[0],
       lat: pts[1].geometry.coordinates[1],
       fixed: true,

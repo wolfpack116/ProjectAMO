@@ -51,7 +51,9 @@ export function findInsertIndex(waypoints, lngLat) {
 
 export function relabeledWaypoints(waypoints) {
   let wpCount = 0
-  return waypoints.map((wp) => wp.fixed ? wp : { ...wp, id: `WP${++wpCount}` })
+  // fixed (출/도착) keep id; named (검색-추가 fix) keep their fix name; only
+  // anonymous map-clicked points get the WP1.. running label.
+  return waypoints.map((wp) => (wp.fixed || wp.named) ? wp : { ...wp, id: `WP${++wpCount}` })
 }
 
 export function buildVfrGeoJSON(waypoints) {
@@ -301,7 +303,7 @@ export function bindVfrInteractions(map, vfrWaypointsRef, setVfrWaypoints) {
     const wps = vfrWaypointsRef.current
     const insertIdx = findInsertIndex(wps, e.lngLat)
     const wpCount = wps.filter((wp) => !wp.fixed).length
-    const newWp = { id: `WP${wpCount + 1}`, lon: e.lngLat.lng, lat: e.lngLat.lat }
+    const newWp = { id: `WP${wpCount + 1}`, uid: crypto.randomUUID(), lon: e.lngLat.lng, lat: e.lngLat.lat }
     const next = relabeledWaypoints([...wps.slice(0, insertIdx), newWp, ...wps.slice(insertIdx)])
     vfrWaypointsRef.current = next
     map.getSource(ROUTE_PREVIEW_SOURCE)?.setData(buildVfrGeoJSON(next))

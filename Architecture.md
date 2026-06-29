@@ -118,6 +118,7 @@ ProjectAMO/
 - `frontend/src/features/route-briefing/lib/routeBriefingModel.js` -> pure route briefing view/model helpers.
 - `frontend/src/features/route-briefing/lib/routePreviewSync.js` -> route/procedure/VFR/boundary-fix/highlight Mapbox install/sync helpers and route preview source/layer ownership IDs.
 - `frontend/src/features/route-briefing/lib/routePreview.js` -> route/procedure/VFR GeoJSON helpers, layer installation, and VFR map interaction binding.
+- `frontend/src/features/route-briefing/lib/routeStore.js` -> localStorage CRUD for saved routes (inputs only; reloaded by re-search).
 - `frontend/src/features/airport-panel/AirportPanel.jsx` -> airport drawer shell and tab selection.
 - `frontend/src/features/airport-panel/AirportPanel.css` -> airport drawer and tab style entry.
 - `frontend/src/features/airport-panel/tabs/CurrentWeatherTab.jsx` -> compact default airport drawer weather summary for warning, METAR, and next-6-hour TAF.
