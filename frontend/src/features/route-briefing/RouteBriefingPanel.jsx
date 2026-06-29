@@ -137,15 +137,15 @@ function VfrFixSearch({ airports, navpointsById, onAdd }) {
     const list = []
     for (const a of airports) {
       if (Number.isFinite(a.lon) && Number.isFinite(a.lat)) {
-        list.push({ key: `ap:${a.icao}`, id: a.icao, label: `${a.icao} 공항`, lon: a.lon, lat: a.lat })
+        list.push({ key: `ap:${a.icao}`, id: a.icao, kind: 'airport', typeLabel: '공항', lon: a.lon, lat: a.lat })
       }
     }
     for (const p of Object.values(navpointsById ?? {})) {
       const lon = p?.coordinates?.lon, lat = p?.coordinates?.lat
       if (Number.isFinite(lon) && Number.isFinite(lat)) {
-        // navaid는 종류(VORTAC 등)를, 일반 지점은 '지점'을 붙여 무엇인지 알아보게.
-        const kindLabel = p.kind === 'navaid' ? (p.type || 'NAVAID') : '지점'
-        list.push({ key: `np:${p.id}`, id: p.id, label: `${p.id} · ${kindLabel}`, lon, lat })
+        // navaid는 종류(VORTAC 등), 일반 지점은 '지점'.
+        const isNavaid = p.kind === 'navaid'
+        list.push({ key: `np:${p.id}`, id: p.id, kind: isNavaid ? 'navaid' : 'waypoint', typeLabel: isNavaid ? (p.type || 'NAVAID') : '지점', lon, lat })
       }
     }
     return list
@@ -153,6 +153,7 @@ function VfrFixSearch({ airports, navpointsById, onAdd }) {
   const byKey = useMemo(() => new Map(candidates.map((c) => [c.key, c])), [candidates])
   const q = query.trim().toUpperCase()
   const matches = (q ? candidates.filter((c) => c.id.toUpperCase().includes(q)) : candidates).slice(0, 20)
+  const badgeColor = { airport: 'brand', navaid: 'success', waypoint: 'informative' }
   return (
     <Combobox
       className="vfr-fix-search-input"
@@ -166,7 +167,14 @@ function VfrFixSearch({ airports, navpointsById, onAdd }) {
         if (cand) { onAdd(cand); setQuery('') }
       }}
     >
-      {matches.map((c) => <Option key={c.key} value={c.key} text={c.label}>{c.label}</Option>)}
+      {matches.map((c) => (
+        <Option key={c.key} value={c.key} text={`${c.id} ${c.typeLabel}`}>
+          <span className="vfr-fix-opt">
+            <span className="vfr-fix-opt-id">{c.id}</span>
+            <Badge appearance="tint" color={badgeColor[c.kind]} size="small">{c.typeLabel}</Badge>
+          </span>
+        </Option>
+      ))}
     </Combobox>
   )
 }

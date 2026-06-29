@@ -320,6 +320,19 @@
   min-width: 0;
 }
 
+/* 검색 후보 옵션: 이름 + 종류 뱃지(공항/지점/VOR…) 양끝 배치 */
+.vfr-fix-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.vfr-fix-opt-id {
+  font-weight: 600;
+}
+
 /* 경유점 리스트 헤더: 제목 + 되돌리기 */
 .vfr-waypoint-list-head {
   display: flex;
