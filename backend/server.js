@@ -140,9 +140,13 @@ function setNoStore(res) {
   res.setHeader('Cache-Control', 'no-store')
 }
 
-function sendRevalidatedJson(res, payload, etagSeed, { staticConfig = false } = {}) {
-  const etag = `"${crypto.createHash('sha256').update(String(etagSeed)).digest('hex')}"`
-  res.setHeader('Cache-Control', staticConfig ? 'no-cache' : 'no-cache, must-revalidate')
+function etagOf(seed) {
+  return `"${crypto.createHash('sha256').update(String(seed)).digest('hex')}"`
+}
+
+// 공통: ETag/Vary 헤더 + if-none-match 304 + json. Cache-Control만 호출자가 정한다.
+function sendWithEtag(res, payload, etag, cacheControl) {
+  res.setHeader('Cache-Control', cacheControl)
   res.setHeader('ETag', etag)
   res.setHeader('Vary', 'Accept-Encoding')
   if (requestHasMatchingEtag(res.req, etag)) {
@@ -150,6 +154,10 @@ function sendRevalidatedJson(res, payload, etagSeed, { staticConfig = false } = 
     return
   }
   res.json(payload)
+}
+
+function sendRevalidatedJson(res, payload, etagSeed, { staticConfig = false } = {}) {
+  sendWithEtag(res, payload, etagOf(etagSeed), staticConfig ? 'no-cache' : 'no-cache, must-revalidate')
 }
 
 function sendLatest(res, type) {
@@ -167,15 +175,7 @@ function sendJsonFile(res, filePath) {
 }
 
 function sendImmutableJson(res, payload, etagSeed) {
-  const etag = `"${crypto.createHash('sha256').update(etagSeed).digest('hex')}"`
-  res.setHeader('Cache-Control', 'public, max-age=86400, immutable')
-  res.setHeader('ETag', etag)
-  res.setHeader('Vary', 'Accept-Encoding')
-  if (requestHasMatchingEtag(res.req, etag)) {
-    res.status(304).end()
-    return
-  }
-  res.json(payload)
+  sendWithEtag(res, payload, etagOf(etagSeed), 'public, max-age=86400, immutable')
 }
 
 function sendStaticConfigJson(res, payload, name) {
@@ -451,7 +451,7 @@ function sendKimField(req, res, { type, buildFn, errorLabel }) {
     }
     // Early 304: (tmfc, hf, level) uniquely identifies an immutable KIM field — no need to read the grid.
     const etagSeed = `kim-${type}:${selection.tmfc}:${selection.hf}:${selection.level}`
-    const etag = `"${crypto.createHash('sha256').update(etagSeed).digest('hex')}"`
+    const etag = etagOf(etagSeed)
     if (requestHasMatchingEtag(req, etag)) {
       res.status(304).end()
       return
@@ -494,7 +494,7 @@ function sendKimWindField(req, res, { allowDefault = false } = {}) {
     }
 
     const etagSeed = `kim-wind:${selection.tmfc}:${selection.hf}:${selection.level}`
-    const etag = `"${crypto.createHash('sha256').update(etagSeed).digest('hex')}"`
+    const etag = etagOf(etagSeed)
     if (requestHasMatchingEtag(req, etag)) {
       res.status(304).end()
       return
