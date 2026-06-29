@@ -20,6 +20,7 @@ export {
   MessageBar, MessageBarBody, MessageBarTitle,
   Tree, TreeItem, TreeItemLayout,
   Link, Divider,
+  Text, LargeTitle, Title1, Title2, Title3, Subtitle1, Subtitle2, Body1, Body2, Caption1, Caption2,
   tokens, makeStyles, mergeClasses,
 } from '@fluentui/react-components'
 // 날짜/시간은 별도 compat 패키지(핵심 패키지엔 없음)

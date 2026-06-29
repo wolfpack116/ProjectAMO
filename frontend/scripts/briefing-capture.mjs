@@ -27,13 +27,17 @@ async function run() {
     await page.waitForTimeout(700)
     await page.screenshot({ path: path.join(outDir, `briefing-form-${LABEL}.png`) })
 
-    const airportSelects = page.locator('.route-check-panel select').filter({ has: page.locator('option[value="RKSI"]') })
-    await airportSelects.nth(0).selectOption('RKSS')
-    await airportSelects.nth(1).selectOption('RKPC')
-    await page.getByRole('button', { name: '자동검색' }).click().catch(() => {})
-    await page.waitForTimeout(500)
+    // 출발·도착: Fluent Dropdown(combobox) → option 클릭
+    await page.getByRole('combobox', { name: '출발 공항' }).click()
+    await page.getByRole('option', { name: 'RKSS' }).click()
+    await page.getByRole('combobox', { name: '도착 공항' }).click()
+    await page.getByRole('option', { name: 'RKPC' }).click()
     await page.getByRole('button', { name: /^검색$/ }).click()
-    await page.waitForSelector('.route-check-sequence, .route-check-result', { timeout: 15000 })
+    // 검색 성공 시 routeResult → '브리핑 생성' 버튼 활성화
+    await page.waitForFunction(() => {
+      const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim() === '브리핑 생성')
+      return b && !b.disabled
+    }, { timeout: 15000 })
     await page.getByRole('button', { name: '브리핑 생성' }).click()
     await page.waitForSelector('.briefing-view', { timeout: 20000 })
     await page.waitForTimeout(1500)
