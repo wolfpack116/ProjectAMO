@@ -171,6 +171,16 @@ function useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, run, deps) {
   }, [isStyleReady, styleRevision, ...deps])
 }
 
+// 한 기상 필드 오버레이의 sync(스타일 동기화)와 unmount destroy를 한 자리에 묶는다.
+// 필드 추가 시 destroy를 멀리 떨어진 공용 cleanup 효과에 따로 넣다 빠뜨리는 일을 막는다.
+function useWeatherFieldOverlay(mapRef, isStyleReady, styleRevision, run, destroy, deps) {
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, run, deps)
+  useEffect(() => () => {
+    const map = mapRef.current
+    if (map) destroy(map)
+  }, [])
+}
+
 function MapView({
   activePanel,
   airports = [],
@@ -906,7 +916,7 @@ function MapView({
     syncLightningLayers(map, lightningLayerModel)
   }, [lightningLayerModel])
 
-  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+  useWeatherFieldOverlay(mapRef, isStyleReady, styleRevision, (map) => {
     if (!enableWindOverlay) return
     syncWindOverlay(map, {
       windField,
@@ -917,7 +927,7 @@ function MapView({
         windSpeed: metVisibility.windSpeed,
       },
     })
-  }, [
+  }, destroyWindOverlay, [
     enableWindOverlay,
     windField,
     windRendererOptions,
@@ -926,65 +936,53 @@ function MapView({
     metVisibility.windSpeed,
   ])
 
-  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+  useWeatherFieldOverlay(mapRef, isStyleReady, styleRevision, (map) => {
     if (!enableWindOverlay) return
     syncTemperatureOverlay(map, {
       temperatureField,
       isVisible: metVisibility.temp,
     })
-  }, [
+  }, destroyTemperatureOverlay, [
     enableWindOverlay,
     temperatureField,
     metVisibility.temp,
   ])
 
-  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+  useWeatherFieldOverlay(mapRef, isStyleReady, styleRevision, (map) => {
     if (!enableWindOverlay) return
     syncCloudPotentialOverlay(map, {
       cloudPotentialField: cloudField,
       isVisible: metVisibility.cloud,
     })
-  }, [
+  }, destroyCloudPotentialOverlay, [
     enableWindOverlay,
     cloudField,
     metVisibility.cloud,
   ])
 
-  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+  useWeatherFieldOverlay(mapRef, isStyleReady, styleRevision, (map) => {
     if (!enableWindOverlay) return
     syncIcingPotentialOverlay(map, {
       icingField,
       isVisible: metVisibility.icing,
     })
-  }, [
+  }, destroyIcingPotentialOverlay, [
     enableWindOverlay,
     icingField,
     metVisibility.icing,
   ])
 
-  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+  useWeatherFieldOverlay(mapRef, isStyleReady, styleRevision, (map) => {
     if (!enableWindOverlay) return
     syncKtgTurbulenceOverlay(map, {
       ktgGrid,
       isVisible: metVisibility.turbulence,
     })
-  }, [
+  }, destroyKtgTurbulenceOverlay, [
     enableWindOverlay,
     ktgGrid,
     metVisibility.turbulence,
   ])
-
-  useEffect(() => () => {
-    const map = mapRef.current
-    if (map) {
-      destroyWindOverlay(map)
-      destroyTemperatureOverlay(map)
-      destroyCloudPotentialOverlay(map)
-      destroyIcingPotentialOverlay(map)
-      destroyKtgTurbulenceOverlay(map)
-      removeFlightCategoryLayer(map)
-    }
-  }, [])
 
   // ???? Sync geo boundaries ??????????????????????????????????????????????????????????????????????????????????????????????????????
 
@@ -1011,13 +1009,13 @@ function MapView({
 
   // ???? Sync flight category overlay ??????????????????????????????????????????????????????????????????????????????????????????????????
 
-  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+  useWeatherFieldOverlay(mapRef, isStyleReady, styleRevision, (map) => {
     syncFlightCategoryLayer(map, {
       geojson: flightCategoryGeojson,
       visible: !!metVisibility.flightCategory,
       beforeLayerId: AIRPORT_CIRCLE_LAYER,
     })
-  }, [flightCategoryGeojson, metVisibility.flightCategory])
+  }, removeFlightCategoryLayer, [flightCategoryGeojson, metVisibility.flightCategory])
 
   useEffect(() => {
     const map = mapRef.current
