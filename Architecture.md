@@ -186,6 +186,7 @@ ProjectAMO/
 - `frontend/src/features/map/MapView.jsx` owns Mapbox instance creation, basemap switching, style readiness, and `styleRevision`; it should not apply feature data or visibility from stale `style.load` closures.
 - Feature-owned Mapbox adapters should expose or document their source/layer IDs when they own persistent Mapbox resources.
 - Weather overlay map writes belong under `frontend/src/features/weather-overlays/lib/`; route preview map writes belong under `frontend/src/features/route-briefing/lib/`; ADS-B map writes belong under `frontend/src/features/aviation-layers/`.
+- Adding a map overlay/layer or its visibility sync? Put it in the owning feature module as a `useXOverlay` hook (see `useWeatherFieldOverlay`/`useStyleSyncedEffect`), not as a new `useEffect` in `MapView.jsx` — MapView regrows by accretion otherwise (see `docs/adr/0001-mapview-layer-gravity.md`).
 - `backend/*` must not import from `frontend/src/`.
 - Runtime browser assets must live under `frontend/public/`.
 - AMOS frontend wind rendering treats current normalized `amos.runways[0]` as the 2-minute wind group and `amos.runways[1]` as the 10-minute wind group; runway-side semantics only apply to visibility and RVR until the backend parser is renamed.
