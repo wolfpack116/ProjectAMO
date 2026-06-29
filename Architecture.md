@@ -149,6 +149,7 @@ ProjectAMO/
 - `backend/src/briefing/planned-altitude.js` -> planned climb/cruise/descent altitude-by-distance model and advisory FL band -> ft conversion.
 - `backend/src/briefing/hazard-matcher.js` -> classifies a hazard as encounter `on`/`nearby` from planned altitude vs FL band (3D vertical match).
 - `backend/src/briefing/enroute-model.js` -> samples KIM/KTG cross-section at the planned altitude and emits moderate+ icing/turbulence intervals (the ④ enroute model summary).
+- `backend/src/briefing/enroute-cross-section.js` -> shared KIM pressure-level + KTG low-altitude cross-section loader (`loadRouteCrossSection`); used by both `POST /api/briefing/cross-section` and the route-briefing enroute model.
 - `backend/src/briefing/airport-summary.js` -> single-airport METAR -> flight category + threshold-flagged display fields.
 - `backend/src/briefing/taf-window.js` -> destination TAF selection at ETA and 1-2-3 alternate-required evaluation.
 - `backend/src/briefing/hazard-section.js` -> SIGMET/AIRMET adverse-hazard section with 3D matching (route∩time∩altitude); tags each hazard encounter `on`/`nearby` and applies a conservative level (SIGMET red unless confirmed off-altitude; AIRMET amber). Also feeds the briefing ④ enroute section.
