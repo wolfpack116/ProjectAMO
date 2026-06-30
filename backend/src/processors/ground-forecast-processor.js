@@ -1,6 +1,12 @@
 import https from 'https'
 import config from '../config.js'
 import store from '../store.js'
+import { latLonToGrid } from '../utils/kma-grid.js'
+
+const VILLAGE_BASE_TIMES = [2, 5, 8, 11, 14, 17, 20, 23] // 동네예보 발표시각 (KST)
+const VILLAGE_PUBLISH_DELAY_MIN = 15 // 발표 후 제공까지 버퍼
+const HOURLY_SLOT_COUNT = 8 // 24h / 3h
+const HOURLY_STEP_HOURS = 3
 
 const DAY_LABELS_KO = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -198,6 +204,74 @@ function mapWeatherToIcon(weatherText, weatherCode = null, rainType = null) {
   return "cloudy";
 }
 
+function skyPtyToIcon(sky, pty) {
+  const ptyCode = Number(pty)
+  if (ptyCode === 1) return "rain"
+  if (ptyCode === 2) return "sleet"
+  if (ptyCode === 3) return "snow"
+  if (ptyCode === 4) return "shower"
+  const skyCode = Number(sky)
+  if (skyCode === 1) return "sunny"
+  if (skyCode === 3) return "mostly_cloudy"
+  if (skyCode === 4) return "cloudy"
+  return "cloudy"
+}
+
+// 현재 시각 기준 가장 최근 동네예보 발표(base_date/base_time)를 KST로 산출.
+function getLatestVillageBase(now = new Date()) {
+  const kst = getKstShiftedDate(now);
+  const minutes = kst.getUTCHours() * 60 + kst.getUTCMinutes();
+  let base = null;
+  for (let i = VILLAGE_BASE_TIMES.length - 1; i >= 0; i -= 1) {
+    const hour = VILLAGE_BASE_TIMES[i];
+    if (minutes >= hour * 60 + VILLAGE_PUBLISH_DELAY_MIN) {
+      base = { date: formatKstDate(now), hour };
+      break;
+    }
+  }
+  if (!base) {
+    // 02:15 이전 → 전날 23시 발표
+    const yesterday = addKstDays(formatKstDate(now), -1);
+    base = { date: yesterday, hour: 23 };
+  }
+  return { baseDate: base.date.replace(/-/g, ""), baseTime: `${String(base.hour).padStart(2, "0")}00` };
+}
+
+// 동네예보 item 목록 → 향후 24h를 3시간 간격 8슬롯으로 추출.
+function extractHourlySlots(items, now = new Date()) {
+  const byTime = new Map();
+  for (const item of items) {
+    const key = `${item?.fcstDate}${item?.fcstTime}`;
+    if (!byTime.has(key)) {
+      byTime.set(key, { fcstDate: String(item?.fcstDate || ""), fcstTime: String(item?.fcstTime || "") });
+    }
+    byTime.get(key)[item?.category] = item?.fcstValue;
+  }
+
+  const nowKst = getKstShiftedDate(now).getTime();
+  const slots = [...byTime.values()]
+    .map((entry) => {
+      const y = Number(entry.fcstDate.slice(0, 4));
+      const m = Number(entry.fcstDate.slice(4, 6));
+      const d = Number(entry.fcstDate.slice(6, 8));
+      const hh = Number(entry.fcstTime.slice(0, 2));
+      const ts = Date.UTC(y, m - 1, d, hh, 0, 0); // KST-shifted timeline과 직접 비교
+      return { ...entry, hour: hh, ts };
+    })
+    .filter((entry) => Number.isFinite(entry.ts) && entry.hour % HOURLY_STEP_HOURS === 0 && entry.ts >= nowKst - 60 * 60 * 1000)
+    .sort((a, b) => a.ts - b.ts)
+    .slice(0, HOURLY_SLOT_COUNT)
+    .map((entry) => ({
+      date: entry.fcstDate,
+      time: entry.fcstTime,
+      temp: safeNumber(entry.TMP),
+      rainProb: safeNumber(entry.POP),
+      icon: skyPtyToIcon(entry.SKY, entry.PTY),
+    }));
+
+  return slots;
+}
+
 function createShortPeriod(item) {
   const weather = String(item?.wf || "").trim();
   if (!weather) return null;
@@ -238,6 +312,7 @@ function getLatestMidTmfc(now = new Date()) {
 function buildRequestCaches() {
   return {
     short: new Map(),
+    village: new Map(),
     midLand: new Map(),
     midTemp: new Map(),
   };
@@ -260,6 +335,26 @@ async function fetchShortForecast(regId, requestCaches) {
     const items = getResponseItems(payload);
     if (items.length === 0) {
       throw new Error(`No short forecast items for regId ${regId}`);
+    }
+    return items;
+  });
+}
+
+async function fetchVillageForecast(nx, ny, requestCaches) {
+  const key = `${nx}:${ny}`;
+  return getOrCreateRequest(requestCaches.village, key, async () => {
+    const base = getLatestVillageBase();
+    const url = buildJsonUrl(config.ground_forecast.village_endpoint, {
+      numOfRows: "300",
+      base_date: base.baseDate,
+      base_time: base.baseTime,
+      nx: String(nx),
+      ny: String(ny),
+    });
+    const payload = await fetchJson(url);
+    const items = getResponseItems(payload);
+    if (items.length === 0) {
+      throw new Error(`No village forecast items for nx ${nx} ny ${ny}`);
     }
     return items;
   });
@@ -475,6 +570,9 @@ async function process() {
       continue;
     }
 
+    const grid = latLonToGrid(airport.lat, airport.lon);
+    // 시간별(동네예보)은 주간예보 품질 판정과 무관하므로 sourceStatus와 분리한다.
+    const hourlyStatus = { ok: false, nx: grid.nx, ny: grid.ny, error: null };
     const sourceStatus = {
       short: { ok: false, regId: mapping.short_reg_id, error: null },
       mid_land: { ok: false, regId: mapping.mid_land_reg_id, tmFc, error: null },
@@ -482,6 +580,7 @@ async function process() {
     };
 
     let shortItems = null;
+    let hourly = [];
     let midLandItem = null;
     let midTempItem = null;
 
@@ -490,6 +589,14 @@ async function process() {
       sourceStatus.short.ok = true;
     } catch (error) {
       sourceStatus.short.error = error.message || "Unknown error";
+    }
+
+    try {
+      const villageItems = await fetchVillageForecast(grid.nx, grid.ny, requestCaches);
+      hourly = extractHourlySlots(villageItems);
+      hourlyStatus.ok = hourly.length > 0;
+    } catch (error) {
+      hourlyStatus.error = error.message || "Unknown error";
     }
 
     try {
@@ -507,6 +614,8 @@ async function process() {
     }
 
     const airportResult = buildAirportResult(icao, shortItems, midLandItem, midTempItem, previousAirport, tmFc, sourceStatus);
+    airportResult.hourly = hourly.length > 0 ? hourly : (previousAirport?.hourly || []);
+    airportResult.hourly_status = hourlyStatus;
     result.airports[icao] = airportResult;
 
     if (Object.values(sourceStatus).some((status) => status.ok === false)) {
@@ -534,5 +643,5 @@ async function process() {
   };
 }
 
-export { process, getLatestMidTmfc, mapShortNumEfToPeriod, mapWeatherToIcon }
-export default { process, getLatestMidTmfc, mapShortNumEfToPeriod, mapWeatherToIcon }
+export { process, getLatestMidTmfc, mapShortNumEfToPeriod, mapWeatherToIcon, getLatestVillageBase, skyPtyToIcon, extractHourlySlots }
+export default { process, getLatestMidTmfc, mapShortNumEfToPeriod, mapWeatherToIcon, getLatestVillageBase, skyPtyToIcon, extractHourlySlots }

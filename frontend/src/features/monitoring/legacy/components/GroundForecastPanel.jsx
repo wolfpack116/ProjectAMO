@@ -1,6 +1,6 @@
 import WeatherIcon from "./WeatherIcon";
 
-function mapGroundForecastIcon(icon) {
+export function mapGroundForecastIcon(icon) {
   switch (icon) {
     case "sunny":
       return "clear-day";

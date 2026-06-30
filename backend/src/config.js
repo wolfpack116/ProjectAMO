@@ -82,6 +82,7 @@ export const environment = {
 export const ground_forecast = {
   timeout_ms: 15000,
   short_endpoint: '/VilageFcstMsgService/getLandFcst',
+  village_endpoint: '/VilageFcstInfoService_2.0/getVilageFcst',
   mid_land_endpoint: '/MidFcstInfoService/getMidLandFcst',
   mid_temp_endpoint: '/MidFcstInfoService/getMidTa',
   quality_drop_tolerance: 0,
