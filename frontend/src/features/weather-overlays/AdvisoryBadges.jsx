@@ -1,84 +1,130 @@
-import { X } from 'lucide-react'
+import { AlertTriangle, Eye, EyeOff, ChevronDown, ChevronRight } from 'lucide-react'
+import {
+  Popover, PopoverTrigger, PopoverSurface,
+  Button, CounterBadge, Text, Tooltip,
+} from '../../shared/ui/fluent.js'
+import './AdvisoryBadges.css'
 
+const PANEL_TITLE = { sigwxLow: 'SIGWX_LOW', sigmet: 'SIGMET', airmet: 'AIRMET', warning: '공항경보' }
+// Fluent CounterBadge 색(헌법 의미색 대응): SIGMET/공항경보=danger(red). AIRMET은 CSS로 솔리드 앰버 보정.
+const TONE_COLOR = { sigwx: 'important', sigmet: 'danger', airmet: 'warning', warning: 'danger' }
+const TONE_HEX = { sigwx: '#6d28d9', sigmet: 'var(--level-red)', airmet: 'var(--level-amber)', warning: 'var(--level-red)' }
+
+// 상시 위험 요약 바: SIGMET/AIRMET(활성 시 상시) + 공항경보. 칩=소프트 톤 Fluent Button(삼각형+건수+펼침 caret).
+// 클릭 → Fluent Popover(arrow로 칩에 연결) 알림형 리스트. 행 전체가 버튼: SIGMET/AIRMET=지도 표시 토글(눈),
+// 공항경보=공항 열기(▸). 행 패턴 통일.
 function AdvisoryBadges({
   badgeItems,
+  warnedAirports = [],
   openPanel,
   panelItems,
   hiddenKeys,
-  onTogglePanel,
-  onClosePanel,
+  onOpenPanel,
   onToggleVisibility,
+  onSelectAirport,
 }) {
-  return (
-    <>
-      {badgeItems.length > 0 && (
-        <div className="advisory-badge-bar" aria-label="Advisory badges">
-          {badgeItems.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className={`advisory-badge advisory-badge--${item.tone}${openPanel === item.key ? ' is-active' : ''}`}
-              onClick={() => onTogglePanel(item.key)}
-            >
-              <span className="advisory-badge-label">{item.label}</span>
-              <span className="advisory-badge-count">{item.count}</span>
-            </button>
-          ))}
-        </div>
-      )}
+  const chips = [
+    ...badgeItems,
+    warnedAirports.length > 0
+      ? { key: 'warning', label: '공항경보', count: warnedAirports.length, tone: 'warning' }
+      : null,
+  ].filter(Boolean)
 
-      {openPanel && (
-        <section className={`advisory-detail-panel advisory-detail-panel--${openPanel}`} aria-label={`${openPanel} detail panel`}>
-          <div className="advisory-detail-header">
-            <div className="advisory-detail-title">
-              {openPanel === 'sigwxLow' ? 'SIGWX_LOW' : openPanel === 'sigmet' ? 'SIGMET' : 'AIRMET'}
-            </div>
-            <button type="button" className="advisory-detail-close" onClick={onClosePanel} aria-label="Close advisory detail">
-              <X size={16} />
-            </button>
-          </div>
-          <div className="advisory-detail-list">
-            {panelItems.length === 0 && <div className="advisory-detail-empty">No active items</div>}
-            {openPanel === 'sigwxLow' && panelItems.map((group) => {
-              const visible = !hiddenKeys.sigwxLow.includes(group.mapKey)
-              return (
-                <label key={group.mapKey} className="advisory-detail-item">
-                  <input type="checkbox" checked={visible} onChange={() => onToggleVisibility('sigwxLow', group.mapKey)} />
-                  <span className="advisory-detail-line" style={{ backgroundColor: group.lineColor || '#7c3aed' }} />
-                  <span className="advisory-detail-text">{group.label}</span>
-                </label>
-              )
-            })}
-            {openPanel === 'sigmet' && panelItems.map((item) => {
-              const visible = !hiddenKeys.sigmet.includes(item.mapKey)
-              return (
-                <label key={item.mapKey} className="advisory-detail-item">
-                  <input type="checkbox" checked={visible} onChange={() => onToggleVisibility('sigmet', item.mapKey)} />
-                  <span className="advisory-detail-line advisory-detail-line--sigmet" />
-                  <span className="advisory-detail-text">
-                    {item.panelLabel}
-                    {item.validLabel && <span className="advisory-detail-time">{item.validLabel}</span>}
-                  </span>
-                </label>
-              )
-            })}
-            {openPanel === 'airmet' && panelItems.map((item) => {
-              const visible = !hiddenKeys.airmet.includes(item.mapKey)
-              return (
-                <label key={item.mapKey} className="advisory-detail-item">
-                  <input type="checkbox" checked={visible} onChange={() => onToggleVisibility('airmet', item.mapKey)} />
-                  <span className="advisory-detail-line advisory-detail-line--airmet" />
-                  <span className="advisory-detail-text">
-                    {item.panelLabel}
-                    {item.validLabel && <span className="advisory-detail-time">{item.validLabel}</span>}
-                  </span>
-                </label>
-              )
-            })}
-          </div>
-        </section>
-      )}
-    </>
+  if (chips.length === 0) return null
+
+  function advisoryRow(kind, mapKey, color, label, time) {
+    const visible = !(hiddenKeys[kind] || []).includes(mapKey)
+    return (
+      <Tooltip key={mapKey} relationship="description" withArrow
+        content={visible ? '클릭하면 지도에서 숨김' : '클릭하면 지도에 표시'}>
+        <Button
+          appearance="subtle"
+          className="advisory-pop-row"
+          aria-pressed={visible}
+          onClick={() => onToggleVisibility(kind, mapKey)}
+        >
+          <span className="advisory-pop-acc" style={{ background: color }} />
+          <span className="advisory-pop-body">
+            <span className="advisory-pop-name">{label}</span>
+            {time && <span className="advisory-pop-time">{time}</span>}
+          </span>
+          {visible
+            ? <Eye size={18} className="advisory-pop-trail" aria-hidden="true" />
+            : <EyeOff size={18} className="advisory-pop-trail advisory-pop-trail--off" aria-hidden="true" />}
+        </Button>
+      </Tooltip>
+    )
+  }
+
+  return (
+    <div className="advisory-badge-bar" aria-label="위험 요약">
+      {chips.map((item) => {
+        const isOpen = openPanel === item.key
+        return (
+          <Popover
+            key={item.key}
+            positioning={{ position: 'below', offset: 8 }}
+            withArrow
+            trapFocus
+            open={isOpen}
+            onOpenChange={(_, data) => onOpenPanel(item.key, data.open)}
+          >
+            <PopoverTrigger disableButtonEnhancement>
+              <Button
+                appearance="subtle"
+                size="medium"
+                shape="circular"
+                className={`advisory-chip advisory-chip--${item.tone}${isOpen ? ' is-open' : ''}`}
+              >
+                <AlertTriangle size={15} aria-hidden="true" />
+                {item.label}
+                <CounterBadge className="advisory-ct" appearance="filled" color={TONE_COLOR[item.tone]} count={item.count} size="small" />
+                <ChevronDown size={14} className="advisory-chip-caret" aria-hidden="true" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverSurface>
+              <div className={`advisory-pop advisory-pop--${item.tone}`}>
+                <div className="advisory-pop-head">
+                  <AlertTriangle size={16} style={{ color: TONE_HEX[item.tone] }} aria-hidden="true" />
+                  <Text weight="semibold" className="advisory-pop-title" role="heading" aria-level={2}>{PANEL_TITLE[item.key]}</Text>
+                  <CounterBadge className="advisory-ct" appearance="filled" color={TONE_COLOR[item.tone]} count={item.count} size="small" />
+                </div>
+                <div className="advisory-pop-list">
+                  {item.key === 'warning' && (
+                    warnedAirports.length === 0
+                      ? <Text size={200} className="advisory-pop-empty">활성 경보 없음</Text>
+                      : warnedAirports.map((icao) => (
+                        <Tooltip key={icao} relationship="description" withArrow content="공항 정보 열기">
+                          <Button
+                            appearance="subtle"
+                            className="advisory-pop-row"
+                            onClick={() => { onSelectAirport?.(icao); onOpenPanel(item.key, false) }}
+                          >
+                            <span className="advisory-pop-acc" style={{ background: TONE_HEX.warning }} />
+                            <span className="advisory-pop-body"><span className="advisory-pop-name">{icao}</span></span>
+                            <ChevronRight size={18} className="advisory-pop-trail" aria-hidden="true" />
+                          </Button>
+                        </Tooltip>
+                      ))
+                  )}
+
+                  {item.key !== 'warning' && panelItems.length === 0 && (
+                    <Text size={200} className="advisory-pop-empty">활성 항목 없음</Text>
+                  )}
+
+                  {item.key === 'sigwxLow' && panelItems.map((g) =>
+                    advisoryRow('sigwxLow', g.mapKey, g.lineColor || '#6d28d9', g.label))}
+                  {item.key === 'sigmet' && panelItems.map((it) =>
+                    advisoryRow('sigmet', it.mapKey, 'var(--level-red)', it.panelLabel, it.validLabel))}
+                  {item.key === 'airmet' && panelItems.map((it) =>
+                    advisoryRow('airmet', it.mapKey, 'var(--level-amber)', it.panelLabel, it.validLabel))}
+                </div>
+              </div>
+            </PopoverSurface>
+          </Popover>
+        )
+      })}
+    </div>
   )
 }
 

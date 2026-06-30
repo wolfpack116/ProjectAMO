@@ -95,6 +95,26 @@ test('buildWeatherOverlayModel preserves advisory counts while filtering hidden 
   assert.equal(model.advisoryBadgeItems[0].count, 1)
 })
 
+test('SIGMET/AIRMET 뱃지는 레이어가 꺼져 있어도 활성 건수가 있으면 상시 표시', () => {
+  const model = buildWeatherOverlayModel({
+    echoMeta: null, satMeta: null,
+    lightningData: { nationwide: { strikes: [] } },
+    sigwxLowData: null, sigwxLowHistoryData: [],
+    sigmetData: { items: [{ id: 's1', sequence_number: '1', phenomenon_code: 'TS', valid_from: '2026-05-14T00:00:00.000Z', valid_to: '2026-05-14T03:00:00.000Z' }] },
+    airmetData: { items: [] },
+    visibility: { radar: false, satellite: false, lightning: false, sigwx: false, sigmet: false, airmet: false },
+    weatherTimelineIndex: -1, sigwxHistoryIndex: 0, sigwxFilter, hiddenAdvisoryKeys,
+    selectedSigwxFrontMeta: null, selectedSigwxCloudMeta: null,
+    lightningReferenceTimeMs: Date.UTC(2026, 4, 14, 2, 10),
+    blinkLightning: false, lightningBlinkOff: false,
+  })
+
+  const sigmet = model.advisoryBadgeItems.find((b) => b.key === 'sigmet')
+  assert.ok(sigmet, 'SIGMET 뱃지가 레이어 off에서도 떠야 함')
+  assert.equal(sigmet.count, 1)
+  assert.equal(model.advisoryBadgeItems.find((b) => b.key === 'airmet'), undefined, 'AIRMET은 0건이면 안 뜸')
+})
+
 test('buildWeatherOverlayModel tolerates omitted hidden advisory keys', () => {
   const model = buildWeatherOverlayModel({
     echoMeta: null,

@@ -159,10 +159,12 @@ export function buildWeatherOverlayModel({
   const visibleSigwxGroups = sigwxGroups.filter((group) => !group.hidden && group.enabledByFilter)
   const showVisibleSigwxFrontOverlay = visibleSigwxGroups.some((group) => group.overlayRole === 'front')
   const showVisibleSigwxCloudOverlay = visibleSigwxGroups.some((group) => group.overlayRole === 'cloud')
+  // SIGMET/AIRMET은 위험 알림이라 레이어 토글과 무관하게 활성(count>0)이면 상시 표시.
+  // SIGWX_LOW는 차트 레이어라 레이어를 켰을 때만 동반 뱃지로 노출(기존 유지).
   const advisoryBadgeItems = [
     visibility.sigwx ? { key: 'sigwxLow', label: 'SIGWX_LOW', count: sigwxGroups.length, tone: 'sigwx' } : null,
-    visibility.sigmet ? { key: 'sigmet', label: 'SIGMET', count: sigmetItems.length, tone: 'sigmet' } : null,
-    visibility.airmet ? { key: 'airmet', label: 'AIRMET', count: airmetItems.length, tone: 'airmet' } : null,
+    sigmetItems.length > 0 ? { key: 'sigmet', label: 'SIGMET', count: sigmetItems.length, tone: 'sigmet' } : null,
+    airmetItems.length > 0 ? { key: 'airmet', label: 'AIRMET', count: airmetItems.length, tone: 'airmet' } : null,
   ].filter(Boolean)
 
   return {

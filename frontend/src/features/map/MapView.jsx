@@ -195,6 +195,7 @@ const MapView = forwardRef(function MapView({
   sigwxFrontMeta = null,
   sigwxCloudMeta = null,
   selectedAirport,
+  warnedAirports = [],
   onAirportSelect,
   onRequestDeferredWeatherData,
   onLayerCountsChange,
@@ -1192,12 +1193,23 @@ const MapView = forwardRef(function MapView({
 
       <AdvisoryBadges
         badgeItems={advisoryBadgeItems}
+        warnedAirports={warnedAirports}
         openPanel={openAdvisoryPanel}
         panelItems={advisoryPanelItems}
         hiddenKeys={hiddenAdvisoryKeys}
-        onTogglePanel={toggleAdvisoryPanel}
-        onClosePanel={() => setOpenAdvisoryPanel(null)}
+        onOpenPanel={(key, open) => {
+          // Fluent Popover open/close. 열 때 해당 레이어 켜기(꺼져 있으면). warning은 레이어 없음.
+          if (open) {
+            if (key === 'sigmet' && !metVisibility.sigmet) toggleMet('sigmet')
+            else if (key === 'airmet' && !metVisibility.airmet) toggleMet('airmet')
+            else if (key === 'sigwxLow' && !metVisibility.sigwx) toggleMet('sigwx')
+            setOpenAdvisoryPanel(key)
+          } else {
+            setOpenAdvisoryPanel((cur) => (cur === key ? null : cur))
+          }
+        }}
         onToggleVisibility={toggleAdvisoryVisibility}
+        onSelectAirport={onAirportSelect}
       />
 
       <SigwxHistoryBar

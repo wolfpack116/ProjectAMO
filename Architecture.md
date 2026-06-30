@@ -82,7 +82,7 @@ ProjectAMO/
 - `frontend/src/features/weather-overlays/WeatherLegends.jsx` -> radar/satellite/weather/wind/temperature legend UI.
 - `frontend/src/features/weather-overlays/SigwxLegendDialog.jsx` -> SIGWX legend dialog.
 - `frontend/src/features/weather-overlays/SigwxHistoryBar.jsx` -> SIGWX history controls.
-- `frontend/src/features/weather-overlays/AdvisoryBadges.jsx` -> SIGMET/AIRMET advisory badges.
+- `frontend/src/features/weather-overlays/AdvisoryBadges.jsx` -> 상시 위험 요약 칩 바: SIGMET/AIRMET은 레이어 토글과 무관하게 활성(count>0) 시 상시 표시 + 공항경보 칩(`warnedAirports`). 칩 클릭 → 해당 레이어 ON + 상세 리스트(SIGMET/AIRMET) 또는 경보 공항 리스트(클릭 시 공항 선택).
 - `frontend/src/features/weather-overlays/lib/weatherOverlayModel.js` -> weather overlay derived model for timeline, SIGWX history/filter state, advisory panel data, badge counts, and legend labels.
 - `frontend/src/features/weather-overlays/lib/weatherOverlayLayers.js` -> MET panel layer definitions, weather overlay source/layer ownership IDs, static weather overlay installation, and radar/satellite/SIGWX/advisory/lightning Mapbox sync helpers.
 - `frontend/src/features/weather-overlays/NwpSliderBar.jsx` -> shared KIM NWP bottom time slider and right-side level slider UI.

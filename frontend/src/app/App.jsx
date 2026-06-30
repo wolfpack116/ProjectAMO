@@ -74,6 +74,14 @@ function MainAppShell() {
     [weatherData],
   )
 
+  // 활성 공항경보가 있는 공항 ICAO 목록(상시 위험 요약 칩용).
+  const warnedAirports = useMemo(
+    () => Object.entries(weatherData?.warning?.airports || {})
+      .filter(([, w]) => (w?.warnings?.length || 0) > 0)
+      .map(([icao]) => icao),
+    [weatherData],
+  )
+
   // Cmd/Ctrl+K → 검색 팔레트 (사이드바 검색 아이콘과 동일).
   useEffect(() => {
     function onKey(e) {
@@ -147,6 +155,7 @@ function MainAppShell() {
           sigwxFrontMeta={weatherData?.sigwxFrontMeta || null}
           sigwxCloudMeta={weatherData?.sigwxCloudMeta || null}
           selectedAirport={selectedAirport}
+          warnedAirports={warnedAirports}
           onAirportSelect={setSelectedAirport}
           onRequestDeferredWeatherData={requestDeferredWeatherData}
           onLayerCountsChange={setLayerCounts}
