@@ -24,6 +24,7 @@ ProjectAMO/
         weather-overlays/      -> radar/satellite/lightning/SIGWX/advisory overlays
         route-briefing/        -> route search and procedure/navpoint lookup
         airport-panel/         -> airport detail drawer, tabs, and view models
+        search/                -> 공항+기능 통합 검색 팔레트 + 공유 레이어 액션 레지스트리
       shared/
         ui/                    -> frontend-only reusable UI
         weather/               -> frontend-only weather display helpers
@@ -59,7 +60,7 @@ ProjectAMO/
 - `frontend/src/api/weatherApi.js` -> initial weather bundle, deferred weather dataset, changed dataset, static airport/navdata fetch helpers.
 - `frontend/src/api/adsbApi.js` -> ADS-B fetch helper.
 - `frontend/src/api/briefingApi.js` -> route briefing and vertical profile API helpers.
-- `frontend/src/features/map/MapView.jsx` -> Mapbox instance owner, style readiness/basemap switching coordinator, `styleRevision` sync trigger, high-level feature panel composition, and current-state sync orchestration, including base geo-boundary visibility for dark/raster/NWP overlay contrast. Feature-specific data shaping and layer adapters live in their owning feature modules.
+- `frontend/src/features/map/MapView.jsx` -> Mapbox instance owner, style readiness/basemap switching coordinator, `styleRevision` sync trigger, high-level feature panel composition, and current-state sync orchestration, including base geo-boundary visibility for dark/raster/NWP overlay contrast. Feature-specific data shaping and layer adapters live in their owning feature modules. `forwardRef`로 imperative `setLayerOn(id, kind)`/`switchBasemap(id)`를 노출 — 검색 팔레트 등 외부 소비자가 MapView 내부 레이어/베이스맵 상태를 직접 끌어올리지 않고 켜도록 한다.
 - `frontend/src/features/map/MapView.css` -> map, overlay panel, and route briefing style entry.
 - `frontend/src/features/map/mapConfig.js` -> map bounds, initial camera, basemap options.
 - `frontend/src/features/map/imageOverlay.js` -> shared Mapbox image overlay helpers for raster/SIGWX frames.
@@ -119,6 +120,8 @@ ProjectAMO/
 - `frontend/src/features/route-briefing/lib/routePreviewSync.js` -> route/procedure/VFR/boundary-fix/highlight Mapbox install/sync helpers and route preview source/layer ownership IDs.
 - `frontend/src/features/route-briefing/lib/routePreview.js` -> route/procedure/VFR GeoJSON helpers, layer installation, and VFR map interaction binding.
 - `frontend/src/features/route-briefing/lib/routeStore.js` -> localStorage CRUD for saved routes (inputs only; reloaded by re-search).
+- `frontend/src/features/search/layerActions.js` -> 공유 레이어 액션 레지스트리(공항+패널+기상/항공 레이어+베이스맵). label/aliases 단일 출처, `buildSearchCatalog`/`matchSearch` 제공. 레이어 토글은 MapView ref(`setLayerOn`)·베이스맵은 `switchBasemap` 재사용. 나중에 브리핑/경로 토글도 동일 재사용.
+- `frontend/src/features/search/SearchPalette.jsx` -> 공항+기능 통합 검색 팔레트(Cmd/Ctrl+K·사이드바 검색 아이콘·모바일 더보기로 진입). Fluent `SearchBox` + 토큰 기반 결과 행, 키보드 내비/포커스 트랩/복귀.
 - `frontend/src/features/airport-panel/AirportPanel.jsx` -> airport drawer shell and tab selection.
 - `frontend/src/features/airport-panel/AirportPanel.css` -> airport drawer and tab style entry.
 - `frontend/src/features/airport-panel/tabs/CurrentWeatherTab.jsx` -> compact default airport drawer weather summary for warning, METAR, and next-6-hour TAF.
@@ -189,6 +192,7 @@ ProjectAMO/
 - Feature-owned Mapbox adapters should expose or document their source/layer IDs when they own persistent Mapbox resources.
 - Weather overlay map writes belong under `frontend/src/features/weather-overlays/lib/`; route preview map writes belong under `frontend/src/features/route-briefing/lib/`; ADS-B map writes belong under `frontend/src/features/aviation-layers/`.
 - Adding a map overlay/layer or its visibility sync? Put it in the owning feature module as a `useXOverlay` hook (see `useWeatherFieldOverlay`/`useStyleSyncedEffect`), not as a new `useEffect` in `MapView.jsx` — MapView regrows by accretion otherwise (see `docs/adr/0001-mapview-layer-gravity.md`).
+- 검색 등 화면 밖에서 레이어를 켜는 경로는 `features/search/layerActions.js` 레지스트리를 통한다(MapView ref `setLayerOn` 재사용). 새 토글 레이어 추가 시 `layerActions.test.js` 커버리지 테스트가 레지스트리 등록을 강제하므로, 레이어 정의에 id를 더하면 레지스트리에도 등록해야 한다.
 - `backend/*` must not import from `frontend/src/`.
 - Runtime browser assets must live under `frontend/public/`.
 - AMOS frontend wind rendering treats current normalized `amos.runways[0]` as the 2-minute wind group and `amos.runways[1]` as the 10-minute wind group; runway-side semantics only apply to visibility and RVR until the backend parser is renamed.
