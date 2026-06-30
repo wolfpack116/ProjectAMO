@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import AirportPanel from '../features/airport-panel/AirportPanel.jsx'
 import MapView from '../features/map/MapView.jsx'
 import useWeatherPolling from './useWeatherPolling.js'
@@ -8,6 +8,8 @@ import MobileMapOverlay from './layout/MobileMapOverlay.jsx'
 import MobileMoreMenu from './layout/MobileMoreMenu.jsx'
 import SettingsModal from '../features/settings/SettingsModal.jsx'
 import UpdatesModal from '../features/about/UpdatesModal.jsx'
+import SearchPalette from '../features/search/SearchPalette.jsx'
+import { buildSearchCatalog } from '../features/search/layerActions.js'
 import { useLastSeenVersion } from '../features/about/useLastSeenVersion.js'
 import useIsMobile from '../shared/ui/useIsMobile.js'
 import { TimeZoneProvider, useTimeZone } from '../shared/timezone/TimeZoneContext.jsx'
@@ -37,6 +39,8 @@ function MainAppShell() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
   const [mobileTask, setMobileTask] = useState('map')
   const [layerCounts, setLayerCounts] = useState({ aviation: 0, met: 0 })
+  const [searchOpen, setSearchOpen] = useState(false)
+  const mapRef = useRef(null)
   const isMobile = useIsMobile()
   const { weatherData, requestDeferredWeatherData } = useWeatherPolling()
   const { hasUpdate, markSeen } = useLastSeenVersion()
@@ -65,6 +69,49 @@ function MainAppShell() {
     [weatherData, selectedAirport],
   )
 
+  const searchCatalog = useMemo(
+    () => buildSearchCatalog(weatherData?.airports || []),
+    [weatherData],
+  )
+
+  // Cmd/Ctrl+K → 검색 팔레트 (사이드바 검색 아이콘과 동일).
+  useEffect(() => {
+    function onKey(e) {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  // 검색 결과 실행 — 패널 열기/공항 선택은 여기서, 레이어·베이스맵은 MapView ref(상태가 거기 있음).
+  function runAction(entry) {
+    switch (entry.type) {
+      case 'airport':
+        setSelectedAirport(entry.id)
+        break
+      case 'panel':
+        if (entry.href) window.location.assign(entry.href)
+        else setActivePanel(entry.panelId)
+        break
+      case 'met':
+        setActivePanel('met')
+        mapRef.current?.setLayerOn(entry.id, 'met')
+        break
+      case 'aviation':
+        setActivePanel('aviation')
+        mapRef.current?.setLayerOn(entry.id, 'aviation')
+        break
+      case 'basemap':
+        mapRef.current?.switchBasemap(entry.id)
+        break
+      default:
+        break
+    }
+  }
+
   // Map the mobile task switcher onto the existing activePanel mechanism.
   function selectMobileTask(task) {
     setMobileTask(task)
@@ -81,9 +128,12 @@ function MainAppShell() {
         isExpanded={isSidebarExpanded}
         onExpandToggle={setIsSidebarExpanded}
         hasUpdate={hasUpdate}
+        layerCounts={layerCounts}
+        onSearchOpen={() => setSearchOpen(true)}
       />
       <main className="map-shell">
         <MapView
+          ref={mapRef}
           activePanel={activePanel}
           airports={weatherData?.airports || []}
           metarData={weatherData?.metar || null}
@@ -121,6 +171,7 @@ function MainAppShell() {
       )}
       {isMobile && mobileTask === 'more' && !selectedAirport && (
         <MobileMoreMenu
+          onSearch={() => setSearchOpen(true)}
           onSettings={() => togglePanel('settings')}
           onUpdates={() => togglePanel('updates')}
           hasUpdate={hasUpdate}
@@ -137,6 +188,12 @@ function MainAppShell() {
       {activePanel === 'updates' && (
         <UpdatesModal onClose={() => togglePanel('updates')} />
       )}
+      <SearchPalette
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        catalog={searchCatalog}
+        onRun={runAction}
+      />
     </div>
   )
 }

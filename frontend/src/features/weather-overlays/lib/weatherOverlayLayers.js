@@ -105,6 +105,8 @@ export const RADAR_RAINRATE_LEGEND = [
   { label: '0.0', color: 'rgb(247, 252, 249)' },
 ]
 
+// 이 레이어들은 검색 레지스트리(features/search/layerActions.js)에 연동됨.
+// id 추가/삭제 시 layerActions.test.js 커버리지 테스트가 동기화를 강제한다.
 export const MET_LAYERS = [
   { id: 'radar', label: 'Radar', color: '#38bdf8' },
   { id: 'satellite', label: 'Satellite', color: '#64748b' },

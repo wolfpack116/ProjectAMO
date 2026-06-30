@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { forwardRef, lazy, Suspense, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
 import useIsMobile from '../../shared/ui/useIsMobile.js'
 import mapboxgl from 'mapbox-gl'
@@ -181,7 +181,7 @@ function useWeatherFieldOverlay(mapRef, isStyleReady, styleRevision, run, destro
   }, [])
 }
 
-function MapView({
+const MapView = forwardRef(function MapView({
   activePanel,
   airports = [],
   metarData = null,
@@ -200,7 +200,7 @@ function MapView({
   onLayerCountsChange,
   onClosePanel,
   enableWindOverlay = true,
-}) {
+}, ref) {
   const isMobile = useIsMobile()
   const mapContainerRef = useRef(null)
   const mapRef = useRef(null)
@@ -239,6 +239,15 @@ function MapView({
   const [adsbLoading, setAdsbLoading] = useState(false)
   const [basemapId, setBasemapId] = useState('standard')
   const [basemapMenuOpen, setBasemapMenuOpen] = useState(false)
+
+  // 외부 소비자(검색 등)용 명령 핸들. 레이어는 켜기만(끄지 않음), 패널이 쓰는 setter 재사용.
+  useImperativeHandle(ref, () => ({
+    setLayerOn(id, kind) {
+      if (kind === 'met') setMetVisibility((prev) => (prev[id] ? prev : getNextMetVisibility(prev, id, { lowPower })))
+      else if (kind === 'aviation') setAviationVisibility((prev) => (prev[id] ? prev : { ...prev, [id]: true }))
+    },
+    switchBasemap,
+  }))
   const [routeBriefingMapMode, setRouteBriefingMapMode] = useState(false)
   const routeBriefing = useRouteBriefing({ activePanel, airports, metarData })
   const { routeResult, fitBoundsRequest } = routeBriefing.state
@@ -1392,7 +1401,7 @@ function MapView({
 
     </div>
   )
-}
+})
 
 export default MapView
 

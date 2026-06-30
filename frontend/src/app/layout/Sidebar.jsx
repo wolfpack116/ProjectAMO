@@ -1,14 +1,14 @@
 import {
-  Cloud, FileText, Layers, Settings, TriangleAlert,
-  Menu, Monitor, Search, HelpCircle, Bell
+  Cloud, FileText, Layers, Settings,
+  Menu, Monitor, HelpCircle, Bell, Search
 } from 'lucide-react'
 import { CURRENT_VERSION } from '../../features/about/changelog.js'
 import './Sidebar.css'
 
+// NOTAM은 본 기능 도입 전까지 숨김(모바일 더보기와 일관). 검색창도 동일.
 const topItems = [
   { label: '항공정보',         icon: Layers, active: true },
   { label: '기상정보',         icon: Cloud },
-  { label: 'NOTAM',            icon: TriangleAlert },
   { label: '상황판',           icon: Monitor, href: '/monitoring' },
   { label: '비행 전 브리핑',   icon: FileText },
 ]
@@ -16,7 +16,7 @@ const topItems = [
 const bottomItems = [
   { label: '업데이트', icon: Bell },
   { label: '설정',   icon: Settings },
-  { label: '도움말', icon: HelpCircle },
+  { label: '도움말', icon: HelpCircle, disabled: true }, // 본 기능 전까지 비활성
 ]
 
 function SidebarButton({ item, isExpanded, onClick }) {
@@ -28,6 +28,7 @@ function SidebarButton({ item, isExpanded, onClick }) {
       type="button"
       aria-label={item.label}
       onClick={onClick}
+      disabled={item.disabled}
     >
       <div className="sidebar-icon-wrapper">
         <Icon size={20} strokeWidth={2} />
@@ -47,7 +48,13 @@ const PANEL_MAP = {
   설정:            'settings',
 }
 
-function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle, hasUpdate }) {
+function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle, hasUpdate, layerCounts, onSearchOpen }) {
+  // 켜진 레이어 수 배지(모바일과 동일 정보). ponytail: 축소 시 점만, 확장 시 숫자 — 36px 레일에 숫자 욱여넣지 않음.
+  const counts = layerCounts || { aviation: 0, met: 0 }
+  const badgeFor = (label) =>
+    label === '항공정보' ? counts.aviation || undefined
+    : label === '기상정보' ? counts.met || undefined
+    : undefined
   return (
     <aside className={`sidebar ${isExpanded ? 'is-expanded' : ''}`}>
       {/* 최상단: 햄버거 & 로고 */}
@@ -65,17 +72,14 @@ function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle, hasUp
           {isExpanded && <span className="sidebar-logo-text">ProjectAMO</span>}
         </div>
 
-        {/* 검색 바 (확장 시에만) */}
-        {isExpanded && (
-          <div className="sidebar-search-container">
-            <div className="sidebar-search-box">
-              <Search size={18} className="search-icon" />
-              <input type="text" placeholder="Search" className="search-input" />
-            </div>
-          </div>
-        )}
+        {/* 검색창은 본 기능(공항·항로 검색) 도입 시 부활 — 제안서 진행 중. */}
 
         <div className="sidebar-menu-list">
+          <SidebarButton
+            isExpanded={isExpanded}
+            item={{ label: '검색', icon: Search }}
+            onClick={onSearchOpen}
+          />
           {topItems.map((item) => {
             const panelId = PANEL_MAP[item.label]
             const handleClick = item.href
@@ -85,7 +89,7 @@ function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle, hasUp
               <SidebarButton
                 key={item.label}
                 isExpanded={isExpanded}
-                item={{ ...item, active: panelId ? activePanel === panelId : false }}
+                item={{ ...item, active: panelId ? activePanel === panelId : false, badge: badgeFor(item.label) }}
                 onClick={handleClick}
               />
             )
