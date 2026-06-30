@@ -172,9 +172,23 @@
 
 .sidebar-icon-button.is-active {
   color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-1));
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
+}
+
+/* 미구현(비활성) 메뉴: 죽은 항목이 살아있는 척하지 않도록 흐림 + 비인터랙티브 */
+.sidebar-icon-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+  color: var(--text-3);
+}
+
+.sidebar-icon-button:disabled:hover {
+  background: transparent;
+  color: var(--text-3);
+  transform: none;
+  box-shadow: none;
 }
 
 .sidebar-icon-wrapper {
@@ -191,20 +205,21 @@
   margin-left: 0;
 }
 
+/* 알림·카운트 배지는 중립 accent. 빨강(--level-red)은 위험 의미 전용으로 회수. */
 .sidebar-badge-dot {
   position: absolute;
   top: -2px;
   right: -2px;
   width: 8px;
   height: 8px;
-  background: var(--level-red);
+  background: var(--accent);
   border: 2px solid rgba(248, 251, 255, 0.94);
   border-radius: 50%;
 }
 
 .sidebar-badge-count {
   margin-left: auto;
-  background: var(--level-red);
+  background: var(--accent);
   color: white;
   font-size: 12px;
   font-weight: 700;

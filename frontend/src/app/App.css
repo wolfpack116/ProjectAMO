@@ -19,6 +19,12 @@ body {
   box-sizing: border-box;
 }
 
+/* 키보드 포커스 가시화(전역). 마우스 클릭에는 영향 없음(:focus-visible). */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* 폼 요소는 기본적으로 글꼴을 상속하지 않음(브라우저 기본=Arial). 전역 --app-font를 따르게 강제. */
 button,
 input,
@@ -209,7 +215,7 @@ optgroup {
     width: 8px;
     height: 8px;
     border-radius: 999px;
-    background: #ef4444;
+    background: var(--accent);
     border: 1.5px solid #ffffff;
   }
 

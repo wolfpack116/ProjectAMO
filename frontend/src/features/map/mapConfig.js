@@ -12,7 +12,7 @@ export const MAP_CONFIG = {
 export const BASEMAP_OPTIONS = [
   {
     id: 'standard',
-    label: 'Standard',
+    label: '기본',
     thumbnail: '/basemap-thumbs/standard.png',
     style: 'mapbox://styles/mapbox/standard',
     config: {
@@ -34,7 +34,7 @@ export const BASEMAP_OPTIONS = [
   },
   {
     id: 'dark',
-    label: 'Dark',
+    label: '단색',
     thumbnail: '/basemap-thumbs/dark.png',
     style: 'mapbox://styles/mapbox/standard',
     config: {
@@ -55,21 +55,25 @@ export const BASEMAP_OPTIONS = [
       colorWater: '#5f6364',
       colorGreenspace: '#686e66',
       colorAdminBoundaries: '#d2d5d0',
-      colorRoads: 'hsla(0, 0%, 72%, 0.42)',
-      colorMotorways: 'hsla(0, 0%, 78%, 0.52)',
-      colorTrunks: 'hsla(0, 0%, 75%, 0.48)',
+      colorRoads: 'hsla(0, 0%, 72%, 0.2)',
+      colorMotorways: 'hsla(0, 0%, 78%, 0.2)',
+      colorTrunks: 'hsla(0, 0%, 75%, 0.2)',
     },
   },
   {
     id: 'satellite',
-    label: 'Satellite',
+    label: '위성',
     thumbnail: '/basemap-thumbs/satellite.png',
     style: 'mapbox://styles/mapbox/standard-satellite',
     config: {
       showPlaceLabels: false,
+      showPedestrianRoads: false,
       showPointOfInterestLabels: false,
       showRoadLabels: false,
       font: 'Noto Sans CJK JP',
+      colorRoads: 'hsla(0, 0%, 88%, 0.2)',
+      colorMotorways: 'hsla(0, 0%, 88%, 0.2)',
+      colorTrunks: 'hsla(0, 0%, 88%, 0.2)',
     },
   },
 ]
