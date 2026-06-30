@@ -116,11 +116,13 @@ ProjectAMO/
 - `frontend/src/features/route-briefing/VerticalProfileChart.jsx` -> SVG route vertical profile chart.
 - `frontend/src/features/route-briefing/BriefingView.jsx` -> pre-flight briefing view (summary board + ①adverse/③current/④enroute/⑤destination sections); ④ shows a hazard ribbon (moderate+) plus an inline `VerticalProfileChart` cross-section (icing/turbulence bands + planned altitude); overlays the map within the route-check panel.
 - `frontend/src/features/route-briefing/lib/etaCalc.js` -> ETD + route distance / cruise speed -> ETA helper.
+- `frontend/src/features/route-briefing/lib/hazardLayers.js` -> 위험현상→지도 레이어 **룰북**(`RULEBOOK` 테이블, 브리핑 도메인). 경로상 위험에서 켤 MET 레이어 id 집합 산출(뇌우→radar+lightning+sigmet, 태풍→radar+sigmet, 착빙·난류 등). 새 규칙은 RULEBOOK에 한 줄 추가. BriefingView가 "지도에 관련 레이어 보기" → `LayerToggleChips`로 노출(토글=MapView `toggleMet`). METAR/TAF/경보는 레이어 아님(제외). 반환 id는 MET_LAYERS와 `hazardLayers.test.js`로 동기화.
 - `frontend/src/features/route-briefing/lib/routeBriefingModel.js` -> pure route briefing view/model helpers.
 - `frontend/src/features/route-briefing/lib/routePreviewSync.js` -> route/procedure/VFR/boundary-fix/highlight Mapbox install/sync helpers and route preview source/layer ownership IDs.
 - `frontend/src/features/route-briefing/lib/routePreview.js` -> route/procedure/VFR GeoJSON helpers, layer installation, and VFR map interaction binding.
 - `frontend/src/features/route-briefing/lib/routeStore.js` -> localStorage CRUD for saved routes (inputs only; reloaded by re-search).
-- `frontend/src/features/search/layerActions.js` -> 공유 레이어 액션 레지스트리(공항+패널+기상/항공 레이어+베이스맵). label/aliases 단일 출처, `buildSearchCatalog`/`matchSearch` 제공. 레이어 토글은 MapView ref(`setLayerOn`)·베이스맵은 `switchBasemap` 재사용. 나중에 브리핑/경로 토글도 동일 재사용.
+- `frontend/src/features/map/layerActions.js` -> 공유 레이어 레지스트리(공항+패널+기상/항공 레이어+베이스맵). label/aliases 단일 출처, `buildSearchCatalog`/`matchSearch`·`metLabel`/`aviationLabel` 제공. 지도 레이어 메타데이터라 `features/map`에 둔다(검색·브리핑·경로가 공유). 레이어 토글은 MapView ref(`setLayerOn`)·베이스맵은 `switchBasemap` 재사용.
+- `frontend/src/features/map/LayerToggleChips.jsx` -> 지도 레이어 토글칩 묶음(상태 표시+토글). 브리핑(MET)·VFR 입력(항공)이 공유. items=[{key,label,on,onToggle}].
 - `frontend/src/features/search/SearchPalette.jsx` -> 공항+기능 통합 검색 팔레트(Cmd/Ctrl+K·사이드바 검색 아이콘·모바일 더보기로 진입). Fluent `SearchBox` + 토큰 기반 결과 행, 키보드 내비/포커스 트랩/복귀.
 - `frontend/src/features/airport-panel/AirportPanel.jsx` -> airport drawer shell and tab selection.
 - `frontend/src/features/airport-panel/AirportPanel.css` -> airport drawer and tab style entry.
@@ -192,7 +194,7 @@ ProjectAMO/
 - Feature-owned Mapbox adapters should expose or document their source/layer IDs when they own persistent Mapbox resources.
 - Weather overlay map writes belong under `frontend/src/features/weather-overlays/lib/`; route preview map writes belong under `frontend/src/features/route-briefing/lib/`; ADS-B map writes belong under `frontend/src/features/aviation-layers/`.
 - Adding a map overlay/layer or its visibility sync? Put it in the owning feature module as a `useXOverlay` hook (see `useWeatherFieldOverlay`/`useStyleSyncedEffect`), not as a new `useEffect` in `MapView.jsx` — MapView regrows by accretion otherwise (see `docs/adr/0001-mapview-layer-gravity.md`).
-- 검색 등 화면 밖에서 레이어를 켜는 경로는 `features/search/layerActions.js` 레지스트리를 통한다(MapView ref `setLayerOn` 재사용). 새 토글 레이어 추가 시 `layerActions.test.js` 커버리지 테스트가 레지스트리 등록을 강제하므로, 레이어 정의에 id를 더하면 레지스트리에도 등록해야 한다.
+- 레이어를 켜는 공유 경로는 `features/map/layerActions.js` 레지스트리를 통한다(검색·브리핑·경로가 공유, MapView 토글 재사용). 새 토글 레이어 추가 시 `layerActions.test.js` 커버리지 테스트가 레지스트리 등록을 강제하므로, 레이어 정의에 id를 더하면 레지스트리에도 등록해야 한다.
 - `backend/*` must not import from `frontend/src/`.
 - Runtime browser assets must live under `frontend/public/`.
 - AMOS frontend wind rendering treats current normalized `amos.runways[0]` as the 2-minute wind group and `amos.runways[1]` as the 10-minute wind group; runway-side semantics only apply to visibility and RVR until the backend parser is renamed.

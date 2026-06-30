@@ -1,5 +1,6 @@
 export const ROUTE_PREVIEW_SOURCE = 'briefing-route-preview'
 export const ROUTE_PREVIEW_LINE = 'briefing-route-preview-line'
+export const ROUTE_PREVIEW_LINE_HIT = 'briefing-route-preview-line-hit'
 export const ROUTE_PREVIEW_POINT = 'briefing-route-preview-point'
 export const VFR_WP_CIRCLE = 'vfr-wp-circle'
 export const VFR_WP_LABEL = 'vfr-wp-label'
@@ -164,6 +165,16 @@ export function addRoutePreviewLayers(map) {
   if (!map.getSource(ROUTE_PREVIEW_SOURCE)) {
     map.addSource(ROUTE_PREVIEW_SOURCE, { type: 'geojson', data: emptyGeoJSON })
   }
+  // 투명 굵은 "히트 라인" — VFR 경로선 클릭/드래그(WP 추가) 충돌판정 확대용.
+  // opacity 0이어도 Mapbox 이벤트/queryRenderedFeatures는 잡힘. 보이는 선 아래에 깐다.
+  if (!map.getLayer(ROUTE_PREVIEW_LINE_HIT)) {
+    map.addLayer({
+      id: ROUTE_PREVIEW_LINE_HIT, type: 'line', source: ROUTE_PREVIEW_SOURCE, slot: 'top',
+      filter: ['==', ['get', 'role'], 'route-preview-line'],
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': '#000', 'line-opacity': 0, 'line-width': 20 },
+    })
+  }
   if (!map.getLayer(ROUTE_PREVIEW_LINE)) {
     map.addLayer({
       id: ROUTE_PREVIEW_LINE, type: 'line', source: ROUTE_PREVIEW_SOURCE, slot: 'top',
@@ -295,7 +306,7 @@ export function bindVfrInteractions(map, vfrWaypointsRef, setVfrWaypoints) {
     map.getCanvas().style.cursor = 'grabbing'
   })
 
-  map.on('mousedown', ROUTE_PREVIEW_LINE, (e) => {
+  map.on('mousedown', ROUTE_PREVIEW_LINE_HIT, (e) => {
     if (vfrWaypointsRef.current.length < 2) return
     const wpHit = map.queryRenderedFeatures(e.point, { layers: [VFR_WP_CIRCLE] })
     if (wpHit.length > 0) return
@@ -312,10 +323,10 @@ export function bindVfrInteractions(map, vfrWaypointsRef, setVfrWaypoints) {
     map.getCanvas().style.cursor = 'grabbing'
   })
 
-  map.on('mousemove', ROUTE_PREVIEW_LINE, () => {
+  map.on('mousemove', ROUTE_PREVIEW_LINE_HIT, () => {
     if (draggingIdx < 0) map.getCanvas().style.cursor = 'crosshair'
   })
-  map.on('mouseleave', ROUTE_PREVIEW_LINE, () => {
+  map.on('mouseleave', ROUTE_PREVIEW_LINE_HIT, () => {
     if (draggingIdx < 0) map.getCanvas().style.cursor = ''
   })
   map.on('mousemove', VFR_WP_CIRCLE, () => {

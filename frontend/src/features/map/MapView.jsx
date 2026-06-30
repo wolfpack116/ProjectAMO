@@ -241,14 +241,12 @@ const MapView = forwardRef(function MapView({
   const [basemapId, setBasemapId] = useState('standard')
   const [basemapMenuOpen, setBasemapMenuOpen] = useState(false)
 
-  // 외부 소비자(검색 등)용 명령 핸들. 레이어는 켜기만(끄지 않음), 패널이 쓰는 setter 재사용.
-  useImperativeHandle(ref, () => ({
-    setLayerOn(id, kind) {
-      if (kind === 'met') setMetVisibility((prev) => (prev[id] ? prev : getNextMetVisibility(prev, id, { lowPower })))
-      else if (kind === 'aviation') setAviationVisibility((prev) => (prev[id] ? prev : { ...prev, [id]: true }))
-    },
-    switchBasemap,
-  }))
+  // 레이어 켜기(끄지 않음) — ref(검색, 화면 밖)와 in-map 패널(브리핑/경로) 공용. 패널이 쓰는 setter 재사용.
+  function setLayerOn(id, kind) {
+    if (kind === 'met') setMetVisibility((prev) => (prev[id] ? prev : getNextMetVisibility(prev, id, { lowPower })))
+    else if (kind === 'aviation') setAviationVisibility((prev) => (prev[id] ? prev : { ...prev, [id]: true }))
+  }
+  useImperativeHandle(ref, () => ({ setLayerOn, switchBasemap }))
   const [routeBriefingMapMode, setRouteBriefingMapMode] = useState(false)
   const routeBriefing = useRouteBriefing({ activePanel, airports, metarData })
   const { routeResult, fitBoundsRequest } = routeBriefing.state
@@ -299,10 +297,21 @@ const MapView = forwardRef(function MapView({
   // fit the route into the visible map ABOVE the sheet by padding the bottom.
   // Desktop keeps its supplied padding (right-side panel handled separately).
   const fitPaddingFor = (desktopPad) => {
-    const sheet = mapRef.current?.getContainer()?.ownerDocument?.querySelector('.mobile-sheet')
+    const container = mapRef.current?.getContainer()
+    const doc = container?.ownerDocument
+    const sheet = doc?.querySelector('.mobile-sheet')
     if (sheet) {
       const h = Math.round(sheet.getBoundingClientRect().height) || 0
       return { top: 40, left: 30, right: 30, bottom: h + 30 }
+    }
+    // Desktop: when the briefing panel covers the right, pad that side so the
+    // route centers in the visible LEFT map (otherwise fits center under the panel).
+    const panel = doc?.querySelector('.briefing-view')
+    if (panel) {
+      const w = Math.round(panel.getBoundingClientRect().width) || 0
+      const cw = container?.clientWidth || 1200
+      const base = typeof desktopPad === 'number' ? desktopPad : 60
+      return { top: base, bottom: base, left: base, right: Math.min(w + 24, cw - 120) }
     }
     return desktopPad
   }
@@ -373,15 +382,26 @@ const MapView = forwardRef(function MapView({
     }
   }
 
-  // When a briefing is completed (route + profile ready), center the route in the
-  // visible left map area (padding the right side for the briefing panel).
+  // When a briefing is shown, center the route in the visible LEFT map (panel on right).
+  // Use the route coordinates directly — don't wait for the on-demand vertical profile.
+  // Small delay so the lazy briefing panel mounts + lays out before fitPaddingFor reads its width.
   useEffect(() => {
-    if (!isStyleReady) return
-    if (routeBriefing.state.briefing && routeBriefing.state.verticalProfile?.axis?.samples?.length) {
-      focusBriefingSection('enroute')
-    }
+    const map = mapRef.current
+    if (!map || !isStyleReady || !routeBriefing.state.briefing) return undefined
+    const st = routeBriefing.state
+    // VFR은 모든 경유점을 포함해 fit(경유점이 dep→arr 직선 밖으로 멀리 나가도 다 보이게).
+    // IFR은 fitBoundsRequest가 이미 전체 항로 경로를 담고 있음. fitBounds가 필요만큼 축소/확대.
+    const coords = (st.routeResult?.flightRule === 'VFR'
+      ? (st.vfrWaypoints ?? []).map((wp) => [wp.lon, wp.lat])
+      : (fitBoundsRequest?.coordinates ?? [])
+    ).filter((c) => Number.isFinite(c?.[0]) && Number.isFinite(c?.[1]))
+    if (coords.length === 0) return undefined
+    const t = setTimeout(() => {
+      map.fitBounds(boundsFromCoords(coords), { padding: fitPaddingFor(60), maxZoom: 8, duration: 600 })
+    }, 350)
+    return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routeBriefing.state.briefing, routeBriefing.state.verticalProfile, isStyleReady])
+  }, [routeBriefing.state.briefing, isStyleReady])
 
   const airportGeoJSON = useMemo(
     () => createAirportGeoJSON(airports, metarData),
@@ -1308,6 +1328,8 @@ const MapView = forwardRef(function MapView({
                   derived={routeBriefing.derived}
                   actions={routeBriefing.actions}
                   airports={airports}
+                  aviationVisibility={aviationVisibility}
+                  onToggleAviation={toggleAviation}
                   onClose={onClosePanel}
                 />
               </Suspense>
@@ -1335,6 +1357,9 @@ const MapView = forwardRef(function MapView({
                 onClose={() => routeBriefing.actions.setBriefing(null)}
                 onOpenProfile={routeBriefing.actions.handleVerticalProfileRequest}
                 onFocus={focusBriefingSection}
+                metVisibility={metVisibility}
+                onToggleMetLayer={toggleMet}
+                onEnterMapMode={() => setRouteBriefingMapMode(true)}
               />
             </Suspense>
           )}

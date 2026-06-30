@@ -63,6 +63,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
   const [fitBoundsRequest, setFitBoundsRequest] = useState(null)
 
   const vfrWaypointsRef = useRef([])
+  const lastVfrKeyRef = useRef('') // 자동 VFR 경로생성: 마지막으로 생성한 출발>도착 (중복 생성·경유점 리셋 방지)
   const hideTimerRef = useRef(null)
   const sidRequestRef = useRef(0)
   const starRequestRef = useRef(0)
@@ -602,9 +603,26 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     return runRouteSearch(routeForm)
   }
 
+  // VFR: 출발·도착이 모두 정해지거나 바뀌면 경로를 자동 생성한다(직선 dep→arr이라 명시적 "검색" 불필요).
+  // 같은 dep/arr면 재생성하지 않아 경유점이 보존됨 — 무심코 검색해 경유점이 날아가는 footgun 제거.
+  // 불러오기(loadSavedRoute)는 자체 re-search+overlay를 하므로 키를 선점해 이 effect를 건너뛴다.
+  useEffect(() => {
+    if (routeForm.flightRule !== 'VFR') { lastVfrKeyRef.current = ''; return }
+    const dep = routeForm.departureAirport
+    const arr = routeForm.arrivalAirport
+    if (!dep || !arr) { lastVfrKeyRef.current = ''; return }
+    const key = `${dep}>${arr}`
+    if (key === lastVfrKeyRef.current) return
+    lastVfrKeyRef.current = key
+    runRouteSearch(routeForm)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeForm.flightRule, routeForm.departureAirport, routeForm.arrivalAirport])
+
   // 불러오기: restore saved inputs, re-search, then overlay saved VFR waypoints.
   async function loadSavedRoute(saved) {
     if (!saved?.routeForm) return
+    // 자동 VFR 생성 effect가 이 dep/arr에 또 발동해 overlay를 덮지 않도록 키 선점.
+    lastVfrKeyRef.current = `${saved.routeForm.departureAirport}>${saved.routeForm.arrivalAirport}`
     clearRouteDisplay()
     setRouteForm(saved.routeForm)
     setSelectedSid(null)

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Layers } from 'lucide-react'
 import {
   Badge, Button, Card, TabList, Tab,
   Table, TableHeader, TableRow, TableHeaderCell, TableBody, TableCell,
@@ -10,6 +11,9 @@ import useIsMobile from '../../shared/ui/useIsMobile.js'
 import MobileSheet from '../../shared/ui/MobileSheet.jsx'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
 import { formatBriefingTime } from './lib/briefingTime.js'
+import { hazardMapLayers } from './lib/hazardLayers.js'
+import LayerToggleChips from '../map/LayerToggleChips.jsx'
+import { metLabel } from '../map/layerActions.js'
 import { phenomenonKo } from '../../shared/weather/phenomenonKo.js'
 import { useCrossSectionLayers, CrossSectionToggles } from './crossSectionLayers.jsx'
 import './BriefingView.css'
@@ -29,7 +33,7 @@ function CatBadge({ category }) {
   return <Badge appearance="filled" style={{ backgroundColor: CAT_COLOR[category] || '#94a3b8', color: '#fff' }}>{category}</Badge>
 }
 
-export default function BriefingView({ briefing, verticalProfile = null, crossSection = null, advisories = [], onClose, onOpenProfile, onFocus }) {
+export default function BriefingView({ briefing, verticalProfile = null, crossSection = null, advisories = [], onClose, onOpenProfile, onFocus, metVisibility, onToggleMetLayer, onEnterMapMode }) {
   const isMobile = useIsMobile()
   const { tz } = useTimeZone()
   const containerRef = useRef(null)
@@ -37,6 +41,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   const [detent, setDetent] = useState('half')
   const [activeAirport, setActiveAirport] = useState(null)
   const [xsectionFull, setXsectionFull] = useState(false)
+  const [showLayerChips, setShowLayerChips] = useState(false)
   // 인라인 단면도 레이어 토글 — 해당 현상이 있으면 그 레이어를 기본 ON.
   // 현상 출처: SIGMET/AIRMET 위험기상 + enroute 모델(KTG 난류·KIM 착빙) 둘 다.
   const hazardCodes = (briefing?.sections?.adverse?.hazards ?? []).map((h) => h.code)
@@ -78,6 +83,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
 
   if (!briefing) return null
   const { meta, summary, sections } = briefing
+  const mapLayerIds = hazardMapLayers(briefing) // 위험현상 → 켤 지도 레이어 id
   const airports = sections.current.airports
   const activeAirportObj = airports.find((a) => a.role === activeAirport) ?? airports[0]
 
@@ -103,6 +109,21 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
       {summary.map((s) => <Badge key={s.key} appearance="tint" color={LEVEL_BADGE[s.level] || 'subtle'}>{s.label}</Badge>)}
     </div>
   )
+
+  // 경로상 위험과 연관된 지도 레이어 토글칩(위험 있을 때만). 버튼 → 지도 모드 + 칩 펼침(우측 간격).
+  const layerChips = mapLayerIds.map((id) => ({
+    key: id, label: metLabel(id),
+    on: !!metVisibility?.[id], onToggle: () => onToggleMetLayer?.(id),
+  }))
+  const layerAction = mapLayerIds.length > 0 && onToggleMetLayer ? (
+    <div className="bv-layer-action">
+      <Button appearance="primary" size="small" icon={<Layers size={16} />}
+        onClick={() => { if (!showLayerChips) onEnterMapMode?.(); setShowLayerChips((v) => !v) }}>
+        지도에 관련 레이어 보기
+      </Button>
+      {showLayerChips && <LayerToggleChips items={layerChips} ariaLabel="관련 지도 레이어" />}
+    </div>
+  ) : null
 
   const adverse = (
     <section data-bvid="adverse" className="bv-section">
@@ -276,7 +297,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
           onClose={onClose} detent={detent} onDetentChange={setDetent} peekContent={peek}>
           <div className="bv-mobile" ref={containerRef}>
             {etdEtaLine && <Caption1 style={{ color: 'var(--accent)', fontVariantNumeric: 'tabular-nums' }}>{etdEtaLine}</Caption1>}
-            {nav}{board}{adverse}{currentMobile}{enroute}{destination}
+            {nav}{board}{layerAction}{adverse}{currentMobile}{enroute}{destination}
           </div>
         </MobileSheet>
         {xsectionFull && verticalProfile && (
@@ -305,7 +326,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
           <Button appearance="secondary" size="small" onClick={onClose}>지도로</Button>
         </div>
       </div>
-      {nav}{board}{adverse}{currentDesktop}{enroute}{destination}
+      {nav}{board}{layerAction}{adverse}{currentDesktop}{enroute}{destination}
     </div>
   )
 }

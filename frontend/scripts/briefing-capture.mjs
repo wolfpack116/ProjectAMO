@@ -32,7 +32,7 @@ async function run() {
     await page.getByRole('option', { name: 'RKSS' }).click()
     await page.getByRole('combobox', { name: '도착 공항' }).click()
     await page.getByRole('option', { name: 'RKPC' }).click()
-    await page.getByRole('button', { name: /^검색$/ }).click()
+    await page.locator('.route-check-panel').getByRole('button', { name: /^검색$/ }).click()
     // 검색 성공 시 routeResult → '브리핑 생성' 버튼 활성화
     await page.waitForFunction(() => {
       const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim() === '브리핑 생성')

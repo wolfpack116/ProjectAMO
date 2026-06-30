@@ -9,9 +9,11 @@ import {
   buildIfrSequenceTokens,
   getVfrAirportAltitudeFt,
 } from './lib/routeBriefingModel.js'
-import { Button, Field, Dropdown, Combobox, Option, Input, SpinButton, TabList, Tab, Badge, MessageBar, MessageBarBody, DatePicker, TimePicker, Menu, MenuTrigger, MenuButton, MenuPopover, MenuList, MenuItem, Divider, makeStyles, mergeClasses, tokens } from '../../shared/ui/fluent.js'
+import { Button, Field, Dropdown, Combobox, Option, Input, SpinButton, TabList, Tab, Badge, MessageBar, MessageBarBody, DatePicker, TimePicker, Menu, MenuTrigger, MenuButton, MenuPopover, MenuList, MenuItem, Divider, makeStyles, tokens } from '../../shared/ui/fluent.js'
 import { listSavedRoutes, saveRoute, deleteSavedRoute } from './lib/routeStore.js'
-import { Folder, Trash2, GripVertical, Undo2, X } from 'lucide-react'
+import LayerToggleChips from '../map/LayerToggleChips.jsx'
+import { aviationLabel } from '../map/layerActions.js'
+import { Folder, Trash2, GripVertical, Undo2, X, RotateCcw } from 'lucide-react'
 import useIsMobile from '../../shared/ui/useIsMobile.js'
 import MobileSheet from '../../shared/ui/MobileSheet.jsx'
 import AirportPickerField from '../../shared/ui/AirportPickerField.jsx'
@@ -40,13 +42,13 @@ const useStyles = makeStyles({
     letterSpacing: '0.04em',
   },
   grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: tokens.spacingHorizontalM, alignItems: 'end' },
+  sectionHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: tokens.spacingHorizontalS },
   field: { minWidth: 0 },
   fieldFull: { gridColumn: '1 / -1', minWidth: 0 },
   // ⇄ 교환 버튼은 가운데 전용 칸(auto). 출발/도착은 좌우 대칭. (1fr 1fr로 키우면 ⇄ 자리가 없어 겹침)
   routeRow: { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', gap: tokens.spacingHorizontalS, alignItems: 'end' },
   swapBtn: { minWidth: '32px', marginBottom: tokens.spacingVerticalXS },
-  actions: { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: tokens.spacingHorizontalS },
-  actionsVfr: { gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' },
+  actions: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: tokens.spacingHorizontalS },
   etdQuick: { display: 'flex', flexWrap: 'wrap', gap: tokens.spacingHorizontalXS },
   detailToggleRow: { display: 'flex', justifyContent: 'flex-end' },
   etdRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: tokens.spacingHorizontalM },
@@ -179,7 +181,7 @@ function VfrFixSearch({ airports, navpointsById, onAdd }) {
   )
 }
 
-export default function RouteBriefingPanel({ state, refs = {}, derived, actions, airports = [] }) {
+export default function RouteBriefingPanel({ state, refs = {}, derived, actions, airports = [], aviationVisibility = {}, onToggleAviation }) {
   const isMobile = useIsMobile()
   const s = useStyles()
   const { tz } = useTimeZone()
@@ -375,8 +377,28 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
       {'총 거리'}: <strong>{calcVfrDistance(vfrWaypoints).toFixed(1)} NM</strong>
     </div>
   )
+  // 지도 레이어 토글칩 — VFR 경로 구성 시 웨이포인트/항행시설/항공로를 지도에서 보며 작업.
+  const aviationLayerChips = [
+    { key: 'waypoint', label: aviationLabel('waypoint'), on: !!aviationVisibility.waypoint, onToggle: () => onToggleAviation?.('waypoint') },
+    { key: 'navaid', label: aviationLabel('navaid'), on: !!aviationVisibility.navaid, onToggle: () => onToggleAviation?.('navaid') },
+    {
+      key: 'airways', label: '항공로',
+      on: !!(aviationVisibility['ats-route'] && aviationVisibility['rnav-route']),
+      onToggle: () => {
+        const target = !(aviationVisibility['ats-route'] && aviationVisibility['rnav-route'])
+        if (!!aviationVisibility['ats-route'] !== target) onToggleAviation?.('ats-route')
+        if (!!aviationVisibility['rnav-route'] !== target) onToggleAviation?.('rnav-route')
+      },
+    },
+  ]
   const vfrRouteBuilder = isVfrResult && (
     <>
+      {onToggleAviation && (
+        <div className="vfr-layer-toggles" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-m)', flexWrap: 'wrap', marginBottom: 'var(--space-s)' }}>
+          <span className="vfr-fix-search-title">{'지도 레이어'}</span>
+          <LayerToggleChips items={aviationLayerChips} ariaLabel="항공 레이어" />
+        </div>
+      )}
       <div className="vfr-fix-search">
         <div className="vfr-fix-search-head">
           <span className="vfr-fix-search-title">{'＋ 경유점 추가'}</span>
@@ -638,7 +660,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
 
   const desktopBody = (
     <>
-      <form className={s.form} onSubmit={handleRouteSearch}>
+      <form className={s.form} onSubmit={(e) => { e.preventDefault(); if (isIfr) handleRouteSearch(e) }}>
         <div className={s.section}>
           <h3 className={s.sectionTitle}>{'① 비행 규칙'}</h3>
           <TabList selectedValue={routeForm.flightRule} onTabSelect={(_, d) => switchFlightRule(d.value)}>
@@ -648,7 +670,10 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
         </div>
 
         <div className={s.section}>
-          <h3 className={s.sectionTitle}>{'② 경로'}</h3>
+          <div className={s.sectionHead}>
+            <h3 className={s.sectionTitle}>{'② 경로'}</h3>
+            <Button appearance="secondary" size="small" type="button" icon={<RotateCcw size={14} />} onClick={armOrReset} disabled={routeLoading}>{resetArmed ? '초기화 확인' : '초기화'}</Button>
+          </div>
           <div className={s.routeRow}>
             {renderDesktopAirportSelect('출발 공항', routeForm.departureAirport, handleDepartureAirportChange, FIR_IN_AIRPORT, 'FIR 진입')}
             <Button className={s.swapBtn} appearance="subtle" type="button" aria-label="출발 도착 교환"
@@ -677,14 +702,14 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           )}
         </div>
 
-        <div className={mergeClasses(s.actions, !isIfr && s.actionsVfr)}>
-          <Button appearance="primary" type="submit" disabled={routeLoading || !canSearch}
-            title={canSearch ? undefined : '출발·도착 공항을 먼저 선택하세요'}>{routeLoading ? '검색 중...' : '검색'}</Button>
-          {isIfr && (
+        {/* VFR은 출발·도착 선택 시 경로 자동 생성(검색 버튼 없음). 초기화는 ② 경로 헤더로 이동(IFR·VFR 공통). */}
+        {isIfr && (
+          <div className={s.actions}>
+            <Button appearance="primary" type="submit" disabled={routeLoading || !canSearch}
+              title={canSearch ? undefined : '출발·도착 공항을 먼저 선택하세요'}>{routeLoading ? '검색 중...' : '검색'}</Button>
             <Button appearance="secondary" type="button" onClick={handleAutoRecommend} disabled={routeLoading}>{'자동검색'}</Button>
-          )}
-          <Button appearance="secondary" type="button" onClick={armOrReset} disabled={routeLoading}>{resetArmed ? '초기화 확인' : '초기화'}</Button>
-        </div>
+          </div>
+        )}
 
         {errorBlock}
 
@@ -718,7 +743,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   )
 
   const mobileBody = (
-    <form id="rb-mobile-form" className="route-check-form rb-mobile" onSubmit={handleRouteSearch}>
+    <form id="rb-mobile-form" className="route-check-form rb-mobile" onSubmit={(e) => { e.preventDefault(); if (isIfr) handleRouteSearch(e) }}>
       {mobileStep === 1 && (
         <>
           <div className="route-type-segmented">
@@ -785,9 +810,9 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
       )}
       {routeResult ? (
         <button type="button" className="route-check-search-button" onClick={() => setMobileStep(2)}>{'다음'}</button>
-      ) : (
+      ) : isIfr ? (
         <button type="button" className="route-check-search-button" onClick={() => handleRouteSearch({ preventDefault() {} })} disabled={routeLoading || !canSearch}>{routeLoading ? '검색 중...' : '경로 검색'}</button>
-      )}
+      ) : null}
     </div>
   ) : (
     <div className="route-check-actions is-step">
