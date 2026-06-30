@@ -9,6 +9,25 @@
   pointer-events: none;
   font-family: var(--app-font, system-ui, sans-serif);
   overflow: hidden;
+  transform-origin: bottom center;
+  animation: airport-tooltip-in 140ms ease-out;
+}
+
+@keyframes airport-tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .airport-tooltip {
+    animation: none;
+  }
 }
 
 /* ── Header ── */

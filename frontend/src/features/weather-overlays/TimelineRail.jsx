@@ -1,0 +1,159 @@
+import { useEffect, useRef, useState } from 'react'
+import { Pause, Play, RotateCcw } from 'lucide-react'
+
+import { formatKstMinute } from './lib/weatherTimeline.js'
+import {
+  PLAYHEAD_RATIO,
+  VISIBLE_SPAN_MS,
+  buildTapeTicks,
+  buildTimelineDomain,
+  clampMs,
+  dragToTimeDelta,
+  normalizeNwpTimes,
+  tapePercent,
+} from './lib/timelineRailModel.js'
+import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
+
+const KEY_STEP_MS = 10 * 60 * 1000
+
+function majorLabel(ms, tz) {
+  // formatKstMinute -> "MM/DD HH:MM KST". Show the date at midnight (date crossing), else just the clock.
+  const [date, clock] = formatKstMinute(ms, tz).split(' ')
+  if (clock === '00:00') {
+    const [, dd] = date.split('/')
+    const mm = Number(date.split('/')[0])
+    return `${mm}/${Number(dd)} 00:00`
+  }
+  return clock || ''
+}
+
+// Full-width scrolling time tape: a fixed playhead with the selected time under it; drag the tape to scrub,
+// press play to scroll right -> left. Past observations (solid) -> 지금 -> future forecast (dashed).
+function TimelineRail({
+  pastTicksMs = [],
+  nwpTimes = [],
+  selectedMs = null,
+  isPlaying = false,
+  onScrub,
+  onPlayPause,
+}) {
+  const { tz } = useTimeZone()
+  const [nowMs, setNowMs] = useState(() => Date.now())
+  const viewportRef = useRef(null)
+  const dragRef = useRef(null)
+  const [active, setActive] = useState(false) // scrubbing or focused -> show time readout
+  const isLive = !Number.isFinite(selectedMs)
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 30_000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const futureMs = normalizeNwpTimes(nwpTimes).map((time) => time.ms)
+  const domain = buildTimelineDomain({ pastTicksMs, nwpTimesMs: futureMs, nowMs })
+  const selected = Number.isFinite(selectedMs)
+    ? clampMs(domain, selectedMs)
+    : (pastTicksMs.length ? pastTicksMs[pastTicksMs.length - 1] : nowMs)
+
+  const pct = (ms) => tapePercent({ ms, selectedMs: selected })
+  const nowPct = Math.max(0, Math.min(100, pct(nowMs)))
+
+  // Fill the whole visible window with tiered ruler ticks so the ruler is never empty.
+  const visibleStart = selected - VISIBLE_SPAN_MS * PLAYHEAD_RATIO
+  const visibleEnd = selected + VISIBLE_SPAN_MS * (1 - PLAYHEAD_RATIO)
+  const tapeTicks = buildTapeTicks({ startMs: visibleStart, endMs: visibleEnd })
+
+  const commit = (ms) => onScrub?.(clampMs(domain, ms))
+
+  const handlePointerDown = (event) => {
+    const rect = viewportRef.current?.getBoundingClientRect()
+    if (!rect || rect.width === 0) return
+    dragRef.current = { startX: event.clientX, startSelected: selected, width: rect.width }
+    viewportRef.current.setPointerCapture?.(event.pointerId)
+    setActive(true)
+  }
+  const handlePointerMove = (event) => {
+    const drag = dragRef.current
+    if (!drag) return
+    const dxFraction = (event.clientX - drag.startX) / drag.width
+    commit(drag.startSelected + dragToTimeDelta(dxFraction))
+  }
+  const handlePointerEnd = (event) => {
+    setActive(false)
+    if (!dragRef.current) return
+    dragRef.current = null
+    viewportRef.current?.releasePointerCapture?.(event.pointerId)
+  }
+  const handleKeyDown = (event) => {
+    if (event.key === 'ArrowLeft') { commit(selected - KEY_STEP_MS); event.preventDefault() }
+    else if (event.key === 'ArrowRight') { commit(selected + KEY_STEP_MS); event.preventDefault() }
+  }
+
+  return (
+    <section className="timeline-rail" aria-label="시간 슬라이더">
+      <div
+        ref={viewportRef}
+        className="timeline-rail__viewport"
+        role="slider"
+        tabIndex={0}
+        aria-valuemin={Math.round(domain.startMs)}
+        aria-valuemax={Math.round(domain.endMs)}
+        aria-valuenow={Math.round(selected)}
+        aria-valuetext={formatKstMinute(selected, tz)}
+        aria-label="기상 자료 시각 (드래그하여 이동)"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onKeyDown={handleKeyDown}
+        onFocus={() => setActive(true)}
+        onBlur={() => setActive(false)}
+      >
+        <div className="timeline-rail__playhead" aria-hidden="true" style={{ left: `${PLAYHEAD_RATIO * 100}%` }} />
+        <div className="timeline-rail__baseline timeline-rail__baseline--past" style={{ right: `${100 - nowPct}%` }} />
+        <div className="timeline-rail__baseline timeline-rail__baseline--future" style={{ left: `${nowPct}%` }} />
+        {pastTicksMs.map((ms) => (
+          <span key={`p-${ms}`} className="timeline-rail__frame" style={{ left: `${pct(ms)}%` }} aria-hidden="true" />
+        ))}
+        {futureMs.map((ms) => (
+          <span key={`f-${ms}`} className="timeline-rail__frame timeline-rail__frame--future" style={{ left: `${pct(ms)}%` }} aria-hidden="true" />
+        ))}
+        {tapeTicks.map(({ ms, tier }) => (
+          <div
+            key={ms}
+            className={`timeline-rail__tick timeline-rail__tick--${tier}${ms > nowMs ? ' timeline-rail__tick--future' : ''}`}
+            style={{ left: `${pct(ms)}%` }}
+            aria-hidden="true"
+          >
+            <span className="timeline-rail__tick-mark" />
+            {tier === 'major' && <span className="timeline-rail__tick-label">{majorLabel(ms, tz)}</span>}
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        className="timeline-rail__play"
+        style={{ left: `${PLAYHEAD_RATIO * 100}%` }}
+        onClick={onPlayPause}
+        aria-label={isPlaying ? '재생 일시정지' : '재생'}
+      >
+        {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+      </button>
+
+      {active && (
+        <div className="timeline-rail__readout" style={{ left: `${PLAYHEAD_RATIO * 100}%` }} aria-hidden="true">
+          {formatKstMinute(selected, tz)}
+        </div>
+      )}
+
+      {!isLive && !isPlaying && (
+        <button type="button" className="timeline-rail__live" onClick={() => onScrub?.(null)} aria-label="실시간(지금)으로 이동">
+          <RotateCcw size={17} />
+        </button>
+      )}
+    </section>
+  )
+}
+
+export default TimelineRail

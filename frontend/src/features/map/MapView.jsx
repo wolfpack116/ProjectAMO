@@ -20,10 +20,12 @@ import AdvisoryBadges from '../weather-overlays/AdvisoryBadges.jsx'
 import AdsbTimestamp from '../weather-overlays/AdsbTimestamp.jsx'
 import SigwxHistoryBar from '../weather-overlays/SigwxHistoryBar.jsx'
 import SigwxLegendDialog from '../weather-overlays/SigwxLegendDialog.jsx'
-import WeatherTimelineBar from '../weather-overlays/WeatherTimelineBar.jsx'
+import TimelineRail from '../weather-overlays/TimelineRail.jsx'
+import { useTimelineRail, useTimelinePlayback } from '../weather-overlays/lib/useTimelineRail.js'
 import WeatherLegends from '../weather-overlays/WeatherLegends.jsx'
 import WeatherOverlayPanel from '../weather-overlays/WeatherOverlayPanel.jsx'
 import NwpSliderBar from '../weather-overlays/NwpSliderBar.jsx'
+import LevelRail from '../weather-overlays/LevelRail.jsx'
 import WeatherLayerTimestampBar from '../weather-overlays/WeatherLayerTimestampBar.jsx'
 import { useNwpOverlays } from '../weather-overlays/lib/useNwpOverlays.js'
 import { destroyWindOverlay, syncWindOverlay } from '../weather-overlays/lib/windOverlaySync.js'
@@ -52,9 +54,6 @@ import {
   buildWeatherOverlayModel,
   formatReferenceTimeLabel,
 } from '../weather-overlays/lib/weatherOverlayModel.js'
-import {
-  getPlaybackDelayMs,
-} from '../weather-overlays/lib/weatherTimeline.js'
 import { useFlightCategory } from '../weather-overlays/lib/useFlightCategory.js'
 import {
   addFlightCategoryLayer,
@@ -223,9 +222,14 @@ const MapView = forwardRef(function MapView({
   const [blinkLightning, setBlinkLightning] = useState(false)
   const [lightningBlinkOff, setLightningBlinkOff] = useState(false)
   const [lightningReferenceTimeMs, setLightningReferenceTimeMs] = useState(() => Date.now())
-  const [weatherTimelineIndex, setWeatherTimelineIndex] = useState(-1)
-  const [weatherTimelinePlaying, setWeatherTimelinePlaying] = useState(false)
-  const [weatherTimelineSpeed, setWeatherTimelineSpeed] = useState(1)
+  const {
+    selectedMs: weatherTimelineSelectedMs,
+    setSelectedMs: setWeatherTimelineSelectedMs,
+    scrub: scrubWeatherTimeline,
+    isPlaying: weatherTimelinePlaying,
+    togglePlay: toggleWeatherTimelinePlay,
+    speed: weatherTimelineSpeed,
+  } = useTimelineRail()
   const [windFlowOpacity, setWindFlowOpacity] = useState(0.8)
   const [windFlowTrail, setWindFlowTrail] = useState(0.9)
   const [windFlowWidth, setWindFlowWidth] = useState(1.5)
@@ -422,7 +426,7 @@ const MapView = forwardRef(function MapView({
     sigmetData,
     airmetData,
     visibility: metVisibility,
-    weatherTimelineIndex,
+    selectedWeatherTimeMs: weatherTimelineSelectedMs,
     sigwxHistoryIndex,
     sigwxFilter,
     hiddenAdvisoryKeys,
@@ -442,7 +446,7 @@ const MapView = forwardRef(function MapView({
     sigmetData,
     airmetData,
     metVisibility,
-    weatherTimelineIndex,
+    weatherTimelineSelectedMs,
     sigwxHistoryIndex,
     sigwxFilter,
     hiddenAdvisoryKeys,
@@ -458,9 +462,6 @@ const MapView = forwardRef(function MapView({
     radarFrames,
     satelliteFrames,
     weatherTimelineTicks,
-    effectiveWeatherTimelineIndex,
-    selectedWeatherTimeMs,
-    weatherTimelineVisible,
     sigwxHistoryEntries,
     selectedSigwxEntry,
     sigwxGroups,
@@ -493,51 +494,35 @@ const MapView = forwardRef(function MapView({
   const timestampEntries = useMemo(() => {
     const entries = []
     if (enableWindOverlay && metVisibility.wind)
-      entries.push({ key: 'wind', label: 'Wind', issueLabel: nwpIssueLabel, validLabel: nwpValidLabel })
+      entries.push({ key: 'wind', label: '바람', issueLabel: nwpIssueLabel, validLabel: nwpValidLabel })
     if (enableWindOverlay && metVisibility.temp)
-      entries.push({ key: 'temp', label: 'Temp', issueLabel: nwpIssueLabel, validLabel: nwpValidLabel })
+      entries.push({ key: 'temp', label: '기온', issueLabel: nwpIssueLabel, validLabel: nwpValidLabel })
     if (enableWindOverlay && metVisibility.cloud)
-      entries.push({ key: 'cloud', label: 'Moisture', issueLabel: nwpIssueLabel, validLabel: nwpValidLabel })
+      entries.push({ key: 'cloud', label: '습도', issueLabel: nwpIssueLabel, validLabel: nwpValidLabel })
     if (enableWindOverlay && metVisibility.icing)
-      entries.push({ key: 'icing', label: 'Icing', issueLabel: nwpIssueLabel, validLabel: nwpValidLabel })
+      entries.push({ key: 'icing', label: '착빙', issueLabel: nwpIssueLabel, validLabel: nwpValidLabel })
     if (enableWindOverlay && metVisibility.turbulence)
-      entries.push({ key: 'turbulence', label: 'Turbulence', issueLabel: ktgIssueLabel, validLabel: ktgValidLabel })
+      entries.push({ key: 'turbulence', label: '난류', issueLabel: ktgIssueLabel, validLabel: ktgValidLabel })
     if (metVisibility.flightCategory)
       entries.push({ key: 'flightCategory', label: '비행기상구역', issueLabel: flightCategoryIssueLabel })
+    if (metVisibility.sigwx)
+      entries.push({ key: 'sigwx', label: 'SIGWX', issueLabel: sigwxIssueLabel, validLabel: sigwxValidLabel })
     return entries
   }, [
     enableWindOverlay,
     metVisibility.wind, metVisibility.temp, metVisibility.cloud,
-    metVisibility.icing, metVisibility.turbulence, metVisibility.flightCategory,
+    metVisibility.icing, metVisibility.turbulence, metVisibility.flightCategory, metVisibility.sigwx,
     nwpIssueLabel, nwpValidLabel, ktgIssueLabel, ktgValidLabel, flightCategoryIssueLabel,
+    sigwxIssueLabel, sigwxValidLabel,
   ])
 
-  useEffect(() => {
-    const tickCount = weatherTimelineTicks.length
-    if (tickCount === 0) {
-      setWeatherTimelinePlaying(false)
-      setWeatherTimelineIndex(-1)
-      return
-    }
-
-    setWeatherTimelineIndex((prev) => {
-      if (prev >= tickCount) {
-        return tickCount - 1
-      }
-      return prev
-    })
-  }, [weatherTimelineTicks.length])
-
-  useEffect(() => {
-    if (!weatherTimelineVisible || !weatherTimelinePlaying || weatherTimelineTicks.length <= 1) return undefined
-    const timer = window.setInterval(() => {
-      setWeatherTimelineIndex((prev) => {
-        const baseIndex = prev >= 0 ? prev : weatherTimelineTicks.length - 1
-        return baseIndex >= weatherTimelineTicks.length - 1 ? 0 : baseIndex + 1
-      })
-    }, getPlaybackDelayMs(weatherTimelineSpeed))
-    return () => window.clearInterval(timer)
-  }, [weatherTimelineVisible, weatherTimelinePlaying, weatherTimelineTicks.length, weatherTimelineSpeed])
+  useTimelinePlayback({
+    isPlaying: weatherTimelinePlaying,
+    speed: weatherTimelineSpeed,
+    pastTicksMs: weatherTimelineTicks,
+    nwpTimes: sliderTimes,
+    setSelectedMs: setWeatherTimelineSelectedMs,
+  })
 
   useEffect(() => {
     if (sigwxHistoryIndex >= sigwxHistoryEntries.length) {
@@ -1187,7 +1172,7 @@ const MapView = forwardRef(function MapView({
 
       {error && <div className="map-view-error" role="alert">{error}</div>}
 
-      <WeatherLayerTimestampBar entries={timestampEntries} />
+      <WeatherLayerTimestampBar entries={timestampEntries} tz={tz} />
 
       <WeatherLegends
         radarLegendVisible={radarLegendVisible}
@@ -1239,23 +1224,17 @@ const MapView = forwardRef(function MapView({
         historyIndex={sigwxHistoryIndex}
         issueLabel={sigwxIssueLabel}
         validLabel={sigwxValidLabel}
-        isElevated={weatherTimelineVisible}
+        isElevated
         onHistoryIndexChange={setSigwxHistoryIndex}
       />
 
-      <WeatherTimelineBar
-        isVisible={weatherTimelineVisible}
+      <TimelineRail
+        pastTicksMs={weatherTimelineTicks}
+        nwpTimes={sliderTimes}
+        selectedMs={weatherTimelineSelectedMs}
         isPlaying={weatherTimelinePlaying}
-        selectedIndex={effectiveWeatherTimelineIndex}
-        tickCount={weatherTimelineTicks.length}
-        selectedTimeMs={selectedWeatherTimeMs}
-        playbackSpeed={weatherTimelineSpeed}
-        onPlayPause={() => setWeatherTimelinePlaying((prev) => !prev)}
-        onIndexChange={(value) => {
-          setWeatherTimelinePlaying(false)
-          setWeatherTimelineIndex(value)
-        }}
-        onPlaybackSpeedChange={setWeatherTimelineSpeed}
+        onScrub={scrubWeatherTimeline}
+        onPlayPause={toggleWeatherTimelinePlay}
       />
 
       <NwpSliderBar
@@ -1264,46 +1243,21 @@ const MapView = forwardRef(function MapView({
         times={sliderTimes}
         selection={nwpSelection}
         availability={sliderAvailability}
-        isElevated={weatherTimelineVisible}
+        isElevated
+        timeSliderEnabled={false}
         onSelectionChange={setNwpSelection}
       />
-      {enableWindOverlay && metVisibility.turbulence && altLevelsFt.length > 1 && (() => {
-        const altLevels = altLevelsFt
-        const selAlt = selectedAltFt
-        const idx = altLevels.indexOf(selAlt)
-        const effectiveIdx = idx >= 0 ? idx : 0
-        return (
-          <div className="nwp-level-slider-rail" aria-label="Turbulence altitude">
-            <input
-              className="nwp-level-slider"
-              type="range"
-              min="0"
-              max={String(altLevels.length - 1)}
-              step="1"
-              value={String(effectiveIdx)}
-              aria-label="Turbulence altitude level"
-              onChange={(e) => setSelectedAltFt(altLevels[Number(e.target.value)])}
-            />
-            <div className="nwp-level-slider-ticks" aria-hidden="true">
-              {[...altLevels].reverse().map((ft) => (
-                <span
-                  key={ft}
-                  className={`nwp-level-slider-tick${ft === selAlt ? ' is-active' : ''}`}
-                >
-                  {`${ft / 1000}K`}
-                </span>
-              ))}
-            </div>
-          </div>
-        )
-      })()}
+      {enableWindOverlay && metVisibility.turbulence && altLevelsFt.length > 1 && (
+        <LevelRail
+          title="고도"
+          items={altLevelsFt.map((ft) => ({ value: ft, label: `${ft / 1000}K` }))}
+          activeValue={altLevelsFt.indexOf(selectedAltFt) >= 0 ? selectedAltFt : altLevelsFt[0]}
+          onSelect={setSelectedAltFt}
+        />
+      )}
 
       <AdsbTimestamp
-        isVisible={metVisibility.adsb && !weatherTimelineVisible}
-        updatedAt={adsbData?.updated_at}
-      />
-      <AdsbTimestamp
-        isVisible={metVisibility.adsb && weatherTimelineVisible}
+        isVisible={metVisibility.adsb}
         updatedAt={adsbData?.updated_at}
         compact
       />

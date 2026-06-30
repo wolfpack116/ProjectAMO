@@ -42,6 +42,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 - Before any task: read `Architecture.md`. If Task Patterns lists a match, follow that number in `EntryPoints.md`.
 - Before any UI, CSS, layout, responsive, or design task: also read `docs/design/design-language.md` (the design constitution — single source of truth) and follow it.
+- Before touching `MapView.jsx` or adding any map layer/overlay/visibility sync: read `docs/adr/0001-mapview-layer-gravity.md` and `Architecture.md` §196. New layer/overlay/timeline logic lands in the owning feature module as a `useXOverlay` hook — never as new state/`useEffect` in `MapView.jsx`.
 - After any task: update if files moved, a role memo is stale, a new non-obvious rule appeared, or a task flow changed. Otherwise don't touch.
 - Before adding a line, check if a line can be removed. Both files must stay scannable in seconds.
 

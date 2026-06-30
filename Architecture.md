@@ -77,15 +77,18 @@ ProjectAMO/
 - `frontend/src/features/aviation-layers/AviationLayerPanel.jsx` -> aviation WFS layer toggle panel (desktop rows; mobile renders a tile grid inside `MobileSheet`). ADS-B remains controlled from the MET/weather overlay panel for the current UX.
 - `frontend/src/features/aviation-layers/lib/aviationLayerTiles.js` -> mobile aviation tile symbology metadata (boundary-color squares, ICAO `public/Symbols/*.svg`, airway line samples); colors imported from `aviationWfsLayers.js` so the tile grid mirrors the live map.
 - `frontend/src/features/weather-overlays/WeatherOverlayPanel.jsx` -> MET overlay toggle panel.
-- `frontend/src/features/weather-overlays/WeatherTimelineBar.jsx` -> shared bottom playback timeline for radar, satellite, and lightning overlay frames.
+- `frontend/src/features/weather-overlays/TimelineRail.jsx` -> always-on unified bottom time scrubber: a full-width scrolling tape with a fixed centre playhead (transparent play button only). Past observations (radar/satellite/lightning, solid baseline) → 지금 → future NWP forecast (dashed). Tiered hour/30/15-min ruler ticks (hour labels, date shown at midnight); drag the tape to scrub. Replaces the former `WeatherTimelineBar` and absorbs the NWP time axis. State/playback live in `lib/useTimelineRail.js`; geometry in `lib/timelineRailModel.js`.
+- `frontend/src/features/weather-overlays/lib/useTimelineRail.js` -> timeline state (selected absolute ms, play/pause, speed) + `useTimelinePlayback` frame-stepping loop, kept out of `MapView` per ADR 0001.
+- `frontend/src/features/weather-overlays/lib/timelineRailModel.js` -> pure tape geometry helpers: absolute-time domain, tape percent/drag mapping, tiered ruler ticks, nearest past-frame/NWP-time pickers.
 - `frontend/src/features/weather-overlays/AdsbTimestamp.jsx` -> ADS-B reference-time display pill.
+- `frontend/src/features/weather-overlays/WeatherLayerTimestampBar.jsx` -> ICAO 준수용 통합 "기상자료 시각" 패널(좌하단, 타임라인 위). 활성 예보계열 레이어(바람·기온·습도·착빙=NWP, 난류=KTG, 비행기상구역, SIGWX)마다 발표/유효 시각을 한 줄씩, Fluent 토큰 디자인으로. 관측계열(레이더·위성·낙뢰)은 타임라인·범례가 담당하므로 제외. 활성 항목 0개면 미표시. 입력은 MapView `timestampEntries` + `tz`.
 - `frontend/src/features/weather-overlays/WeatherLegends.jsx` -> radar/satellite/weather/wind/temperature legend UI.
 - `frontend/src/features/weather-overlays/SigwxLegendDialog.jsx` -> SIGWX legend dialog.
 - `frontend/src/features/weather-overlays/SigwxHistoryBar.jsx` -> SIGWX history controls.
 - `frontend/src/features/weather-overlays/AdvisoryBadges.jsx` -> 상시 위험 요약 칩 바: SIGMET/AIRMET은 레이어 토글과 무관하게 활성(count>0) 시 상시 표시 + 공항경보 칩(`warnedAirports`). 칩 클릭 → 해당 레이어 ON + 상세 리스트(SIGMET/AIRMET) 또는 경보 공항 리스트(클릭 시 공항 선택).
 - `frontend/src/features/weather-overlays/lib/weatherOverlayModel.js` -> weather overlay derived model for timeline, SIGWX history/filter state, advisory panel data, badge counts, and legend labels.
 - `frontend/src/features/weather-overlays/lib/weatherOverlayLayers.js` -> MET panel layer definitions, weather overlay source/layer ownership IDs, static weather overlay installation, and radar/satellite/SIGWX/advisory/lightning Mapbox sync helpers.
-- `frontend/src/features/weather-overlays/NwpSliderBar.jsx` -> shared KIM NWP bottom time slider and right-side level slider UI.
+- `frontend/src/features/weather-overlays/NwpSliderBar.jsx` -> right-side KIM NWP level (altitude/pressure) slider. The bottom time slider is now owned by `TimelineRail`; pass `timeSliderEnabled={false}` to suppress the legacy inline time bar (kept behind the prop for other callers).
 - `frontend/src/features/weather-overlays/NwpSliderBarModel.js` -> pure KIM NWP slider option and time tick formatting helpers.
 - `frontend/src/features/weather-overlays/lib/useKimSurfaceWind.js` -> KIM wind index/field selection hook with shared selection support, nearest-past time fallback, field cache, request cancellation, and stale response guards.
 - `frontend/src/features/weather-overlays/lib/useKimSurfaceWind.test.js` -> KIM wind selection/index helper tests.

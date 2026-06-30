@@ -96,7 +96,7 @@ export function buildWeatherOverlayModel({
   sigmetData,
   airmetData,
   visibility = {},
-  weatherTimelineIndex,
+  selectedWeatherTimeMs = null,
   sigwxHistoryIndex,
   sigwxFilter,
   hiddenAdvisoryKeys = {},
@@ -119,15 +119,18 @@ export function buildWeatherOverlayModel({
     visibility.satellite ? satelliteFrames : [],
     visibility.lightning ? lightningFrames : [],
   ])
-  const effectiveWeatherTimelineIndex = weatherTimelineTicks.length > 0
-    ? weatherTimelineIndex >= 0
-      ? Math.min(weatherTimelineIndex, weatherTimelineTicks.length - 1)
-      : weatherTimelineTicks.length - 1
-    : 0
-  const selectedWeatherTimeMs = weatherTimelineTicks[effectiveWeatherTimelineIndex] ?? null
+  // selectedWeatherTimeMs is the unified absolute-time axis; null = live (newest frame).
+  // Scrubbing into the forecast (future) zone clamps observed layers to their newest frame.
+  const firstTickMs = weatherTimelineTicks.length ? weatherTimelineTicks[0] : null
+  const latestTickMs = weatherTimelineTicks.length ? weatherTimelineTicks[weatherTimelineTicks.length - 1] : null
+  const resolvedWeatherTimeMs = weatherTimelineTicks.length
+    ? (Number.isFinite(selectedWeatherTimeMs)
+      ? Math.min(Math.max(selectedWeatherTimeMs, firstTickMs), latestTickMs)
+      : latestTickMs)
+    : null
   const weatherTimelineVisible = (visibility.radar || visibility.satellite || visibility.lightning) && weatherTimelineTicks.length > 0
-  const radarFrame = pickNearestPreviousFrame(radarFrames, selectedWeatherTimeMs)
-  const satelliteFrame = pickNearestPreviousFrame(satelliteFrames, selectedWeatherTimeMs)
+  const radarFrame = pickNearestPreviousFrame(radarFrames, resolvedWeatherTimeMs)
+  const satelliteFrame = pickNearestPreviousFrame(satelliteFrames, resolvedWeatherTimeMs)
   const lightningGeoJSON = createLightningGeoJSON(lightningData, lightningReferenceTimeMs)
 
   const sigmetItems = advisoryItemsWithPanelData(sigmetData, 'sigmet', tz)
@@ -173,8 +176,7 @@ export function buildWeatherOverlayModel({
     satelliteFrames,
     lightningFrames,
     weatherTimelineTicks,
-    effectiveWeatherTimelineIndex,
-    selectedWeatherTimeMs,
+    selectedWeatherTimeMs: resolvedWeatherTimeMs,
     weatherTimelineVisible,
     radarFrame,
     satelliteFrame,

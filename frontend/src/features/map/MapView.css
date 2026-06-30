@@ -571,6 +571,13 @@
   pointer-events: none;
 }
 
+/* When the far-right level rail is shown, shift the legends left (with a gap) and align their top
+   to the level rail's chip box (which sits below the "고도" title). */
+.map-view-wrapper:has(.level-rail) .map-right-legends {
+  right: 88px;
+  top: 100px;
+}
+
 .map-view-wrapper .rainrate-legend {
   display: grid;
   gap: 4px;
@@ -744,86 +751,216 @@
   font-variant-numeric: tabular-nums;
 }
 
-.weather-timeline-bar {
+/* Unified always-on time scrubber: full-width scrolling tape with a fixed playhead. */
+/* Past observations (solid baseline) -> 지금 -> future forecast (dashed). Drag the tape to scrub. */
+.timeline-rail {
   position: absolute;
-  left: 50%;
-  bottom: 18px;
-  z-index: 5;
-  transform: translateX(-50%);
-  display: grid;
-  grid-template-columns: 34px minmax(220px, 1fr) auto auto;
-  align-items: center;
-  gap: 8px;
-  width: min(640px, calc(100% - 48px));
-  min-height: 52px;
-  padding: 9px 12px;
-  border: 1px solid rgba(17, 24, 39, 0.16);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2);
-  backdrop-filter: blur(8px);
-  color: var(--accent);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  height: 88px;
+  pointer-events: none;
   font-family: var(--app-font, system-ui, sans-serif);
 }
 
-.weather-timeline-play {
-  display: inline-grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(51, 65, 85, 0.28);
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
-  color: var(--accent);
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
+/* The frosted band lives only below the baseline (the viewport); above it stays clear over the map. */
+.timeline-rail__viewport {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 38px;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 -4px 14px rgba(15, 23, 42, 0.07);
 }
 
-.weather-timeline-play svg {
+.timeline-rail__viewport:active {
+  cursor: grabbing;
+}
+
+.timeline-rail__viewport:focus-visible {
+  outline: 2px solid rgba(51, 65, 85, 0.4);
+  outline-offset: -2px;
+}
+
+.timeline-rail__baseline {
+  position: absolute;
+  top: 0;
+  height: 0;
+}
+
+.timeline-rail__baseline--past {
+  left: 0;
+  border-top: 2px solid rgba(51, 65, 85, 0.85);
+}
+
+.timeline-rail__baseline--future {
+  right: 0;
+  border-top: 2px dashed rgba(51, 65, 85, 0.45);
+}
+
+.timeline-rail__frame {
+  position: absolute;
+  top: 3px;
+  width: 2px;
+  height: 7px;
+  transform: translateX(-50%);
+  background: rgba(51, 65, 85, 0.5);
+  border-radius: 1px;
+}
+
+.timeline-rail__frame--future {
+  background: rgba(51, 65, 85, 0.3);
+}
+
+.timeline-rail__tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.timeline-rail__tick-mark {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 4px;
+  background: rgba(51, 65, 85, 0.5);
+}
+
+.timeline-rail__tick--mid .timeline-rail__tick-mark {
+  height: 7px;
+  background: rgba(51, 65, 85, 0.7);
+}
+
+.timeline-rail__tick--major .timeline-rail__tick-mark {
+  width: 2px;
+  height: 11px;
+  background: var(--accent);
+}
+
+.timeline-rail__tick--future .timeline-rail__tick-mark {
+  background: rgba(51, 65, 85, 0.38);
+}
+
+.timeline-rail__tick-label {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-1);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9), 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+.timeline-rail__tick--future .timeline-rail__tick-label {
+  color: var(--text-3);
+}
+
+.timeline-rail__playhead {
+  position: absolute;
+  bottom: 0;
+  height: 38px;
+  width: 2px;
+  transform: translateX(-1px);
+  background: var(--accent);
+  pointer-events: none;
+}
+
+.timeline-rail__play {
+  position: absolute;
+  bottom: 42px;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  pointer-events: auto;
+  filter: drop-shadow(0 1px 3px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 1px rgba(15, 23, 42, 0.45));
+}
+
+.timeline-rail__play svg {
   display: block;
 }
 
-.weather-timeline-play:hover {
-  border-color: var(--text-3);
-}
-
-.weather-timeline-slider {
-  width: 100%;
-  accent-color: var(--accent);
-}
-
-.weather-timeline-time {
+.timeline-rail__play:hover {
   color: var(--text-1);
-  font-size: 12px;
-  font-weight: 850;
-  line-height: 1.1;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
 }
 
-.weather-timeline-speed {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  color: var(--text-3);
-  font-size: 10px;
-  font-weight: 850;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.weather-timeline-speed select {
-  height: 26px;
-  padding: 0 22px 0 8px;
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  border-radius: 6px;
-  background: var(--bg-1);
-  color: var(--accent);
+/* Selected-time readout above the playhead — shown only while scrubbing/focused. */
+.timeline-rail__readout {
+  position: absolute;
+  bottom: 90px;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: 7px;
+  border: 0.5px solid rgba(51, 65, 85, 0.2);
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--text-1);
   font-size: 11px;
-  font-weight: 850;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Return-to-now (reset) — shown only when scrubbed away from now. Transparent icon, beside play. */
+.timeline-rail__live {
+  position: absolute;
+  left: 50%;
+  bottom: 48px;
+  transform: translateX(26px);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent);
   cursor: pointer;
+  pointer-events: auto;
+  filter: drop-shadow(0 1px 3px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 1px rgba(15, 23, 42, 0.45));
+}
+
+.timeline-rail__live svg {
+  display: block;
+}
+
+.timeline-rail__live:hover {
+  color: var(--text-1);
+}
+
+/* Lift Mapbox controls/attribution above the full-width tape so nothing is hidden. */
+.map-view-wrapper .mapboxgl-ctrl-bottom-right,
+.map-view-wrapper .mapboxgl-ctrl-bottom-left {
+  bottom: 56px;
+}
+
+@media (max-width: 640px) {
+  .timeline-rail__tick-label {
+    font-size: 10px;
+  }
 }
 
 .nwp-time-slider-bar {
@@ -899,67 +1036,60 @@
   color: color-mix(in srgb, var(--accent) 14%, var(--bg-1));
 }
 
-.nwp-level-slider-rail {
+/* Far-right vertical level (altitude) selector: compact chip stack, highest on top. */
+.level-rail {
   position: absolute;
-  right: 24px;
-  top: 50%;
+  right: 14px;
+  top: 76px;
   z-index: 6;
-  transform: translateY(-50%);
-  display: grid;
-  grid-template-columns: auto auto;
-  grid-template-rows: minmax(210px, 34vh);
-  align-items: center;
-  gap: 9px;
-  pointer-events: auto;
-  color: var(--bg-2);
-  font-family: var(--app-font, system-ui, sans-serif);
-  text-shadow: 0 1px 5px rgba(15, 23, 42, 0.82);
-}
-
-.nwp-level-slider {
-  width: 28px;
-  height: 100%;
-  margin: 0;
-  background: transparent;
-  accent-color: var(--accent);
-  writing-mode: vertical-lr;
-  direction: rtl;
-}
-
-.nwp-level-slider::-webkit-slider-runnable-track {
-  width: 3px;
-  border-radius: 999px;
-  background: rgba(248, 250, 252, 0.56);
-  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.42);
-}
-
-.nwp-level-slider::-webkit-slider-thumb {
-  margin-left: -6px;
-}
-
-.nwp-level-slider::-moz-range-track {
-  width: 3px;
-  border-radius: 999px;
-  background: rgba(248, 250, 252, 0.56);
-  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.42);
-}
-
-.nwp-level-slider-ticks {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-self: stretch;
-  min-height: 210px;
-  color: rgba(248, 250, 252, 0.72);
-  font-size: 10px;
-  font-weight: 850;
-  line-height: 1;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
+  align-items: center;
+  gap: 4px;
+  pointer-events: auto;
+  font-family: var(--app-font, system-ui, sans-serif);
 }
 
-.nwp-level-slider-tick.is-active {
-  color: color-mix(in srgb, var(--accent) 14%, var(--bg-1));
+.level-rail__title {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.85);
+}
+
+.level-rail__chips {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 5px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.78);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 0.5px solid rgba(51, 65, 85, 0.2);
+}
+
+.level-rail__chip {
+  min-width: 42px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  text-align: center;
+}
+
+.level-rail__chip:hover {
+  background: rgba(51, 65, 85, 0.08);
+}
+
+.level-rail__chip.is-active {
+  background: var(--accent);
+  color: #fff;
 }
 
 @media (max-width: 640px) {
@@ -1421,45 +1551,59 @@
 }
 
 /* ── Weather Layer Timestamp Bar ───────────────────────────── */
+/* ICAO: meteorological data issue/valid time, clearly shown. One panel, one row per active forecast
+   layer, bottom-left above the timeline. High contrast over the map (legibility > subtlety). */
 .layer-timestamp-bar {
   position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 14px;
+  bottom: 64px;
   z-index: 5;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 6px 10px;
-  border: 1px solid rgba(17, 24, 39, 0.14);
+  padding: 8px 10px;
+  border: 0.5px solid rgba(51, 65, 85, 0.22);
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
   pointer-events: none;
+  font-family: var(--app-font, system-ui, sans-serif);
 }
 
-.layer-timestamp-entry {
+.layer-timestamp-header {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  white-space: nowrap;
-  font-family: var(--app-font, system-ui, sans-serif);
-  font-size: 10px;
-  line-height: 1.3;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 6px;
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.layer-timestamp-header svg {
+  display: block;
+}
+
+.layer-timestamp-grid {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 3px 14px;
+  font-variant-numeric: tabular-nums;
 }
 
 .layer-timestamp-name {
-  color: var(--text-3);
-  font-weight: 800;
-  min-width: 72px;
-  font-variant-numeric: tabular-nums;
+  color: var(--text-1);
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.layer-timestamp-time {
-  color: var(--stroke-2);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+.layer-timestamp-cell {
+  color: var(--text-2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.layer-timestamp-label {
+  margin-right: 4px;
+  color: var(--text-3);
+  font-weight: 400;
 }
 
 .adsb-loading {
