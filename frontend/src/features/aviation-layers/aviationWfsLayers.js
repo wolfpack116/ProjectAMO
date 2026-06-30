@@ -1,4 +1,4 @@
-// 이 레이어들은 검색 레지스트리(features/search/layerActions.js)에 연동됨.
+// 이 레이어들은 공유 레이어 레지스트리(features/map/layerActions.js)에 연동됨.
 // id 추가/삭제 시 layerActions.test.js 커버리지 테스트가 동기화를 강제한다.
 export const AVIATION_WFS_LAYERS = [
   {

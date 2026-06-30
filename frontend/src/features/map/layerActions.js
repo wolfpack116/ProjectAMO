@@ -4,7 +4,7 @@
 // (레이어 추가/삭제/ id 변경 시 등록을 깜빡하면 테스트가 깨져 알려줌.)
 import { MET_LAYERS } from '../weather-overlays/lib/weatherOverlayLayers.js'
 import { AVIATION_WFS_LAYERS } from '../aviation-layers/aviationWfsLayers.js'
-import { BASEMAP_OPTIONS } from '../map/mapConfig.js'
+import { BASEMAP_OPTIONS } from './mapConfig.js'
 
 // A. 패널/창 열기 (폴백 — 정확한 레이어가 기억 안 날 때)
 export const PANEL_ACTIONS = [
@@ -71,6 +71,10 @@ export const BASEMAP_ACTIONS = BASEMAP_OPTIONS.map((o) => ({
 }))
 
 export const ALL_ACTIONS = [...PANEL_ACTIONS, ...MET_ACTIONS, ...AVIATION_ACTIONS, ...BASEMAP_ACTIONS]
+
+// id → 한글 라벨 (토글칩 등 공유 UI용). 라벨 단일 출처.
+export const metLabel = (id) => MET_ACTIONS.find((a) => a.id === id)?.label ?? id
+export const aviationLabel = (id) => AVIATION_ACTIONS.find((a) => a.id === id)?.label ?? id
 
 // 공항 + 전체 action 카탈로그. airports = weatherData.airports.
 export function buildSearchCatalog(airports = []) {

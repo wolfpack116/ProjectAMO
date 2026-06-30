@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SearchBox } from '../../shared/ui/fluent.js'
-import { matchSearch } from './layerActions.js'
+import { matchSearch } from '../map/layerActions.js'
 import './SearchPalette.css'
 
 // 결과 타입 꼬리표(중립색) — 동음("위성") 구분 + 무엇을 하는지 표시.
