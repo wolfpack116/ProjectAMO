@@ -183,6 +183,7 @@ ProjectAMO/
 - `backend/test/api-cache-policy.test.js` -> static/revalidating API cache header and ETag regression tests.
 - `backend/collect.js` -> manual one-shot collector.
 - `scripts/prepare-terrain-tiles.js` -> converts decompressed Korea 3-second DEM into 1-degree terrain tiles.
+- `frontend/scripts/mobile-audit-capture.mjs` -> 모바일 3표면(지도·공항·브리핑) 상태별 스크린샷 + axe 접근성 스캔 캡처(디자인 헌법 §6 모바일 대원칙 audit용). 산출물은 `artifacts/responsive-screenshots/`(gitignore).
 
 ## Reference Structure
 
