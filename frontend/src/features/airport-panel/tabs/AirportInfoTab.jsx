@@ -24,6 +24,14 @@ export default function AirportInfoTab({ info }) {
         {hasWarn ? '경보 발효 중' : hasForecast ? '위험기상 예보 있음' : '경보·위험기상 없음'}
       </div>
 
+      {/* 모바일 접힘 기본 상태에서 빈 화면 대신 핵심 요약(발표시각·개황) 선두 노출 (§6-B) */}
+      {!defaultOpen && (info.tm || info.outlook) && (
+        <div className="ap-info-peek">
+          <p className="ap-info-peek-time">[ {fmtBulletinTime(info.tm)} 발표 ]</p>
+          {info.outlook && <p className="ap-info-peek-outlook">{info.outlook}</p>}
+        </div>
+      )}
+
       <details className="ap-info-raw" open={defaultOpen}>
         <summary className="ap-info-raw-summary">공식 문서 원문 보기</summary>
 

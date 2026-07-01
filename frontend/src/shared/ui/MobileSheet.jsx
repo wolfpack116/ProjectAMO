@@ -64,6 +64,20 @@ export default function MobileSheet({
     return () => document.body.classList.remove('amo-sheet-full')
   }, [open, detent])
 
+  // H3 사용자 제어: Escape로 닫기. H13 접근성: 열릴 때 포커스를 시트로 옮기고
+  // 닫힐 때 이전 요소로 복귀(non-modal이라 포커스 트랩은 두지 않음 — 지도는 계속 조작 가능).
+  useEffect(() => {
+    if (!open) return undefined
+    const prevFocus = document.activeElement
+    rootRef.current?.focus()
+    const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      if (prevFocus instanceof HTMLElement) prevFocus.focus()
+    }
+  }, [open, onClose])
+
   function onPointerDown(event) {
     if (!hasPointer) return
     event.currentTarget.setPointerCapture?.(event.pointerId)
@@ -117,6 +131,7 @@ export default function MobileSheet({
       style={{ height: `${height}px` }}
       role="dialog"
       aria-label={title}
+      tabIndex={-1}
     >
       <div className="mobile-sheet-grab" {...dragHandlers}>
         <span className="mobile-sheet-grab-handle" aria-hidden="true" />
