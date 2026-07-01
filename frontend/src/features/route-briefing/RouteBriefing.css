@@ -320,13 +320,14 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* 경유점 추가: 강조 박스(헤드라인 + 검색·추가 배지 + 검색 입력) */
+/* 경유점 추가: 강조 그룹(헤드라인 + 검색·추가 배지 + 검색 입력).
+   테두리는 두지 않는다 — 안쪽 검색 필드가 이미 테두리를 가져 '네모 안 네모'가 됨.
+   옅은 배경만으로 그룹핑. */
 .vfr-fix-search {
   display: grid;
   gap: 8px;
   margin-top: 10px;
   padding: 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--bg-1));
   border-radius: 9px;
   background: color-mix(in srgb, var(--accent) 5%, var(--bg-1));
 }
