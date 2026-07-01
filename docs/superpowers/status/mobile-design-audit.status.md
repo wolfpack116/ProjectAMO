@@ -6,8 +6,10 @@ Plan: docs/superpowers/plans/2026-07-01-mobile-design-audit.md
 Branch: feat/mobile-design-audit
 
 ## Resume Point
-- Last completed: Task 5 (Phase 2 완료 — 캡처 17상태 + axe)
-- Next: Task 6 (표면별 병렬 분석)
+- Last completed: Task 7 (Phase 4 — 제안서 작성, **승인 대기 중 STOP**)
+- Next: 사용자 승인 후 Task 8(버킷1)/Task 9(승인된 버킷2)
+- 제안서: docs/superpowers/specs/2026-07-01-mobile-design-audit-proposal.md
+- 결함: 27건(지도8·공항9·브리핑10) + 상호8테마 → 버킷1 6그룹 / 버킷2 8항목(S1~S8)
 
 ## Verified
 - Task 1: `--touch-min:44px` 토큰 추가 → `node --test tokens.test.js` PASS (parity)
