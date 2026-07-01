@@ -17,6 +17,7 @@
 
 .mobile-task-btn {
   flex: 1 1 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -40,13 +41,25 @@
   display: inline-flex;
 }
 
-/* 활성 탭: 아이콘 뒤 accent 알약(강한 선택 표시) + accent 색. 색만으론 약해서 배경 추가. */
-.mobile-task-btn.is-active .mobile-task-icon::before {
+/* 활성 탭: 아이콘+라벨 전체 뒤에 accent 배경(강한 선택 표시). 색만으론 약함. */
+.mobile-task-btn.is-active::before {
   content: '';
   position: absolute;
-  inset: -5px -16px;
-  border-radius: var(--radius-circular);
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  top: 5px;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 76%;
+  max-width: 92px;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  z-index: 0;
+}
+/* 내용은 배경 위로. */
+.mobile-task-btn .mobile-task-icon,
+.mobile-task-btn .mobile-task-label {
+  position: relative;
+  z-index: 1;
 }
 .mobile-task-btn.is-active .mobile-task-label {
   font-weight: var(--fw-bold);
