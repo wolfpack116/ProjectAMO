@@ -596,8 +596,9 @@
   left: 12px;
   right: auto;
   width: min(72vw, 300px);
-  /* .map-view-wrapper는 타임라인까지 포함(탭바는 밖) → 타임라인 높이(≈88)만 넘겨 바로 위에 붙임. */
-  bottom: calc(88px + var(--space-s));
+  /* 타임라인 실제 눈금(viewport)은 rail 하단 ≈38px에만 있음(위는 재생버튼 영역) →
+     눈금 바로 위에 붙게 그 높이만 넘김. 칩은 좌측이라 중앙 재생버튼과 안 겹침. */
+  bottom: calc(38px + var(--space-s));
   z-index: 4;
   pointer-events: none;
 }
