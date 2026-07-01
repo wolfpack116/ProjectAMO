@@ -13,6 +13,7 @@ import {
   tapePercent,
 } from './lib/timelineRailModel.js'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
+import useIsMobile from '../../shared/ui/useIsMobile.js'
 
 const KEY_STEP_MS = 10 * 60 * 1000
 
@@ -38,6 +39,9 @@ function TimelineRail({
   onPlayPause,
 }) {
   const { tz } = useTimeZone()
+  // 모바일은 좁은 폭에 12h가 빡빡 → 6h만 노출해 시간당 간격을 2배로(드래그로 더 볼 수 있음).
+  const isMobile = useIsMobile()
+  const visibleSpanMs = isMobile ? VISIBLE_SPAN_MS / 2 : VISIBLE_SPAN_MS
   const [nowMs, setNowMs] = useState(() => Date.now())
   const viewportRef = useRef(null)
   const dragRef = useRef(null)
@@ -55,12 +59,12 @@ function TimelineRail({
     ? clampMs(domain, selectedMs)
     : (pastTicksMs.length ? pastTicksMs[pastTicksMs.length - 1] : nowMs)
 
-  const pct = (ms) => tapePercent({ ms, selectedMs: selected })
+  const pct = (ms) => tapePercent({ ms, selectedMs: selected, visibleSpanMs })
   const nowPct = Math.max(0, Math.min(100, pct(nowMs)))
 
   // Fill the whole visible window with tiered ruler ticks so the ruler is never empty.
-  const visibleStart = selected - VISIBLE_SPAN_MS * PLAYHEAD_RATIO
-  const visibleEnd = selected + VISIBLE_SPAN_MS * (1 - PLAYHEAD_RATIO)
+  const visibleStart = selected - visibleSpanMs * PLAYHEAD_RATIO
+  const visibleEnd = selected + visibleSpanMs * (1 - PLAYHEAD_RATIO)
   const tapeTicks = buildTapeTicks({ startMs: visibleStart, endMs: visibleEnd })
 
   const commit = (ms) => onScrub?.(clampMs(domain, ms))
@@ -76,7 +80,7 @@ function TimelineRail({
     const drag = dragRef.current
     if (!drag) return
     const dxFraction = (event.clientX - drag.startX) / drag.width
-    commit(drag.startSelected + dragToTimeDelta(dxFraction))
+    commit(drag.startSelected + dragToTimeDelta(dxFraction, visibleSpanMs))
   }
   const handlePointerEnd = (event) => {
     setActive(false)
