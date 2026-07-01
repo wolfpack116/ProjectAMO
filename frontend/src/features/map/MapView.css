@@ -589,6 +589,40 @@
   top: 100px;
 }
 
+/* 모바일 범례 토글: '범례' 버튼 + 펼치면 패널. 데스크톱은 이 래퍼 없이 패널 상시 노출. */
+.map-view-wrapper .map-legends-mobile {
+  position: absolute;
+  top: 76px;
+  right: 18px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-s);
+  pointer-events: none;
+}
+.map-view-wrapper .map-legends-mobile > * {
+  pointer-events: auto;
+}
+.map-legend-toggle {
+  min-height: var(--touch-min);
+  padding: var(--space-xs) var(--space-m);
+  border: 1px solid var(--stroke-1);
+  border-radius: var(--radius-circular);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-1);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+}
+/* 래퍼 안에서는 패널의 데스크톱 절대배치 해제 → 버튼 아래로 흐르게 */
+.map-legends-mobile .map-right-legends {
+  position: static;
+  top: auto;
+  right: auto;
+}
+
 .map-view-wrapper .rainrate-legend {
   display: grid;
   gap: 4px;
@@ -969,9 +1003,10 @@
 }
 
 @media (pointer: coarse) {
+  /* 터치에서 Mapbox 기본 29px는 작지만 44px는 시각적으로 과함 — 38px로 절충. */
   .map-view-wrapper .mapboxgl-ctrl-group button {
-    width: var(--touch-min);
-    height: var(--touch-min);
+    width: 38px;
+    height: 38px;
   }
 }
 

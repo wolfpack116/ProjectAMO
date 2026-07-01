@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import useIsMobile from '../../shared/ui/useIsMobile.js'
 
 function WeatherLegends({
@@ -22,9 +23,10 @@ function WeatherLegends({
   formatReferenceTimeLabel,
 }) {
   const isMobile = useIsMobile()
+  const [open, setOpen] = useState(false)
   if (!radarLegendVisible && !lightningLegendVisible && !windSpeedLegendVisible && !temperatureLegendVisible && !cloudLegendVisible && !icingLegendVisible && !turbulenceLegendVisible) return null
 
-  return (
+  const panel = (
     <div className="map-right-legends">
       {radarLegendVisible && (
         <div className="rainrate-legend" aria-label="Radar rain rate legend">
@@ -159,6 +161,22 @@ function WeatherLegends({
           </div>
         </div>
       )}
+    </div>
+  )
+
+  // 모바일: 범례를 상시 노출 대신 '범례' 토글 버튼 뒤로 접어 화면 절약. 데스크톱은 상시 노출.
+  if (!isMobile) return panel
+  return (
+    <div className="map-legends-mobile">
+      <button
+        type="button"
+        className={`map-legend-toggle${open ? ' is-open' : ''}`}
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+      >
+        {open ? '범례 ✕' : '범례'}
+      </button>
+      {open && panel}
     </div>
   )
 }
