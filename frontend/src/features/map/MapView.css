@@ -589,50 +589,99 @@
   top: 100px;
 }
 
-/* 모바일 범례 토글: '범례' 버튼 + 펼치면 패널. 데스크톱은 이 래퍼 없이 패널 상시 노출. */
-.map-view-wrapper .map-legends-mobile {
+/* 모바일 범례(Windy식): 하단(타임라인 위)에 가로 범례 바 + '범례' 칩 토글(슬라이드업).
+   데스크톱은 우측 세로 컬러바 상시 노출(이 dock 없음). */
+.map-view-wrapper .map-legend-mobile-dock {
   position: absolute;
-  top: 76px;
-  right: 18px;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--mobile-task-bar-h, 60px) + 96px);
   z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: var(--space-s);
+  gap: var(--space-xs);
   pointer-events: none;
 }
-.map-view-wrapper .map-legends-mobile > * {
+.map-view-wrapper .map-legend-mobile-dock > * {
   pointer-events: auto;
 }
-/* 지도 chrome과 통일된 아이콘 버튼(둥근사각) + 미니 그라데이션 스와치(컬러바 축소형). */
+
 .map-legend-toggle {
-  width: 40px;
-  height: 40px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 0;
+  gap: var(--space-xs);
+  min-height: 32px;
+  padding: var(--space-xs) var(--space-m);
   border: 1px solid var(--stroke-1);
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius-circular);
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--text-1);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
 }
 .map-legend-toggle.is-open {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1.5px var(--accent), 0 2px 8px rgba(15, 23, 42, 0.12);
+  color: var(--accent);
 }
-.map-legend-toggle-swatch {
-  width: 15px;
-  height: 22px;
+.map-legend-toggle-caret {
+  font-size: 0.6rem;
+}
+
+/* 가로 범례 카드 — 아래에서 슬라이드업 + 페이드. */
+.map-legends-bottom {
+  width: 100%;
+  display: grid;
+  gap: var(--space-s);
+  padding: var(--space-s) var(--space-m);
+  border: 1px solid var(--stroke-1);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.16);
+  transform: translateY(12px);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 200ms ease, opacity 200ms ease, visibility 200ms;
+}
+.map-legends-bottom.is-open {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.hlegend {
+  display: grid;
+  gap: 3px;
+}
+.hlegend-title {
+  font-size: var(--fs-100);
+  font-weight: var(--fw-bold);
+  color: var(--text-2);
+  letter-spacing: 0.02em;
+}
+.hlegend-bar {
+  display: flex;
+  height: 12px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(to top, #a9d6ff, #2f86e0, #37b24d, #f2c744, #e8590c, #e03131, #7048e8);
+  overflow: hidden;
+  border: 1px solid rgba(17, 24, 39, 0.12);
 }
-/* 래퍼 안에서는 패널의 데스크톱 절대배치 해제 → 버튼 아래로 흐르게 */
-.map-legends-mobile .map-right-legends {
-  position: static;
-  top: auto;
-  right: auto;
+.hlegend-cell {
+  flex: 1 1 0;
+}
+.hlegend-labels {
+  display: flex;
+}
+.hlegend-label {
+  flex: 1 1 0;
+  text-align: center;
+  font-size: 0.5rem;
+  line-height: 1;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .map-view-wrapper .rainrate-legend {
@@ -697,28 +746,6 @@
   border: 1px solid rgba(17, 24, 39, 0.12);
 }
 
-/* 모바일: 컬러바가 세로로 길어 화면을 많이 차지 → 행·스와치·폰트·폭 축소. */
-@media (max-width: 719px) {
-  .map-view-wrapper .rainrate-legend {
-    width: 48px;
-    gap: 2px;
-    padding: 6px 4px 6px 6px;
-  }
-  .map-view-wrapper .rainrate-legend-row,
-  .map-view-wrapper .lightning-time-legend-row {
-    min-height: 13px;
-  }
-  .map-view-wrapper .rainrate-legend-swatch,
-  .map-view-wrapper .lightning-time-legend-swatch {
-    height: 13px;
-    width: 11px;
-    min-width: 11px;
-  }
-  .map-view-wrapper .rainrate-legend-label,
-  .map-view-wrapper .lightning-time-legend-label {
-    font-size: 0.54rem;
-  }
-}
 
 .map-view-wrapper .lightning-time-legend {
   display: grid;

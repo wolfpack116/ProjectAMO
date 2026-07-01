@@ -1,6 +1,28 @@
 import { useState } from 'react'
 import useIsMobile from '../../shared/ui/useIsMobile.js'
 
+// 모바일 가로 범례: 세로 컬러바를 가로 그라데이션 바 + 성긴 눈금 라벨로. entries는 높음→낮음
+// 순서라 좌→우 오름차순으로 뒤집는다.
+function HLegend({ title, entries = [] }) {
+  const cells = [...entries].reverse()
+  const step = Math.max(1, Math.ceil(cells.length / 7))
+  return (
+    <div className="hlegend">
+      <div className="hlegend-title">{title}</div>
+      <div className="hlegend-bar" aria-hidden="true">
+        {cells.map((e, i) => (
+          <span key={i} className="hlegend-cell" style={{ backgroundColor: e.color }} />
+        ))}
+      </div>
+      <div className="hlegend-labels" aria-hidden="true">
+        {cells.map((e, i) => (
+          <span key={i} className="hlegend-label">{i % step === 0 ? e.label : ''}</span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function WeatherLegends({
   radarLegendVisible,
   lightningLegendVisible,
@@ -164,21 +186,34 @@ function WeatherLegends({
     </div>
   )
 
-  // 모바일: 범례를 상시 노출 대신 '범례' 토글 버튼 뒤로 접어 화면 절약. 데스크톱은 상시 노출.
+  // 모바일: 세로 컬러바 대신 하단(타임라인 위) 가로 범례 바 + '범례' 칩 토글(슬라이드업).
   if (!isMobile) return panel
+
+  const mobileLegends = [
+    radarLegendVisible && { key: 'radar', title: 'mm/h', entries: radarRainrateLegend },
+    lightningLegendVisible && { key: 'ltg', title: 'LIGHTNING · 10 MIN', entries: lightningLegendEntries },
+    windSpeedLegendVisible && { key: 'wind', title: 'kt', entries: windSpeedLegendEntries },
+    temperatureLegendVisible && { key: 'temp', title: '°C', entries: temperatureLegendEntries },
+    cloudLegendVisible && { key: 'cloud', title: 'T-Td °C', entries: cloudLegendEntries },
+    icingLegendVisible && { key: 'icing', title: 'Icing', entries: icingLegendEntries },
+    turbulenceLegendVisible && { key: 'turb', title: 'Turbulence', entries: turbulenceLegendEntries },
+  ].filter(Boolean)
+
   return (
-    <div className="map-legends-mobile">
+    <div className="map-legend-mobile-dock">
+      <div className={`map-legends-bottom${open ? ' is-open' : ''}`} aria-hidden={!open}>
+        {mobileLegends.map((l) => (
+          <HLegend key={l.key} title={l.title} entries={l.entries} />
+        ))}
+      </div>
       <button
         type="button"
         className={`map-legend-toggle${open ? ' is-open' : ''}`}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-label="범례"
-        title="범례"
       >
-        <span className="map-legend-toggle-swatch" aria-hidden="true" />
+        범례 <span className="map-legend-toggle-caret" aria-hidden="true">{open ? '▾' : '▴'}</span>
       </button>
-      {open && panel}
     </div>
   )
 }
