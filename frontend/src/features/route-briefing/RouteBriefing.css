@@ -1046,6 +1046,23 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
 }
 
+/* 폼 전역 `.route-check-form button:not(.fui-Button){background:accent}`(specificity
+   0,2,1)이 세그·swap의 중립 배경(0,2,0)을 덮어 비활성 옵션이 진한 기본버튼처럼 보이는
+   반전 버그 교정. 컨테이너를 셀렉터에 더해 specificity로 이긴다.
+   ponytail: 근본은 blanket 규칙이 너무 넓음 — CTA/자동검색이 그 규칙에 의존해 통째 축소는 위험, 대상만 승격. */
+.route-check-form .route-type-segmented .route-type-seg {
+  background: transparent;
+  color: var(--text-2);
+}
+.route-check-form .route-type-segmented .route-type-seg.is-active {
+  background: var(--bg-1);
+  color: var(--accent);
+}
+.route-check-form .rb-swap .rb-swap-btn {
+  background: var(--bg-1);
+  color: var(--accent);
+}
+
 /* ── Mobile briefing: from→to route block + swap (actions live in the
    shared MobileSheet footer slot, pinned flush to the task bar) ── */
 .rb-route {
