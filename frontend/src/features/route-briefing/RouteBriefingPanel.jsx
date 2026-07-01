@@ -223,7 +223,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     briefingError,
   } = state
   const { hideTimerRef } = refs
-  const { isFirInMode, isFirExitMode, selectedIap, visibleSidOptions, canUndoVfr, routeStatus } = derived
+  const { isFirInMode, isFirExitMode, selectedIap, visibleSidOptions, canUndoVfr } = derived
   const {
     updateRouteField,
     handleDepartureAirportChange,
@@ -748,17 +748,8 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   const arrChosen = !!routeForm.arrivalAirport
   const firOnEitherSide = routeForm.departureAirport === FIR_IN_AIRPORT || routeForm.arrivalAirport === FIR_EXIT_AIRPORT
 
-  // 항로 최악 flight category + 활성 공항경보 상태 배지(디자인 헌법 §6 P2 "상태 먼저").
-  const statusBadge = routeStatus?.categoryMeta && (
-    <span className={`rb-status-badge rb-status-badge--${routeStatus.categoryMeta.category.toLowerCase()}`}>
-      {routeStatus.categoryMeta.category}
-      {routeStatus.warned && <span className="rb-status-badge-warn" aria-label="공항경보 발효중">⚠</span>}
-    </span>
-  )
-
   const stepNav = (
     <div className="rb-steps">
-      {statusBadge}
       {[[1, '경로'], [2, '성능·시간']].map(([n, label]) => (
         <button key={n} type="button" className={`rb-step${mobileStep === n ? ' is-active' : ''}`} onClick={() => setMobileStep(n)}>{label}</button>
       ))}
@@ -874,7 +865,6 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
       <span>{arrLabel}</span>
       <span className="route-check-status rb-peek-rule">{routeForm.flightRule}</span>
       {peekDistance && <span className="rb-peek-dist">{peekDistance}</span>}
-      {statusBadge}
     </span>
   )
 

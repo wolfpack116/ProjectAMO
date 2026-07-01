@@ -252,7 +252,7 @@ const MapView = forwardRef(function MapView({
   }
   useImperativeHandle(ref, () => ({ setLayerOn, switchBasemap }))
   const [routeBriefingMapMode, setRouteBriefingMapMode] = useState(false)
-  const routeBriefing = useRouteBriefing({ activePanel, airports, metarData, warnedAirports })
+  const routeBriefing = useRouteBriefing({ activePanel, airports, metarData })
   const { routeResult, fitBoundsRequest } = routeBriefing.state
   const { vfrWaypointsRef, hideTimerRef } = routeBriefing.refs
   const { setHoveredWpInfo, setVfrWaypoints } = routeBriefing.actions
