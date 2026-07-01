@@ -90,7 +90,8 @@ export default function MobileSheet({
     if (!drag) return
     const delta = event.clientY - drag.startY
     if (Math.abs(delta) > 5) drag.moved = true
-    const next = Math.min(detentHeight('full', fullPx), Math.max(detentHeight('peek', fullPx), drag.startH - delta))
+    // 아래로는 peek 밑(닫기 존)까지 끌 수 있게 최소를 0으로 — 스와이프-다운-투-디스미스.
+    const next = Math.min(detentHeight('full', fullPx), Math.max(0, drag.startH - delta))
     setDragH(next)
   }
 
@@ -106,6 +107,12 @@ export default function MobileSheet({
       return
     }
     const current = dragH ?? detentHeight(detent, fullPx)
+    // peek 아래로 충분히 끌어내리면 닫기(그래버가 × 역할까지 일괄).
+    if (current < detentHeight('peek', fullPx) * 0.6) {
+      setDragH(null)
+      onClose?.()
+      return
+    }
     let nearest = 'half'
     let best = Infinity
     for (const candidate of DETENTS) {
@@ -153,7 +160,6 @@ export default function MobileSheet({
               <div className="mobile-sheet-title">{title}</div>
             </div>
             {headerExtra && <div className="mobile-sheet-header-extra">{headerExtra}</div>}
-            <button type="button" className="mobile-sheet-close" onClick={onClose} aria-label="닫기">×</button>
           </div>
           <div className="mobile-sheet-body">{children}</div>
           {footer && <div className="mobile-sheet-footer">{footer}</div>}
