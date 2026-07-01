@@ -5,10 +5,10 @@ Spec: docs/superpowers/specs/2026-07-01-mobile-design-audit-design.md
 Plan: docs/superpowers/plans/2026-07-01-mobile-design-audit.md
 Branch: feat/mobile-design-audit
 
-## Resume Point
-- Last completed: Phase 5 + 브리핑 contrast 픽스(c25ad22) + Architecture.md 갱신
-- Next: Task 11 frontend-design-audit(최종 검수) → 완료 시 status 아카이브
-- 커밋: Phase1 5c21e58 · Phase2 10a8a61 · Phase3 f215f9e · Phase5 9babf6a · contrast c25ad22
+## 상태: 완료 (2026-07-01)
+- 전 Phase 완료 + frontend-design-audit 최종 검수·후속 반영까지.
+- 커밋: Phase1 5c21e58 · Phase2 10a8a61 · Phase3 f215f9e · Phase5 9babf6a · contrast c25ad22 · Architecture 431960d · audit후속 a808d79
+- **후속으로 남긴 것:** S6 브리핑 항로 상태배지(데이터 배선 필요 — spawn_task 칩 task_350077c3). F6 그래버 detent 순환은 표준 패턴이라 유지.
 - 승인: 버킷1 전체 + 버킷2 전체 승인받아 구현함
 - 구현 결과: 지도(MAP-04~07,S1,S2) · 공항(버킷1,S3,S5) · 브리핑(버킷1,S7,S8)
 - **보류(후속):** S6 브리핑 상태배지(항로 flight-category 데이터가 route-briefing에 미배선 — 별도 데이터 배선 필요) · S4 이미 컨테이너쿼리 구현됨(skip) · MAP-08 재측정(map base mobile axe=0로 사실상 해소)
