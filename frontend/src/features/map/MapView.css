@@ -596,12 +596,9 @@
   left: 12px;
   right: auto;
   width: min(72vw, 300px);
-  bottom: calc(var(--mobile-task-bar-h, 60px) + 96px);
+  /* .map-view-wrapper는 타임라인까지 포함(탭바는 밖) → 타임라인 높이(≈88)만 넘겨 바로 위에 붙임. */
+  bottom: calc(88px + var(--space-s));
   z-index: 4;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-xs);
   pointer-events: none;
 }
 .map-view-wrapper .map-legend-mobile-dock > * {
@@ -631,8 +628,13 @@
   font-size: 0.6rem;
 }
 
-/* 가로 범례 카드 — 아래에서 슬라이드업 + 페이드. */
+/* 가로 범례 카드 — 칩 위에 absolute(흐름 밖: 닫혔을 때 칩을 밀지 않음) + 슬라이드업. */
 .map-legends-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: var(--space-xs);
   width: 100%;
   display: grid;
   gap: var(--space-s);
