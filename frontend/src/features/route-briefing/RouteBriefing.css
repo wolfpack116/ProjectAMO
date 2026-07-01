@@ -7,7 +7,7 @@
   max-height: calc(100% - 24px);
   overflow: auto;
   padding: 0;
-  border: 1px solid rgba(148, 163, 184, 0.42);
+  border: 1px solid var(--stroke-1);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 18px 42px rgba(15, 23, 42, 0.22);
@@ -167,7 +167,7 @@
   width: 100%;
   height: 36px;
   padding: 0 10px;
-  border: 1px solid rgba(148, 163, 184, 0.58);
+  border: 1px solid var(--stroke-1);
   border-radius: 7px;
   background: var(--bg-1);
   color: var(--text-1);
@@ -260,12 +260,12 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: auto;
+  min-height: var(--touch-min);
   padding: 4px 2px;
   border: 0;
   background: transparent;
   color: var(--text-3);
-  font-size: 11px;
+  font-size: var(--fs-200);
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -486,7 +486,7 @@ button.vfr-waypoint-handle:focus-visible {
   height: 30px;
   min-width: 86px;
   padding: 0 10px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1px solid var(--stroke-1);
   border-radius: 999px;
   background: var(--bg-2);
   color: var(--accent);
@@ -585,7 +585,7 @@ button.vfr-waypoint-altitude-pill:focus-visible {
 }
 
 .vertical-profile-empty {
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1px solid var(--stroke-1);
   background: var(--bg-2);
   color: var(--text-3);
 }
@@ -653,7 +653,7 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   width: min(1120px, calc(100vw - 48px));
   max-height: calc(100vh - 48px);
   overflow: auto;
-  border: 1px solid rgba(148, 163, 184, 0.5);
+  border: 1px solid var(--stroke-1);
   border-radius: 10px;
   background: var(--bg-1);
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.32);
@@ -688,7 +688,7 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   flex: 0 0 auto;
   height: 32px;
   padding: 0 12px;
-  border: 1px solid rgba(148, 163, 184, 0.55);
+  border: 1px solid var(--stroke-1);
   border-radius: 7px;
   background: var(--bg-1);
   color: var(--accent);
@@ -862,7 +862,7 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   width: min(320px, 78vw);
   gap: 5px;
   padding: 10px 12px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1px solid var(--stroke-1);
   border-radius: 8px;
   background: var(--bg-1);
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
@@ -949,7 +949,7 @@ button.vfr-waypoint-altitude-pill:focus-visible {
 .route-check-form .route-check-actions .route-check-secondary-button {
   min-width: 0;
   padding: 0 6px;
-  border: 1px solid rgba(148, 163, 184, 0.5);
+  border: 1px solid var(--stroke-1);
   background: var(--bg-1);
   color: var(--accent);
   font-size: 12px;
@@ -960,7 +960,7 @@ button.vfr-waypoint-altitude-pill:focus-visible {
 .route-check-form .route-check-actions .route-check-secondary-button:focus,
 .route-check-form .route-check-actions .route-check-secondary-button:focus-visible,
 .route-check-form .route-check-actions .route-check-secondary-button:active {
-  border-color: rgba(148, 163, 184, 0.5);
+  border-color: var(--stroke-1);
   background: var(--bg-1);
   color: var(--accent);
   box-shadow: none;
@@ -977,7 +977,7 @@ button.vfr-waypoint-altitude-pill:focus-visible {
 .route-check-form .route-check-actions .route-check-secondary-button:last-child:focus,
 .route-check-form .route-check-actions .route-check-secondary-button:last-child:focus-visible,
 .route-check-form .route-check-actions .route-check-secondary-button:last-child:active {
-  border-color: rgba(148, 163, 184, 0.5);
+  border-color: var(--stroke-1);
   background: transparent;
   color: var(--text-3);
   box-shadow: none;
@@ -1022,7 +1022,7 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   padding: 3px;
   border: 0;
   border-radius: 10px;
-  background: #eef2f7;
+  background: var(--level-gray-bg);
 }
 
 .route-check-form .route-type-seg {
@@ -1065,7 +1065,7 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 0.5px solid rgba(148, 163, 184, 0.5);
+  border: 0.5px solid var(--stroke-1);
   background: var(--bg-1);
   color: var(--accent);
   font-size: 16px;
@@ -1110,11 +1110,12 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   min-width: 96px;
   background: var(--bg-1);
   color: var(--text-2);
-  border: 1px solid rgba(148, 163, 184, 0.5);
+  border: 1px solid var(--stroke-1);
 }
 
 .mobile-sheet-footer .route-check-actions button:disabled {
-  opacity: 0.5;
+  background: var(--bg-4);
+  color: var(--text-disabled);
   cursor: not-allowed;
 }
 
@@ -1148,15 +1149,15 @@ button.vfr-waypoint-altitude-pill:focus-visible {
 /* 브리핑 조건 = 내 항공기 + 교체 + ETD + 요약 세로 스택 (카드 테두리 제거, 깔끔한 입력) */
 /* (route-check-section--briefing → Fluent griffel로 이전, 삭제) */
 .rb-altn { display: grid; gap: 4px; color: var(--text-3); font-size: 12px; font-weight: 600; }
-.rb-altn select { height: 36px; padding: 0 8px; border: 1px solid rgba(148,163,184,0.58); border-radius: 7px; font-size: 13px; font-weight: 700; color: var(--text-1); }
+.rb-altn select { height: 36px; padding: 0 8px; border: 1px solid var(--stroke-1); border-radius: 7px; font-size: 13px; font-weight: 700; color: var(--text-1); }
 /* Mobile: match the 출발/도착 picker — label inside a bordered box, borderless select. */
 .rb-mobile .rb-altn {
   gap: 1px;
   padding: 6px 12px;
-  border: 0.8px solid rgba(148, 163, 184, 0.5);
+  border: 0.8px solid var(--stroke-1);
   border-radius: 8px;
   background: var(--bg-1);
-  font-size: 11px;
+  font-size: var(--fs-200);
 }
 .rb-mobile .rb-altn select {
   height: auto;
@@ -1173,9 +1174,9 @@ button.vfr-waypoint-altitude-pill:focus-visible {
 /* ETD 필드: 데스크톱 타이핑 / 모바일 휠 + 상대 칩 */
 .etd-field { display: grid; gap: 7px; }
 .etd-row { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 6px; }
-.etd-field select, .etd-field input[type="time"] { height: 36px; padding: 0 8px; border: 1px solid rgba(148,163,184,0.58); border-radius: 7px; background: var(--bg-1); color: var(--text-1); font-size: 13px; font-weight: 700; }
+.etd-field select, .etd-field input[type="time"] { height: 36px; padding: 0 8px; border: 1px solid var(--stroke-1); border-radius: 7px; background: var(--bg-1); color: var(--text-1); font-size: 13px; font-weight: 700; }
 .etd-chips, .etd-day-chips { display: flex; gap: 5px; }
-.route-check-form .etd-chip { border: 0; border-radius: 999px; padding: 5px 12px; background: #eef2f7; color: var(--text-2); font-size: 11px; font-weight: 600; cursor: pointer; }
+.route-check-form .etd-chip { border: 0; border-radius: 999px; padding: 5px 12px; background: var(--level-gray-bg); color: var(--text-2); font-size: 11px; font-weight: 600; cursor: pointer; }
 .route-check-form .etd-chip.is-active { background: color-mix(in srgb, var(--accent) 8%, var(--bg-1)); color: var(--accent); }
 .etd-field--mobile .etd-time-wheel { width: 100%; }
 
@@ -1194,7 +1195,7 @@ button.vfr-waypoint-altitude-pill:focus-visible {
 .route-check-form .acp-item-del { border: 0; background: transparent; color: var(--level-red); font-size: 16px; cursor: pointer; padding: 0 8px; }
 .acp-perf { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .acp-field { display: grid; gap: 4px; font-size: 12px; font-weight: 600; color: var(--text-3); position: relative; }
-.acp-field input { height: 36px; padding: 0 8px; border: 1px solid rgba(148,163,184,0.58); border-radius: 7px; font-size: 14px; font-weight: 600; color: var(--text-1); }
+.acp-field input { height: 36px; padding: 0 8px; border: 1px solid var(--stroke-1); border-radius: 7px; font-size: 14px; font-weight: 600; color: var(--text-1); }
 .acp-field em { position: absolute; right: 10px; bottom: 9px; font-style: normal; font-size: 11px; color: var(--text-3); }
 .acp-alt { position: relative; }
 .acp-alt input { width: 100%; }
@@ -1207,12 +1208,12 @@ button.vfr-waypoint-altitude-pill:focus-visible {
 .rb-summary { display: flex; align-items: center; gap: 12px; background: color-mix(in srgb, var(--accent) 8%, var(--bg-1)); border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--bg-1)); border-radius: 11px; padding: 10px 12px; }
 .rb-summary-dist { flex: 0 0 auto; padding-right: 12px; border-right: 1px solid color-mix(in srgb, var(--accent) 18%, var(--bg-1)); text-align: center; }
 .rb-summary-time { flex: 1; text-align: center; }
-.rb-summary span { display: block; font-size: 12px; font-weight: 600; color: #5b7da8; }
-.rb-summary strong { font-size: 16px; font-weight: 700; color: #0f2742; font-variant-numeric: tabular-nums; }
+.rb-summary span { display: block; font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--accent) 70%, var(--text-3)); }
+.rb-summary strong { font-size: 16px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
 .rb-summary em { font-size: 11px; font-style: normal; }
 
 /* 모바일 3단계 위저드 */
-.rb-steps { display: flex; gap: 3px; padding: 3px; border-radius: 10px; background: #eef2f7; margin-bottom: 12px; }
+.rb-steps { display: flex; gap: 3px; padding: 3px; border-radius: 10px; background: var(--level-gray-bg); margin-bottom: 12px; }
 .route-check-form .rb-step { flex: 1; border: 0; border-radius: 8px; background: transparent; padding: 8px 4px; font-size: 12px; font-weight: 600; color: var(--text-2); cursor: pointer; }
 .route-check-form .rb-step.is-active { background: var(--bg-1); color: var(--accent); box-shadow: 0 1px 2px rgba(15,23,42,.12); }
 .rb-procedures { display: grid; gap: 8px; }
@@ -1255,6 +1256,17 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   min-height: 44px;
 }
 
+/* B05: waypoint 조작 버튼(핸들·삭제·고도 알약·전체적용) 44px 터치 타깃. */
+.rb-mobile .vfr-waypoint-handle,
+.rb-mobile .vfr-waypoint-delete-btn,
+.rb-mobile .vfr-waypoint-altitude-pill,
+.rb-mobile .vfr-altitude-apply button {
+  min-height: var(--touch-min);
+}
+.rb-mobile .vfr-waypoint-altitude-row {
+  gap: var(--space-s);
+}
+
 /* Compact: step tabs live in the sheet header (right of the title). */
 .mobile-sheet-header-extra .rb-steps {
   margin: 0;
@@ -1262,7 +1274,7 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   gap: 2px;
 }
 .mobile-sheet-header-extra .rb-step {
-  min-height: 38px;
+  min-height: var(--touch-min);
   padding: 0 11px;
   border: 0;
   border-radius: 8px;

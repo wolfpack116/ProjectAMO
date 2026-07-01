@@ -34,5 +34,5 @@
 }
 
 @media (pointer: coarse) {
-  .ltc-chip { min-height: 40px; }
+  .ltc-chip { min-height: var(--touch-min); }
 }

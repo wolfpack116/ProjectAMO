@@ -21,7 +21,7 @@
     inset 1px 0 0 rgba(255, 255, 255, 0.8);
   color: var(--text-1);
   font-family: var(--app-font, system-ui, sans-serif);
-  font-size: 13px;
+  font-size: var(--fs-300);
   overflow: hidden;
 }
 
@@ -93,7 +93,7 @@
 }
 
 .airport-panel-head--no-image {
-  background: linear-gradient(135deg, #1b3a5c 0%, #2c5f85 45%, #1e4a70 100%);
+  background: linear-gradient(135deg, var(--text-1) 0%, var(--accent) 45%, var(--text-1) 100%);
 }
 
 .airport-panel-head-image {
@@ -190,7 +190,7 @@
   background: none;
   border: none;
   color: var(--text-3);
-  font-size: 13px;
+  font-size: var(--fs-300);
   font-weight: 800;
   line-height: 1.25;
   cursor: pointer;
@@ -925,6 +925,50 @@
 }
 
 /* ── TAF ── */
+.ap-taf-summary-bar {
+  display: none;
+}
+
+@media (max-width: 719px) {
+  .ap-taf-summary-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: calc(-1 * var(--space-l)) calc(-1 * var(--space-s)) var(--space-m);
+    padding: var(--space-s) var(--space-m);
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--stroke-2);
+  }
+
+  .ap-taf-summary-cat {
+    flex: 0 0 auto;
+    padding: 2px var(--space-s);
+    border-radius: var(--radius-md);
+    background: var(--level-gray-bg);
+    color: var(--level-gray);
+    font-size: var(--fs-200);
+    font-weight: 800;
+  }
+
+  .ap-taf-summary-cat--VFR { background: var(--level-green-bg); color: var(--level-green); }
+  .ap-taf-summary-cat--MVFR { background: color-mix(in srgb, var(--cat-mvfr) 16%, #fff); color: var(--cat-mvfr); }
+  .ap-taf-summary-cat--IFR { background: var(--level-amber-bg); color: var(--level-amber); }
+  .ap-taf-summary-cat--LIFR { background: var(--level-red-bg); color: var(--level-red); }
+
+  .ap-taf-summary-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-2);
+    font-size: var(--fs-200);
+    font-weight: 600;
+  }
+}
+
 .ap-taf-header {
   display: flex;
   flex-direction: column;
@@ -1074,6 +1118,43 @@
   border: 1px solid var(--stroke-2);
 }
 
+.ap-info-hazard-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: var(--space-s);
+  padding: var(--space-xxs) var(--space-s);
+  border-radius: var(--radius-md);
+  background: var(--level-gray-bg);
+  color: var(--level-gray);
+  font-size: var(--fs-200);
+  font-weight: 800;
+}
+
+.ap-info-hazard-badge--warn {
+  background: var(--level-red-bg);
+  color: var(--level-red);
+}
+
+.ap-info-raw-summary {
+  display: none;
+}
+
+@media (max-width: 719px) {
+  .ap-info-raw-summary {
+    display: block;
+    margin-bottom: var(--space-s);
+    padding: var(--space-s) 0;
+    color: var(--accent);
+    font-size: var(--fs-300);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .ap-info-raw:not([open]) .ap-info-raw-summary {
+    margin-bottom: 0;
+  }
+}
+
 .ap-info-logo-row {
   text-align: left;
   margin-bottom: 6px;
@@ -1156,8 +1237,8 @@
   margin-top: 10px;
   padding-top: 8px;
   border-top: 1px solid var(--stroke-2);
-  font-size: 10px;
-  color: var(--text-3);
+  font-size: var(--fs-200);
+  color: var(--text-2);
   line-height: 1.5;
 }
 
@@ -1210,6 +1291,13 @@
   background: var(--text-1);
   border-color: var(--text-1);
   color: #fff;
+}
+
+@media (max-width: 719px) {
+  .ap-taf-switch-btn {
+    min-height: var(--touch-min);
+    padding: var(--space-s) var(--space-m);
+  }
 }
 
 .ap-taf-timeline {
@@ -1960,6 +2048,14 @@
     overflow: hidden;
   }
 
+  .airport-panel-close {
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .airport-panel-main {
     flex-direction: column;
     min-height: 0;
@@ -1976,10 +2072,10 @@
   .airport-panel-tab {
     flex: 1 1 0;
     min-width: 0;
-    min-height: var(--touch-target-min, 44px);
+    min-height: var(--touch-min);
     padding: 4px 6px;
     justify-content: center;
-    font-size: 12px;
+    font-size: var(--fs-200);
     white-space: nowrap;
   }
 

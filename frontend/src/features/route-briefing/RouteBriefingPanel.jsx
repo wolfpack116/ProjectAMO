@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useLayoutEffect } from 'react'
+import { useState, useRef, useMemo, useEffect, useLayoutEffect } from 'react'
 import { KNOWN_AIRPORTS } from './lib/procedureData.js'
 import { calcVfrDistance } from './lib/routePreview.js'
 import {
@@ -188,8 +188,13 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   // The briefing stays an active task; the sheet × collapses to the peek summary
   // instead of closing (use the bottom task bar to leave 브리핑).
   const [sheetDetent, setSheetDetent] = useState('half')
+  const [detentTouched, setDetentTouched] = useState(false)
   const [mobileStep, setMobileStep] = useState(1)
   const [showDetailRoute, setShowDetailRoute] = useState(false)
+  // S7: 모바일 ① 스텝은 출발/도착까지만 먼저 보여주고, 교체공항·경로유형·SID/STAR/RWY는
+  // 접어둔다(P3 점진 노출) — 사용자가 펼치거나, 출발+도착을 다 고르면(다음에 필요해질
+  // 확률이 높아) 자동으로 펼친다.
+  const [step1MoreOpen, setStep1MoreOpen] = useState(false)
   const {
     routeForm,
     routeResult,
@@ -252,6 +257,15 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   } = actions
 
   const isIfr = routeForm.flightRule === 'IFR'
+  // S8: IFR은 지도 볼 일 없는 순수 입력 폼이라 시트를 기본 full로 — VFR ①은 지도에서
+  // 경유점을 찍어야 하니 half 유지. 사용자가 손수 드래그(detentTouched)했으면 존중하고
+  // 자동 전환을 멈춘다(스텝/규칙 전환마다 되돌리면 성가심).
+  useEffect(() => {
+    if (detentTouched) return
+    const wantsFull = isIfr || mobileStep === 2
+    setSheetDetent(wantsFull ? 'full' : 'half')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isIfr, mobileStep, detentTouched])
   // 출발·도착이 모두 있어야 검색 가능(빈 입력으로 검색→서버 오류를 사전 차단).
   const canSearch = !!routeForm.departureAirport && !!routeForm.arrivalAirport
   // 초기화 오클릭 방지: 잃을 입력이 있으면 한 번 더 눌러 확인(3초 후 자동 해제).
@@ -755,36 +769,44 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
             <div className="rb-swap"><button type="button" className="rb-swap-btn" onClick={swapAirports} disabled={firOnEitherSide} aria-label="출발 도착 교환">⇅</button></div>
             <AirportPickerField label="도착" value={routeForm.arrivalAirport} options={AIRPORT_OPTIONS} firOption={{ value: FIR_EXIT_AIRPORT, label: 'FIR 이탈' }} onChange={handleArrivalAirportChange} disabledValue={routeForm.departureAirport} />
           </div>
-          <label className="rb-altn">{'교체 공항'}
-            <select value={alternateAirport} onChange={(e) => setAlternateAirport(e.target.value)}>
-              <option value="">{'-- 없음 --'}</option>
-              {KNOWN_AIRPORTS.filter((ap) => ap !== routeForm.departureAirport && ap !== routeForm.arrivalAirport).map((ap) => <option key={ap} value={ap}>{ap}</option>)}
-            </select>
-          </label>
-          {isIfr && (
-            <div className="route-type-segmented">
-              {[['ALL', '전체'], ['RNAV', 'RNAV'], ['ATS', 'ATS']].map(([val, lbl]) => (
-                <button key={val} type="button" className={`route-type-seg${routeForm.routeType === val ? ' is-active' : ''}`} onClick={() => updateRouteField('routeType', val)}>{lbl}</button>
-              ))}
-            </div>
-          )}
-          {isIfr && (depChosen || arrChosen) && (
-            <button type="button" className="route-check-secondary-button rb-auto-search" onClick={handleAutoRecommend} disabled={routeLoading}>
-              {routeLoading ? '검색 중...' : '자동검색 (SID·STAR 추천)'}
+          {(step1MoreOpen || (depChosen && arrChosen)) ? (
+            <>
+              <label className="rb-altn">{'교체 공항'}
+                <select value={alternateAirport} onChange={(e) => setAlternateAirport(e.target.value)}>
+                  <option value="">{'-- 없음 --'}</option>
+                  {KNOWN_AIRPORTS.filter((ap) => ap !== routeForm.departureAirport && ap !== routeForm.arrivalAirport).map((ap) => <option key={ap} value={ap}>{ap}</option>)}
+                </select>
+              </label>
+              {isIfr && (
+                <div className="route-type-segmented">
+                  {[['ALL', '전체'], ['RNAV', 'RNAV'], ['ATS', 'ATS']].map(([val, lbl]) => (
+                    <button key={val} type="button" className={`route-type-seg${routeForm.routeType === val ? ' is-active' : ''}`} onClick={() => updateRouteField('routeType', val)}>{lbl}</button>
+                  ))}
+                </div>
+              )}
+              {isIfr && (depChosen || arrChosen) && (
+                <button type="button" className="route-check-secondary-button rb-auto-search" onClick={handleAutoRecommend} disabled={routeLoading}>
+                  {routeLoading ? '검색 중...' : '자동검색 (SID·STAR 추천)'}
+                </button>
+              )}
+              <div className="rb-procedures">
+                {isIfr && depChosen && (isFirInMode
+                  ? <PickerField label="진입 FIX" value={routeForm.entryFix} options={[NONE_OPTION, ...firInOptions.map((o) => ({ value: o.value, label: o.label }))]} onChange={handleEntryFixChange} />
+                  : <PickerField label="SID" value={selectedSid?.id ?? ''} options={[NONE_OPTION, ...visibleSidOptions.map((p) => ({ value: p.id, label: p.label }))]} onChange={(id) => handleSidChange(id ? (visibleSidOptions.find((p) => p.id === id) ?? null) : null)} />)}
+                {isIfr && arrChosen && (isFirExitMode
+                  ? <PickerField label="이탈 FIX" value={routeForm.exitFix} options={[NONE_OPTION, ...firExitOptions.map((o) => ({ value: o.value, label: o.label }))]} onChange={handleExitFixChange} />
+                  : <PickerField label="STAR" value={selectedStar?.id ?? ''} options={[NONE_OPTION, ...starOptions.map((p) => ({ value: p.id, label: p.label }))]} onChange={(id) => handleStarChange(id ? (starOptions.find((p) => p.id === id) ?? null) : null)} />)}
+                {isIfr && arrChosen && !isFirExitMode && iapCandidates.length > 1 && (
+                  <PickerField label="RWY" value={selectedIapKey ?? ''} options={iapCandidates.map(({ key, label }) => ({ value: key, label }))} onChange={handleIapChange} />
+                )}
+                {!isIfr && <div className="rb-vfr-note">VFR — 지도에서 경유점을 추가하세요</div>}
+              </div>
+            </>
+          ) : (
+            <button type="button" className="rb-detail-toggle" aria-expanded={false} onClick={() => setStep1MoreOpen(true)}>
+              {'교체공항·경로유형·절차 더보기'} <span className="rb-detail-caret">{'▾'}</span>
             </button>
           )}
-          <div className="rb-procedures">
-            {isIfr && depChosen && (isFirInMode
-              ? <PickerField label="진입 FIX" value={routeForm.entryFix} options={[NONE_OPTION, ...firInOptions.map((o) => ({ value: o.value, label: o.label }))]} onChange={handleEntryFixChange} />
-              : <PickerField label="SID" value={selectedSid?.id ?? ''} options={[NONE_OPTION, ...visibleSidOptions.map((p) => ({ value: p.id, label: p.label }))]} onChange={(id) => handleSidChange(id ? (visibleSidOptions.find((p) => p.id === id) ?? null) : null)} />)}
-            {isIfr && arrChosen && (isFirExitMode
-              ? <PickerField label="이탈 FIX" value={routeForm.exitFix} options={[NONE_OPTION, ...firExitOptions.map((o) => ({ value: o.value, label: o.label }))]} onChange={handleExitFixChange} />
-              : <PickerField label="STAR" value={selectedStar?.id ?? ''} options={[NONE_OPTION, ...starOptions.map((p) => ({ value: p.id, label: p.label }))]} onChange={(id) => handleStarChange(id ? (starOptions.find((p) => p.id === id) ?? null) : null)} />)}
-            {isIfr && arrChosen && !isFirExitMode && iapCandidates.length > 1 && (
-              <PickerField label="RWY" value={selectedIapKey ?? ''} options={iapCandidates.map(({ key, label }) => ({ value: key, label }))} onChange={handleIapChange} />
-            )}
-            {!isIfr && <div className="rb-vfr-note">VFR — 지도에서 경유점을 추가하세요</div>}
-          </div>
           {errorBlock}
           {routePreview}
         </>
@@ -851,6 +873,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
       {hoveredWpInfo && (
         <button
           className="vfr-wp-delete"
+          aria-label="경유점 삭제"
           style={{ left: hoveredWpInfo.x + 8, top: hoveredWpInfo.y - 16 }}
           onClick={() => deleteVfrWaypoint(hoveredWpInfo.idx)}
           onMouseEnter={() => clearTimeout(hideTimerRef?.current)}
@@ -862,9 +885,9 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           open
           eyebrow="Flight Plan"
           title={'경로 확인'}
-          onClose={() => setSheetDetent('peek')}
+          onClose={() => { setDetentTouched(true); setSheetDetent('peek') }}
           detent={sheetDetent}
-          onDetentChange={setSheetDetent}
+          onDetentChange={(d) => { setDetentTouched(true); setSheetDetent(d) }}
           headerExtra={stepNav}
           peekContent={peekSummary}
           footer={mobileFooter}

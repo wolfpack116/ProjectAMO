@@ -6,10 +6,17 @@ Plan: docs/superpowers/plans/2026-07-01-mobile-design-audit.md
 Branch: feat/mobile-design-audit
 
 ## Resume Point
-- Last completed: Task 7 (Phase 4 — 제안서 작성, **승인 대기 중 STOP**)
-- Next: 사용자 승인 후 Task 8(버킷1)/Task 9(승인된 버킷2)
-- 제안서: docs/superpowers/specs/2026-07-01-mobile-design-audit-proposal.md
-- 결함: 27건(지도8·공항9·브리핑10) + 상호8테마 → 버킷1 6그룹 / 버킷2 8항목(S1~S8)
+- Last completed: Phase 5 구현(버킷1 전체 + 버킷2 S1~S8, 3표면 병렬) + after 재캡처
+- Next: Task 11 frontend-design-audit(사용자 승인 후) → Task 12 Architecture.md·마무리
+- 승인: 버킷1 전체 + 버킷2 전체 승인받아 구현함
+- 구현 결과: 지도(MAP-04~07,S1,S2) · 공항(버킷1,S3,S5) · 브리핑(버킷1,S7,S8)
+- **보류(후속):** S6 브리핑 상태배지(항로 flight-category 데이터가 route-briefing에 미배선 — 별도 데이터 배선 필요) · S4 이미 컨테이너쿼리 구현됨(skip) · MAP-08 재측정(map base mobile axe=0로 사실상 해소)
+- **잔존:** 브리핑 3상태 color-contrast serious 4노드(disabled CTA/비활성 세그 추정, 폴리시급)
+
+## Verified (Phase 5)
+- 빌드: `npm run build` PASS(청크경고만)
+- axe before→after: 공항 taf 1→0(critical 해소), amos 1→0(serious 해소)
+- 시각: S1 지도칩 잘림 해소·S3 TAF 요약선두·S7 브리핑 점진노출 확인, 회귀 없음
 
 ## Verified
 - Task 1: `--touch-min:44px` 토큰 추가 → `node --test tokens.test.js` PASS (parity)

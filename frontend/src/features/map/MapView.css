@@ -54,6 +54,17 @@
   box-shadow: 0 2px 12px rgba(15, 23, 42, 0.28);
 }
 
+@media (pointer: coarse) {
+  /* Hit area only — thumbnail visual size (36px) stays put via padding. */
+  .basemap-switcher-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+  }
+}
+
 .basemap-switcher-thumb {
   display: block;
   width: 36px;
@@ -957,6 +968,13 @@
   bottom: 56px;
 }
 
+@media (pointer: coarse) {
+  .map-view-wrapper .mapboxgl-ctrl-group button {
+    width: var(--touch-min);
+    height: var(--touch-min);
+  }
+}
+
 @media (max-width: 640px) {
   .timeline-rail__tick-label {
     font-size: 10px;
@@ -1544,9 +1562,18 @@
     transform: translateX(-50%);
   }
 
+  /* S1: mobile drops the centered placement — it collided with the left
+     layer-button column (z60, ~64px) and the right basemap thumbnail (z7),
+     clipping/overlapping chips at 390px. Constrain to the safe gutter
+     between them and wrap instead of horizontal-scrolling. */
   .advisory-badge-bar {
-    max-width: calc(100% - 24px);
-    overflow-x: auto;
+    left: 68px;
+    right: 58px;
+    transform: none;
+    max-width: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow-x: visible;
   }
 }
 

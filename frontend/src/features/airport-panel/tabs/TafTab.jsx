@@ -19,6 +19,17 @@ function tafWeatherClass(item, baseClass, { includeSpecial = true } = {}) {
   ].filter(Boolean).join(' ')
 }
 
+const CATEGORY_RANK = { LIFR: 0, IFR: 1, MVFR: 2, VFR: 3 }
+
+function worstCategory(slots) {
+  return slots.reduce((worst, item) => {
+    const cat = item.flight?.category
+    if (!cat) return worst
+    if (!worst || (CATEGORY_RANK[cat] ?? 9) < (CATEGORY_RANK[worst] ?? 9)) return cat
+    return worst
+  }, null)
+}
+
 export default function EnhancedTafTab({ taf, icao }) {
   // Mobile lands on the per-period card view (readable reading blocks);
   // desktop keeps the timeline. User can still switch.
@@ -31,15 +42,24 @@ export default function EnhancedTafTab({ taf, icao }) {
   if (!taf) return <div className="ap-empty">TAF 데이터 없음</div>
 
   const { rawTimeline, slots, hdr } = buildTafViewModel(taf, icao)
+  const worstCat = worstCategory(slots)
 
   return (
     <div className="ap-taf">
+      <div className="ap-taf-summary-bar">
+        <span className={`ap-taf-summary-cat${worstCat ? ` ap-taf-summary-cat--${worstCat}` : ''}`}>{worstCat || '—'}</span>
+        <span className="ap-taf-summary-text">
+          유효 {fmtKstShort(hdr?.valid_start, tz)} – {fmtKstShort(hdr?.valid_end, tz)}
+          {slots.length === 0 && rawTimeline.length > 0 ? ' · 만료됨' : ''}
+        </span>
+      </div>
+
       <div className="ap-taf-header">
         <div>
           <span className="ap-taf-badge">{hdr?.report_status === 'AMENDMENT' ? 'TAF AMD' : 'TAF'}</span>
           <span className="ap-taf-valid">{fmtKstShort(hdr?.valid_start, tz)} – {fmtKstShort(hdr?.valid_end, tz)}</span>
         </div>
-        <div className="ap-taf-switch" role="tablist" aria-label="TAF view">
+        <div className="ap-taf-switch" role="group" aria-label="TAF view">
           {TAF_VIEWS.map((item) => (
             <button key={item.id} type="button" className={`ap-taf-switch-btn${view === item.id ? ' is-active' : ''}`} onClick={() => setView(item.id)} aria-pressed={view === item.id}>
               {item.label}

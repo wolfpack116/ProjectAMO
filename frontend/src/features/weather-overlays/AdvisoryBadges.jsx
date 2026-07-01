@@ -3,6 +3,8 @@ import {
   Popover, PopoverTrigger, PopoverSurface,
   Button, CounterBadge, Text, Tooltip,
 } from '../../shared/ui/fluent.js'
+import useIsMobile from '../../shared/ui/useIsMobile.js'
+import MobileSheet from '../../shared/ui/MobileSheet.jsx'
 import './AdvisoryBadges.css'
 
 const PANEL_TITLE = { sigwxLow: 'SIGWX_LOW', sigmet: 'SIGMET', airmet: 'AIRMET', warning: '공항경보' }
@@ -23,6 +25,7 @@ function AdvisoryBadges({
   onToggleVisibility,
   onSelectAirport,
 }) {
+  const isMobile = useIsMobile()
   const chips = [
     ...badgeItems,
     warnedAirports.length > 0
@@ -56,10 +59,68 @@ function AdvisoryBadges({
     )
   }
 
+  function panelList(item) {
+    return (
+      <div className="advisory-pop-list">
+        {item.key === 'warning' && (
+          warnedAirports.length === 0
+            ? <Text size={200} className="advisory-pop-empty">활성 경보 없음</Text>
+            : warnedAirports.map((icao) => (
+              <Tooltip key={icao} relationship="description" withArrow content="공항 정보 열기">
+                <Button
+                  appearance="subtle"
+                  className="advisory-pop-row"
+                  onClick={() => { onSelectAirport?.(icao); onOpenPanel(item.key, false) }}
+                >
+                  <span className="advisory-pop-acc" style={{ background: TONE_HEX.warning }} />
+                  <span className="advisory-pop-body"><span className="advisory-pop-name">{icao}</span></span>
+                  <ChevronRight size={18} className="advisory-pop-trail" aria-hidden="true" />
+                </Button>
+              </Tooltip>
+            ))
+        )}
+
+        {item.key !== 'warning' && panelItems.length === 0 && (
+          <Text size={200} className="advisory-pop-empty">활성 항목 없음</Text>
+        )}
+
+        {item.key === 'sigwxLow' && panelItems.map((g) =>
+          advisoryRow('sigwxLow', g.mapKey, g.lineColor || '#6d28d9', g.label))}
+        {item.key === 'sigmet' && panelItems.map((it) =>
+          advisoryRow('sigmet', it.mapKey, 'var(--level-red)', it.panelLabel, it.validLabel))}
+        {item.key === 'airmet' && panelItems.map((it) =>
+          advisoryRow('airmet', it.mapKey, 'var(--level-amber)', it.panelLabel, it.validLabel))}
+      </div>
+    )
+  }
+
+  function chipButton(item, isOpen) {
+    return (
+      <Button
+        appearance="subtle"
+        size="medium"
+        shape="circular"
+        className={`advisory-chip advisory-chip--${item.tone}${isOpen ? ' is-open' : ''}`}
+        onClick={isMobile ? () => onOpenPanel(item.key, !isOpen) : undefined}
+      >
+        <AlertTriangle size={15} aria-hidden="true" />
+        {item.label}
+        <CounterBadge className="advisory-ct" appearance="filled" color={TONE_COLOR[item.tone]} count={item.count} size="small" />
+        <ChevronDown size={14} className="advisory-chip-caret" aria-hidden="true" />
+      </Button>
+    )
+  }
+
+  // 모바일은 지도 위 고정 팝오버 대신 기존 MobileSheet 재사용(P1) — 레이어 시트와 동일 패턴.
+  const openItem = isMobile ? chips.find((item) => item.key === openPanel) : null
+
   return (
     <div className="advisory-badge-bar" aria-label="위험 요약">
       {chips.map((item) => {
         const isOpen = openPanel === item.key
+        if (isMobile) {
+          return <span key={item.key}>{chipButton(item, isOpen)}</span>
+        }
         return (
           <Popover
             key={item.key}
@@ -70,17 +131,7 @@ function AdvisoryBadges({
             onOpenChange={(_, data) => onOpenPanel(item.key, data.open)}
           >
             <PopoverTrigger disableButtonEnhancement>
-              <Button
-                appearance="subtle"
-                size="medium"
-                shape="circular"
-                className={`advisory-chip advisory-chip--${item.tone}${isOpen ? ' is-open' : ''}`}
-              >
-                <AlertTriangle size={15} aria-hidden="true" />
-                {item.label}
-                <CounterBadge className="advisory-ct" appearance="filled" color={TONE_COLOR[item.tone]} count={item.count} size="small" />
-                <ChevronDown size={14} className="advisory-chip-caret" aria-hidden="true" />
-              </Button>
+              {chipButton(item, isOpen)}
             </PopoverTrigger>
             <PopoverSurface>
               <div className={`advisory-pop advisory-pop--${item.tone}`}>
@@ -89,41 +140,24 @@ function AdvisoryBadges({
                   <Text weight="semibold" className="advisory-pop-title" role="heading" aria-level={2}>{PANEL_TITLE[item.key]}</Text>
                   <CounterBadge className="advisory-ct" appearance="filled" color={TONE_COLOR[item.tone]} count={item.count} size="small" />
                 </div>
-                <div className="advisory-pop-list">
-                  {item.key === 'warning' && (
-                    warnedAirports.length === 0
-                      ? <Text size={200} className="advisory-pop-empty">활성 경보 없음</Text>
-                      : warnedAirports.map((icao) => (
-                        <Tooltip key={icao} relationship="description" withArrow content="공항 정보 열기">
-                          <Button
-                            appearance="subtle"
-                            className="advisory-pop-row"
-                            onClick={() => { onSelectAirport?.(icao); onOpenPanel(item.key, false) }}
-                          >
-                            <span className="advisory-pop-acc" style={{ background: TONE_HEX.warning }} />
-                            <span className="advisory-pop-body"><span className="advisory-pop-name">{icao}</span></span>
-                            <ChevronRight size={18} className="advisory-pop-trail" aria-hidden="true" />
-                          </Button>
-                        </Tooltip>
-                      ))
-                  )}
-
-                  {item.key !== 'warning' && panelItems.length === 0 && (
-                    <Text size={200} className="advisory-pop-empty">활성 항목 없음</Text>
-                  )}
-
-                  {item.key === 'sigwxLow' && panelItems.map((g) =>
-                    advisoryRow('sigwxLow', g.mapKey, g.lineColor || '#6d28d9', g.label))}
-                  {item.key === 'sigmet' && panelItems.map((it) =>
-                    advisoryRow('sigmet', it.mapKey, 'var(--level-red)', it.panelLabel, it.validLabel))}
-                  {item.key === 'airmet' && panelItems.map((it) =>
-                    advisoryRow('airmet', it.mapKey, 'var(--level-amber)', it.panelLabel, it.validLabel))}
-                </div>
+                {panelList(item)}
               </div>
             </PopoverSurface>
           </Popover>
         )
       })}
+      {isMobile && openItem && (
+        <MobileSheet
+          open
+          eyebrow="위험 요약"
+          title={PANEL_TITLE[openItem.key]}
+          onClose={() => onOpenPanel(openItem.key, false)}
+        >
+          <div className={`advisory-pop advisory-pop--${openItem.tone}`}>
+            {panelList(openItem)}
+          </div>
+        </MobileSheet>
+      )}
     </div>
   )
 }

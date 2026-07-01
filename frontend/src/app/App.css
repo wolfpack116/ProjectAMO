@@ -107,7 +107,7 @@ optgroup {
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.95);
     color: var(--accent);
-    font-size: 11px;
+    font-size: var(--fs-200);
     font-weight: 800;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
     cursor: pointer;
@@ -132,7 +132,7 @@ optgroup {
     border-radius: 999px;
     background: var(--accent);
     color: #ffffff;
-    font-size: 11px;
+    font-size: var(--fs-200);
     font-weight: 800;
     line-height: 1;
     border: 1.5px solid #ffffff;
