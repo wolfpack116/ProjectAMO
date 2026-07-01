@@ -181,6 +181,28 @@
   border-color: var(--accent);
 }
 
+/* Fluent SpinButton(순항속도/고도): 필드 경계는 root가 갖고 안쪽 input은 테두리 없이 —
+   커스텀 `.route-check-form input` 테두리가 내부 input에 또 그려져 '네모 안 네모'로 보이던 것
+   교정. 입력+증감화살표가 하나의 박스로 읽히게. */
+.route-check-form .fui-SpinButton {
+  border: 1px solid var(--stroke-1);
+  border-radius: 7px;
+  background: var(--bg-1);
+}
+.route-check-form .fui-SpinButton .fui-SpinButton__input {
+  border: none;
+  border-radius: 0;
+}
+.route-check-form .fui-SpinButton .fui-SpinButton__input:focus {
+  outline: none;
+  border-color: transparent;
+}
+.route-check-form .fui-SpinButton:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  border-color: var(--accent);
+}
+
 /* 데스크톱 비행규칙 토글 → Fluent TabList로 전환, 커스텀 규칙 삭제 */
 
 /* :not([class*="fui-"]) — Fluent 생성 버튼(Button·SpinButton 증감버튼 등)은 자체 레이아웃/테마로
