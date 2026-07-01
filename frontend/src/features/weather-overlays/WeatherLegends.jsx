@@ -173,8 +173,10 @@ function WeatherLegends({
         className={`map-legend-toggle${open ? ' is-open' : ''}`}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
+        aria-label="범례"
+        title="범례"
       >
-        {open ? '범례 ✕' : '범례'}
+        <span className="map-legend-toggle-swatch" aria-hidden="true" />
       </button>
       {open && panel}
     </div>
