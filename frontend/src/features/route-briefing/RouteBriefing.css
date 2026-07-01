@@ -181,23 +181,31 @@
   border-color: var(--accent);
 }
 
-/* Fluent SpinButton(순항속도/고도): 필드 경계는 root가 갖고 안쪽 input은 테두리 없이 —
-   커스텀 `.route-check-form input` 테두리가 내부 input에 또 그려져 '네모 안 네모'로 보이던 것
-   교정. 입력+증감화살표가 하나의 박스로 읽히게. */
-.route-check-form .fui-SpinButton {
+/* Fluent 필드(SpinButton 순항속도·고도 / DatePicker ETD날짜 / TimePicker ETD시간):
+   필드 경계는 root가 갖고 안쪽 input은 테두리 없이 — 커스텀 `.route-check-form input` 테두리가
+   Fluent 내부 input에 또 그려져 '네모 안 네모'로 보이던 것 교정. 입력+아이콘/화살표가 한 박스로. */
+.route-check-form .fui-SpinButton,
+.route-check-form .fui-Input,
+.route-check-form .fui-Combobox {
   border: 1px solid var(--stroke-1);
   border-radius: 7px;
   background: var(--bg-1);
 }
-.route-check-form .fui-SpinButton .fui-SpinButton__input {
+.route-check-form .fui-SpinButton .fui-SpinButton__input,
+.route-check-form .fui-Input .fui-Input__input,
+.route-check-form .fui-Combobox .fui-Combobox__input {
   border: none;
   border-radius: 0;
 }
-.route-check-form .fui-SpinButton .fui-SpinButton__input:focus {
+.route-check-form .fui-SpinButton .fui-SpinButton__input:focus,
+.route-check-form .fui-Input .fui-Input__input:focus,
+.route-check-form .fui-Combobox .fui-Combobox__input:focus {
   outline: none;
   border-color: transparent;
 }
-.route-check-form .fui-SpinButton:focus-within {
+.route-check-form .fui-SpinButton:focus-within,
+.route-check-form .fui-Input:focus-within,
+.route-check-form .fui-Combobox:focus-within {
   outline: 2px solid var(--accent);
   outline-offset: -1px;
   border-color: var(--accent);
