@@ -183,23 +183,20 @@
 
 /* 데스크톱 비행규칙 토글 → Fluent TabList로 전환, 커스텀 규칙 삭제 */
 
-/* :not(.fui-Button) — Fluent 버튼은 자체 테마(헌법 토큰)로 렌더되므로 커스텀 스타일에서 제외 */
+/* :not(.fui-Button) — Fluent 버튼은 자체 테마(헌법 토큰)로 렌더되므로 커스텀 스타일에서 제외.
+   ponytail: 배경/색은 개별 버튼(rb-detail-toggle, apf-row, acp-*, etd-chip 등)이 각자 정의 —
+   여기서는 구조 속성만 공통 리셋. CTA/자동검색은 아래에서 명시적으로 accent 승격. */
 .route-check-form button:not(.fui-Button) {
   box-sizing: border-box;
   height: 36px;
   border: none;
   border-radius: 7px;
-  background: var(--accent);
-  color: #ffffff;
+  background: none;
+  color: inherit;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   transition: none;
-}
-
-.route-check-form button:not(.fui-Button):disabled {
-  background: var(--text-3);
-  cursor: not-allowed;
 }
 
 .route-check-error {
@@ -939,11 +936,18 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   width: 100%;
 }
 
-.route-check-search-button {
+.route-check-form .route-check-search-button {
   min-width: 0;
   padding: 0 8px;
+  background: var(--accent);
+  color: #ffffff;
   font-size: 12px;
   white-space: nowrap;
+}
+
+.route-check-form .route-check-search-button:disabled {
+  background: var(--text-3);
+  cursor: not-allowed;
 }
 
 .route-check-form .route-check-actions .route-check-secondary-button {
@@ -1258,7 +1262,7 @@ button.vfr-waypoint-altitude-pill:focus-visible {
 .rb-procedures { display: grid; gap: 8px; }
 .rb-vfr-note { font-size: 12px; font-weight: 700; color: var(--text-3); padding: 8px; }
 /* Step ② auto-recommend: same handleAutoRecommend as desktop, surfaced as a
-   full-width primary suggestion (inherits the form's solid-blue button) ahead
+   full-width primary suggestion (light-accent, own style below) ahead
    of the manual SID/STAR pickers. */
 .rb-mobile .rb-auto-search {
   width: 100%;
@@ -1362,13 +1366,6 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   justify-content: center;
   gap: 1px;
   padding: 0 10px;
-}
-/* accent 배경으로 채워진 출발/도착 행에서 라벨·플레이스홀더·caret 대비 확보(P6:
-   기본 --text-3 회색은 --accent 위 1.67:1 → AA 미달). 값 텍스트는 이미 흰색. */
-.rb-mobile .rb-route .apf-row .apf-label,
-.rb-mobile .rb-route .apf-row .apf-placeholder,
-.rb-mobile .rb-route .apf-row .apf-caret {
-  color: var(--bg-1);
 }
 /* Keep the row compact when a picker opens — float its airport grid below the
    whole row as a full-width dropdown instead of reflowing to a column. */
