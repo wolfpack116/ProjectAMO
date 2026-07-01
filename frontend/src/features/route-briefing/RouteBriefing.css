@@ -1324,6 +1324,13 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   gap: 1px;
   padding: 0 10px;
 }
+/* accent 배경으로 채워진 출발/도착 행에서 라벨·플레이스홀더·caret 대비 확보(P6:
+   기본 --text-3 회색은 --accent 위 1.67:1 → AA 미달). 값 텍스트는 이미 흰색. */
+.rb-mobile .rb-route .apf-row .apf-label,
+.rb-mobile .rb-route .apf-row .apf-placeholder,
+.rb-mobile .rb-route .apf-row .apf-caret {
+  color: var(--bg-1);
+}
 /* Keep the row compact when a picker opens — float its airport grid below the
    whole row as a full-width dropdown instead of reflowing to a column. */
 .rb-mobile .rb-route .apf-picker {
