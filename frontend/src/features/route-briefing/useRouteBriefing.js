@@ -7,6 +7,8 @@ import { computeEtaIso } from './lib/etaCalc.js'
 import { getLastUsed } from './lib/aircraftProfiles.js'
 import { initialBearingDeg, magneticCourse } from './lib/altitude.js'
 import { buildVerticalProfileRequest } from './lib/verticalProfileRequest.js'
+import { buildAirportStationMarkerModel } from '../map/lib/airportStationModel.js'
+import { FLIGHT_CATEGORY_META } from '../../shared/weather/helpers.js'
 import {
   FIR_EXIT_AIRPORT,
   FIR_IN_AIRPORT,
@@ -31,7 +33,9 @@ export const initialRouteForm = {
 }
 export const DEFAULT_CRUISE_ALTITUDE_FT = 9000
 
-export function useRouteBriefing({ activePanel, airports = [], metarData = null }) {
+const CATEGORY_WORST_ORDER = ['LIFR', 'IFR', 'VFR', 'UNKNOWN']
+
+export function useRouteBriefing({ activePanel, airports = [], metarData = null, warnedAirports = [] }) {
   const [routeForm, setRouteForm] = useState(initialRouteForm)
   const [routeResult, setRouteResult] = useState(null)
   const [routeError, setRouteError] = useState(null)
@@ -724,6 +728,30 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     return magneticCourse(initialBearingDeg(dep.lat, dep.lon, arr.lat, arr.lon))
   }, [airports, routeForm.departureAirport, routeForm.arrivalAirport])
 
+  // 항로 상태 배지: 출/도/교체 공항 중 최악 flight category + 활성 공항경보 여부.
+  const routeStatus = useMemo(() => {
+    const icaos = [routeForm.departureAirport, routeForm.arrivalAirport, alternateAirport].filter(Boolean)
+    if (icaos.length === 0) return null
+
+    let worstCategory = null
+    for (const icao of icaos) {
+      const airport = airports.find((a) => a.icao === icao)
+      const metar = metarData?.airports?.[icao] || null
+      const { flightCategory } = buildAirportStationMarkerModel({ airport, metar })
+      if (worstCategory == null || CATEGORY_WORST_ORDER.indexOf(flightCategory) < CATEGORY_WORST_ORDER.indexOf(worstCategory)) {
+        worstCategory = flightCategory
+      }
+    }
+
+    const warnedIcaos = icaos.filter((icao) => warnedAirports.includes(icao))
+    return {
+      worstCategory,
+      categoryMeta: FLIGHT_CATEGORY_META[worstCategory] || null,
+      warned: warnedIcaos.length > 0,
+      warnedIcaos,
+    }
+  }, [routeForm.departureAirport, routeForm.arrivalAirport, alternateAirport, airports, metarData, warnedAirports])
+
   async function handleGenerateBriefing() {
     const routeGeometry = getCurrentRouteLineString({ routeResult, vfrWaypoints, selectedSid, selectedStar, selectedIap })
     if (!routeGeometry) { setBriefingError('먼저 경로를 검색하세요.'); return }
@@ -806,6 +834,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       visibleSidOptions,
       plannedDistanceNm,
       magCourseDeg,
+      routeStatus,
       canUndoVfr: vfrUndoStack.length > 0,
     },
     actions: {
