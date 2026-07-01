@@ -42,6 +42,7 @@ export const CSS_VARS = {
   '--radius-lg': '6px',
   '--radius-xl': '8px',
   '--radius-circular': '9999px',
+  '--touch-min': '44px',
   '--text-1': '#242424',
   '--text-2': '#424242',
   '--text-3': '#616161',

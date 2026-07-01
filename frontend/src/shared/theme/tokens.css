@@ -48,6 +48,9 @@
   --radius-xl: 8px;
   --radius-circular: 9999px;
 
+  /* 터치 (Apple HIG 최소 터치 타깃) */
+  --touch-min: 44px;
+
   /* 중립 (Fluent 2 grey, 라이트) */
   --text-1: #242424;
   --text-2: #424242;
