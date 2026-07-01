@@ -142,3 +142,18 @@
     min-height: 44px;
   }
 }
+
+/* 모바일: 상단 상태 칩은 데스크톱 크기가 과함 — 컴팩트하게(폰트·간격·높이 축소).
+   상태 표시용이라 44px보다 작아도 탭 가능. 팝오버 행은 44px 유지(가독·터치). */
+@media (max-width: 719px) {
+  .advisory-badge-bar .advisory-chip {
+    min-height: 32px;
+    gap: var(--space-xs);
+    font-size: var(--fs-200);
+    padding-left: var(--space-s);
+    padding-right: var(--space-s);
+  }
+  .advisory-badge-bar .advisory-chip .advisory-chip-caret {
+    font-size: var(--fs-100);
+  }
+}

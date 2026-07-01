@@ -40,6 +40,18 @@
   display: inline-flex;
 }
 
+/* 활성 탭: 아이콘 뒤 accent 알약(강한 선택 표시) + accent 색. 색만으론 약해서 배경 추가. */
+.mobile-task-btn.is-active .mobile-task-icon::before {
+  content: '';
+  position: absolute;
+  inset: -5px -16px;
+  border-radius: var(--radius-circular);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.mobile-task-btn.is-active .mobile-task-label {
+  font-weight: var(--fw-bold);
+}
+
 .mobile-task-dot {
   position: absolute;
   top: -2px;
