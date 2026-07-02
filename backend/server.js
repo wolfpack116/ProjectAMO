@@ -315,6 +315,7 @@ const SNAPSHOT_SOURCES = [
   { keys: ['groundOverview', 'ground_overview'], files: [snapshotMetaLatest('ground_overview')], build: () => buildHashEntry('ground_overview') },
   { keys: ['environment'], files: [snapshotMetaLatest('environment')], build: () => buildHashEntry('environment') },
   { keys: ['airportInfo'], files: [snapshotMetaLatest('airport_info')], build: () => buildHashEntry('airport_info') },
+  { keys: ['takeoffFcst', 'takeoff_fcst'], files: [snapshotMetaLatest('takeoff_fcst')], build: () => buildHashEntry('takeoff_fcst') },
   { keys: ['echoMeta', 'echo'], files: [snapshotMetaFile('radar', 'echo_meta.json')], build: () => buildFrameEntry(snapshotMetaFile('radar', 'echo_meta.json')) },
   { keys: ['satMeta', 'satellite'], files: [snapshotMetaFile('satellite', 'sat_meta.json')], build: () => buildFrameEntry(snapshotMetaFile('satellite', 'sat_meta.json')) },
   // ponytail: sigwx 오버레이는 파일 경로가 tmfc 동적 → 정적 files 없음(5s TTL로 커버). 정적화는 필요할 때.
@@ -514,6 +515,7 @@ app.get('/api/airmet', (_, res) => sendLatest(res, 'airmet'))
 app.get('/api/sigwx-low', (_, res) => sendLatest(res, 'sigwx_low'))
 app.get('/api/lightning', (_, res) => sendLatest(res, 'lightning'))
 app.get('/api/amos', (_, res) => sendLatest(res, 'amos'))
+app.get('/api/takeoff-fcst', (_, res) => sendLatest(res, 'takeoff_fcst'))
 // ADS-B is collected on demand: only refresh adsb.lol when a viewer requests it and
 // the snapshot is stale. No viewers -> no upstream calls. Cold start waits for the fetch.
 const ADSB_REFRESH_MS = 5 * 60 * 1000
@@ -777,6 +779,7 @@ app.post('/api/route-briefing', (req, res) => {
       airmet: store.getCached('airmet'),
       warning: store.getCached('warning'),
       amos: store.getCached('amos'),
+      takeoff_fcst: store.getCached('takeoff_fcst'),
     }
     const briefing = composeBriefing(body, data)
 

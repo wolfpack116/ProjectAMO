@@ -73,9 +73,11 @@ export function composeBriefing(request, data) {
   })
 
   const amosByIcao = data?.amos?.airports ?? {}
+  const takeoffByIcao = data?.takeoff_fcst?.airports ?? {}
   const airports = airportRoles(request).map(({ role, icao }) => ({
     ...summarizeAirport(role, metarByIcao[icao] ?? { header: { icao } }),
     amos: amosByIcao[icao] ?? null, // ② 도착 행 확장(AMOS 지상실황) — 프론트에서 buildAmosConsoleModel 재사용
+    takeoffFcst: takeoffByIcao[icao] ?? null, // ② 출발 행 확장(이륙예보 매시 wd/ws/ta/qnh)
   }))
 
   const banner = buildBanner(airports)

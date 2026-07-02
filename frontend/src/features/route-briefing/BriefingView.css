@@ -75,6 +75,9 @@
 .bv-amos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-s) var(--space-xxl); font-size: var(--fs-300); }
 .bv-amos-grid > div { display: flex; justify-content: space-between; gap: var(--space-s); }
 .bv-amos-raw { margin-top: var(--space-s); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--fs-200); color: var(--text-3); background: var(--bg-3); padding: var(--space-s) var(--space-mnudge); border-radius: var(--radius-md); }
+.bv-takeoff { width: 100%; border-collapse: collapse; font-size: var(--fs-300); font-variant-numeric: tabular-nums; }
+.bv-takeoff th { text-align: left; font-size: var(--fs-200); font-weight: var(--fw-regular); color: var(--text-3); padding: var(--space-xs) var(--space-snudge); }
+.bv-takeoff td { padding: var(--space-xs) var(--space-snudge); border-top: 0.5px solid var(--stroke-2); }
 .bv-current-matrix .mut { color: var(--text-3); }
 .bv-current-matrix .red { color: var(--level-red); font-weight: var(--fw-semibold); }
 

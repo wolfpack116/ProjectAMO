@@ -55,6 +55,7 @@ function isSuccessByType(type, resultCode, resultMsg) {
   if (resultCode === '00') return true
   if (type === 'warning' && resultCode === '03' && /NO_DATA/i.test(resultMsg || '')) return true
   if (type === 'airport_info' && resultCode === '03') return true
+  if (type === 'takeoff_fcst' && resultCode === '03') return true // 발표 없음(빈 자료)도 정상 취급
   return false
 }
 
@@ -139,6 +140,24 @@ export async function fetchAirportInfo(icao, baseDate, baseTime, options = {}) {
   return fetchTextWithRetries(url, 'airport_info', options)
 }
 
+// 이륙예보(AirInfoService/getAirInfo) — fctm=발표시각(KST YYYYMMDDHHmm), icaoCode별 매시 wd/ws/ta/qnh.
+export function buildTakeoffFcstUrl(icao, fctm) {
+  const params = new URLSearchParams({
+    numOfRows: 24,
+    pageNo: 1,
+    dataType: 'XML',
+    fctm,
+    icaoCode: icao,
+    authKey: api.auth_key,
+  })
+  return `${api.base_url}${api.endpoints.takeoff_fcst}?${params.toString()}`
+}
+
+export async function fetchTakeoffFcst(icao, fctm, options = {}) {
+  const url = buildTakeoffFcstUrl(icao, fctm)
+  return fetchTextWithRetries(url, 'takeoff_fcst', options)
+}
+
 export function buildKimGridUrl({
   data,
   name,
@@ -188,9 +207,11 @@ export default {
   fetch: fetchApi,
   fetchSigwxLow,
   fetchAirportInfo,
+  fetchTakeoffFcst,
   fetchKimGrid,
   buildUrl,
   buildSigwxLowUrl,
   buildAirportInfoUrl,
+  buildTakeoffFcstUrl,
   buildKimGridUrl,
 }

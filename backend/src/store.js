@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import config from './config.js'
 
-const TYPES = ['metar', 'taf', 'warning', 'lightning', 'sigmet', 'airmet', 'sigwx_low', 'amos', 'adsb', 'kim_surface_wind', 'ground_forecast', 'ground_overview', 'environment', 'airport_info', 'flight_category_overlay']
+const TYPES = ['metar', 'taf', 'warning', 'lightning', 'sigmet', 'airmet', 'sigwx_low', 'amos', 'adsb', 'kim_surface_wind', 'ground_forecast', 'ground_overview', 'environment', 'airport_info', 'takeoff_fcst', 'flight_category_overlay']
 const FILE_PREFIX = {
   metar: 'METAR',
   taf: 'TAF',
@@ -18,6 +18,7 @@ const FILE_PREFIX = {
   ground_overview: 'GROUND_OVERVIEW',
   environment: 'ENVIRONMENT',
   airport_info: 'AIRPORT_INFO',
+  takeoff_fcst: 'TAKEOFF_FCST',
   flight_category_overlay: 'FLIGHT_CATEGORY',
 }
 
@@ -36,6 +37,7 @@ const cache = {
   ground_overview: { hash: null, prev_data: null },
   environment: { hash: null, prev_data: null },
   airport_info: { hash: null, prev_data: null },
+  takeoff_fcst: { hash: null, prev_data: null },
   flight_category_overlay: { hash: null, prev_data: null },
 }
 

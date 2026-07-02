@@ -228,10 +228,37 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   // ② 도착/교체 행 확장 = AMOS 지상실황(운영 성분). 출발 행 = 이륙예보(소스 연동 예정).
   const amosExpansion = (a) => {
     if (a.role === 'departure') {
+      const fc = a.takeoffFcst?.forecasts ?? []
+      if (fc.length === 0) {
+        return (
+          <div className="bv-amos">
+            <div className="bv-amos-head"><b>이륙예보 ({a.icao})</b><Caption1 style={{ color: 'var(--text-3)' }}>발표 없음</Caption1></div>
+            <Caption1 style={{ color: 'var(--text-3)' }}>ETD 전후 이륙예보(바람·기온·QNH)가 아직 없습니다.</Caption1>
+          </div>
+        )
+      }
+      const etdMs = Date.parse(meta.etd)
+      let etdIdx = -1
+      let best = Infinity
+      fc.forEach((f, i) => { const d = Math.abs(Date.parse(f.time) - etdMs); if (Number.isFinite(d) && d < best) { best = d; etdIdx = i } })
+      const fmtW = (f) => (Number.isFinite(f.windDir) && Number.isFinite(f.windSpeedKt)
+        ? `${String(f.windDir).padStart(3, '0')}/${String(f.windSpeedKt).padStart(2, '0')}kt` : '-')
       return (
         <div className="bv-amos">
-          <div className="bv-amos-head"><b>이륙예보 ({a.icao})</b><Caption1 style={{ color: 'var(--text-3)' }}>KMA 이륙예보 API 연동 예정 · 준비중</Caption1></div>
-          <Caption1 style={{ color: 'var(--text-3)' }}>ETD 전후 바람·기온·QNH(이륙 성능용) — 소스 연동 후 표시.</Caption1>
+          <div className="bv-amos-head"><b>이륙예보 ({a.icao})</b><Caption1 style={{ color: 'var(--text-3)' }}>매시 · KMA (이륙 성능용)</Caption1></div>
+          <table className="bv-takeoff">
+            <thead><tr><th>시각</th><th>풍향/풍속</th><th>기온</th><th>QNH</th></tr></thead>
+            <tbody>
+              {fc.map((f, i) => (
+                <tr key={f.tmFc} className={i === etdIdx ? 'bv-dest-row-hl' : undefined}>
+                  <td>{formatBriefingTime(f.time, tz)}{i === etdIdx ? <b style={{ color: 'var(--accent)' }}> ◀ETD</b> : ''}</td>
+                  <td>{fmtW(f)}</td>
+                  <td>{f.tempC != null ? `${f.tempC}℃` : '-'}</td>
+                  <td>{f.qnhHpa ?? '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )
     }

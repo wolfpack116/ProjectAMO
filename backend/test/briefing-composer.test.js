@@ -47,6 +47,16 @@ test('banner: worst airport (3-level) + per-airport chain', () => {
   assert.deepEqual(b.banner.airports.map((a) => a.category), ['VFR', 'IFR', 'VFR'])
 })
 
+test('takeoffFcst attaches to airports from data.takeoff_fcst', () => {
+  const withTk = { ...data, takeoff_fcst: { airports: { RKSI: { icao: 'RKSI', forecasts: [{ time: '2026-06-26T09:00:00Z', windDir: 270, windSpeedKt: 12, tempC: 18, qnhHpa: 1013 }] } } } }
+  const b = composeBriefing(request, withTk)
+  const dep = b.sections.current.airports.find((a) => a.role === 'departure')
+  assert.equal(dep.takeoffFcst.forecasts.length, 1)
+  assert.equal(dep.takeoffFcst.forecasts[0].qnhHpa, 1013)
+  const arr = b.sections.current.airports.find((a) => a.role === 'arrival')
+  assert.equal(arr.takeoffFcst, null) // RKPC는 이륙예보 없음
+})
+
 test('airport warnings merge into adverse (scope + level), sorted, not in enroute encounters', () => {
   const withWarn = {
     ...data,
