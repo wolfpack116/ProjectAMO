@@ -775,6 +775,8 @@ app.post('/api/route-briefing', (req, res) => {
       taf: store.getCached('taf'),
       sigmet: store.getCached('sigmet'),
       airmet: store.getCached('airmet'),
+      warning: store.getCached('warning'),
+      amos: store.getCached('amos'),
     }
     const briefing = composeBriefing(body, data)
 

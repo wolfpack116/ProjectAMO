@@ -1,4 +1,14 @@
-import { fmtKst } from './formatters.js'
+// shared/*는 features/*를 import 못 하므로(§Architecture), airport-panel formatters의
+// fmtKst를 여기 인라인한다. AMOS 관측시각은 대개 compact(YYYYMMDDHHMM)라 이 fallback은 드물게만 탄다.
+function fmtKst(iso, tz = 'KST') {
+  if (!iso) return '—'
+  try {
+    const d = new Date(iso)
+    if (tz === 'UTC') return d.toISOString().replace('T', ' ').slice(0, 16) + ' UTC'
+    const kst = new Date(d.getTime() + 9 * 3600 * 1000)
+    return kst.toISOString().replace('T', ' ').slice(0, 16) + ' KST'
+  } catch { return iso }
+}
 
 const KT_PER_MS = 1.943844
 const HPA_TO_INHG = 0.0295299830714
