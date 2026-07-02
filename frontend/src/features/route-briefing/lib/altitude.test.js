@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { formatAltitude, stepAltitude, vfrCruiseHint, initialBearingDeg } from './altitude.js'
+import { formatAltitude, stepAltitude, vfrCruiseHint, initialBearingDeg, nearestVfrCruiseAltitude } from './altitude.js'
 
 test('formatAltitude shows feet below transition, FL at/above', () => {
   assert.equal(formatAltitude(9000), '9,000 ft')
@@ -24,4 +24,17 @@ test('vfrCruiseHint picks odd/even by magnetic course', () => {
 test('initialBearingDeg is ~south for RKSS -> RKPC', () => {
   const b = initialBearingDeg(37.55, 126.79, 33.51, 126.49)
   assert.ok(b > 175 && b < 190, `expected ~south, got ${b}`)
+})
+
+test('nearestVfrCruiseAltitude snaps to direction-correct odd/even+500', () => {
+  // 동쪽(90°): 홀수천+500. 9,000 → 9,500
+  assert.equal(nearestVfrCruiseAltitude(9000, 90), 9500)
+  // 서쪽(270°): 짝수천+500. 9,000 → 8,500
+  assert.equal(nearestVfrCruiseAltitude(9000, 270), 8500)
+  // 이미 준수하면 그대로
+  assert.equal(nearestVfrCruiseAltitude(9500, 90), 9500)
+  assert.equal(nearestVfrCruiseAltitude(8500, 270), 8500)
+  // 5,000 동쪽 → 5,500 / 서쪽 → 4,500
+  assert.equal(nearestVfrCruiseAltitude(5000, 90), 5500)
+  assert.equal(nearestVfrCruiseAltitude(5000, 270), 4500)
 })

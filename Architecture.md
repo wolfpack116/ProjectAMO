@@ -117,7 +117,10 @@ ProjectAMO/
 - `frontend/src/features/route-briefing/VerticalProfileWindow.jsx` -> vertical profile modal shell.
 - `frontend/src/features/route-briefing/RouteBriefing.css` -> route panel, VFR waypoint, and vertical profile styles.
 - `frontend/src/features/route-briefing/VerticalProfileChart.jsx` -> SVG route vertical profile chart.
-- `frontend/src/features/route-briefing/BriefingView.jsx` -> pre-flight briefing view (summary board + ①adverse/③current/④enroute/⑤destination sections); ④ shows a hazard ribbon (moderate+) plus an inline `VerticalProfileChart` cross-section (icing/turbulence bands + planned altitude); overlays the map within the route-check panel.
+- `frontend/src/features/route-briefing/BriefingView.jsx` -> pre-flight briefing view: Go/No-go 배너(`BriefingBanner`) + ① 위험 다이제스트(2줄·색바·아이콘·정렬·공항경보 통합) + ② 현재 비교 매트릭스(공항=행, 범주 앞, 바람kt/시정km, 관측시각+SPECI) + ③ 노선(hazard ribbon + `VerticalProfileChart` 단면도 + 상층바람 원자료 접기 `buildRawWindsTable`) + ④ 목적지(카테고리 타임라인 막대 + 기간표 + 교체 병렬 + 원문 재구성 접기); 범주 표시는 3레벨 fold(MVFR→IFR). 지도를 route-check 패널 위에 오버레이.
+- `frontend/src/features/route-briefing/BriefingBanner.jsx` -> Go/No-go 배너 — 최악 카테고리(3레벨)+공항+이유(운고/시정)+역할 체인. 정상=무채/연녹, 위험만 솔리드(§2.2). 데이터는 `briefing.banner`.
+- `frontend/src/features/route-briefing/BriefingSynopsis.jsx` -> ③ 개황 일기도 뷰어 — 종류 칩(지상/상층/상세바람/단열선도/연직시계열)→기압면 칩→시간 슬라이더→차트+라이트박스+자동요약+지도토글. ⚠ 이미지는 `public/briefing-charts/` KMA **샘플**(실시간 fetch·아카이빙 백엔드 파이프라인 미구현 — "샘플·실시간 연동 예정" 라벨). 내부망 종류(상세바람 등 기압면)는 "준비중" 비활성.
+- `frontend/src/features/route-briefing/lib/rawWindsModel.js` -> ④ 상층바람·기온 원자료 표 순수 모델: `crossSection.levels`(T+u/v, m/s)×`verticalProfile.markers`(웨이포인트) → dir/speed·기온 셀 + 계획고도 최근접 층 하이라이트(`altitudeAtDistance`).
 - `frontend/src/features/route-briefing/lib/etaCalc.js` -> ETD + route distance / cruise speed -> ETA helper.
 - `frontend/src/features/route-briefing/lib/hazardLayers.js` -> 위험현상→지도 레이어 **룰북**(`RULEBOOK` 테이블, 브리핑 도메인). 경로상 위험에서 켤 MET 레이어 id 집합 산출(뇌우→radar+lightning+sigmet, 태풍→radar+sigmet, 착빙·난류 등). 새 규칙은 RULEBOOK에 한 줄 추가. BriefingView가 "지도에 관련 레이어 보기" → `LayerToggleChips`로 노출(토글=MapView `toggleMet`). METAR/TAF/경보는 레이어 아님(제외). 반환 id는 MET_LAYERS와 `hazardLayers.test.js`로 동기화.
 - `frontend/src/features/route-briefing/lib/routeBriefingModel.js` -> pure route briefing view/model helpers.
@@ -139,7 +142,7 @@ ProjectAMO/
 - `frontend/src/features/airport-panel/lib/currentWeatherViewModel.js` -> current-weather tab warning, compact METAR, RVR, and next-6-hour TAF view-model helpers.
 - `frontend/src/features/airport-panel/lib/metarViewModel.js` -> METAR display model builder.
 - `frontend/src/features/airport-panel/lib/tafViewModel.js` -> TAF display model builder.
-- `frontend/src/features/airport-panel/lib/amosViewModel.js` -> AMOS display model helpers.
+- `frontend/src/shared/weather/amosViewModel.js` -> AMOS display model helpers (`buildAmosConsoleModel`: 사용활주로·정풍/측풍 성분·RVR·운고·QNH·기온). `airport-panel` AmosTab과 route-briefing ② 확장이 공유(그래서 `shared/`; fmtKst 인라인).
 - `frontend/src/shared/ui/WeatherIcon.jsx` -> weather icon renderer.
 - `frontend/src/shared/weather/helpers.js` -> flight category, wind, humidity, and related weather helpers.
 - `frontend/src/shared/weather/visual-mapper.js` -> weather code-to-Korean display mapping.
@@ -152,16 +155,17 @@ ProjectAMO/
 - `backend/src/briefing/route-axis.js` -> route LineString resampling, cumulative distance, and bearing helpers.
 - `backend/src/briefing/profile-composer.js` -> route-aware planned altitude profile, markers, and segment metadata composition.
 - `backend/src/briefing/vertical-profile.js` -> vertical profile response composition.
-- `backend/src/briefing/briefing-composer.js` -> assembles the AIM-ordered route-briefing payload (summary board + adverse/current/destination sections) from injected METAR/TAF/SIGMET/AIRMET cache.
-- `backend/src/briefing/flight-category.js` -> visibility/ceiling -> VFR/MVFR/IFR/LIFR classifier and category-to-level color mapping.
+- `backend/src/briefing/briefing-composer.js` -> assembles the AIM-ordered route-briefing payload (Go/No-go `banner` + adverse/current/enroute/destination) from injected METAR/TAF/SIGMET/AIRMET/warning cache; folds airport warnings (`AIRPORT_WARNINGS`) into adverse as airport-scope hazards.
+- `backend/src/briefing/flight-category.js` -> visibility/ceiling -> VFR/MVFR/IFR/LIFR classifier, `categoryDetail`(최악+한계요인 운고/시정), `to3Level`(MVFR→IFR 표시 fold), category-to-level color mapping.
 - `backend/src/briefing/geo-time-match.js` -> point-in-polygon, route∩polygon (horizontal), route∩polygon distance interval (`routeIntervalInGeometry`), and time-window overlap helpers for hazard matching.
 - `backend/src/briefing/planned-altitude.js` -> planned climb/cruise/descent altitude-by-distance model and advisory FL band -> ft conversion.
 - `backend/src/briefing/hazard-matcher.js` -> classifies a hazard as encounter `on`/`nearby` from planned altitude vs FL band (3D vertical match).
 - `backend/src/briefing/enroute-model.js` -> samples KIM/KTG cross-section at the planned altitude and emits moderate+ icing/turbulence intervals (the ④ enroute model summary).
 - `backend/src/briefing/enroute-cross-section.js` -> shared KIM pressure-level + KTG low-altitude cross-section loader (`loadRouteCrossSection`); used by both `POST /api/briefing/cross-section` and the route-briefing enroute model.
-- `backend/src/briefing/airport-summary.js` -> single-airport METAR -> flight category + threshold-flagged display fields.
-- `backend/src/briefing/taf-window.js` -> destination TAF selection at ETA and 1-2-3 alternate-required evaluation.
-- `backend/src/briefing/hazard-section.js` -> SIGMET/AIRMET adverse-hazard section with 3D matching (route∩time∩altitude); tags each hazard encounter `on`/`nearby` and applies a conservative level (SIGMET red unless confirmed off-altitude; AIRMET amber). Also feeds the briefing ④ enroute section.
+- `backend/src/briefing/airport-summary.js` -> single-airport METAR -> flight category + threshold-flagged display fields + 원문 METAR 재구성(IWXXM라 원본 없음 → display 토큰으로 TAC 재조립, CAVOK 처리).
+- `backend/src/processors/takeoff-forecast-processor.js` + `parsers/takeoff-forecast-parser.js` -> KMA 이륙예보(`AirInfoService/getAirInfo`, fctm=KST 정시) 매시 수집(airport-info 패턴 복제, 같은 apihub·authKey). store 타입 `takeoff_fcst`(index 스케줄·초기수집·snapshot-meta 등록), 브리핑 `data`에 주입 → composer가 공항별 `takeoffFcst`로 실어 ② 출발 행 확장. 파서가 tmFc(KST)→UTC ISO, qnh(inHg×100)→hPa 변환.
+- `backend/src/briefing/taf-window.js` -> destination TAF selection at ETA, 1-2-3 alternate-required eval, and `buildDestination` rich model (카테고리 타임라인 + base/변화군 기간표 + 교체 병렬 + 원문 재구성). Needs `taf.base`/`taf.change_groups` from `taf-parser`.
+- `backend/src/briefing/hazard-section.js` -> SIGMET/AIRMET adverse-hazard section with 3D matching (route∩time∩altitude); tags each hazard encounter `on`/`nearby`, attaches per-hazard `level` (SIGMET red unless confirmed off-altitude; AIRMET amber), merges caller-supplied `airportWarnings`(공항경보), and sorts severity-first (조우>주변, red>amber). Also feeds the briefing ③ enroute section.
 - `backend/server.js` -> exposes `POST /api/route-briefing` (composes briefing from `store.getCached` METAR/TAF/SIGMET/AIRMET).
 - `backend/src/terrain/terrain-cache.js` -> terrain tile metadata lookup and lazy tile cache.
 - `backend/src/terrain/terrain-sampler.js` -> terrain sampling along route-axis samples.

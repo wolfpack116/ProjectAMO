@@ -46,6 +46,7 @@ export const api = {
     sigmet: '/AmmIwxxmService/getSigmet',
     airmet: '/AmmIwxxmService/getAirmet',
     airport_info: '/AirPortService/getAirPort',
+    takeoff_fcst: '/AirInfoService/getAirInfo',
   },
   auth_key: process.env.KMA_AUTH_KEY || process.env.API_AUTH_KEY || '',
   airkorea_key: process.env.AIRKOREA_API_KEY || '',
@@ -216,6 +217,7 @@ export const schedule = {
   ground_forecast_interval: '30 6,11,18,23 * * *',
   environment_interval: '10 * * * *',
   airport_info_interval: '0,30 6,17 * * *',
+  takeoff_fcst_interval: '8 * * * *', // 매시(KST) — 이륙예보는 정시 발표
   flight_category_interval: '5 * * * *',
 }
 

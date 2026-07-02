@@ -16,12 +16,13 @@ import satelliteProcessor from './processors/satellite-processor.js'
 import groundForecastProcessor from './processors/ground-forecast-processor.js'
 import environmentProcessor from './processors/environment-processor.js'
 import airportInfoProcessor from './processors/airport-info-processor.js'
+import takeoffForecastProcessor from './processors/takeoff-forecast-processor.js'
 import ktgProcessor from './processors/ktg-processor.js'
 import flightCategoryProcessor from './processors/flight-category-processor.js'
 
 // ADS-B is collected on demand by the /api/adsb route (only when a viewer is watching),
 // so it is intentionally not scheduled here.
-const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, kim_surface_wind: false, ktg: false, satellite: false, ground_forecast: false, environment: false, airport_info: false, flight_category: false };
+const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, kim_surface_wind: false, ktg: false, satellite: false, ground_forecast: false, environment: false, airport_info: false, takeoff_fcst: false, flight_category: false };
 const KIM_NWP_CRON_OPTIONS = { timezone: 'Etc/UTC' }
 const AIRPORT_INFO_CRON_OPTIONS = { timezone: 'Asia/Seoul' }
 
@@ -60,6 +61,14 @@ function scheduleAirportInfoJob(scheduler = cron) {
   )
 }
 
+function scheduleTakeoffFcstJob(scheduler = cron) {
+  return scheduler.schedule(
+    config.schedule.takeoff_fcst_interval,
+    () => runWithLock("takeoff_fcst", takeoffForecastProcessor.process),
+    AIRPORT_INFO_CRON_OPTIONS, // fctm이 KST 기반이라 Asia/Seoul
+  )
+}
+
 function buildInitialCollectionJobs({ includeKimNwp = config.kim_nwp?.collect_on_startup !== false } = {}) {
   const jobs = [
     ["metar", metarProcessor.processAll],
@@ -75,6 +84,7 @@ function buildInitialCollectionJobs({ includeKimNwp = config.kim_nwp?.collect_on
     ["ground_forecast", groundForecastProcessor.process],
     ["environment", environmentProcessor.process],
     ["airport_info", airportInfoProcessor.process],
+    ["takeoff_fcst", takeoffForecastProcessor.process],
   ]
   if (includeKimNwp) jobs.splice(10, 0, ["kim_surface_wind", kimSurfaceWindProcessor.process])
   if (config.ktg?.collect_on_startup !== false) jobs.push(["ktg", ktgProcessor.process])
@@ -104,6 +114,7 @@ async function main() {
   cron.schedule(config.schedule.ground_forecast_interval, () => runWithLock("ground_forecast", groundForecastProcessor.process));
   cron.schedule(config.schedule.environment_interval, () => runWithLock("environment", environmentProcessor.process));
   scheduleAirportInfoJob();
+  scheduleTakeoffFcstJob();
   cron.schedule(config.schedule.flight_category_interval, () => runWithLock('flight_category', flightCategoryProcessor.process))
 
   // 서버 시작 직후 1회 즉시 수집
@@ -122,5 +133,5 @@ if (process.argv[1] && (__filename === process.argv[1] || __filename.endsWith(pr
   });
 }
 
-export { AIRPORT_INFO_CRON_OPTIONS, KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleAirportInfoJob, scheduleKimNwpJob }
-export default { AIRPORT_INFO_CRON_OPTIONS, KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleAirportInfoJob, scheduleKimNwpJob }
+export { AIRPORT_INFO_CRON_OPTIONS, KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleAirportInfoJob, scheduleTakeoffFcstJob, scheduleKimNwpJob }
+export default { AIRPORT_INFO_CRON_OPTIONS, KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleAirportInfoJob, scheduleTakeoffFcstJob, scheduleKimNwpJob }

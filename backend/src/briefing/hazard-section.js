@@ -38,16 +38,22 @@ function hazardLevel(h) {
 }
 const LEVEL_RANK = { green: 0, amber: 1, red: 2 }
 
-export function buildHazardSection({ sigmet, airmet, axis, etd, eta, cruiseAltitudeFt }) {
+// 심각도순 정렬: 조우(on) > 주변(nearby), 그다음 red > amber. 제일 위험이 맨 위(§5-A).
+const ENCOUNTER_RANK = { on: 1, nearby: 0 }
+function severityScore(h) {
+  return (ENCOUNTER_RANK[h.encounter] ?? 0) * 10 + (LEVEL_RANK[h.level] ?? 0)
+}
+
+// airportWarnings: 이미 hazard 유사 shape로 변환된 공항경보(경로 지오 없음, level 포함).
+export function buildHazardSection({ sigmet, airmet, axis, etd, eta, cruiseAltitudeFt, airportWarnings = [] }) {
   const ctx = { axis, etd, eta, cruiseAltitudeFt }
   const hazards = [
-    ...matchItems(sigmet, 'SIGMET', ctx),
-    ...matchItems(airmet, 'AIRMET', ctx),
+    ...matchItems(sigmet, 'SIGMET', ctx).map((h) => ({ ...h, level: hazardLevel(h) })),
+    ...matchItems(airmet, 'AIRMET', ctx).map((h) => ({ ...h, level: hazardLevel(h) })),
+    ...airportWarnings,
   ]
-  const level = hazards.reduce(
-    (acc, h) => (LEVEL_RANK[hazardLevel(h)] > LEVEL_RANK[acc] ? hazardLevel(h) : acc),
-    'green',
-  )
+  hazards.sort((a, b) => severityScore(b) - severityScore(a))
+  const level = hazards.reduce((acc, h) => (LEVEL_RANK[h.level] > LEVEL_RANK[acc] ? h.level : acc), 'green')
   return { level, hazards }
 }
 

@@ -10,10 +10,30 @@ export function categoryFor({ visibilityM, ceilingFt }) {
   return order[byVis] <= order[byCeil] ? byVis : byCeil
 }
 
+// categoryFor와 같은 임계값이되, 최악 범주 + 한계요인(운고/시정)까지 돌려준다.
+// 배너 헤드라인이 "IFR인 이유"를 명시하는 데 쓴다.
+export function categoryDetail({ visibilityM, ceilingFt }) {
+  const vis = Number.isFinite(visibilityM) ? visibilityM : Infinity
+  const ceil = Number.isFinite(ceilingFt) ? ceilingFt : Infinity
+
+  const byVis = vis < 1600 ? 'LIFR' : vis < 5000 ? 'IFR' : vis <= 8000 ? 'MVFR' : 'VFR'
+  const byCeil = ceil < 500 ? 'LIFR' : ceil < 1000 ? 'IFR' : ceil < 3000 ? 'MVFR' : 'VFR'
+
+  const order = { LIFR: 0, IFR: 1, MVFR: 2, VFR: 3 }
+  const category = order[byVis] <= order[byCeil] ? byVis : byCeil
+  const driver = byVis === byCeil ? 'both' : order[byVis] < order[byCeil] ? 'visibility' : 'ceiling'
+  return { category, driver }
+}
+
+// 표시용 3레벨 fold: MVFR을 IFR로 접는다(배너·②·⑥ 표시 일관, 내부 계산은 4등급 유지).
+export function to3Level(category) {
+  return category === 'MVFR' ? 'IFR' : category
+}
+
 export function levelForCategory(category) {
   if (category === 'VFR') return 'green'
   if (category === 'MVFR') return 'amber'
   return 'red' // IFR, LIFR
 }
 
-export default { categoryFor, levelForCategory }
+export default { categoryFor, categoryDetail, to3Level, levelForCategory }

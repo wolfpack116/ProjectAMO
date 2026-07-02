@@ -411,6 +411,47 @@
   box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
+/* leg(경유점 사이) 정보 — 구간 최고 지형고도 + 반원고도 힌트. 정상=차분(무채, §2.2). */
+.vfr-leg-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 10px;
+  padding: 0 2px 2px 30px; /* 핸들 폭만큼 들여써 어느 구간인지 시각적으로 묶음 */
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--text-3);
+}
+
+.vfr-leg-terrain strong {
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+/* 반원고도 권장 = 누르면 그 고도로 맞춤(칩 버튼). 준수 상태(is-static)는 차분한 텍스트. */
+.vfr-leg-hint {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--accent);
+  border-radius: 5px;
+  padding: 1px 7px;
+  font-size: 11px;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.vfr-leg-hint:hover {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.vfr-leg-hint.is-static {
+  border: none;
+  background: none;
+  color: var(--text-3);
+  cursor: default;
+  padding: 1px 0;
+}
+
 .vfr-waypoint-handle {
   width: 22px;
   height: 28px;

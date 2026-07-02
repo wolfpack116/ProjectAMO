@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect, useLayoutEffect } from 'react'
+import { Fragment, useState, useRef, useMemo, useEffect, useLayoutEffect } from 'react'
 import { KNOWN_AIRPORTS } from './lib/procedureData.js'
 import { calcVfrDistance } from './lib/routePreview.js'
 import {
@@ -207,6 +207,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     verticalProfileStale,
     editingVfrAltitudeIndex,
     vfrWaypoints,
+    vfrLegs = [],
     navpointsById,
     hoveredWpInfo,
     starOptions,
@@ -435,9 +436,9 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           const isEditing = !wp.fixed && editingVfrAltitudeIndex === index
           const endpointLabel = wp.fixed ? (index === 0 ? '출발' : '도착') : null
           return (
+            <Fragment key={wp.uid ?? wp.id}>
             <div
               className={`vfr-waypoint-altitude-row${wp.fixed ? ' is-fixed' : ''}${dragIndex === index ? ' is-dragging' : ''}${dragOverIndex === index && dragIndex !== index ? ' is-drop-target' : ''}`}
-              key={wp.uid ?? wp.id}
               data-flip-key={wp.uid ?? wp.id}
               draggable={!wp.fixed}
               onDragStart={!wp.fixed ? () => { dragFromRef.current = index; beginVfrReorder(); setDragIndex(index) } : undefined}
@@ -510,6 +511,28 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
                 ><Trash2 size={16} /></button>
               ) : <span className="vfr-waypoint-delete-placeholder" aria-hidden="true" />}
             </div>
+            {index < vfrWaypoints.length - 1 && vfrLegs[index] && (
+              <div className="vfr-leg-info">
+                <span className="vfr-leg-terrain">{'최고지형 '}
+                  <strong>{Number.isFinite(vfrLegs[index].maxTerrainFt) ? `${vfrLegs[index].maxTerrainFt.toLocaleString()} ft` : '—'}</strong>
+                </span>
+                {vfrLegs[index].targetEditable && vfrLegs[index].recommendedFt != null && (
+                  vfrLegs[index].compliant ? (
+                    <span className="vfr-leg-hint is-static">{'VFR 고도 준수 ✓'}</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="vfr-leg-hint"
+                      onClick={() => updateVfrWaypointAltitude(vfrLegs[index].targetIndex, vfrLegs[index].recommendedFt)}
+                      title={`${vfrLegs[index].eastbound ? '동' : '서'}쪽 방향 · 눌러서 이 고도로 맞추기`}
+                    >
+                      {`VFR 권장 ${vfrLegs[index].recommendedFt.toLocaleString()} ft로 맞추기`}
+                    </button>
+                  )
+                )}
+              </div>
+            )}
+            </Fragment>
           )
         })}
       </div>

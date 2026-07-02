@@ -39,6 +39,52 @@ test('summary board has hazard + 3 airports', () => {
   assert.equal(b.summary.find((s) => s.key === 'hazard').level, 'red')
 })
 
+test('banner: worst airport (3-level) + per-airport chain', () => {
+  const b = composeBriefing(request, data)
+  assert.equal(b.banner.worst.icao, 'RKPC')
+  assert.equal(b.banner.worst.category, 'IFR') // IFR stays IFR under 3-level fold
+  assert.equal(b.banner.airports.length, 3)
+  assert.deepEqual(b.banner.airports.map((a) => a.category), ['VFR', 'IFR', 'VFR'])
+})
+
+test('takeoffFcst attaches to airports from data.takeoff_fcst', () => {
+  const withTk = { ...data, takeoff_fcst: { airports: { RKSI: { icao: 'RKSI', forecasts: [{ time: '2026-06-26T09:00:00Z', windDir: 270, windSpeedKt: 12, tempC: 18, qnhHpa: 1013 }] } } } }
+  const b = composeBriefing(request, withTk)
+  const dep = b.sections.current.airports.find((a) => a.role === 'departure')
+  assert.equal(dep.takeoffFcst.forecasts.length, 1)
+  assert.equal(dep.takeoffFcst.forecasts[0].qnhHpa, 1013)
+  const arr = b.sections.current.airports.find((a) => a.role === 'arrival')
+  assert.equal(arr.takeoffFcst, null) // RKPC는 이륙예보 없음
+})
+
+test('airport warnings merge into adverse (scope + level), sorted, not in enroute encounters', () => {
+  const withWarn = {
+    ...data,
+    warning: { airports: { RKPC: { warnings: [
+      { wrng_type_key: 'WIND_SHEAR', wrng_type_name: 'Wind Shear', valid_start: '2026-06-26T09:00:00Z', valid_end: '2026-06-26T11:00:00Z' },
+    ] } } },
+  }
+  const b = composeBriefing(request, withWarn)
+  const ws = b.sections.adverse.hazards.find((h) => h.airportScope === 'RKPC')
+  assert.ok(ws, 'airport warning present in adverse')
+  assert.equal(ws.code, 'WIND_SHEAR')
+  assert.equal(ws.level, 'red')
+  assert.equal(ws.role, 'arrival')
+  // 공항경보는 경로 조우가 아니므로 enroute encounters 미포함
+  assert.equal(b.sections.enroute.encounters.some((h) => h.airportScope), false)
+})
+
+test('airport warning outside ETD~ETA window is excluded', () => {
+  const withWarn = {
+    ...data,
+    warning: { airports: { RKPC: { warnings: [
+      { wrng_type_key: 'WIND_SHEAR', wrng_type_name: 'Wind Shear', valid_start: '2026-06-27T00:00:00Z', valid_end: '2026-06-27T02:00:00Z' },
+    ] } } },
+  }
+  const b = composeBriefing(request, withWarn)
+  assert.equal(b.sections.adverse.hazards.some((h) => h.airportScope), false)
+})
+
 test('alternate omitted when null', () => {
   const b = composeBriefing({ ...request, alternateAirport: null }, data)
   assert.equal(b.sections.current.airports.length, 2)

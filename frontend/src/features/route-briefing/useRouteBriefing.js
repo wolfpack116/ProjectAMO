@@ -5,7 +5,7 @@ import { buildBriefingRoute, buildVfrRoute, canBuildBriefingRoutePath, loadIapDa
 import { relabeledWaypoints, calcVfrDistance, findInsertIndex } from './lib/routePreview.js'
 import { computeEtaIso } from './lib/etaCalc.js'
 import { getLastUsed } from './lib/aircraftProfiles.js'
-import { initialBearingDeg, magneticCourse } from './lib/altitude.js'
+import { initialBearingDeg, magneticCourse, nearestVfrCruiseAltitude } from './lib/altitude.js'
 import { buildVerticalProfileRequest } from './lib/verticalProfileRequest.js'
 import {
   FIR_EXIT_AIRPORT,
@@ -45,6 +45,8 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
   const [verticalProfileWindowOpen, setVerticalProfileWindowOpen] = useState(false)
   const [editingVfrAltitudeIndex, setEditingVfrAltitudeIndex] = useState(null)
   const [vfrWaypoints, setVfrWaypoints] = useState([])
+  // leg(경유점 i→i+1)별 최고 지형고도(ft), 키 = `from→to`. 가벼운 /vertical-profile로 미리 채움.
+  const [vfrLegTerrain, setVfrLegTerrain] = useState({})
   // 되돌리기: 패널에서의 경유점 편집(추가/삭제/순서/전체고도) 직전 스냅샷 스택.
   const [vfrUndoStack, setVfrUndoStack] = useState([])
   const [hoveredWpInfo, setHoveredWpInfo] = useState(null)
@@ -724,6 +726,62 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     return magneticCourse(initialBearingDeg(dep.lat, dep.lon, arr.lat, arr.lon))
   }, [airports, routeForm.departureAirport, routeForm.arrivalAirport])
 
+  // VFR leg별: 반원고도 힌트(좌표 파생) + 최고 지형고도(vfrLegTerrain에서 병합). 고도 입력 옆 표시용.
+  const vfrLegs = useMemo(() => {
+    if (routeForm.flightRule !== 'VFR') return []
+    const legs = []
+    for (let i = 0; i < vfrWaypoints.length - 1; i += 1) {
+      const a = vfrWaypoints[i]
+      const b = vfrWaypoints[i + 1] // 권장 고도 적용 대상 = 이 구간이 향하는(순항하는) 경유점
+      const valid = Number.isFinite(a?.lat) && Number.isFinite(b?.lat)
+      const mc = valid ? magneticCourse(initialBearingDeg(a.lat, a.lon, b.lat, b.lon)) : null
+      const key = `${a?.id}→${b?.id}`
+      const currentToFt = Number.isFinite(Number(b?.altitudeFt)) ? Number(b.altitudeFt) : Number(cruiseAltitudeFt)
+      const recommendedFt = mc == null ? null : nearestVfrCruiseAltitude(currentToFt, mc)
+      legs.push({
+        key,
+        eastbound: mc == null ? null : ((((mc % 360) + 360) % 360) < 180),
+        recommendedFt,
+        targetIndex: i + 1,
+        targetEditable: !!b && !b.fixed,
+        compliant: recommendedFt != null && currentToFt === recommendedFt,
+        maxTerrainFt: vfrLegTerrain[key] ?? null,
+      })
+    }
+    return legs
+  }, [routeForm.flightRule, vfrWaypoints, vfrLegTerrain, cruiseAltitudeFt])
+
+  // 경로 지오메트리가 바뀌면 leg별 최고 지형고도를 가볍게(기상 제외) 미리 가져온다.
+  // 연직단면도 "생성"과 무관 — 고도를 정하는 그 자리에서 지형 여유를 보게 한다.
+  const legTerrainRequestRef = useRef(0)
+  useEffect(() => {
+    if (routeResult?.flightRule !== 'VFR' || vfrWaypoints.length < 2) {
+      setVfrLegTerrain({})
+      return undefined
+    }
+    const routeGeometry = getCurrentRouteLineString({ routeResult, vfrWaypoints, selectedSid, selectedStar, selectedIap })
+    if (!routeGeometry) return undefined
+    const requestId = ++legTerrainRequestRef.current
+    const timer = setTimeout(async () => {
+      try {
+        const profile = await fetchVerticalProfile(buildVerticalProfileRequest({
+          routeGeometry,
+          routeResult,
+          vfrWaypoints,
+          plannedCruiseAltitudeFt: Number(cruiseAltitudeFt) || DEFAULT_CRUISE_ALTITUDE_FT,
+        }))
+        if (requestId !== legTerrainRequestRef.current) return
+        const byKey = {}
+        for (const leg of profile?.flightPlan?.profile?.legs ?? []) {
+          byKey[`${leg.fromLabel}→${leg.toLabel}`] = leg.maxTerrainFt
+        }
+        setVfrLegTerrain(byKey)
+      } catch { /* 지형 미리보기 실패는 조용히 무시 */ }
+    }, 400)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vfrWaypoints, routeResult?.flightRule])
+
   async function handleGenerateBriefing() {
     const routeGeometry = getCurrentRouteLineString({ routeResult, vfrWaypoints, selectedSid, selectedStar, selectedIap })
     if (!routeGeometry) { setBriefingError('먼저 경로를 검색하세요.'); return }
@@ -774,6 +832,7 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       verticalProfileWindowOpen,
       editingVfrAltitudeIndex,
       vfrWaypoints,
+      vfrLegs,
       hoveredWpInfo,
       sidOptions,
       availableSidIds,

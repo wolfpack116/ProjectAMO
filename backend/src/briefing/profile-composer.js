@@ -228,6 +228,39 @@ function terrainElevationFtForIndex(terrainResult, sampleIndex) {
   return Number.isFinite(elevationM) ? Math.max(0, Math.round(elevationM * M_TO_FT)) : null
 }
 
+// leg(경유점 i → i+1)별 구간 아래 최고 지형고도(ft). 조종사가 순항고도를 정할 때
+// "이 구간에서 만나는 가장 높은 땅"을 알아야 지형 여유를 판단한다(= 종이차트 MEF 개념).
+// axis.samples(거리별)와 terrainResult(샘플별 표고)를 재사용 — 새 데이터 없음.
+export function buildVfrLegTerrain(waypoints, axis, terrainResult) {
+  if (!Array.isArray(waypoints) || waypoints.length < 2) return []
+  const elevMByIndex = new Map((terrainResult?.terrain?.values ?? []).map((v) => [v.index, v.elevationM]))
+  const samples = (axis?.samples ?? []).map((s) => {
+    const elevationM = elevMByIndex.get(s.index)
+    return { distanceNm: s.distanceNm, elevationFt: Number.isFinite(elevationM) ? elevationM * M_TO_FT : null }
+  })
+
+  const legs = []
+  for (let i = 0; i < waypoints.length - 1; i += 1) {
+    const from = waypoints[i]
+    const to = waypoints[i + 1]
+    let maxFt = null
+    for (const sample of samples) {
+      if (sample.elevationFt == null) continue
+      if (sample.distanceNm >= from.distanceNm - 0.01 && sample.distanceNm <= to.distanceNm + 0.01) {
+        if (maxFt == null || sample.elevationFt > maxFt) maxFt = sample.elevationFt
+      }
+    }
+    legs.push({
+      fromLabel: from.id,
+      toLabel: to.id,
+      fromNm: from.distanceNm,
+      toNm: to.distanceNm,
+      maxTerrainFt: maxFt == null ? null : Math.max(0, Math.round(maxFt)),
+    })
+  }
+  return legs
+}
+
 function buildVfrProfile(payload, axis, terrainResult, cruiseAltitudeFt) {
   const routeCoordinates = getRouteCoordinates(payload.routeGeometry)
   const waypoints = (payload.vfrWaypoints ?? [])
@@ -252,6 +285,7 @@ function buildVfrProfile(payload, axis, terrainResult, cruiseAltitudeFt) {
         { distanceNm: 0, altitudeFt: 0, source: 'AIRPORT' },
         { distanceNm: axis.totalDistanceNm, altitudeFt: 0, source: 'AIRPORT' },
       ],
+      legs: [],
       tod: null,
       model: { vfrWaypointAltitudes: true },
     }
@@ -278,6 +312,7 @@ function buildVfrProfile(payload, axis, terrainResult, cruiseAltitudeFt) {
         source: waypoint.fixed ? 'AIRPORT' : 'USER_WAYPOINT',
       }
     }),
+    legs: buildVfrLegTerrain(waypoints, axis, terrainResult),
     tod: null,
     model: { vfrWaypointAltitudes: true },
   }

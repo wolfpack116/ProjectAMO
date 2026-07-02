@@ -1,4 +1,4 @@
-import { buildAmosConsoleModel } from '../lib/amosViewModel.js'
+import { buildAmosConsoleModel } from '../../../shared/weather/amosViewModel.js'
 import { useTimeZone } from '../../../shared/timezone/TimeZoneContext.jsx'
 
 const BEARINGS = [

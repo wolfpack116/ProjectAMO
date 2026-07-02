@@ -386,6 +386,8 @@ function parse(xmlString) {
       report_status: text(taf?.["iwxxm:reportStatus"]) || text(taf?.["@_reportStatus"]) || null,
       temperatures: parseTemperatureHeader(taf, baseForecastNode, issued)
     },
+    base,          // 브리핑 ⑥ 기간표/원문 재구성용 (base forecast state)
+    change_groups: changes, // TEMPO/BECMG/PROB 구조화(type·start·end·wind·vis·wx·clouds)
     timeline
   };
 
