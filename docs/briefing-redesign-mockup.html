@@ -126,7 +126,22 @@
       <colgroup><col style="width:112px;"><col style="width:52px;"><col style="width:96px;"><col style="width:60px;"><col style="width:72px;"><col style="width:80px;"><col style="width:44px;"><col style="width:22px;"></colgroup>
       <thead><tr><th>공항</th><th>범주</th><th>바람</th><th>시정</th><th>운고</th><th>기온/이슬점</th><th>QNH</th><th></th></tr></thead>
       <tbody>
-        <tr class="row-b"><td><span class="badge b-role">출발</span><div style="font-weight:600;font-size:17px;margin-top:4px;">RKSS</div><div class="cap">08:12Z</div></td><td><span class="badge b-vfr">VFR</span></td><td>270/12kt</td><td>≥10km</td><td>SCT030</td><td>18/9℃</td><td>1013</td><td class="dim" style="text-align:center;">·</td></tr>
+        <tr class="row-b" onclick="tog('takeoff')" style="cursor:pointer;"><td><span class="badge b-role">출발</span><div style="font-weight:600;font-size:17px;margin-top:4px;">RKSS</div><div class="cap">08:12Z</div></td><td><span class="badge b-vfr">VFR</span></td><td>270/12kt</td><td>≥10km</td><td>SCT030</td><td>18/9℃</td><td>1013</td><td style="text-align:center;"><span class="caret" id="takeoff-c">▾</span></td></tr>
+        <tr id="takeoff" class="hidden"><td colspan="8" style="padding:0 16px 12px;">
+          <div style="padding:10px 12px;background:var(--bg-1);border:0.5px solid var(--stroke-2);border-radius:4px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:14px;font-weight:600;">이륙예보 (RKSS)</span><span class="cap">발표 08:00Z · 매시</span></div>
+            <table class="tnum" style="font-size:14px;">
+              <thead><tr><th>시각(Z)</th><th>풍향/풍속</th><th>기온</th><th>QNH</th></tr></thead>
+              <tbody>
+                <tr class="row-b"><td class="mut">08</td><td>260/10kt</td><td>17℃</td><td>1013</td></tr>
+                <tr class="row-b" style="background:var(--accent-bg);"><td style="color:var(--accent);font-weight:600;">09 ◀ETD</td><td>270/12kt</td><td>18℃</td><td>1013</td></tr>
+                <tr class="row-b"><td class="mut">10</td><td>280/14kt</td><td>18℃</td><td>1012</td></tr>
+                <tr class="row-b"><td class="mut">11</td><td>290/15kt</td><td>17℃</td><td>1012</td></tr>
+              </tbody>
+            </table>
+            <div class="cap" style="margin-top:6px;"><span class="dim">KMA 이륙예보 · 바람·기온·QNH (이륙 성능용)</span></div>
+          </div>
+        </td></tr>
         <tr class="row-b subtle-row" onclick="tog('amos')" style="cursor:pointer;"><td><span class="badge b-role">도착</span><div style="font-weight:600;font-size:17px;margin-top:4px;">RKPC</div><div class="cap">08:30Z <span class="badge b-warn">SPECI</span></div></td><td><span class="badge b-ifr">IFR</span></td><td>180/18kt <span class="red">G28</span><br><span class="mut" style="font-size:13px;">측풍 L17kt</span></td><td class="red">3.2km</td><td class="red">OVC008</td><td>15/13℃</td><td>1009</td><td style="text-align:center;"><span class="caret open" id="amos-c">▾</span></td></tr>
         <tr class="subtle-row" id="amos"><td colspan="8" style="padding:0 16px 12px;">
           <div style="padding:10px 12px;background:var(--bg-1);border:0.5px solid var(--stroke-2);border-radius:4px;">

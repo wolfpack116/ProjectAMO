@@ -56,7 +56,7 @@
 |---|---|---|---|---|
 | 0 | **Go/No-go 배너** | 최악 카테고리 + 이유 + 공항별 카테고리 | 상단 얇은 상태 스트립 | ❌ 신규 |
 | ① | 위험 (Adverse) | SIGMET/AIRMET + **공항경보/윈드시어** · (+SIGWX위험·NOTAM·PIREP) | 배지 + 지도레이어 칩 | △ 확장 |
-| ② | 현재 (Current) | 출발·목적지·교체 METAR (CatBadge 표준색) | 공항별 표 | ✅ |
+| ② | 현재 (Current) | 출발·목적지·교체 METAR 매트릭스 + AMOS(도착)·**이륙예보(출발)** 펼치기 | 비교 매트릭스 | ✅+α |
 | ③ | 개황 (Synopsis) | **일기도 뷰어**(지상 기본 · 종류/기압면/시간 전환) + 자동요약 + SIGWX 전선 GIS | 인라인 뷰어 + 슬라이더 | ❌ 신규(§5-C) |
 | ④ | 노선 (En route) | 경로 위험 + 착빙/난류 리본 + 연직단면도 + **상층바람 원자료 접기(경로 하이라이트)** | 리본 + 단면도 + 원자료 표 | ✅ 현행+α(§5-D) |
 | ~~⑤~~ | ~~상층바람 (Winds Aloft)~~ | **신설 안 함** — 연료·시간=외부 자동, 착빙·난류·시어=이미 있음(§5-D) | — | ❌ 폐기 |
@@ -187,6 +187,7 @@
 - **기온/이슬점**: 헤더 `기온/이슬점`, 값 `18/9℃`.
 - **관측시각을 행별로** + **SPECI 태그**(SPECI일 때만 앰버 subtle, METAR면 시각만). §2.2 정상 무채.
 - **▸ 확장 = AMOS + 원문 METAR**(§P3 점진 노출). **원문 METAR은 확장 하단에 모노스페이스로 표시**(조종사 원문 확인 수요). ※ v3/v4 목업엔 있었으나 v5에서 누락 — **표시 확정, 재삽입 필요**.
+- **▸ 출발 행 = 이륙예보 펼치기**: 출발공항 행 확장 시 **ETD 전후 바람·기온·QNH**(이륙 성능용). 도착 행=AMOS, **출발 행=이륙예보**로 대칭. ETD 시각 행 하이라이트.
 - 한계초과 필드 = `--level-red` 볼드. 정상 = 무채.
 
 **AMOS 확장 표시 내용** (raw 나열 X → 운영 성분):
@@ -201,6 +202,7 @@
 | **측풍·활주로 매핑·사용활주로** | **이미 구현** — [amosViewModel.js](../frontend/src/features/airport-panel/lib/amosViewModel.js): `AMOS_REPRESENTATIVE_RUNWAYS`·`pickActiveRunwayLabel`·`calculateRunwayWindComponent` | 🟢 재사용 |
 | AMOS 확장 전체 | 표시 로직(`buildAmosConsoleModel`) 있음. route-briefing이 이미 amos 참조([useRouteBriefing.js](../frontend/src/features/route-briefing/useRouteBriefing.js)) | 🟡 데이터 shape 연결만 |
 | **원문 METAR 전체 문자열** | 소스가 IWXXM(XML) → **원본 TAC 없음**. 조각(`wind.raw` 등)만 | 🟡 재구성 or TAC 소스 확인 |
+| **이륙예보(출발 행 펼치기)** | KMA apihub **이륙예보 조회 API**(seqApi=14/sub=260, `getAirInfo`류): 매시·icaoCode별 **wd·ws·ta·qnh**, 일반 XML/JSON(IWXXM 아님). **앱 미수집**(앱의 `airport_info`=`AirPortService/getAirPort` 메타데이터로 별개) | 🟡 신규 processor(`airport-info-processor` 패턴 복제, 같은 apihub·authKey) |
 
 **AMOS 실측 필드**(참고): `runways[]`(L/R side) wind dir·speed(**m/s**, ×1.9438=kt)·min/max, rvr_m, visibility_m(MOR), cloud_min_m / temp·dewpoint·humidity·rainfall / qnh·station 기압. ⚠️ 상단 `wind_2m/wind_10m`은 항상 null(바람은 runways[]에만).
 
@@ -338,6 +340,7 @@ ICAO **Q-line + 항목 A~G**가 기계판독 코어:
 - **확정(En route ④ / Winds Aloft ⑤)**: **⑤ 신설 안 함**(연료·시간=EFB/디스패처 자동, 착빙·난류·시어·고도선택·바람변화=이미 리본/단면도에 있음, YAGNI). **④ 현행 유지 + 상층바람·기온 "원자료" 접기 추가**(층×웨이포인트 텍스트 표, **실제 비행경로 고도 하이라이트**). 데이터는 `crossSection.levels`(T+u/v)·`altitudeAtDistanceFt` 재사용 → 새 소스 0, 전부 🟢. → **④/⑤ 설계 단계 종료.**
 - **채택(Synopsis, 갱신)**: 브리핑 **내** 일기도 뷰어. 종류(지상 기본/상층/상세바람/단열선도/연직시계열) → 상층·상세바람은 기압면 칩(기본=계획고도 최근접)·지점자료는 공항축 → 시간 슬라이더(연직시계열은 ETA 마커). 초기표시 지상/상층·상세바람=ETD, 지점자료=도착·ETA. 발표+유효시각 필수, 자동요약(전선/기압 지역매핑, 지상전용), 지도 전선토글(지상전용). 한 장 노출+버튼전환이라 §1 담백 유지. **이전 "지상 1장/별도화면" 결정 대체.** 전선은 이미지에만 존재(기계판독 데이터 없음).
 - **확정(Destination ⑥)**: TAF를 텍스트 한 줄 → **카테고리 타임라인 막대(TEMPO 빗금·ETA 마커) + 기간별 표(범주 앞, ②규칙) + 교체공항 TAF 병렬 + 원문 접기(재구성)**. 데이터(timeline·변화군·validity)는 다 파싱됨, 실작업은 composer 페이로드 확장뿐(§5-E). → ⑥ 종료.
+- **채택(이륙예보)**: **② Current 출발 행 펼치기 = 이륙예보**(바람·기온·QNH, ETD 전후). 도착=AMOS와 대칭. 소스 = KMA apihub 이륙예보 조회 API(getAirInfo류, 일반 XML, 앱 미수집) → `airport-info-processor` 패턴 복제. "이륙 제한치" 연기와 별개(예보는 소스 확인됨).
 - **기각**: MVFR — **표시는 3레벨(VFR/IFR/LIFR) 전 섹션 일관**(배너·② Current·⑥ Destination 모두). 내부 `categoryFor`는 4등급 계산하되 **표시 시 MVFR→IFR fold**. (이전 §5-2의 "② CatBadge 4색 유지" 메모는 이 결정으로 정정 — 표시 4색 아님.)
 - **채택(NOTAM ⑦, 밑그림)**: 소스 **AFTN 자체수신 확보**(회사 전문에 NOTAM·RKRR 조회됨, 무료·전 시리즈) → 유료/폴백 불필요. Q-line 자체파싱 → 지도(좌표+반경→원)·시간(B/C)·연직(F/G)·경로(회랑+밴드+시간, `geo-time-match` 재사용) 전부 가능. 치명적→① Adverse 승격. 난이도 🟡(판독 사전이 노가다). 추후 구현(§5-F).
 - **연기**: 개인별 minima(→ 로그인 후 사용자 프로필 저장, 큰 작업) / Go/No-go 판정 로직 / 이륙 제한치(상업운송 ODP·takeoff minima 미모델링) / NOTAM·PIREP(소스 확보 후) / WAFS SIGWX(WIFS 샘플 후).
