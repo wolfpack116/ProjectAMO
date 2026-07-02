@@ -25,6 +25,22 @@ export function vfrCruiseHint(magCourseDeg) {
     : 'VFR 권장: 짝수천 + 500 ft (예: 8,500)'
 }
 
+// 방향(자북코스)에 맞는, 현재 고도에서 가장 가까운 VFR 순항고도.
+// 동쪽(0–179°)=홀수천+500(3,500/5,500/…), 서쪽(180–359°)=짝수천+500(4,500/6,500/…).
+export function nearestVfrCruiseAltitude(currentFt, magCourseDeg) {
+  const eastbound = (((Number(magCourseDeg) % 360) + 360) % 360) < 180
+  const base = Math.max(500, Number(currentFt) || 0)
+  let k = Math.round((base - 500) / 1000) // '천 단위' 인덱스 (해당 고도 = k*1000+500)
+  const isOdd = (((k % 2) + 2) % 2) === 1
+  if (isOdd !== eastbound) {
+    // 패리티 불일치 → k±1 중 현재고도에 더 가까운 쪽(둘 다 올바른 패리티)
+    const down = k - 1
+    const up = k + 1
+    k = Math.abs(base - (down * 1000 + 500)) <= Math.abs(base - (up * 1000 + 500)) ? down : up
+  }
+  return Math.max(eastbound ? 3500 : 4500, k * 1000 + 500)
+}
+
 export function initialBearingDeg(lat1, lon1, lat2, lon2) {
   const toRad = (d) => (d * Math.PI) / 180
   const φ1 = toRad(lat1)
