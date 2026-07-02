@@ -58,10 +58,6 @@ function tafBarSegments(timeline, validity) {
   }
   return segs.map((sg, i) => ({ ...sg, width: (i < segs.length - 1 ? segs[i + 1].left : 100) - sg.left }))
 }
-const inPeriod = (iso, start, end) => {
-  const t = Date.parse(iso)
-  return Number.isFinite(t) && t >= Date.parse(start) && t < Date.parse(end)
-}
 
 // 표시용 3레벨 fold (배너·②·⑥ 일관): MVFR→IFR.
 const catDisplay = (c) => (c === 'MVFR' ? 'IFR' : c)
@@ -225,44 +221,44 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
     <span style={cellStyle(f)}>{f?.text ?? '-'}{f?.gust ? <span className="bv-gust"> G{f.gust}</span> : null}</span>
   )
 
-  // ② 도착/교체 행 확장 = AMOS 지상실황(운영 성분). 출발 행 = 이륙예보(소스 연동 예정).
-  const amosExpansion = (a) => {
-    if (a.role === 'departure') {
-      const fc = a.takeoffFcst?.forecasts ?? []
-      if (fc.length === 0) {
-        return (
-          <div className="bv-amos">
-            <div className="bv-amos-head"><b>이륙예보 ({a.icao})</b><Caption1 style={{ color: 'var(--text-3)' }}>발표 없음</Caption1></div>
-            <Caption1 style={{ color: 'var(--text-3)' }}>ETD 전후 이륙예보(바람·기온·QNH)가 아직 없습니다.</Caption1>
-          </div>
-        )
-      }
-      const etdMs = Date.parse(meta.etd)
-      let etdIdx = -1
-      let best = Infinity
-      fc.forEach((f, i) => { const d = Math.abs(Date.parse(f.time) - etdMs); if (Number.isFinite(d) && d < best) { best = d; etdIdx = i } })
-      const fmtW = (f) => (Number.isFinite(f.windDir) && Number.isFinite(f.windSpeedKt)
-        ? `${String(f.windDir).padStart(3, '0')}/${String(f.windSpeedKt).padStart(2, '0')}kt` : '-')
+  // ② 행 확장 = 이륙예보(출발) + AMOS 지상실황(있으면 전부) + 원문 METAR(재구성).
+  const takeoffBlock = (a) => {
+    const fc = a.takeoffFcst?.forecasts ?? []
+    if (fc.length === 0) {
       return (
         <div className="bv-amos">
-          <div className="bv-amos-head"><b>이륙예보 ({a.icao})</b><Caption1 style={{ color: 'var(--text-3)' }}>매시 · KMA (이륙 성능용)</Caption1></div>
-          <table className="bv-takeoff">
-            <thead><tr><th>시각</th><th>풍향/풍속</th><th>기온</th><th>QNH</th></tr></thead>
-            <tbody>
-              {fc.map((f, i) => (
-                <tr key={f.tmFc} className={i === etdIdx ? 'bv-dest-row-hl' : undefined}>
-                  <td>{formatBriefingTime(f.time, tz)}{i === etdIdx ? <b style={{ color: 'var(--accent)' }}> ◀ETD</b> : ''}</td>
-                  <td>{fmtW(f)}</td>
-                  <td>{f.tempC != null ? `${f.tempC}℃` : '-'}</td>
-                  <td>{f.qnhHpa ?? '-'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="bv-amos-head"><b>이륙예보 ({a.icao})</b><Caption1 style={{ color: 'var(--text-3)' }}>발표 없음</Caption1></div>
+          <Caption1 style={{ color: 'var(--text-3)' }}>ETD 전후 이륙예보(바람·기온·QNH)가 아직 없습니다.</Caption1>
         </div>
       )
     }
-    if (!a.amos) return <Caption1 style={{ color: 'var(--text-3)' }}>AMOS 지상실황 없음</Caption1>
+    const etdMs = Date.parse(meta.etd)
+    let etdIdx = -1
+    let best = Infinity
+    fc.forEach((f, i) => { const d = Math.abs(Date.parse(f.time) - etdMs); if (Number.isFinite(d) && d < best) { best = d; etdIdx = i } })
+    const fmtW = (f) => (Number.isFinite(f.windDir) && Number.isFinite(f.windSpeedKt)
+      ? `${String(f.windDir).padStart(3, '0')}/${String(f.windSpeedKt).padStart(2, '0')}kt` : '-')
+    return (
+      <div className="bv-amos">
+        <div className="bv-amos-head"><b>이륙예보 ({a.icao})</b><Caption1 style={{ color: 'var(--text-3)' }}>매시 · KMA (이륙 성능용)</Caption1></div>
+        <table className="bv-takeoff">
+          <thead><tr><th>시각</th><th>풍향/풍속</th><th>기온</th><th>QNH</th></tr></thead>
+          <tbody>
+            {fc.map((f, i) => (
+              <tr key={f.tmFc} className={i === etdIdx ? 'bv-dest-row-hl' : undefined}>
+                <td>{formatBriefingTime(f.time, tz)}{i === etdIdx ? <b style={{ color: 'var(--accent)' }}> ◀ETD</b> : ''}</td>
+                <td>{fmtW(f)}</td>
+                <td>{f.tempC != null ? `${f.tempC}℃` : '-'}</td>
+                <td>{f.qnhHpa ?? '-'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+  const amosBlock = (a) => {
+    if (!a.amos) return null
     const m = buildAmosConsoleModel(a.amos, null, { icao: a.icao }, tz)
     return (
       <div className="bv-amos">
@@ -272,9 +268,15 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
           {m.visibilityRows.map((v) => <div key={v.label}><span className="mut">{v.label}</span><span className={v.isRvrGood ? undefined : 'red'}>{v.rvrValue} / {v.morValue}</span></div>)}
           {m.commonCells.filter((c) => c.label !== 'QNH(inHg)').map((c) => <div key={c.label}><span className="mut">{c.label}</span><span>{c.value}</span></div>)}
         </div>
-        <div className="bv-amos-raw">원문 METAR 재구성 준비중 <span className="mut">(IWXXM 원본 문자열 미보유)</span></div>
       </div>
     )
+  }
+  const amosExpansion = (a) => {
+    const takeoff = a.role === 'departure' ? takeoffBlock(a) : null
+    const amos = amosBlock(a)
+    const raw = a.raw ? <div className="bv-amos-raw">{a.raw} <span className="mut">(재구성)</span></div> : null
+    if (!takeoff && !amos && !raw) return <Caption1 style={{ color: 'var(--text-3)' }}>추가 정보 없음</Caption1>
+    return <div className="bv-expand-stack">{takeoff}{amos}{raw}</div>
   }
 
   // ② 현재 실황 — 공항=행 비교 매트릭스 (범주 리딩 열, 관측시각+SPECI, 행 펼치기).
@@ -474,6 +476,9 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
               {CAT3_LEGEND.map(([label, k]) => <span key={k}><i style={{ background: `var(--cat-${k})` }} />{label}</span>)}
               <span className="dim">시간대별 최악 범주</span>
             </div>
+            {dest.etaOutOfRange && (
+              <MessageBar intent="warning"><MessageBarBody>도착(ETA)이 이 TAF 유효기간 밖입니다 — 표시된 TAF는 도착 시각을 포함하지 않습니다(최신 TAF 확인 필요).</MessageBarBody></MessageBar>
+            )}
             {dest.periods.length > 0 && (
               <Table size="small" className="bv-dest-periods" style={{ width: '100%' }}>
                 <TableHeader><TableRow>
@@ -483,9 +488,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
                 </TableRow></TableHeader>
                 <TableBody>
                   {dest.periods.map((p, i) => {
-                    // base는 전체 유효기간을 덮으므로, ETA를 담는 변화군이 있으면 그 행만 강조.
-                    const etaInChange = dest.periods.some((q) => q.type !== 'base' && inPeriod(dest.eta, q.start, q.end))
-                    const hl = inPeriod(dest.eta, p.start, p.end) && (p.type !== 'base' || !etaInChange)
+                    const hl = p.etaActive === true // ETA 시점의 지속조건/TEMPO (백엔드 계산)
                     return (
                       <TableRow key={i} className={hl ? 'bv-dest-row-hl' : undefined}>
                         <TableCell><CatBadge category={p.category} /></TableCell>
@@ -517,11 +520,13 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
         {dest.alternate && (
           <div className="bv-dest-alt">
             <div className="bv-dest-head">
-              <CatBadge category={dest.alternate.category} />
+              {dest.alternate.category ? <CatBadge category={dest.alternate.category} /> : <Badge appearance="tint">정보 없음</Badge>}
               <b style={{ fontSize: 'var(--fs-400)' }}>{dest.alternate.icao}</b>
-              <Caption1 style={{ color: 'var(--text-3)' }}>교체</Caption1>
+              <Caption1 style={{ color: 'var(--text-3)' }}>교체 · ETA {formatBriefingTime(meta.eta, tz)}</Caption1>
             </div>
-            {catBar(dest.alternate.timeline, dest.alternate.validity, dest.eta, false)}
+            {dest.alternate.noTaf
+              ? <Caption1 style={{ color: 'var(--text-3)' }}>TAF 없음 — 교체공항 예보 미확보</Caption1>
+              : catBar(dest.alternate.timeline, dest.alternate.validity, dest.eta, false)}
           </div>
         )}
       </Card>

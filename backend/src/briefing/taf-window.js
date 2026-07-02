@@ -83,50 +83,112 @@ function categoryTimeline(taf) {
     category: stateCategory({ visibilityM: e.visibility?.value, cavok: e.visibility?.cavok, clouds: e.clouds }),
   }))
 }
-// DDHHZ (UTC) — 원문 재구성용.
+// ── 원문 TAF 재구성 — 실제 TAC 토큰(03006KT·9999·6000·SCT030 …) ──
 function ddhh(iso) {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return '----'
   return `${pad2(d.getUTCDate())}${pad2(d.getUTCHours())}`
 }
+function ddhhmm(iso) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '------'
+  return `${pad2(d.getUTCDate())}${pad2(d.getUTCHours())}${pad2(d.getUTCMinutes())}`
+}
+function rawWindTok(w) {
+  if (!w) return null
+  if (w.calm) return '00000KT'
+  const dir = w.variable ? 'VRB' : pad3(Math.round(w.direction ?? 0))
+  const gst = Number.isFinite(w.gust) ? `G${pad2(Math.round(w.gust))}` : ''
+  return `${dir}${pad2(Math.round(w.speed ?? 0))}${gst}KT`
+}
+function rawVisTok(vis) {
+  if (!Number.isFinite(vis)) return null
+  return String(Math.min(9999, Math.round(vis))).padStart(4, '0')
+}
+function rawCloudTok(clouds) {
+  if (!clouds || clouds.length === 0) return 'NSC'
+  return clouds.map((c) => c.raw).filter(Boolean).join(' ') || 'NSC'
+}
+function rawWxTok(wx) { return (wx && wx.length) ? wx.map((w) => w.raw || w).filter(Boolean).join(' ') : null }
+
+function rawBaseSeg(base) {
+  if (base.cavok_flag) return [rawWindTok(base.wind), 'CAVOK'].filter(Boolean).join(' ')
+  return [rawWindTok(base.wind), rawVisTok(base.vis), rawWxTok(base.wx), rawCloudTok(base.clouds)].filter(Boolean).join(' ')
+}
+// 변화군은 실제 TAF처럼 그 그룹에서 바뀐 요소만 나열.
+function rawGroupSeg(g) {
+  if (g.cavok_flag) return 'CAVOK'
+  const parts = []
+  if (g.wind) parts.push(rawWindTok(g.wind))
+  if (g.vis != null) parts.push(rawVisTok(g.vis))
+  if (g.wx_touched) { const t = rawWxTok(g.wx); if (t) parts.push(t) }
+  if (g.clouds_touched) parts.push(rawCloudTok(g.clouds))
+  return parts.join(' ')
+}
 function reconstructRaw(taf) {
   if (!taf?.base) return null
   const h = taf.header ?? {}
-  const p = buildPeriods(taf, { start: h.valid_start, end: h.valid_end })
-  const seg = (r) => [r.wind !== '-' ? r.wind.replace('kt', 'KT') : null, r.vis, r.clouds, r.wx !== '—' ? r.wx : null].filter(Boolean).join(' ')
-  const lines = [`TAF ${h.icao ?? ''} ${ddhh(h.issued)}Z ${ddhh(h.valid_start)}/${ddhh(h.valid_end)} ${seg(p[0])}`]
-  for (const r of p.slice(1)) lines.push(`  ${r.type} ${ddhh(r.start)}/${ddhh(r.end)} ${seg(r)}`)
+  const lines = [`TAF ${h.icao ?? ''} ${ddhhmm(h.issued)}Z ${ddhh(h.valid_start)}/${ddhh(h.valid_end)} ${rawBaseSeg(taf.base)}`]
+  for (const g of (taf.change_groups ?? [])) {
+    lines.push(`  ${g.type.replace('_', ' ')} ${ddhh(g.start)}/${ddhh(g.end)} ${rawGroupSeg(g)}`)
+  }
   return `${lines.join('\n')}=`
 }
 
-// 교체공항 병렬 요약(범주 + 타임라인 압축 막대용).
-function buildAlternate(alternateTaf, etaIso) {
-  if (!alternateTaf) return null
+// 교체공항 병렬 요약. 교체공항이 선택됐으면(icao) TAF 없어도 표시(noTaf).
+function buildAlternate(alternateTaf, etaIso, icao) {
+  const resolvedIcao = icao || alternateTaf?.header?.icao || null
+  if (!resolvedIcao) return null // 교체공항 미선택
+  if (!alternateTaf) return { icao: resolvedIcao, category: null, noTaf: true, validity: null, timeline: [], tafAtEta: null }
   const atEta = selectTafAtEta(alternateTaf, etaIso)
   return {
-    icao: alternateTaf.header?.icao ?? null,
+    icao: resolvedIcao,
     category: atEta?.category ?? null,
+    noTaf: false,
     validity: { start: alternateTaf.header?.valid_start ?? null, end: alternateTaf.header?.valid_end ?? null },
     timeline: categoryTimeline(alternateTaf),
     tafAtEta: atEta,
   }
 }
 
-// 목적지 전체 모델. alternateTaf는 교체공항의 원 TAF(있으면 병렬 표시).
-export function buildDestination(taf, etaIso, { alternateTaf = null, flightRule } = {}) {
+// ETA를 담는 기간을 표시(etaActive). base/BECMG는 "가장 늦게 시작해 ETA 이전"인 것(지속 조건),
+// TEMPO/PROB는 [start,end)에 ETA가 들면. ETA가 유효기간 밖이면 강조 없음(etaOutOfRange로 안내).
+function markEtaActive(periods, etaIso, validity) {
+  const eta = Date.parse(etaIso)
+  const vs = Date.parse(validity.start)
+  const ve = Date.parse(validity.end)
+  const outOfRange = Number.isFinite(eta) && Number.isFinite(vs) && Number.isFinite(ve) && (eta < vs || eta > ve)
+  if (!Number.isFinite(eta) || outOfRange) return outOfRange
+  let prevailingIdx = -1
+  let prevailingStart = -Infinity
+  periods.forEach((p, i) => {
+    const persistent = p.type === 'base' || p.type.includes('BECMG')
+    const st = Date.parse(p.start)
+    if (persistent && Number.isFinite(st) && st <= eta && st > prevailingStart) { prevailingStart = st; prevailingIdx = i }
+    if (!persistent && eta >= Date.parse(p.start) && eta < Date.parse(p.end)) p.etaActive = true // TEMPO/PROB
+  })
+  if (prevailingIdx >= 0) periods[prevailingIdx].etaActive = true
+  return false
+}
+
+// 목적지 전체 모델. alternateTaf/alternateIcao = 교체공항 TAF와 ICAO(선택 시 TAF 없어도 표시).
+export function buildDestination(taf, etaIso, { alternateTaf = null, alternateIcao = null, flightRule } = {}) {
   const tafAtEta = selectTafAtEta(taf, etaIso)
   const alt = flightRule === 'IFR' ? alternateRequired(taf, etaIso) : { required: null, reason: 'VFR' }
   const validity = { start: taf?.header?.valid_start ?? null, end: taf?.header?.valid_end ?? null }
+  const periods = buildPeriods(taf, validity)
+  const etaOutOfRange = markEtaActive(periods, etaIso, validity)
   return {
     icao: taf?.header?.icao ?? null,
     category: tafAtEta?.category ?? null,
     taf: tafAtEta,
     validity,
     eta: etaIso,
+    etaOutOfRange,
     timeline: categoryTimeline(taf),
-    periods: buildPeriods(taf, validity),
+    periods,
     raw: reconstructRaw(taf),
-    alternate: buildAlternate(alternateTaf, etaIso),
+    alternate: buildAlternate(alternateTaf, etaIso, alternateIcao),
     alternateRequired: alt.required,
     alternateReason: alt.reason,
   }

@@ -84,7 +84,7 @@ export function composeBriefing(request, data) {
 
   const arrivalTaf = tafByIcao[request.arrivalAirport] ?? null
   const alternateTaf = request.alternateAirport ? (tafByIcao[request.alternateAirport] ?? null) : null
-  const destination = buildDestination(arrivalTaf, request.eta, { alternateTaf, flightRule: request.flightRule })
+  const destination = buildDestination(arrivalTaf, request.eta, { alternateTaf, alternateIcao: request.alternateAirport ?? null, flightRule: request.flightRule })
   destination.level = destination.category ? levelForCategory(destination.category) : 'gray'
 
   // 경로 조우만(공항경보는 경로 지오 없음 → enroute encounters 제외).

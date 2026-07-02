@@ -57,3 +57,26 @@ test('buildDestination: periods (base+TEMPO), categories, timeline, raw, alterna
   assert.equal(d.alternate.icao, 'RKPU')
   assert.equal(d.alternate.category, 'VFR')
 })
+
+test('buildDestination: raw uses real TAC tokens (9999·07008KT·BKN008), etaActive marks TEMPO+prevailing', () => {
+  const d = buildDestination(richTaf, '2026-06-26T10:00:00Z', { alternateIcao: 'RKPU', flightRule: 'IFR' })
+  assert.match(d.raw, /07008KT/)   // 070/08 → 07008KT
+  assert.match(d.raw, /9999/)      // ≥10km → 9999
+  assert.match(d.raw, /TEMPO \d{4}\/\d{4} 3200 -RA BKN008/) // 변경 요소만
+  assert.doesNotMatch(d.raw, /≥10km|\/06kt|km/) // 표시 포맷 잔재 없음
+  assert.equal(d.etaOutOfRange, false)
+  assert.equal(d.periods.find((p) => p.type === 'TEMPO').etaActive, true)
+  assert.equal(d.periods.find((p) => p.type === 'base').etaActive, true) // BECMG 없음 → base가 지속조건
+})
+
+test('buildDestination: ETA past TAF validity → etaOutOfRange, no highlight', () => {
+  const d = buildDestination(richTaf, '2026-06-28T00:00:00Z', { flightRule: 'IFR' })
+  assert.equal(d.etaOutOfRange, true)
+  assert.equal(d.periods.some((p) => p.etaActive), false)
+})
+
+test('buildDestination: alternate shows even without TAF (noTaf)', () => {
+  const d = buildDestination(richTaf, '2026-06-26T10:00:00Z', { alternateIcao: 'RKPU', flightRule: 'IFR' })
+  assert.equal(d.alternate.icao, 'RKPU')
+  assert.equal(d.alternate.noTaf, true)
+})

@@ -70,6 +70,7 @@
 .bv-cur-expand > td { padding: 0 var(--space-snudge) var(--space-m); }
 
 /* ② AMOS/이륙예보 확장 패널 */
+.bv-expand-stack { display: flex; flex-direction: column; gap: var(--space-s); }
 .bv-amos { background: var(--bg-1); border: 0.5px solid var(--stroke-2); border-radius: var(--radius-md); padding: var(--space-mnudge) var(--space-m); }
 .bv-amos-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-s); }
 .bv-amos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-s) var(--space-xxl); font-size: var(--fs-300); }

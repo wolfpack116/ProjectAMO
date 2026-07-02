@@ -49,6 +49,22 @@ test('summarizeAirport: CAVOK-ish vis ≥10km', () => {
   assert.equal(s.fields.wind.text, '270/08kt')
 })
 
+test('summarizeAirport: reconstructs raw METAR (TAC) incl SPECI + time', () => {
+  const m = {
+    header: { icao: 'RKPC', observation_time: '2026-07-02T08:30:00Z', report_type: 'SPECI' },
+    observation: {
+      wind: { raw: '18018G28KT', direction: 180, speed: 18, gust: 28 },
+      visibility: { value: 3200, cavok: false },
+      clouds: [{ amount: 'OVC', base: 800, raw: 'OVC008' }],
+      weather: [{ raw: 'BR' }],
+      temperature: { air: 15, dewpoint: 13 },
+      qnh: { value: 1009 },
+      display: { wind: '18018G28KT', clouds: 'OVC008', weather: 'BR', temperature: '15/13', qnh: 'Q1009' },
+    },
+  }
+  assert.equal(summarizeAirport('arrival', m).raw, 'SPECI RKPC 020830Z 18018G28KT 3200 BR OVC008 15/13 Q1009=')
+})
+
 test('summarizeAirport: missing METAR -> unknown', () => {
   const s = summarizeAirport('alternate', null)
   assert.equal(s.category, 'UNKNOWN')

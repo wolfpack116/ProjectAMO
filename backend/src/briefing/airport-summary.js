@@ -23,6 +23,31 @@ function formatVisibilityKm(visibilityM) {
   return `${(visibilityM / 1000).toFixed(1)}km`
 }
 
+// 원문 METAR 재구성 — IWXXM엔 원본 TAC 문자열이 없어 파싱데이터로 재조립.
+// (display 토큰은 파서가 이미 TAC 형태로 만든 것: wind '27008KT', clouds 'BKN008', temp '15/13', qnh 'Q1009')
+function metarDdhhmm(iso) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  const p = (n) => String(n).padStart(2, '0')
+  return `${p(d.getUTCDate())}${p(d.getUTCHours())}${p(d.getUTCMinutes())}Z`
+}
+function reconstructMetarRaw(metar) {
+  const obs = metar?.observation
+  if (!obs) return null
+  const h = metar.header ?? {}
+  const cavok = obs.visibility?.cavok
+  const parts = [h.report_type || 'METAR', h.icao, metarDdhhmm(h.observation_time), obs.display?.wind]
+  if (cavok) {
+    parts.push('CAVOK')
+  } else {
+    if (Number.isFinite(obs.visibility?.value)) parts.push(String(Math.min(9999, obs.visibility.value)).padStart(4, '0'))
+    if (obs.display?.weather) parts.push(obs.display.weather)
+    parts.push(obs.display?.clouds || 'NSC')
+  }
+  parts.push(obs.display?.temperature, obs.display?.qnh)
+  return `${parts.filter(Boolean).join(' ')}=`
+}
+
 export function summarizeAirport(role, metar) {
   if (!metar?.observation) {
     return { role, icao: metar?.header?.icao ?? null, category: 'UNKNOWN', driver: null, level: 'gray', fields: {}, raw: null, observationTime: null, reportType: null }
@@ -52,7 +77,7 @@ export function summarizeAirport(role, metar) {
     fields,
     observationTime: metar.header?.observation_time ?? null,
     reportType: metar.header?.report_type ?? null, // 'METAR' | 'SPECI'
-    raw: null, // 원문 METAR 문자열 노출은 Phase 4에서 추가
+    raw: reconstructMetarRaw(metar), // 원문 METAR 재구성(IWXXM라 원본 없음 → 파싱데이터 재조립)
   }
 }
 
