@@ -221,7 +221,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
     <span style={cellStyle(f)}>{f?.text ?? '-'}{f?.gust ? <span className="bv-gust"> G{f.gust}</span> : null}</span>
   )
 
-  // ② 행 확장 = 이륙예보(출발) + AMOS 지상실황(있으면 전부) + 원문 METAR(재구성).
+  // ② 행 확장 = 이륙예보(출발) + AMOS 지상실황(있으면 전부) + 원문 METAR.
   const takeoffBlock = (a) => {
     const fc = a.takeoffFcst?.forecasts ?? []
     if (fc.length === 0) {
@@ -274,7 +274,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   const amosExpansion = (a) => {
     const takeoff = a.role === 'departure' ? takeoffBlock(a) : null
     const amos = amosBlock(a)
-    const raw = a.raw ? <div className="bv-amos-raw">{a.raw} <span className="mut">(재구성)</span></div> : null
+    const raw = a.raw ? <div className="bv-amos-raw">{a.raw}</div> : null
     if (!takeoff && !amos && !raw) return <Caption1 style={{ color: 'var(--text-3)' }}>추가 정보 없음</Caption1>
     return <div className="bv-expand-stack">{takeoff}{amos}{raw}</div>
   }
@@ -508,7 +508,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
             )}
             {dest.raw && (
               <details className="bv-rawwinds bv-dest-raw">
-                <summary>원문 TAF <span className="dim">(재구성)</span></summary>
+                <summary>원문 TAF</summary>
                 <pre className="bv-dest-raw-pre">{dest.raw}</pre>
               </details>
             )}
