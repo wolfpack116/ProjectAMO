@@ -16,7 +16,6 @@ const NOT_FIR = ['!=', ['get', 'scope'], 'fir']
 const IS_FIR = ['==', ['get', 'scope'], 'fir']
 
 export const NOTAM_SOURCE_IDS = ['notam-src']
-// notam-fir-line: 전국(FIR) 공지는 fill 없이 외곽선만, 모든 줌에서(국가 뷰에서도 RKRR 보이게).
 export const NOTAM_LAYER_IDS = ['notam-fill', 'notam-line', 'notam-fir-line', 'notam-marker']
 
 const CATEGORY_LABEL = Object.fromEntries(NOTAM_CATEGORIES.map((c) => [c.id, c.label]))
@@ -28,22 +27,23 @@ export function addNotamLayers(map, featureData) {
   if (!map.getSource('notam-src')) {
     map.addSource('notam-src', { type: 'geojson', data: featureData })
   }
-  // 공항 구역 폴리곤/라인은 확대(z≥9)에서만. fill은 아주 옅게(활주로를 "덮어" 비행금지처럼 보이지 않게) — 경계선 위주.
+  // 공항 구역 폴리곤/라인 — 모든 줌에서 표시(줌 제한 없음). fill은 아주 옅게(활주로를 "덮어" 비행금지처럼 안 보이게), 경계선 위주. 내부 클릭 시 팝업.
   if (!map.getLayer('notam-fill')) {
     map.addLayer({
-      id: 'notam-fill', type: 'fill', source: 'notam-src', slot: 'top', minzoom: 9,
+      id: 'notam-fill', type: 'fill', source: 'notam-src', slot: 'top',
       paint: { 'fill-color': TIME_COLOR, 'fill-opacity': 0.07 },
       filter: ['all', POLYGON_FILTER, NOT_FIR],
     })
   }
   if (!map.getLayer('notam-line')) {
     map.addLayer({
-      id: 'notam-line', type: 'line', source: 'notam-src', slot: 'top', minzoom: 9,
+      id: 'notam-line', type: 'line', source: 'notam-src', slot: 'top',
       paint: { 'line-color': TIME_COLOR, 'line-width': 1.8, 'line-opacity': 0.95 },
       filter: NOT_FIR,
     })
   }
   // FIR(전국) 공지는 fill 없이 점선 외곽선만, 모든 줌에서 — 화면을 덮지 않으면서 존재를 보여줌.
+  // (내부 클릭은 point-in-polygon으로 판정 — notamsAtPoint. 투명 fill은 클릭이 잘 안 잡혀 안 씀.)
   if (!map.getLayer('notam-fir-line')) {
     map.addLayer({
       id: 'notam-fir-line', type: 'line', source: 'notam-src', slot: 'top',
@@ -88,6 +88,29 @@ export function setNotamCategoryFilter(map, activeCategoryIds) {
 }
 
 // 겹침 팝업 HTML(목업 surface D): 1건 상세 / 2~3건 미니리스트 / 4건+ 상위3 + "전체 목록에서 보기".
+// 클릭 지점이 폴리곤 내부인지 직접 판정(ray casting) — 렌더/줌/투명도와 무관하게 클릭 인식.
+function ringContains(ring, lng, lat) {
+  let inside = false
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1]
+    const hit = ((yi > lat) !== (yj > lat)) && (lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi)
+    if (hit) inside = !inside
+  }
+  return inside
+}
+function geometryContains(geometry, lng, lat) {
+  if (!geometry) return false
+  if (geometry.type === 'Polygon') return ringContains(geometry.coordinates[0] || [], lng, lat)
+  if (geometry.type === 'MultiPolygon') return (geometry.coordinates || []).some((poly) => ringContains(poly[0] || [], lng, lat))
+  return false
+}
+
+// 클릭 좌표를 포함하는 폴리곤 NOTAM들(카테고리 필터 반영). 점/선은 queryRenderedFeatures가 담당.
+export function notamsAtPoint(features, lng, lat, activeCategoryIds) {
+  return (features || []).filter((f) =>
+    activeCategoryIds.includes(f.properties?.category) && geometryContains(f.geometry, lng, lat))
+}
+
 // 지오메트리 경계 [[minLon,minLat],[maxLon,maxLat]] — 목록→지도 줌인(fitBounds)용.
 export function geometryBounds(geometry) {
   if (!geometry) return null
@@ -151,5 +174,5 @@ export function notamPopupHtml(features) {
 export default {
   NOTAM_SOURCE_IDS, NOTAM_LAYER_IDS, NOTAM_HIGHLIGHT_LAYER_IDS, catLabel,
   addNotamLayers, updateNotamLayerData, setNotamVisibility, setNotamCategoryFilter, notamPopupHtml,
-  geometryBounds, addNotamHighlight, setNotamHighlight,
+  geometryBounds, addNotamHighlight, setNotamHighlight, notamsAtPoint,
 }

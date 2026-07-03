@@ -16,7 +16,7 @@ import { registerAircraftImages } from '../aviation-layers/aircraftIconImages.js
 import { registerAirlineLogos } from '../aviation-layers/airlineLogoImages.js'
 import AviationLayerPanel from '../aviation-layers/AviationLayerPanel.jsx'
 import NotamPanel from '../notam/NotamPanel.jsx'
-import { updateNotamLayerData, setNotamVisibility, setNotamCategoryFilter as applyNotamCategoryFilter, notamPopupHtml, NOTAM_LAYER_IDS, addNotamHighlight, setNotamHighlight, geometryBounds } from '../notam/lib/notamLayers.js'
+import { updateNotamLayerData, setNotamVisibility, setNotamCategoryFilter as applyNotamCategoryFilter, notamPopupHtml, notamsAtPoint, addNotamHighlight, setNotamHighlight, geometryBounds } from '../notam/lib/notamLayers.js'
 import { notamToFeatureCollection } from '../notam/lib/notamGeoJson.js'
 import { NOTAM_CATEGORIES } from '../notam/lib/notamViewModel.js'
 import { SIGWX_FILTER_OPTIONS } from '../weather-overlays/lib/sigwxData.js'
@@ -259,17 +259,19 @@ const MapView = forwardRef(function MapView({
     setNotamVisibility(map, metVisibility.notam)
     applyNotamCategoryFilter(map, notamCategoryFilter)
     // 겹침 팝업(surface D): 클릭 지점의 모든 NOTAM 후보를 해석(1 / 2-3 미니리스트 / 4+ 전체보기).
-    const layers = NOTAM_LAYER_IDS.filter((id) => map.getLayer(id))
+    // 폴리곤은 point-in-polygon으로 직접 판정(투명/줌 무관, 네모·동그라미 내부 어디든), 점·선은 queryRenderedFeatures.
+    const lineLayers = ['notam-marker', 'notam-line', 'notam-fir-line'].filter((id) => map.getLayer(id))
     function onNotamClick(e) {
-      if (!metVisibility.notam || layers.length === 0) return
-      const feats = map.queryRenderedFeatures(e.point, { layers })
-      if (feats.length === 0) return
+      if (!metVisibility.notam) return
+      const polyHits = notamsAtPoint(notamFc.features, e.lngLat.lng, e.lngLat.lat, notamCategoryFilter)
+      const rendered = lineLayers.length ? map.queryRenderedFeatures(e.point, { layers: lineLayers }) : []
       const seen = new Set()
       const uniq = []
-      for (const f of feats) {
+      for (const f of [...polyHits, ...rendered]) {
         const id = f.properties?.id
         if (id && !seen.has(id)) { seen.add(id); uniq.push(f) }
       }
+      if (uniq.length === 0) return
       const popup = new mapboxgl.Popup({ closeButton: true, maxWidth: '280px' })
         .setLngLat(e.lngLat).setHTML(notamPopupHtml(uniq)).addTo(map)
       const moreBtn = popup.getElement()?.querySelector('.notam-pop-more')
