@@ -1,5 +1,7 @@
 # NOTAM Integration Design
 
+> **UI 목업**: [`refs/2026-07-03-notam-ui-mockup.html`](refs/2026-07-03-notam-ui-mockup.html) (브라우저로 열기). 세 표면(전역 패널·공항탭·브리핑 경로상 NOTAM). 색=시간상태, 카테고리=아이콘.
+
 ## Purpose
 
 대한민국 유효 항공고시보(NOTAM)를 백엔드에서 주기적으로 수집해, (1) 공항 패널의 NOTAM 탭에서 공항별로, (2) 지도 위에 카테고리별 레이어로 표시한다.
