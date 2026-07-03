@@ -54,8 +54,8 @@ export function addNotamLayers(map, featureData) {
   if (!map.getLayer('notam-marker')) {
     // 형태 단서(색맹 대비): 발효중=채운 원 / 곧발효=반채움(진한 테두리+옅은 채움) / 예정=외곽선만.
     map.addLayer({
-      id: 'notam-marker', type: 'circle', source: 'notam-src', slot: 'top', maxzoom: 9,
-      // Point 지오메트리만 — 필터 없으면 폴리곤/라인의 모든 꼭짓점에 점이 찍혀 지도가 뒤덮임.
+      id: 'notam-marker', type: 'circle', source: 'notam-src', slot: 'top',
+      // Point 지오메트리만 — 필터 없으면 폴리곤/라인 꼭짓점마다 점이 찍힘. 모든 줌에서 표시(확대해도 사라지지 않게).
       filter: ['==', ['geometry-type'], 'Point'],
       paint: {
         'circle-color': ['match', ['get', 'timeState'], 'upcoming', 'rgba(0,0,0,0)', TIME_COLOR],
