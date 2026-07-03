@@ -10,7 +10,7 @@
 
 - 백엔드: KML 크롤러 → 파서 → 프로세서 → store → API
 - 프론트엔드: 사이드바 전역 NOTAM 패널(카테고리 토글 + 지도 레이어), 공항 패널 NOTAM 탭(공항별 목록)
-- 비행 전 브리핑(route-briefing) 연동: `matchItems` 매칭 코어로 경로상 NOTAM을 뽑아 ③노선의 별도 "경로상 NOTAM" 섹션에 **사실 나열**(위험 등급 아님, Go/No-go 배너 미반영) + 지도 레이어 칩 제공. 상세는 아래 Route-Briefing Integration.
+- 비행 전 브리핑(route-briefing) 연동: `matchItems` 매칭 코어로 경로상 NOTAM을 뽑아 ③노선에 **사실 나열**하고, 그중 **공역 제한 계열이 발효 중 경로에 걸리면(=경로 저촉) Go/No-go 배너에 사실 반영**(NOTAM 간 위험 순위는 안 매김) + 지도 레이어 칩 제공. 상세는 아래 Route-Briefing Integration.
 
 ## Anti-Scope
 
@@ -177,10 +177,10 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 | `backend/src/index.js` | cron 등록(1일 1회, 기존 per-type lock 패턴) |
 | `backend/src/store.js` | `TYPES`에 `'notam'` 추가(최신본만) |
 | `backend/server.js` | `GET /api/notam` 라우트 추가, `POST /api/route-briefing` 핸들러에 `store.getCached('notam')` 주입 |
-| `backend/src/briefing/briefing-composer.js` | `matchItems` 매칭 코어로 경로 NOTAM 추출 → 별도 `routeNotams` 섹션(심각도 없음, `scope:'fir'` 제외). hazards 배열엔 안 넣음 |
+| `backend/src/briefing/briefing-composer.js` | `matchItems` 매칭 코어로 경로 NOTAM 추출 → `routeNotams`(사실 나열) + `routeConflicts`(공역제한∩발효중∩경로통과) 분리. `routeConflicts` 있으면 배너/요약 레벨 저촉 반영. `scope:'fir'` 제외. SIGMET hazards 그라데이션엔 안 넣음(binary 저촉 플래그) |
 | `backend/test/notam-parser.test.js` | 실제 KML 샘플 fixture 기반 파싱 테스트(카테고리·고도 AGL/AMSL·B/C 시각) |
 | `backend/test/notam-processor.test.js` | Q-code→카테고리/스코프 매핑 커버리지(확인된 코드 전부 + 미지 코드 폴백). 심각도 계산 없음 |
-| `backend/test/briefing-composer.test.js` | 경로 NOTAM 매칭·`scope:'fir'` 제외·시간창 필터 케이스 추가 |
+| `backend/test/briefing-composer.test.js` | 경로 NOTAM 매칭·`scope:'fir'` 제외·시간창 필터·`routeConflicts` 판정(공역제한 계열만·발효중만·경로통과만) + 배너 레벨 반영 케이스 |
 
 ### 프론트엔드 파일
 
@@ -200,6 +200,8 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 | `frontend/src/features/map/MapView.jsx` | `activePanel === 'notam'` 조건부 렌더 + `useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => syncNotamLayers(map, notamModel), [notamModel])` 한 줄(ADR 0001 seam 재사용, 새 `useEffect` 추가 금지). `notamModel`을 `App.jsx`에서 prop으로 받는 배선 단계 포함(최초 스펙 누락분) |
 | `frontend/src/features/weather-overlays/lib/weatherOverlayLayers.js` | `MET_LAYERS`에 `{ id: 'notam', label: 'NOTAM', color: ... }` 마스터 토글 등록(위 "레이어 가시성 모델" 참조) |
 | `frontend/src/features/route-briefing/lib/hazardLayers.js` | RULEBOOK에 NOTAM 카테고리→`notam` 레이어 매핑 추가 |
+| `frontend/src/features/route-briefing/BriefingView.jsx` | ③노선 아래 "경로상 NOTAM" 사실 나열 서브섹션 + `routeConflicts` 상단 강조 |
+| `frontend/src/features/route-briefing/BriefingBanner.jsx` | `routeConflicts` 있으면 "경로 저촉" 사유 배너 노출(사실 고지, 명령 아님) |
 
 ### 지도 렌더링
 
@@ -217,24 +219,32 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 
 ## Route-Briefing Integration
 
-**설계 원칙(심각도 판단 배제와 정합)**: NOTAM은 경로 브리핑에서 SIGMET/AIRMET처럼 red/amber "위험 등급"으로 접히지 **않는다**. 우리가 심각도를 판단하지 않기로 했으므로, 경로에 걸리는 NOTAM은 **사실 그대로 나열**하되 Go/No-go 배너 색을 좌우하지 않는다. 배너는 종전대로 기상/비행범주(VFR/IFR/LIFR — 이건 우리 판단이 아니라 도메인 표준 기상 임계값) 기반으로만 움직인다.
+**설계 원칙(사실 기반 반영 — 위험도 순위와 구분)**: NOTAM 간 주관적 위험 순위("금지가 장애물보다 위험")는 여전히 안 매긴다. 그러나 **Go/No-go에 객관적으로 영향을 주는 NOTAM은 배너에 반영한다** — NOTAM 데이터를 다루는 목적 자체가 그것이다. 여기서 반영 근거는 우리 의견이 아니라 두 사실의 결합이다: (a) 카테고리가 ICAO 정의상 **공역 제한 계열**(규정상 진입 제한/금지 공역) + (b) `matchItems`가 계산한 **경로∩시간∩고도 통과**(기하·시간 사실). "발효 중 비행금지구역을 경로가 지난다"는 우리 판단이 아니라 법적 사실이다.
+
+**경로 저촉(routeConflict) 판정 = 3조건 AND (사실, 등급 아님)**:
+1. 카테고리가 공역 제한 계열: 비행금지(RP) · 제한(RR/RT/RA) · 위험(RD) · 사격(WM). (장애물·항행/공항시설·기타는 제외 — 경로를 막지 않는 정보성)
+2. 발효 중(비행 시간창 ETD~ETA와 겹침 — 예정/종료는 저촉 아님)
+3. 경로가 해당 폴리곤을 계획고도에서 통과(`matchItems` 매칭)
+
+세 조건을 다 만족 → 배너에 **경로 저촉 요인**으로 반영 + 사실 이유 명시("경로가 발효 중 비행금지구역 P0002 통과 — 확인 필요"). NOTAM 간 차등 없음(금지든 제한이든 모두 동일한 "경로 저촉" 취급 — 순위 안 매김). 배너 문구는 **사실 고지("통과 — 확인")이지 명령("비행 불가")이 아님** — 최종 go/no-go는 파일럿.
 
 **재사용하는 것 / 하지 않는 것**:
-- 재사용: `matchItems`의 **경로∩시간∩고도 기하 매칭 로직**(어떤 NOTAM 폴리곤을 경로가 계획고도에서 비행 시간창에 통과하는가 — 순수 사실 계산)
-- 재사용 안 함: `hazardLevel()`의 심각도 판정·심각도 정렬(우리가 안 하기로 한 판단). NOTAM은 `buildHazardSection`의 red/amber hazards 배열에 넣지 않는다.
+- 재사용: `matchItems`의 경로∩시간∩고도 기하 매칭(순수 사실 계산)
+- 재사용 안 함: `hazardLevel()`의 SIGMET/AIRMET **심각도 그라데이션**. NOTAM 경로 저촉은 그 그라데이션이 아니라 **binary 저촉 플래그**로 배너에 들어간다(등급 매기기 방지).
 
 **연동 지점**:
 
-1. `backend/src/briefing/briefing-composer.js` — `matchItems`(또는 그 매칭 코어를 추출)로 경로 매칭된 NOTAM을 뽑아 **별도 `routeNotams` 섹션**으로 조립. 심각도 없음. `scope: 'fir'`(전국)는 경로 매칭에서 제외(전국 폴리곤은 어떤 경로든 무의미하게 매칭됨 — 이건 사실적 제외이지 위험 판단 아님). 정렬은 시간상태(발효 중 먼저) + 경로 진입거리순.
+1. `backend/src/briefing/briefing-composer.js` — `matchItems` 매칭 코어로 경로 매칭 NOTAM 전체를 `routeNotams`로 뽑고, 그중 위 3조건을 만족하는 것을 `routeConflicts`로 분리. `routeConflicts`가 비어있지 않으면 배너/요약 레벨을 저촉 상태로 올림(이유: 저촉 NOTAM 목록). `scope: 'fir'`(전국)는 경로 매칭에서 제외(전국 폴리곤은 어떤 경로든 무의미하게 매칭 — 사실적 제외). `routeNotams` 정렬은 발효 중 먼저 + 경로 진입거리순.
 2. `backend/server.js` — `POST /api/route-briefing` 핸들러가 `store.getCached('notam')`도 읽어 `data.notam`으로 전달.
-3. `frontend/src/features/route-briefing/BriefingView.jsx` — ③노선 섹션 아래 **"경로상 NOTAM N건" 사실 나열 서브섹션** 추가(카테고리 라벨+시간상태 색+요약+고도). 기상 위험 카드와 시각적으로 구분(위험 등급이 아니라 "읽어야 할 고지"). 배너·요약 레벨 미변경.
-4. `frontend/src/features/route-briefing/lib/hazardLayers.js` — RULEBOOK에 `{ codes: [...notam categories], layers: ['notam'] }` 추가해서 "지도에 NOTAM 레이어 보기" 칩은 계속 제공(레이어 토글은 판단 아님). `notam`이 유효한 토글 대상이 되려면 위 "레이어 가시성 모델"대로 `weatherOverlayLayers.js`의 `MET_LAYERS`에 `notam` id 등록 필요(`MET_LAYERS`+`hazardLayers.test.js`가 실제 강제 지점 — 최초 스펙의 `layerActions.js` 오기 수정).
+3. `frontend/src/features/route-briefing/BriefingView.jsx` — ③노선 아래 **"경로상 NOTAM N건" 사실 나열 서브섹션**(카테고리 라벨+시간상태 색+요약+고도). `routeConflicts`는 그중 상단에 "경로 저촉" 강조로 분리 표시. `BriefingBanner.jsx`는 `routeConflicts` 있으면 저촉 사유를 배너에 노출.
+4. `frontend/src/features/route-briefing/lib/hazardLayers.js` — RULEBOOK에 `{ codes: [...notam categories], layers: ['notam'] }` 추가해 "지도에 NOTAM 레이어 보기" 칩 제공. `notam`이 유효 토글 대상이 되려면 `weatherOverlayLayers.js`의 `MET_LAYERS`에 `notam` id 등록 필요(`MET_LAYERS`+`hazardLayers.test.js`가 실제 강제 지점 — 최초 스펙의 `layerActions.js` 오기 수정).
 
 **딸려오는 것**:
-- ③노선 섹션에 "경로상 NOTAM" 서브섹션이 사실 나열로 노출 → 파일럿이 직접 판독(우리가 순위 안 매김)
-- "지도에 NOTAM 레이어 보기" 칩으로 경로 주변 NOTAM을 지도에서 확인 가능
+- 발효 중 공역 제한 NOTAM이 경로에 걸리면 배너에 "경로 저촉" 사실 노출 → 파일럿이 인지·판단
+- 나머지 경로상 NOTAM(장애물·시설 등)은 배너 미반영, "경로상 NOTAM" 사실 나열만
+- "지도에 NOTAM 레이어 보기" 칩으로 경로 주변 NOTAM 확인
 
-**열린 결정(사용자 확인 필요)**: "발효 중인 비행금지구역을 경로가 통과"는 법적 사실이라 배너에 반영할 여지가 있으나, 지금은 보수적으로 배너 미반영(사실 나열만)으로 둔다. 추후 "발효 중 금지구역 경로 통과 = 배너 경고"를 원하면 별도 명시 결정으로 추가.
+**경계선(왜 이게 "판단"이 아닌가)**: 우리가 정하는 건 "어떤 카테고리가 공역 제한 계열인가"인데, 이는 ICAO Q-code 정의(RP=prohibited, RR/RT=restricted, RD=danger, WM=firing)를 그대로 따르는 것이지 우리 위험 척도가 아니다. 저촉 판정도 기하·시간 사실이다. 우리가 하지 않는 것은 여전히 "NOTAM A가 B보다 위험하다"는 상대 순위 매기기다.
 
 **알려진 한계 (정직하게 기록, 이번 스코프 제외):**
 - **고도 밴드 파싱**: Q-line `/000/999/`(FL밴드)와 원문 `F)/G)`필드(명시적 ft, AGL/AMSL 라벨 포함, 있을 때만)가 둘 다 존재 — 우선순위 로직 필요(F)/G) 있으면 그것 우선, 없으면 Q-line 밴드로 폴백). SIGMET/AIRMET보다 파서 작업이 더 든다.
@@ -251,7 +261,7 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 
 - 백엔드: 파서/프로세서 단위 테스트(실제 KML fixture 사용), `briefing-composer.test.js`에 경로 NOTAM 매칭 케이스(경로 교차/시간 겹침/고도 밴드/`scope:'fir'` 제외) 추가
 - 프론트: GeoJSON 변환 단위 테스트, `deriveTimeState`(active/soon/upcoming 경계) + `formatAltitude`(AGL/AMSL 라벨 보존, 전고도 축약) 단위 테스트
-- 브라우저 스모크: NOTAM 패널 카테고리 필터→지도 반영(줌 전환·시간상태 색), 공항 선택→NotamTab 필터+전역 공지 섹션, 경로 브리핑 생성→"경로상 NOTAM" 서브섹션이 사실 나열로 뜨고 배너 색은 안 바뀌는지 확인
+- 브라우저 스모크: NOTAM 패널 카테고리 필터→지도 반영(줌 전환·시간상태 색), 공항 선택→NotamTab 필터+전역 공지 섹션, 경로 브리핑 생성→"경로상 NOTAM" 사실 나열 + 발효 중 공역 제한이 경로에 걸리면 배너에 "경로 저촉" 반영되는지 확인(장애물·시설만 걸리면 배너 미반영)
 
 ## Open Decisions Resolved During Brainstorming
 
@@ -265,7 +275,7 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 - **심각도 판단 배제(안전/책임 결정)**: 우리가 NOTAM 위험도를 판단하지 않는다. NOTAM 생산 주체가 아니고, 잘못 순위 매기면 파일럿이 놓칠 때 책임 소재가 생김. 카테고리→심각도 매핑(구 설계) 전면 폐기.
 - **색 = 시간 상태**: 색상은 B/C 필드에서 나온 객관적 사실(발효중 red / 곧발효 amber / 예정 gray)만 인코딩. 카테고리 무관 균일 적용(EFB 시간-활성 색상 관례). 카테고리는 아이콘+라벨로 구분.
 - UI 좌측 색 보더 카드 패턴 배제 — 무채색 카드 + 색 배지 조합으로(범용 AI 대시보드 톤 회피)
-- 브리핑 연동: `matchItems`의 **매칭 코어만 재사용**, `hazardLevel()` 심각도 판정은 재사용 안 함. NOTAM은 red/amber hazards 배열이 아니라 별도 "경로상 NOTAM" 사실 나열 섹션으로. Go/No-go 배너 미변경(열린 결정: 발효중 금지구역 경로통과 배너반영은 추후 별도 결정).
+- 브리핑 연동: `matchItems` 매칭 코어만 재사용, `hazardLevel()` 심각도 그라데이션은 재사용 안 함. 경로상 NOTAM은 "경로상 NOTAM" 사실 나열 섹션으로. **단 공역 제한 계열(RP/RR/RT/RA/RD/WM)이 발효 중 경로에 걸리면 binary "경로 저촉" 플래그로 배너에 사실 반영**(사용자 결정 2026-07-03 — Go/No-go에 영향 주는 NOTAM은 반영해야 함). NOTAM 간 등급은 여전히 안 매김. 근거는 ICAO 카테고리 정의 + 기하·시간 사실이지 우리 위험 척도 아님.
 - 지도 가시성 모델: 카테고리별 개별 레이어가 아니라 `MET_LAYERS` 마스터 토글 1개 + 카테고리 필터로 수정(리뷰로 발견 — 최초 설계는 `hazardLayers.js`/브리핑 칩과 안 맞았음)
 - 플랜 단계 분할 권장: 스펙은 하나로 유지, `writing-plans`에서 (a) 크롤러+파서+프로세서+store+API, (b) 프론트 UI(전역패널+공항탭+지도), (c) 브리핑 연동(― (a)에 의존) 3단계로 나눠서 계획
 - 표출 방향: 공식기관(FAA/EAD)의 텍스트·검색 우선이 아니라 EFB(ForeFlight/Garmin)식 지도·그래픽 우선 채택. ProjectAMO가 지도 대시보드 정체성이고 EFB 방향이 현대적·우월함이 리서치로 확인됨. 단 리스트(테이블) 완성도도 동등하게 중시.
