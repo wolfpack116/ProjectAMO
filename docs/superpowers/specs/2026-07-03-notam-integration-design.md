@@ -120,6 +120,30 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 
 `App.jsx`의 기존 `selectedAirport` 상태를 `NotamPanel`에 prop으로 넘겨, 해당 공항 A필드 일치 항목을 테이블 최상단에 별도 섹션으로 고정. 새 API 호출 불필요(이미 받은 전체 리스트 재정렬만). 경로(출발-목적지) 연동은 아래 Route-Briefing Integration으로 대체하고, 전역 패널 자체의 경로 인식은 범위 밖.
 
+### 표시 필드 매핑 (원문 → 화면)
+
+| 원문 필드 | 화면 이름 | 노출 위치 |
+|---|---|---|
+| `Q)`라인 2nd/3rd letter | 카테고리(7종) | 배지 라벨, 지도 아이콘 |
+| 카테고리→red/amber/gray | 심각도 | 배지 색, 지도 마커/폴리곤 색 |
+| `A)` | 공항 ICAO(또는 `scope:'fir'`면 "전역 공지") | 전역패널 "공항" 열 |
+| `B)` / `C)` | 유효 시작/종료 | 유효기간 표시 |
+| B/C vs 현재시각 | 시간상태(활성/예정) | 텍스트 톤 |
+| `E)` | 요약 1줄 | 전역패널 "요약" 열, 공항탭 카드, 지도 팝업 |
+| `F)`/`G)`(있으면) 또는 Q라인 lower/upper(폴백) | 고도 | 전역패널 "고도" 열, 공항탭 카드 요약 아래 한 줄, 지도 팝업 한 줄 |
+| Placemark id(`G3315/26`) | NOTAM 번호 | 공항탭 카드 상단(전역패널은 행 폭 제약으로 생략) |
+| 원문 전체(`GG...`~끝) | 원문 | "원문 보기" 펼치기 전용, 손 안 댐 |
+| `D)` | (미노출) | 원문 펼치기 안에만 — 형식이 다양해 별도 파싱 안 함 |
+
+**고도 표시 규칙**: 하한 0(SFC)이고 상한이 사실상 무제한(Q라인 999 등)이면 **"전고도"**로 표시. 그 외엔 `SFC–4,000FT`, `4,000–6,000FT AMSL`처럼 실제 범위 그대로. 우리 실측 데이터의 다수(342건 GPS RAIM류)가 `/000/999/`(전고도)라 이 축약이 노이즈를 크게 줄인다. `notamViewModel.js`(전역패널/공항탭 각각)에 `formatAltitude(lower, upper)` 순수함수로 구현.
+
+### 지도 팝업/겹침 처리
+
+- 마커(점) 다수가 낮은 줌에서 겹치는 경우: Mapbox GeoJSON source `cluster: true`(라이브러리 내장) — 숫자 배지로 뭉치고 확대 시 분리.
+- 폴리곤이 같은 지점에서 겹쳐 클릭된 경우: `map.queryRenderedFeatures(point, { layers: NOTAM_LAYER_IDS })`로 클릭 지점의 전체 후보를 가져와 처리.
+  - 3건 이하: 팝업 안에 미니 리스트(배지+번호)로 전부 표시, 항목 클릭 시 그것만 펼쳐 요약+고도+원문
+  - 4건 이상: 팝업엔 "이 지점에 N건" + 상위 몇 개만, "전체 보기" 링크로 `NotamPanel` 열고 해당 위치로 필터(리스트 스캔은 지도 팝업보다 테이블이 낫다는 §6-P3 근거 원칙 재사용)
+
 ### 백엔드 파일
 
 | 파일 | 역할 |
@@ -146,10 +170,10 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 | `frontend/src/features/notam/NotamPanel.jsx` | (A) 전역 패널: 카테고리 토글 + 심각도 탭(금지·피격/주의/정보) + 밀도형 테이블(`ap-taf-table` 패턴), `selectedAirport` 우선순위 섹션 |
 | `frontend/src/features/notam/lib/notamLayers.js` | Mapbox 소스/레이어 설치·동기화·카테고리 가시성, `minzoom` 기반 마커↔폴리곤 전환(`NOTAM_SOURCE_IDS`/`NOTAM_LAYER_IDS` 소유권 export) |
 | `frontend/src/features/notam/lib/notamGeoJson.js` | 백엔드 페이로드 → 카테고리별 GeoJSON FeatureCollection 변환, `scope: 'fir'` 레코드 제외 |
-| `frontend/src/features/notam/lib/notamViewModel.js` | `deriveTimeState`(active/upcoming), 심각도별 그룹핑·정렬, 청크 로딩("더 보기") |
+| `frontend/src/features/notam/lib/notamViewModel.js` | `deriveTimeState`(active/upcoming), `formatAltitude`, 심각도별 그룹핑·정렬, 청크 로딩("더 보기") |
 | `frontend/src/features/notam/lib/notamLayers.test.js` | GeoJSON 변환/카테고리 분리 테스트 |
 | `frontend/src/features/airport-panel/tabs/NotamTab.jsx` | (B) 공항별 NOTAM 목록 + `scope: 'fir'` 전역 공지 섹션 |
-| `frontend/src/features/airport-panel/lib/notamViewModel.js` | 공항 탭 표시용 가공(배지/유효기간 포맷) |
+| `frontend/src/features/airport-panel/lib/notamViewModel.js` | 공항 탭 표시용 가공(배지/유효기간/고도 포맷, NOTAM 번호 표시) |
 | `frontend/src/features/airport-panel/AirportPanel.jsx` | 탭 목록에 NOTAM 추가 |
 | `frontend/src/features/map/MapView.jsx` | `activePanel === 'notam'` 조건부 렌더 + `useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => syncNotamLayers(map, notamModel), [notamModel])` 한 줄(ADR 0001 seam 재사용, 새 `useEffect` 추가 금지). `notamModel`을 `App.jsx`에서 prop으로 받는 배선 단계 포함(최초 스펙 누락분) |
 | `frontend/src/features/weather-overlays/lib/weatherOverlayLayers.js` | `MET_LAYERS`에 `{ id: 'notam', label: 'NOTAM', color: ... }` 마스터 토글 등록(위 "레이어 가시성 모델" 참조) |
