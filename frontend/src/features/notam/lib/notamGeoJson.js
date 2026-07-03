@@ -10,29 +10,14 @@ export function parsePsnPoint(text) {
   return (Number.isFinite(lat) && Number.isFinite(lon)) ? [lon, lat] : null
 }
 
-function centroid(geometry) {
-  const pts = []
-  if (geometry?.type === 'Point') return geometry.coordinates
-  if (geometry?.type === 'Polygon') pts.push(...(geometry.coordinates[0] || []))
-  else if (geometry?.type === 'LineString') pts.push(...(geometry.coordinates || []))
-  else if (geometry?.type === 'MultiPolygon') for (const poly of geometry.coordinates) pts.push(...(poly[0] || []))
-  const v = pts.filter((p) => Number.isFinite(p?.[0]) && Number.isFinite(p?.[1]))
-  if (v.length === 0) return null
-  return [v.reduce((s, p) => s + p[0], 0) / v.length, v.reduce((s, p) => s + p[1], 0) / v.length]
-}
-
-// 지도 표시용 지오메트리: 장애물=PSN 정확한 점 / 시설=공항 한 점(중심) / 구역 계열=원래 폴리곤.
-// (목록·표·공항탭은 원본 item.geometry 안 씀 — 지도 렌더/줌만 해당.)
+// 지도 표시용 지오메트리: 장애물만 PSN 정확한 점으로. 그 외(시설·구역 계열)는 원래 지오메트리 유지
+// (시설=활주로형 폴리곤 그대로 색칠, 구역=폴리곤). 목록·표·공항탭은 원본 안 씀 — 지도 렌더/줌만 해당.
 export function displayGeometry(item) {
   const g = item?.geometry
   if (!g) return null
   if (item.category === 'obstacle') {
     const p = parsePsnPoint(item.summary) || parsePsnPoint(item.rawText)
     return p ? { type: 'Point', coordinates: p } : g
-  }
-  if (item.category === 'facility') {
-    const c = centroid(g)
-    return c ? { type: 'Point', coordinates: c } : g
   }
   return g
 }
@@ -45,6 +30,8 @@ export function notamToFeatureCollection(payload, nowMs = Date.now()) {
   return {
     type: 'FeatureCollection',
     features: items
+      // 시설(주파수·GPS·유도로/활주로 폐쇄 등)은 지도 미표시 — 공항 패널 NOTAM 탭·목록에서 확인.
+      .filter((it) => it?.category !== 'facility')
       .map((it) => ({ it, geom: displayGeometry(it) }))
       .filter(({ geom }) => geom?.type && geom?.coordinates)
       .map(({ it, geom }) => ({

@@ -16,6 +16,9 @@ const base = {
     { id: 'A2/26', category: 'facility', scope: 'airport', location: 'RKSS',
       valid_from: '2026-07-03T00:00:00Z', valid_to: '2026-07-03T12:00:00Z',
       altitude: null, summary: 'no geom', geometry: null },
+    { id: 'F7/26', category: 'facility', scope: 'airport', location: 'RKSS',
+      valid_from: '2026-07-03T00:00:00Z', valid_to: '2026-07-03T12:00:00Z',
+      altitude: null, summary: 'RWY CLSD', geometry: { type: 'Polygon', coordinates: [[[126,35],[127,35],[127,36],[126,35]]] } },
     { id: 'L5/26', category: 'danger', scope: 'airport', location: 'RKPC',
       valid_from: '2026-07-03T00:00:00Z', valid_to: '2026-07-03T12:00:00Z',
       altitude: null, summary: 'corridor', geometry: { type: 'LineString', coordinates: [[126,35],[127,36]] } },
@@ -27,6 +30,7 @@ test('excludes only null-geometry; FIR included with scope property (outline-onl
   assert.equal(fc.type, 'FeatureCollection')
   const ids = fc.features.map((f) => f.properties.id)
   assert.ok(!ids.includes('A2/26'), 'null-geometry excluded')
+  assert.ok(!ids.includes('F7/26'), '시설은 지도 미표시(공항패널에서 확인)')
   const fir = fc.features.find((f) => f.properties.id === 'D9/26')
   assert.ok(fir, 'FIR NOTAM now included on map')
   assert.equal(fir.properties.scope, 'fir')
@@ -68,12 +72,10 @@ test('displayGeometry: 장애물 → PSN 정확한 점', () => {
   assert.ok(Math.abs(g.coordinates[0] - 126.7967) < 0.001)
 })
 
-test('displayGeometry: 시설 → 도형 중심 점(활주로 덮지 않게)', () => {
+test('displayGeometry: 시설 → 원래 폴리곤 유지(활주로형 색칠)', () => {
   const item = { category: 'facility', summary: 'RWY 01/19 CLSD',
     geometry: { type: 'Polygon', coordinates: [[[126.0, 35.0], [126.2, 35.0], [126.2, 35.2], [126.0, 35.2], [126.0, 35.0]]] } }
-  const g = displayGeometry(item)
-  assert.equal(g.type, 'Point')
-  assert.ok(Math.abs(g.coordinates[0] - 126.08) < 0.05)
+  assert.equal(displayGeometry(item).type, 'Polygon')
 })
 
 test('displayGeometry: 구역 계열(위험/제한)은 폴리곤 유지', () => {
