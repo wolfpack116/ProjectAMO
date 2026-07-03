@@ -211,6 +211,7 @@ const MapView = forwardRef(function MapView({
   onLayerCountsChange,
   onClosePanel,
   onOpenNotamPanel,
+  onOpenRoutePanel,
   enableWindOverlay = true,
 }, ref) {
   const isMobile = useIsMobile()
@@ -274,7 +275,7 @@ const MapView = forwardRef(function MapView({
         if (id && !seen.has(id)) { seen.add(id); uniq.push(f) }
       }
       if (uniq.length === 0) return
-      const popup = new mapboxgl.Popup({ closeButton: true, maxWidth: '280px' })
+      const popup = new mapboxgl.Popup({ closeButton: true, maxWidth: '380px' })
         .setLngLat(e.lngLat).setHTML(notamPopupHtml(uniq)).addTo(map)
       const moreBtn = popup.getElement()?.querySelector('.notam-pop-more')
       if (moreBtn) moreBtn.addEventListener('click', () => { onOpenNotamPanel?.(); popup.remove() })
@@ -1291,6 +1292,34 @@ const MapView = forwardRef(function MapView({
         onScrub={scrubWeatherTimeline}
         onPlayPause={toggleWeatherTimelinePlay}
       />
+
+      {/* 브리핑 패널을 닫아도 경로는 지도에 남는다 — 패널을 다시 열지 않고도 지울 수
+          있도록 하단 중앙(타임라인 스크럽 스택 위, 겹침 확인됨)에 요약+지우기 칩 표시. */}
+      {routeBriefing.state.routeResult && activePanel !== 'route-check' && (
+        <div
+          className="active-route-chip"
+          role="button"
+          tabIndex={0}
+          onClick={onOpenRoutePanel}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenRoutePanel?.() } }}
+          aria-label="경로 확인 패널 열기"
+        >
+          <span className="active-route-chip-route">
+            {routeBriefing.state.routeForm.departureAirport || '출발'}
+            <span aria-hidden="true">{' → '}</span>
+            {routeBriefing.state.routeForm.arrivalAirport || '도착'}
+          </span>
+          {routeBriefing.derived.plannedDistanceNm > 0 && (
+            <span className="active-route-chip-dist">{Math.round(routeBriefing.derived.plannedDistanceNm)} NM</span>
+          )}
+          <button
+            type="button"
+            className="active-route-chip-clear"
+            aria-label="경로 지우기"
+            onClick={(e) => { e.stopPropagation(); routeBriefing.actions.handleRouteReset() }}
+          >×</button>
+        </div>
+      )}
 
       <NwpSliderBar
         isVisible={enableWindOverlay && (metVisibility.wind || metVisibility.temp || metVisibility.cloud || metVisibility.icing)}

@@ -72,7 +72,13 @@ function NotamRow({ item, nowMs, tz, expanded, onToggle, onLocate }) {
       </tr>
       {expanded && (
         <tr className="notam-raw-row">
-          <td colSpan={5}><pre className="notam-raw">{item.rawText || item.summary}</pre></td>
+          <td colSpan={5}>
+            <div className="notam-full-sum">{notamSummary(item)}</div>
+            <details className="notam-raw-details">
+              <summary>원문 보기</summary>
+              <pre className="notam-raw">{item.rawText || item.summary}</pre>
+            </details>
+          </td>
         </tr>
       )}
     </>

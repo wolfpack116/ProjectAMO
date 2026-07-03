@@ -81,6 +81,10 @@
 .notam-chev { vertical-align: middle; margin-left: 4px; color: var(--text-3); transition: transform 0.15s; }
 .notam-chev.is-open { transform: rotate(180deg); }
 .notam-raw-row td { padding: 0 6px 10px; }
+/* 펼침: 요약 전문(잘리지 않고 전체) + 원문 접기 */
+.notam-full-sum { padding: 4px 2px 6px; font-size: 13px; color: var(--text-1); font-weight: 600; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+.notam-raw-details > summary { cursor: pointer; color: var(--accent); font-size: 12px; font-weight: 700; list-style: none; padding: 2px 0; }
+.notam-raw-details > summary::-webkit-details-marker { display: none; }
 .notam-raw {
   margin: 0; padding: 8px 10px; background: var(--bg-2); border: 1px solid var(--stroke-2); border-radius: 4px;
   font-size: 12px; color: var(--text-2); white-space: pre-wrap; word-break: break-word; font-family: Consolas, monospace;
@@ -103,7 +107,8 @@
 .notam-tab-more { font-size: 12px; color: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 3px; }
 
 /* 겹침 팝업(지도) — notamPopupHtml 구조 */
-.notam-pop { min-width: 180px; font-family: var(--font-base, sans-serif); }
+.notam-pop { min-width: 260px; font-family: var(--font-base, sans-serif); }
+.notam-pop-sum { white-space: normal; word-break: break-word; }
 .notam-pop-head { font-size: 12px; font-weight: 800; color: var(--text-1); margin-bottom: 6px; }
 .notam-pop-row { padding: 5px 0; border-top: 1px solid var(--stroke-2); }
 .notam-pop-row:first-child { border-top: none; }

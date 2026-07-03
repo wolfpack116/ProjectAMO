@@ -106,7 +106,7 @@ export function notamSummary(item) {
     return `주파수 ${freq[1]}MHz 불가${alt ? ` → ${alt[1]}` : ''}`
   }
   // 6) 폴백: 좌표/RMK/AS FLW/BOUNDED 앞에서 컷
-  const head = raw.split(/\s+ACT AS FLW|\s+AREA BOUNDED|\s+RMK\b|\s*\d{6}N\d{7}E|\s+PSN\s*:/i)[0].trim()
+  const head = raw.split(/\s+(?:ACT\s+)?AS FLW|\s+AREA BOUNDED|\s+RMK\b|\s*\d{6}N\d{7}E|\s+PSN\s*:/i)[0].trim()
   return head.slice(0, 70)
 }
 
