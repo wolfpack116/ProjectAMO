@@ -757,19 +757,17 @@ import { buildVfrRouteFromWaypoints } from './lib/routeBriefingModel.js'
 
 - [ ] **Step 3: 반환 객체에 노출**
 
-`return { state: { ... }, ... actions: { ... } }` 블록에서 `state` 객체(약 776-796줄)에 추가:
+`return { state: { ... }, ... actions: { ... } }` 블록에서 `state` 객체(약 776-796줄)에 추가. **참고**: `vfrWaypoints`는 이미 이 객체 리터럴에 있음(vfrLegs 기능 커밋에서 추가됨) — 객체 리터럴은 중복 키가 문법 에러는 아니지만(마지막 값이 이김), 혼동 방지를 위해 아래 3개만 추가:
 
 ```js
-      vfrWaypoints,
       importCandidates,
       importWarning,
       importError,
 ```
 
-`actions` 객체(`loadSavedRoute,` 라인 근처)에 추가:
+`actions` 객체(기존 `loadSavedRoute,` 라인 근처, 888줄)에 추가(`loadSavedRoute`는 이미 있으므로 다시 넣지 않는다):
 
 ```js
-      loadSavedRoute,
       importRouteFromFile,
       applyImportedPath,
 ```
@@ -889,10 +887,9 @@ import RouteImportChooser from './RouteImportChooser.jsx'
 
 - [ ] **Step 2: state 구조분해 확장**
 
-`const { routeForm, routeResult, ... } = state` 블록(약 198-224줄)에 추가:
+`const { routeForm, routeResult, ... } = state` 블록(약 198-224줄)에 추가. **주의**: `vfrWaypoints`는 이미 이 구조분해에 있음(198-224줄에 `vfrWaypoints,` 존재) — 다시 넣으면 `Identifier 'vfrWaypoints' has already been declared` SyntaxError. 아래 3개만 추가:
 
 ```js
-    vfrWaypoints,
     importCandidates,
     importWarning,
     importError,
