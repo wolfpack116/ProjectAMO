@@ -1,4 +1,5 @@
 import { deriveTimeState, formatAltitude } from './notamViewModel.js'
+import { obstacleType, parseObstacleHeight } from './notamObstacleIcons.js'
 
 // "DDMMSS[.s]N DDDMMSS[.s]E" (NOTAM E)본문 PSN) → [lon,lat]. 못 읽으면 null.
 export function parsePsnPoint(text) {
@@ -57,6 +58,9 @@ export function notamToFeatureCollection(payload, nowMs = Date.now()) {
           summary: it.summary || '',
           altitude: formatAltitude(it.altitude),
           location: it.location || '',
+          // 장애물 심볼용(다른 카테고리엔 무해)
+          obstacleType: it.category === 'obstacle' ? obstacleType(it.summary || it.rawText) : '',
+          heightLabel: it.category === 'obstacle' ? parseObstacleHeight(it.rawText || it.summary) : '',
         },
         geometry: geom,
       })),

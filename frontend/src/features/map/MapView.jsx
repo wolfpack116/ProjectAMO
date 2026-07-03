@@ -18,6 +18,7 @@ import AviationLayerPanel from '../aviation-layers/AviationLayerPanel.jsx'
 import NotamPanel from '../notam/NotamPanel.jsx'
 import { updateNotamLayerData, setNotamVisibility, setNotamCategoryFilter as applyNotamCategoryFilter, notamPopupHtml, notamsAtPoint, addNotamHighlight, setNotamHighlight, geometryBounds } from '../notam/lib/notamLayers.js'
 import { notamToFeatureCollection, displayGeometry } from '../notam/lib/notamGeoJson.js'
+import { registerNotamObstacleImages } from '../notam/lib/notamObstacleIcons.js'
 import { NOTAM_CATEGORIES } from '../notam/lib/notamViewModel.js'
 import { SIGWX_FILTER_OPTIONS } from '../weather-overlays/lib/sigwxData.js'
 import AdvisoryBadges from '../weather-overlays/AdvisoryBadges.jsx'
@@ -254,13 +255,14 @@ const MapView = forwardRef(function MapView({
   const [selectedSigwxCloudMeta, setSelectedSigwxCloudMeta] = useState(sigwxCloudMeta)
   const notamFc = useMemo(() => notamToFeatureCollection(notamData, Date.now()), [notamData])
   useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+    registerNotamObstacleImages(map) // 장애물 종류별 아이콘 등록(비동기, 준비되면 심볼 레이어가 참조)
     updateNotamLayerData(map, notamFc)
     addNotamHighlight(map)
     setNotamVisibility(map, metVisibility.notam)
     applyNotamCategoryFilter(map, notamCategoryFilter)
     // 겹침 팝업(surface D): 클릭 지점의 모든 NOTAM 후보를 해석(1 / 2-3 미니리스트 / 4+ 전체보기).
     // 폴리곤은 point-in-polygon으로 직접 판정(투명/줌 무관, 네모·동그라미 내부 어디든), 점·선은 queryRenderedFeatures.
-    const lineLayers = ['notam-marker', 'notam-line', 'notam-fir-line'].filter((id) => map.getLayer(id))
+    const lineLayers = ['notam-marker', 'notam-obstacle', 'notam-line', 'notam-fir-line'].filter((id) => map.getLayer(id))
     function onNotamClick(e) {
       if (!metVisibility.notam) return
       const polyHits = notamsAtPoint(notamFc.features, e.lngLat.lng, e.lngLat.lat, notamCategoryFilter)

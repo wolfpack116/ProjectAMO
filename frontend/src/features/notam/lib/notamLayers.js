@@ -16,7 +16,9 @@ const NOT_FIR = ['!=', ['get', 'scope'], 'fir']
 const IS_FIR = ['==', ['get', 'scope'], 'fir']
 
 export const NOTAM_SOURCE_IDS = ['notam-src']
-export const NOTAM_LAYER_IDS = ['notam-fill', 'notam-line', 'notam-fir-line', 'notam-marker']
+export const NOTAM_LAYER_IDS = ['notam-fill', 'notam-line', 'notam-fir-line', 'notam-marker', 'notam-obstacle']
+const IS_OBSTACLE = ['==', ['get', 'category'], 'obstacle']
+const IS_POINT = ['==', ['geometry-type'], 'Point']
 
 const CATEGORY_LABEL = Object.fromEntries(NOTAM_CATEGORIES.map((c) => [c.id, c.label]))
 export function catLabel(id) {
@@ -51,12 +53,31 @@ export function addNotamLayers(map, featureData) {
       filter: IS_FIR,
     })
   }
+  // 장애물: 종류별 아이콘 + 위에 높이 라벨(EFB식). 색은 시간상태(아이콘·라벨 모두).
+  if (!map.getLayer('notam-obstacle')) {
+    map.addLayer({
+      id: 'notam-obstacle', type: 'symbol', source: 'notam-src', slot: 'top',
+      filter: ['all', IS_POINT, IS_OBSTACLE],
+      layout: {
+        'icon-image': ['concat', 'notam-obst-', ['get', 'obstacleType'], '-', ['get', 'timeState']],
+        'icon-size': 0.95,
+        'icon-allow-overlap': true,
+        'icon-anchor': 'bottom',
+        'text-field': ['get', 'heightLabel'],
+        'text-size': 11,
+        'text-offset': [0, 0.4],
+        'text-anchor': 'top',
+        'text-optional': true,
+      },
+      paint: { 'text-color': TIME_COLOR, 'text-halo-color': '#ffffff', 'text-halo-width': 1.4 },
+    })
+  }
   if (!map.getLayer('notam-marker')) {
     // 형태 단서(색맹 대비): 발효중=채운 원 / 곧발효=반채움(진한 테두리+옅은 채움) / 예정=외곽선만.
+    // 시설 등 점(장애물 제외 — 장애물은 위 심볼 레이어). 모든 줌 표시.
     map.addLayer({
       id: 'notam-marker', type: 'circle', source: 'notam-src', slot: 'top',
-      // Point 지오메트리만 — 필터 없으면 폴리곤/라인 꼭짓점마다 점이 찍힘. 모든 줌에서 표시(확대해도 사라지지 않게).
-      filter: ['==', ['geometry-type'], 'Point'],
+      filter: ['all', IS_POINT, ['!', IS_OBSTACLE]],
       paint: {
         'circle-color': ['match', ['get', 'timeState'], 'upcoming', 'rgba(0,0,0,0)', TIME_COLOR],
         'circle-opacity': ['match', ['get', 'timeState'], 'soon', 0.4, 'active', 0.85, 0],
@@ -66,7 +87,7 @@ export function addNotamLayers(map, featureData) {
       },
     })
   }
-  if (map.getLayer('notam-marker') && typeof map.moveLayer === 'function') map.moveLayer('notam-marker')
+  for (const id of ['notam-marker', 'notam-obstacle']) if (map.getLayer(id) && typeof map.moveLayer === 'function') map.moveLayer(id)
 }
 
 export function updateNotamLayerData(map, featureData) {
@@ -84,7 +105,8 @@ export function setNotamCategoryFilter(map, activeCategoryIds) {
   if (map.getLayer('notam-fill')) map.setFilter('notam-fill', ['all', POLYGON_FILTER, NOT_FIR, catFilter])
   if (map.getLayer('notam-line')) map.setFilter('notam-line', ['all', NOT_FIR, catFilter])
   if (map.getLayer('notam-fir-line')) map.setFilter('notam-fir-line', ['all', IS_FIR, catFilter])
-  if (map.getLayer('notam-marker')) map.setFilter('notam-marker', ['all', ['==', ['geometry-type'], 'Point'], catFilter])
+  if (map.getLayer('notam-obstacle')) map.setFilter('notam-obstacle', ['all', IS_POINT, IS_OBSTACLE, catFilter])
+  if (map.getLayer('notam-marker')) map.setFilter('notam-marker', ['all', IS_POINT, ['!', IS_OBSTACLE], catFilter])
 }
 
 // 겹침 팝업 HTML(목업 surface D): 1건 상세 / 2~3건 미니리스트 / 4건+ 상위3 + "전체 목록에서 보기".
