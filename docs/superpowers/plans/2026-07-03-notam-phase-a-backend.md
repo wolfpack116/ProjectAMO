@@ -1,0 +1,670 @@
+# NOTAM Phase A — Backend Pipeline Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Crawl 대한민국 유효 NOTAM(KML, 향후 7일 창) once/day, parse to structured records, categorize by Q-code, and serve the latest snapshot at `GET /api/notam`.
+
+**Architecture:** New backend data type `notam` following the exact existing collector pattern (`EntryPoints.md` #5): Playwright crawler → parser → processor → `store.save('notam', ...)` → cron in `index.js` → route in `server.js`. In-memory + `latest.json` snapshot, newest-only (no history). This phase produces a working API and is independent of frontend/briefing phases.
+
+**Tech Stack:** Node ESM, Express, `node-cron`, Playwright (new backend dependency), `node:test` + `node:assert/strict`.
+
+## Global Constraints
+
+- Node ESM only (`import`/`export`, `.js` extensions in imports). Every source file ends with both `export { ... }` and `export default { ... }` — match sibling files.
+- Tests use `node --test` runner: `import { test } from 'node:test'` + `import assert from 'node:assert/strict'`. Run from `backend/`.
+- No UTF-8-destroying writes (CLAUDE.md §6): use the editor's file tools, never PowerShell `Set-Content`/`>`.
+- After any code change run `graphify update .` is NOT required mid-plan (post-commit git hook handles it).
+- Category enum (fixed, from spec Q-code table): `prohibited` (RP) · `firing` (WM) · `danger` (RD) · `restricted` (RR/RT/RA) · `obstacle` (OB/PO) · `facility` (all other subject codes) · `other` (unmappable).
+- Canonical `/api/notam` item shape (the contract Phases B & C consume — do not change field names):
+  ```
+  {
+    id: 'G3315/26',            // Placemark id = NOTAM number
+    series: 'G',               // first char of id
+    location: 'RKSI',          // A) field ICAO (or FIR code e.g. RKRR)
+    qcode: 'QGAXX',            // Q) line 5-letter code
+    category: 'facility',      // enum above
+    scope: 'airport' | 'fir',  // fir = nationwide (location in KOREA_FIR_CODES)
+    valid_from: '2026-07-03T10:47:00.000Z',  // B) → UTC ISO
+    valid_to:   '2026-07-04T11:08:00.000Z',  // C) → UTC ISO
+    altitude: { lower: 0, upper: 999, unit: 'FL', ref: null } | { lower: 4000, upper: 6000, unit: 'FT', ref: 'AMSL' } | null,
+    summary: 'GPS RAIM OUTAGES PREDICTED FOR NPA',  // E) field text
+    rawText: 'GG RKZZNAXX\n...',                     // full original, untouched
+    geometry: { type: 'Point'|'Polygon'|'LineString', coordinates: [...] } | null
+  }
+  ```
+  Full payload: `{ fetched_at: ISO, horizon_days: 7, items: [ ...above ] }`.
+
+---
+
+### Task 1: Spike — verify 7-day crawl widening works headless
+
+**Files:**
+- Create (throwaway): `backend/_spike-notam-7d.mjs`
+
+**Interfaces:**
+- Produces: confirmation that setting the end-date form field then clicking KML다운로드 yields MORE records than the 24h default (or the discovery that 검색 must be clicked first). This decides Task 2's crawler steps.
+
+- [ ] **Step 1: Install Playwright in backend**
+
+```bash
+cd backend
+npm install playwright
+npx playwright install chromium
+```
+
+- [ ] **Step 2: Write the spike script**
+
+Create `backend/_spike-notam-7d.mjs`:
+```javascript
+// Throwaway. Delete after Task 1. Verifies 7-day window widening.
+import { chromium } from 'playwright'
+
+function ymd(d) {
+  const p = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
+const browser = await chromium.launch({ headless: true })
+const ctx = await browser.newContext({ acceptDownloads: true })
+const page = await ctx.newPage()
+await page.goto('https://aim.koca.go.kr/xNotam/index.do?type=search2&language=ko_KR', { waitUntil: 'networkidle' })
+
+const to = new Date(); to.setDate(to.getDate() + 7)
+await page.fill('input[name="sch_to_date"]', ymd(to))
+// Try clicking 검색 first (some KOCA forms require re-search before download reflects new dates)
+await page.click('text=검색').catch(() => {})
+await page.waitForTimeout(1500)
+
+const [download] = await Promise.all([
+  page.waitForEvent('download', { timeout: 20000 }),
+  page.click('text=KML다운로드'),
+])
+const stream = await download.createReadStream()
+let buf = ''
+for await (const chunk of stream) buf += chunk.toString('utf8')
+const count = (buf.match(/<Placemark id=/g) || []).length
+console.log('[spike] end-date:', ymd(to), 'placemarks:', count, 'bytes:', buf.length)
+await browser.close()
+```
+
+- [ ] **Step 3: Run the spike**
+
+Run: `cd backend && node _spike-notam-7d.mjs`
+Expected: prints a placemark count **noticeably higher** than the 24h baseline (baseline was 414). If count ≈ 414 or lower, the date widening did NOT take effect — note that in Task 2 you must click 검색 and wait for the results table to reload before clicking KML다운로드 (the spike already attempts 검색; if it still fails, capture the network POST and set the date on the hidden form directly).
+
+- [ ] **Step 4: Delete the spike and commit the dependency**
+
+```bash
+cd backend
+rm _spike-notam-7d.mjs
+git add package.json package-lock.json
+git commit -m "chore(notam): add playwright dependency for NOTAM crawler"
+```
+
+---
+
+### Task 2: NOTAM crawler (`notam-crawler.js`)
+
+**Files:**
+- Create: `backend/src/notam/notam-crawler.js`
+- Test: `backend/test/notam-crawler.test.js`
+
+**Interfaces:**
+- Produces: `crawlNotamKml(): Promise<{ kml: string, fetchedAt: string }>` — launches headless Chromium, widens end-date to now+7d, downloads KML, returns raw XML string + ISO fetch time. Throws on failure (caller in Task 6 catches).
+- Consumes: nothing.
+
+- [ ] **Step 1: Write the failing test (pure helper only — the browser part is integration, tested via spike)**
+
+The crawler's only pure, unit-testable piece is the date formatter. Extract and test it. Create `backend/test/notam-crawler.test.js`:
+```javascript
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { toDateInputValue } from '../src/notam/notam-crawler.js'
+
+test('toDateInputValue: Date → YYYY-MM-DD', () => {
+  assert.equal(toDateInputValue(new Date('2026-07-03T05:00:00Z'), 0), '2026-07-03')
+  assert.equal(toDateInputValue(new Date('2026-07-03T05:00:00Z'), 7), '2026-07-10')
+})
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `cd backend && node --test test/notam-crawler.test.js`
+Expected: FAIL — cannot find `toDateInputValue` / module not found.
+
+- [ ] **Step 3: Write the crawler**
+
+Create `backend/src/notam/notam-crawler.js`:
+```javascript
+import { chromium } from 'playwright'
+import config from '../config.js'
+
+const NOTAM_URL = 'https://aim.koca.go.kr/xNotam/index.do?type=search2&language=ko_KR'
+
+// Local-date YYYY-MM-DD, offset by `plusDays`. KOCA form uses local wall-clock dates.
+export function toDateInputValue(base, plusDays) {
+  const d = new Date(base.getTime())
+  d.setDate(d.getDate() + plusDays)
+  const p = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
+export async function crawlNotamKml() {
+  const horizonDays = config.notam.horizon_days
+  const browser = await chromium.launch({ headless: true })
+  try {
+    const ctx = await browser.newContext({ acceptDownloads: true })
+    const page = await ctx.newPage()
+    await page.goto(NOTAM_URL, { waitUntil: 'networkidle', timeout: config.notam.timeout_ms })
+    await page.fill('input[name="sch_to_date"]', toDateInputValue(new Date(), horizonDays))
+    await page.click('text=검색').catch(() => {})
+    await page.waitForTimeout(1500)
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: config.notam.timeout_ms }),
+      page.click('text=KML다운로드'),
+    ])
+    const stream = await download.createReadStream()
+    let kml = ''
+    for await (const chunk of stream) kml += chunk.toString('utf8')
+    if (!kml.includes('<kml')) throw new Error('crawlNotamKml: response is not KML')
+    return { kml, fetchedAt: new Date().toISOString() }
+  } finally {
+    await browser.close()
+  }
+}
+
+export default { crawlNotamKml, toDateInputValue }
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `cd backend && node --test test/notam-crawler.test.js`
+Expected: PASS (2 assertions).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add backend/src/notam/notam-crawler.js backend/test/notam-crawler.test.js
+git commit -m "feat(notam): headless KML crawler with 7-day window"
+```
+
+---
+
+### Task 3: NOTAM parser (`notam-parser.js`)
+
+**Files:**
+- Create: `backend/src/parsers/notam-parser.js`
+- Test: `backend/test/notam-parser.test.js`
+
+**Interfaces:**
+- Produces:
+  - `parseNotamKml(kml: string): RawRecord[]` — one entry per `<Placemark>`. Each: `{ id, series, location, qcode, validFrom, validTo, altitude, summary, rawText, geometry }` (category/scope added by Task 4). Broken placemarks skipped (try/catch per placemark), never throws.
+  - `parseQcodeBand(qLine, fLine, gLine): { lower, upper, unit, ref } | null` — altitude band. F)/G) (with AGL/AMSL) preferred; else Q-line lower/upper as FL.
+  - `dmsToIso(bcField: string): string | null` — B)/C) field `YYMMDDHHMM` (UTC per NOTAM spec) → ISO.
+- Consumes: KML string from Task 2.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `backend/test/notam-parser.test.js`:
+```javascript
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { parseNotamKml, parseQcodeBand, dmsToIso } from '../src/parsers/notam-parser.js'
+
+// Minimal real-shaped KML (one Point placemark, one Polygon placemark). CR-normalized.
+const KML = `<?xml version='1.0' encoding='UTF-8'?><kml xmlns='http://www.opengis.net/kml/2.2'><Document>` +
+`<Placemark id='G3315/26_1'><description><![CDATA[<h3>G3315/26</h3>GG RKZZNAXX
+<br>Q)RKRR/QGAXX/I/NBO/A/000/999/3728N12626E005
+<br>A)RKSI B)2607031047 C)2607041108
+<br>E)GPS RAIM OUTAGES PREDICTED FOR NPA)
+]]></description><MultiGeometry><Point><coordinates>126.4,37.4,30449.52</coordinates></Point></MultiGeometry></Placemark>` +
+`<Placemark id='E3321/26_2'><description><![CDATA[<h3>E3321/26</h3>GG RKZZNAXX
+<br>Q)RKRR/QRTCA/IV/BO/W/040/060/3757N12746E020
+<br>A)RKRR B)2607030105 C)2609301459
+<br>E)TEMPO RESTRICTED AREA ACT
+<br>F)4000FT AMSL G)6000FT AMSL)
+]]></description><MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>126.3,34.9,0 126.4,34.9,0 126.4,35.0,0 126.3,34.9,0</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry></Placemark>` +
+`</Document></kml>`
+
+test('dmsToIso: YYMMDDHHMM UTC → ISO', () => {
+  assert.equal(dmsToIso('2607031047'), '2026-07-03T10:47:00.000Z')
+  assert.equal(dmsToIso('bad'), null)
+})
+
+test('parseQcodeBand: F)/G) preferred with ref', () => {
+  const b = parseQcodeBand('Q)RKRR/QRTCA/IV/BO/W/040/060/3757N12746E020', '4000FT AMSL', '6000FT AMSL')
+  assert.deepEqual(b, { lower: 4000, upper: 6000, unit: 'FT', ref: 'AMSL' })
+})
+
+test('parseQcodeBand: falls back to Q-line FL band', () => {
+  const b = parseQcodeBand('Q)RKRR/QGAXX/I/NBO/A/000/999/3728N12626E005', null, null)
+  assert.deepEqual(b, { lower: 0, upper: 999, unit: 'FL', ref: null })
+})
+
+test('parseNotamKml: two placemarks, fields extracted', () => {
+  const recs = parseNotamKml(KML)
+  assert.equal(recs.length, 2)
+  const r0 = recs[0]
+  assert.equal(r0.id, 'G3315/26')
+  assert.equal(r0.series, 'G')
+  assert.equal(r0.location, 'RKSI')
+  assert.equal(r0.qcode, 'QGAXX')
+  assert.equal(r0.validFrom, '2026-07-03T10:47:00.000Z')
+  assert.equal(r0.validTo, '2026-07-04T11:08:00.000Z')
+  assert.equal(r0.summary, 'GPS RAIM OUTAGES PREDICTED FOR NPA')
+  assert.equal(r0.geometry.type, 'Point')
+  assert.deepEqual(r0.altitude, { lower: 0, upper: 999, unit: 'FL', ref: null })
+  const r1 = recs[1]
+  assert.equal(r1.geometry.type, 'Polygon')
+  assert.deepEqual(r1.altitude, { lower: 4000, upper: 6000, unit: 'FT', ref: 'AMSL' })
+})
+
+test('parseNotamKml: broken placemark skipped, others survive', () => {
+  const broken = KML.replace("A)RKSI B)2607031047 C)2607041108", "A)RKSI") // missing B)/C)
+  const recs = parseNotamKml(broken)
+  assert.equal(recs.length, 1) // the valid Polygon one survives
+})
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `cd backend && node --test test/notam-parser.test.js`
+Expected: FAIL — module not found.
+
+- [ ] **Step 3: Write the parser**
+
+Create `backend/src/parsers/notam-parser.js`:
+```javascript
+// KML (KOCA xNotam) → structured NOTAM records. No XML lib: KML fields are regex-extractable.
+// CR line terminators in source; normalize to LF first.
+
+export function dmsToIso(field) {
+  if (!/^\d{10}$/.test(String(field || ''))) return null
+  const s = String(field)
+  const yy = 2000 + Number(s.slice(0, 2))
+  const mo = Number(s.slice(2, 4)) - 1
+  const dd = Number(s.slice(4, 6))
+  const hh = Number(s.slice(6, 8))
+  const mi = Number(s.slice(8, 10))
+  const d = new Date(Date.UTC(yy, mo, dd, hh, mi))
+  return Number.isNaN(d.getTime()) ? null : d.toISOString()
+}
+
+// "4000FT AMSL" / "1500FT AGL" / "SFC" / "FL060" → { value:number, ref:'AMSL'|'AGL'|null, unit }
+function parseHeightToken(tok) {
+  if (!tok) return null
+  const t = tok.trim().toUpperCase()
+  if (t === 'SFC' || t === 'GND') return { value: 0, ref: 'AGL', unit: 'FT' }
+  const fl = t.match(/^FL\s*(\d+)/)
+  if (fl) return { value: Number(fl[1]), ref: null, unit: 'FL' }
+  const ft = t.match(/(\d+)\s*FT\s*(AMSL|AGL)?/)
+  if (ft) return { value: Number(ft[1]), ref: ft[2] || null, unit: 'FT' }
+  return null
+}
+
+export function parseQcodeBand(qLine, fLine, gLine) {
+  const f = parseHeightToken(fLine)
+  const g = parseHeightToken(gLine)
+  if (f && g) return { lower: f.value, upper: g.value, unit: f.unit, ref: f.ref || g.ref || null }
+  // Q-line: .../lower/upper/coord — e.g. /000/999/3728N12626E005
+  const m = String(qLine || '').match(/\/(\d{3})\/(\d{3})\/\d/)
+  if (m) return { lower: Number(m[1]), upper: Number(m[2]), unit: 'FL', ref: null }
+  return null
+}
+
+function extractGeometry(placemarkXml) {
+  const pt = placemarkXml.match(/<Point>[\s\S]*?<coordinates>([\s\S]*?)<\/coordinates>/)
+  if (pt) {
+    const [lon, lat] = pt[1].trim().split(/[,\s]+/).map(Number)
+    if (Number.isFinite(lon) && Number.isFinite(lat)) return { type: 'Point', coordinates: [lon, lat] }
+  }
+  const poly = placemarkXml.match(/<Polygon>[\s\S]*?<LinearRing>[\s\S]*?<coordinates>([\s\S]*?)<\/coordinates>/)
+  if (poly) {
+    const ring = poly[1].trim().split(/\s+/).map((tuple) => tuple.split(',').slice(0, 2).map(Number))
+      .filter((p) => p.length === 2 && p.every(Number.isFinite))
+    if (ring.length >= 4) return { type: 'Polygon', coordinates: [ring] }
+  }
+  const line = placemarkXml.match(/<LineString>[\s\S]*?<coordinates>([\s\S]*?)<\/coordinates>/)
+  if (line) {
+    const coords = line[1].trim().split(/\s+/).map((tuple) => tuple.split(',').slice(0, 2).map(Number))
+      .filter((p) => p.length === 2 && p.every(Number.isFinite))
+    if (coords.length >= 2) return { type: 'LineString', coordinates: coords }
+  }
+  return null
+}
+
+function parseOnePlacemark(xml) {
+  const idMatch = xml.match(/<Placemark id='([A-Z]\d{4}\/\d{2})/)
+  if (!idMatch) return null
+  const id = idMatch[1]
+  const cdata = xml.match(/<!\[CDATA\[([\s\S]*?)\]\]>/)
+  const text = (cdata ? cdata[1] : '').replace(/<br\s*\/?>/gi, '\n').replace(/<h3>[\s\S]*?<\/h3>/i, '')
+  const qLine = (text.match(/Q\)([^\n]+)/) || [])[0] || ''
+  const qcode = (qLine.match(/Q\)[A-Z]{4}\/(Q[A-Z]{4})/) || [])[1] || null
+  const location = (text.match(/A\)\s*([A-Z]{4})/) || [])[1] || null
+  const bField = (text.match(/B\)\s*(\d{10})/) || [])[1] || null
+  const cField = (text.match(/C\)\s*(\d{10})/) || [])[1] || null
+  const validFrom = dmsToIso(bField)
+  const validTo = dmsToIso(cField)
+  if (!id || !location || !validFrom || !validTo) return null // required fields
+  const fField = (text.match(/F\)\s*([^\n G]+(?:\s*(?:AMSL|AGL))?)/) || [])[1] || null
+  const gField = (text.match(/G\)\s*([^\n)]+)/) || [])[1] || null
+  const summary = (text.match(/E\)\s*([\s\S]*?)(?:\n[FG]\)|\)?\s*$)/) || [])[1]?.trim().replace(/\)\s*$/, '') || ''
+  return {
+    id,
+    series: id[0],
+    location,
+    qcode,
+    validFrom,
+    validTo,
+    altitude: parseQcodeBand(qLine, fField, gField),
+    summary,
+    rawText: text.trim(),
+    geometry: extractGeometry(xml),
+  }
+}
+
+export function parseNotamKml(kml) {
+  const lf = String(kml || '').replace(/\r/g, '\n')
+  const placemarks = lf.split('<Placemark').slice(1).map((chunk) => '<Placemark' + chunk.split('</Placemark>')[0] + '</Placemark>')
+  const out = []
+  for (const pm of placemarks) {
+    try {
+      const rec = parseOnePlacemark(pm)
+      if (rec) out.push(rec)
+    } catch { /* skip broken placemark */ }
+  }
+  return out
+}
+
+export default { parseNotamKml, parseQcodeBand, dmsToIso }
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `cd backend && node --test test/notam-parser.test.js`
+Expected: PASS (5 tests). If the `summary`/`F)` regexes over/under-match on the fixture, adjust the regex until the fixture assertions pass — the fixture values are the contract.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add backend/src/parsers/notam-parser.js backend/test/notam-parser.test.js
+git commit -m "feat(notam): KML parser with Q-code band + AGL/AMSL altitude"
+```
+
+---
+
+### Task 4: NOTAM processor (`notam-processor.js`)
+
+**Files:**
+- Create: `backend/src/processors/notam-processor.js`
+- Test: `backend/test/notam-processor.test.js`
+
+**Interfaces:**
+- Produces:
+  - `categorize(qcode: string): string` — Q-code → category enum. Unmapped → `'other'`.
+  - `deriveScope(location: string): 'airport' | 'fir'`.
+  - `process(): Promise<{ type, saved, items, failed }>` — crawls (Task 2), parses (Task 3), adds `category`+`scope`, calls `store.save('notam', { fetched_at, horizon_days, items })`. On crawl/parse failure, keeps previous `latest.json` (returns `saved:false`).
+- Consumes: `crawlNotamKml` (Task 2), `parseNotamKml` (Task 3), `store` (Task 5 registration), `config.notam`.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `backend/test/notam-processor.test.js`:
+```javascript
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { categorize, deriveScope } from '../src/processors/notam-processor.js'
+
+test('categorize: subject-code → category enum', () => {
+  assert.equal(categorize('QRPCA'), 'prohibited')
+  assert.equal(categorize('QWMLW'), 'firing')
+  assert.equal(categorize('QRDCA'), 'danger')
+  assert.equal(categorize('QRTCA'), 'restricted')
+  assert.equal(categorize('QRRCA'), 'restricted')
+  assert.equal(categorize('QRACA'), 'restricted')
+  assert.equal(categorize('QOBCE'), 'obstacle')
+  assert.equal(categorize('QPOCH'), 'obstacle')
+  assert.equal(categorize('QGAXX'), 'facility') // GNSS facility
+  assert.equal(categorize('QMRLC'), 'facility') // runway
+  assert.equal(categorize('QZZZZ'), 'other')    // unmapped
+  assert.equal(categorize(null), 'other')
+})
+
+test('deriveScope: FIR code vs airport', () => {
+  assert.equal(deriveScope('RKRR'), 'fir')
+  assert.equal(deriveScope('RKSI'), 'airport')
+})
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `cd backend && node --test test/notam-processor.test.js`
+Expected: FAIL — module not found.
+
+- [ ] **Step 3: Write the processor**
+
+Create `backend/src/processors/notam-processor.js`:
+```javascript
+import store from '../store.js'
+import config from '../config.js'
+import { crawlNotamKml } from '../notam/notam-crawler.js'
+import { parseNotamKml } from '../parsers/notam-parser.js'
+
+// Q-code 2nd/3rd letter (subject) → category. Facility = default for any recognized-but-unlisted
+// subject; 'other' only when qcode is missing/malformed.
+const SUBJECT_CATEGORY = {
+  RP: 'prohibited',
+  WM: 'firing',
+  RD: 'danger',
+  RR: 'restricted', RT: 'restricted', RA: 'restricted',
+  OB: 'obstacle', PO: 'obstacle',
+}
+const KOREA_FIR_CODES = config.notam.fir_codes
+
+export function categorize(qcode) {
+  if (!qcode || !/^Q[A-Z]{4}$/.test(qcode)) return 'other'
+  const subject = qcode.slice(1, 3)
+  return SUBJECT_CATEGORY[subject] || 'facility'
+}
+
+export function deriveScope(location) {
+  return KOREA_FIR_CODES.includes(location) ? 'fir' : 'airport'
+}
+
+export async function process() {
+  let crawled
+  try {
+    crawled = await crawlNotamKml()
+  } catch (err) {
+    return { type: 'notam', saved: false, reason: `crawl_failed: ${err.message}`, items: 0 }
+  }
+  const raw = parseNotamKml(crawled.kml)
+  const items = raw.map((r) => ({
+    id: r.id,
+    series: r.series,
+    location: r.location,
+    qcode: r.qcode,
+    category: categorize(r.qcode),
+    scope: deriveScope(r.location),
+    valid_from: r.validFrom,
+    valid_to: r.validTo,
+    altitude: r.altitude,
+    summary: r.summary,
+    rawText: r.rawText,
+    geometry: r.geometry,
+  }))
+  if (items.length === 0) {
+    return { type: 'notam', saved: false, reason: 'empty', items: 0 }
+  }
+  const result = { fetched_at: crawled.fetchedAt, horizon_days: config.notam.horizon_days, items }
+  const saveResult = store.save('notam', result)
+  return { type: 'notam', saved: saveResult.saved, items: items.length }
+}
+
+export default { process, categorize, deriveScope }
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `cd backend && node --test test/notam-processor.test.js`
+Expected: PASS (2 tests). (This runs without touching the network — only the pure helpers are tested.)
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add backend/src/processors/notam-processor.js backend/test/notam-processor.test.js
+git commit -m "feat(notam): processor with Q-code categorization + FIR scope"
+```
+
+---
+
+### Task 5: Register `notam` type in store + config
+
+**Files:**
+- Modify: `backend/src/store.js:6` (TYPES array), `backend/src/store.js:7-23` (FILE_PREFIX), `backend/src/store.js:25-42` (cache object)
+- Modify: `backend/src/config.js` (add `notam` block + `schedule.notam_interval`)
+- Test: `backend/test/notam-store.test.js`
+
+**Interfaces:**
+- Produces: `store.save('notam', ...)` / `store.getCached('notam')` work without throwing; `config.notam` + `config.schedule.notam_interval` exist.
+- Consumes: existing `store.js` save/rotate machinery.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `backend/test/notam-store.test.js`:
+```javascript
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import config from '../src/config.js'
+import store from '../src/store.js'
+
+test('config.notam exists with 7-day horizon', () => {
+  assert.equal(config.notam.horizon_days, 7)
+  assert.ok(Array.isArray(config.notam.fir_codes))
+  assert.ok(config.notam.fir_codes.includes('RKRR'))
+  assert.equal(typeof config.schedule.notam_interval, 'string')
+})
+
+test("store.save('notam') does not throw (type registered)", () => {
+  assert.doesNotThrow(() => store.save('notam', { fetched_at: new Date().toISOString(), horizon_days: 7, items: [] }))
+})
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `cd backend && node --test test/notam-store.test.js`
+Expected: FAIL — `config.notam` undefined and/or `store.save` throws `Unsupported type: notam`.
+
+- [ ] **Step 3: Register in store.js**
+
+In `backend/src/store.js`, add `'notam'` to the `TYPES` array (line 6), add `notam: 'NOTAM'` to `FILE_PREFIX` (in the object at lines 7-23), and add `notam: { hash: null, prev_data: null },` to the `cache` object (lines 25-42).
+
+- [ ] **Step 4: Add config block**
+
+In `backend/src/config.js`, add before `export const schedule`:
+```javascript
+export const notam = {
+  horizon_days: Number(process.env.NOTAM_HORIZON_DAYS || 7),
+  timeout_ms: Number(process.env.NOTAM_TIMEOUT_MS || 30000),
+  fir_codes: (process.env.NOTAM_FIR_CODES || 'RKRR').split(','),
+}
+```
+Add `notam_interval: '20 6 * * *', // 1일 1회(KST 06:20)` to the `schedule` object, and add `notam,` to the `export default { ... }` object.
+
+- [ ] **Step 5: Run test to verify it passes**
+
+Run: `cd backend && node --test test/notam-store.test.js`
+Expected: PASS (2 tests). Then run the full suite: `cd backend && node --test` — all existing tests still green.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add backend/src/store.js backend/src/config.js backend/test/notam-store.test.js
+git commit -m "feat(notam): register notam type in store + config (7-day horizon, daily cron)"
+```
+
+---
+
+### Task 6: Wire cron + API route
+
+**Files:**
+- Modify: `backend/src/index.js` (import, locks, schedule, initial collection)
+- Modify: `backend/server.js:518` area (add route next to other `sendLatest` routes)
+
+**Interfaces:**
+- Produces: `GET /api/notam` returns the latest snapshot; daily cron runs `notamProcessor.process`; startup does one immediate collection.
+- Consumes: `notamProcessor.process` (Task 4).
+
+- [ ] **Step 1: Add the route (manual verification, no unit test — matches existing untested routes)**
+
+In `backend/server.js`, directly after line 518 (`app.get('/api/takeoff-fcst', ...)`), add:
+```javascript
+app.get('/api/notam', (_, res) => sendLatest(res, 'notam'))
+```
+
+- [ ] **Step 2: Wire the cron + startup job in index.js**
+
+In `backend/src/index.js`:
+- Add import after line 21: `import notamProcessor from './processors/notam-processor.js'`
+- Add `notam: false` to the `locks` object (line 25).
+- Add to `buildInitialCollectionJobs` jobs array (after the `takeoff_fcst` entry, line 87): `["notam", notamProcessor.process],`
+- Add in `main()` after line 118: `cron.schedule(config.schedule.notam_interval, () => runWithLock("notam", notamProcessor.process), AIRPORT_INFO_CRON_OPTIONS)`
+
+- [ ] **Step 3: Verify the server boots and the route responds**
+
+Run (from repo root, with servers not already on 3001):
+```bash
+npm.cmd run dev --prefix backend
+```
+In another shell (or after confirming startup logs show `notam:` collection ran):
+```bash
+curl -s http://127.0.0.1:3001/api/notam | head -c 300
+```
+Expected: JSON starting `{"fetched_at":"...","horizon_days":7,"items":[{...`. The startup log line `[<iso>] notam: { type: 'notam', saved: true, items: <N> }` confirms the crawl+parse+save chain. `N` should be in the hundreds (7-day window). Stop the server (Ctrl+C) when confirmed.
+
+- [ ] **Step 4: Run the full backend suite**
+
+Run: `cd backend && node --test`
+Expected: all tests PASS (existing + notam-crawler/parser/processor/store).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add backend/src/index.js backend/server.js
+git commit -m "feat(notam): daily cron + GET /api/notam route"
+```
+
+---
+
+### Task 7: Update Architecture.md + EntryPoints.md
+
+**Files:**
+- Modify: `Architecture.md` (Backend File Roles section — add notam files)
+- Modify: `EntryPoints.md` (optional: note NOTAM under pattern #5 as a concrete example)
+
+- [ ] **Step 1: Add File Roles entries**
+
+In `Architecture.md`, under the Backend list, add:
+```markdown
+- `backend/src/notam/notam-crawler.js` -> headless Playwright crawler for KOCA 유효 NOTAM KML (7-day window).
+- `backend/src/parsers/notam-parser.js` -> KML -> structured NOTAM records (Q-code, B/C times, F)/G) altitude, geometry).
+- `backend/src/processors/notam-processor.js` -> Q-code -> category/scope, crawl+parse orchestration, `store.save('notam')`.
+- `backend/server.js` -> exposes `GET /api/notam` (latest NOTAM snapshot).
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add Architecture.md EntryPoints.md
+git commit -m "docs(notam): Architecture.md file roles for NOTAM backend"
+```
+
+---
+
+## Self-Review Notes
+
+- **Spec coverage:** crawler(7-day) ✓ Task 1-2 · parser(Q-code/altitude/geometry) ✓ Task 3 · categorization+scope+severity-free ✓ Task 4 · store newest-only ✓ Task 5 · cron+API ✓ Task 6 · Architecture.md ✓ Task 7. Error handling (crawl fail → keep previous) ✓ Task 4 process(). `fetched_at` horizon disclosure ✓ (payload field, consumed by Phase B panel).
+- **AGL/AMSL preserved** in `altitude.ref` ✓ Task 3.
+- **No severity computed** in processor ✓ (spec compliance — color is a Phase B frontend concern).
+- **Contract for Phases B/C:** the canonical item shape in Global Constraints is the frozen interface. Phase C's `matchItems` reuse maps `category`→`phenomenon_code`, `valid_from`/`valid_to`/`altitude`/`geometry` are already the names `matchItems` reads.
+- **Open risk (unchanged from spec):** AWS EC2 Chromium viability unverified — flagged in spec Unresolved Risk; Task 1 spike only proves local. Before production deploy, run Task 1's spike on the EC2 box.
