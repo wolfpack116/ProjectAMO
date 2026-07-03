@@ -12,6 +12,25 @@ const TIME_COLOR = [
   /* upcoming */ LEVEL.gray,
 ]
 const POLYGON_FILTER = ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']]
+
+// 특수공역 빗금(해칭) 채움 — 시간상태색 대각선 줄무늬 타일 3종. addImage로 등록, fill-pattern이 참조.
+const HATCH_COLORS = { active: '#c0291f', soon: '#92400e', upcoming: '#475569' }
+export function registerNotamHatchPatterns(map) {
+  if (typeof document === 'undefined') return
+  const pr = Math.max(1, Math.round((typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1))
+  const S = 7
+  for (const [state, color] of Object.entries(HATCH_COLORS)) {
+    const id = `notam-hatch-${state}`
+    if (map.hasImage(id)) continue
+    const canvas = document.createElement('canvas')
+    canvas.width = S * pr; canvas.height = S * pr
+    const ctx = canvas.getContext('2d', { alpha: true })
+    ctx.scale(pr, pr)
+    ctx.strokeStyle = color; ctx.lineWidth = 1.1
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(S, S); ctx.stroke() // 45° "\" (타일 이음매 연속)
+    try { map.addImage(id, ctx.getImageData(0, 0, canvas.width, canvas.height), { pixelRatio: pr }) } catch { /* noop */ }
+  }
+}
 const NOT_FIR = ['!=', ['get', 'scope'], 'fir']
 const IS_FIR = ['==', ['get', 'scope'], 'fir']
 
@@ -31,12 +50,12 @@ export function addNotamLayers(map, featureData) {
   if (!map.getSource('notam-src')) {
     map.addSource('notam-src', { type: 'geojson', data: featureData })
   }
-  // 공항 구역 폴리곤/라인 — 모든 줌에서 표시(줌 제한 없음). fill은 아주 옅게(활주로를 "덮어" 비행금지처럼 안 보이게), 경계선 위주. 내부 클릭 시 팝업.
+  // 특수공역 빗금 채움(대각선 해칭, 색=시간상태). 줌 8+에서만(국가 뷰 덮지 않게), 구역 전체(FIR 포함).
   if (!map.getLayer('notam-fill')) {
     map.addLayer({
-      id: 'notam-fill', type: 'fill', source: 'notam-src', slot: 'top',
-      paint: { 'fill-color': TIME_COLOR, 'fill-opacity': 0.07 },
-      filter: ['all', POLYGON_FILTER, NOT_FIR],
+      id: 'notam-fill', type: 'fill', source: 'notam-src', slot: 'top', minzoom: 8,
+      paint: { 'fill-pattern': ['concat', 'notam-hatch-', ['get', 'timeState']], 'fill-opacity': 0.9 },
+      filter: POLYGON_FILTER,
     })
   }
   if (!map.getLayer('notam-line')) {
@@ -125,7 +144,7 @@ export function setNotamVisibility(map, isVisible) {
 
 export function setNotamCategoryFilter(map, activeCategoryIds) {
   const catFilter = ['in', ['get', 'category'], ['literal', activeCategoryIds]]
-  if (map.getLayer('notam-fill')) map.setFilter('notam-fill', ['all', POLYGON_FILTER, NOT_FIR, catFilter])
+  if (map.getLayer('notam-fill')) map.setFilter('notam-fill', ['all', POLYGON_FILTER, catFilter])
   if (map.getLayer('notam-line')) map.setFilter('notam-line', ['all', NOT_FIR, catFilter])
   if (map.getLayer('notam-fir-line')) map.setFilter('notam-fir-line', ['all', IS_FIR, catFilter])
   if (map.getLayer('notam-obstacle')) map.setFilter('notam-obstacle', ['all', IS_POINT, IS_OBSTACLE, catFilter])
