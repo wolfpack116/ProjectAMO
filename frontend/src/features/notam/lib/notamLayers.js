@@ -98,10 +98,17 @@ function ringContains(ring, lng, lat) {
   }
   return inside
 }
+function isClosedRing(coords) {
+  if (!Array.isArray(coords) || coords.length < 4) return false
+  const a = coords[0], b = coords[coords.length - 1]
+  return a[0] === b[0] && a[1] === b[1]
+}
 function geometryContains(geometry, lng, lat) {
   if (!geometry) return false
   if (geometry.type === 'Polygon') return ringContains(geometry.coordinates[0] || [], lng, lat)
   if (geometry.type === 'MultiPolygon') return (geometry.coordinates || []).some((poly) => ringContains(poly[0] || [], lng, lat))
+  // 닫힌 LineString(첫점==끝점)은 KOCA가 면(제한/위험구역)을 선으로 인코딩한 것 — 내부 판정.
+  if (geometry.type === 'LineString' && isClosedRing(geometry.coordinates)) return ringContains(geometry.coordinates, lng, lat)
   return false
 }
 
