@@ -459,21 +459,24 @@ import config from '../config.js'
 import { crawlNotamKml } from '../notam/notam-crawler.js'
 import { parseNotamKml } from '../parsers/notam-parser.js'
 
-// Q-code 2nd/3rd letter (subject) → category. Facility = default for any recognized-but-unlisted
-// subject; 'other' only when qcode is missing/malformed.
+// Q-code 2nd/3rd letter (subject) → category. Facility-family subject codes are listed
+// explicitly (spec Q-code table); genuinely unmapped/malformed codes → 'other'.
 const SUBJECT_CATEGORY = {
   RP: 'prohibited',
   WM: 'firing',
   RD: 'danger',
   RR: 'restricted', RT: 'restricted', RA: 'restricted',
   OB: 'obstacle', PO: 'obstacle',
+  GA: 'facility', GW: 'facility', IC: 'facility', IL: 'facility', IN: 'facility', IG: 'facility', ID: 'facility',
+  NT: 'facility', CT: 'facility', CP: 'facility', CA: 'facility',
+  MR: 'facility', MX: 'facility', MP: 'facility', MD: 'facility', MB: 'facility', MA: 'facility', LX: 'facility',
+  FA: 'facility', PI: 'facility', PF: 'facility',
 }
 const KOREA_FIR_CODES = config.notam.fir_codes
 
 export function categorize(qcode) {
   if (!qcode || !/^Q[A-Z]{4}$/.test(qcode)) return 'other'
-  const subject = qcode.slice(1, 3)
-  return SUBJECT_CATEGORY[subject] || 'facility'
+  return SUBJECT_CATEGORY[qcode.slice(1, 3)] || 'other'
 }
 
 export function deriveScope(location) {

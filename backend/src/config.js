@@ -201,7 +201,14 @@ export const kim_nwp = {
   icing_variables: ['w', 'rh_liq', 'tqc', 'tqi', 'tqr', 'tqs', 'cld'],
 }
 
+export const notam = {
+  horizon_hours: 24, // site hard-caps the search window at 24h (validateAndSearch clamps)
+  timeout_ms: Number(process.env.NOTAM_TIMEOUT_MS || 30000),
+  fir_codes: (process.env.NOTAM_FIR_CODES || 'RKRR').split(','),
+}
+
 export const schedule = {
+  notam_interval: '0 */6 * * *', // 6시간 주기(00,06,12,18 UTC)
   metar_interval: '*/10 * * * *',
   taf_interval: '*/30 * * * *',
   warning_interval: '*/5 * * * *',
@@ -233,6 +240,7 @@ export const storage = {
 export default {
   api,
   airports,
+  notam,
   environment,
   ground_forecast,
   flight_category,
