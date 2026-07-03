@@ -28,7 +28,20 @@
 - 로그인 불필요. 페이지 GET 로드 시 서버가 기본 검색을 이미 실행해서 결과 테이블이 채워져 있음.
 - 기본 폼 상태: `sch_inorout` 라디오 = **국내**(checked), 나머지 필터(LOCATION/SERIES/AIRSPACE 등)는 전부 빈칸.
 - **"KML다운로드" 버튼**은 `kmldownload()`를 호출 → 현재 검색 컨텍스트에 따라 `/searchValidNotam.do`(유효 검색 화면 기준) 등으로 hidden form을 POST 제출, `target=_blank`로 파일 스트림 다운로드.
-- 검색 버튼을 누르지 않고 기본 상태에서 바로 다운로드해도 됨 — 이게 오히려 정답.
+- 검색 버튼을 누르지 않고 기본 상태에서 바로 다운로드해도 됨. 단 아래 "크롤 시간창"대로 발효종료일자를 +7일로 넓혀서 다운로드한다(기본 24시간창이 아니라).
+
+### 크롤 시간창 = 7일 (임박 NOTAM 표현 + 1일 1회 크롤 안전성)
+
+KOCA "유효 NOTAM" 검색은 폼의 발효시작~발효종료 창과 **겹치는** NOTAM을 반환한다. 기본 폼은 [now, now+24h](24시간). 이 창에서도 "24시간 내 발효 예정" NOTAM은 이미 들어온다(실측 414건에 `B)2607040000`·`B)2607040300` = 미래 시작분 포함 확인). 하지만 24시간 너머 시작분은 못 잡고, 1일 1회 크롤과 겹치면 "다음 크롤 전 발효 시작하는 NOTAM"을 놓칠 위험이 있다.
+
+→ **크롤 시 발효종료일자를 now+7일로 넓힌다**(config 상수). 효과:
+- "발효 예정" 상태가 일주일까지 의미 있어짐(임박 NOTAM을 미리 봄)
+- 7일 수평선이 크롤 사이(24h)에 6일로 줄어도 여유 충분 → **1일 1회 크롤이 안전해짐**(창을 안 넓히면 크롤 주기를 더 촘촘히 해야 함)
+- 데이터 증가는 24h 대비 1.5~2배 예상(24h가 ~900KB였으니 문제없음)
+
+**시간상태 전이는 크롤과 무관하게 프론트에서 실시간**: `deriveTimeState`가 저장된 B/C를 렌더 시점 live now와 비교하므로, 예정→곧발효→발효중 색 전이가 하루 종일 자동으로 흐른다(크롤은 "미래를 얼마나 멀리 아느냐=수평선"만 정함).
+
+**데이터 수평선 정직 표기(필수)**: 패널에 "향후 7일 기준 · HH:MM 수집" 같은 수집시각+수평선을 표시해서 "이 너머 발효분은 아직 모름"을 명시(notaminfo의 "NOTAMs extracted at …" 관례). 크롤 실패로 stale하면 수집시각이 오래된 것으로 드러나므로 사용자가 인지 가능.
 
 ### 화면 테이블과 다운로드 파일의 차이 (중요, 실측 검증됨)
 
@@ -156,7 +169,7 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 
 | 파일 | 역할 |
 |---|---|
-| `backend/src/notam/notam-crawler.js` | Playwright 크롤러(사이트 접속→다운로드 클릭→버퍼 수신) |
+| `backend/src/notam/notam-crawler.js` | Playwright 크롤러(사이트 접속→발효종료일자 now+7일 설정→다운로드 클릭→버퍼 수신). 수집시각 기록 |
 | `backend/src/parsers/notam-parser.js` | KML → 구조화 레코드 배열, Q-line·F)/G)필드에서 고도밴드 파싱 |
 | `backend/src/processors/notam-processor.js` | Q-code→카테고리 매핑(사실 분류만), `scope`(airport/fir) 계산, 공항별 그룹 인덱스. **심각도 판단 안 함**(색은 프론트가 시간상태로 계산) |
 | `backend/src/index.js` | cron 등록(1일 1회, 기존 per-type lock 패턴) |
@@ -174,7 +187,7 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 | `frontend/src/api/weatherApi.js` | `fetchNotam()` 클라이언트 추가 |
 | `frontend/src/app/layout/Sidebar.jsx` | NOTAM 아이콘 복귀 — `topItems`(또는 `bottomItems`) 배열에 아이콘/라벨 항목 추가 **+** `PANEL_MAP`에 `notam` 등록(둘 다 필요, 최초 스펙은 후자만 언급함) |
 | `frontend/src/app/layout/MobileMoreMenu.jsx` | 모바일도 동일하게 복귀 |
-| `frontend/src/features/notam/NotamPanel.jsx` | (A) 전역 패널: 카테고리 필터 타일 + 밀도형 테이블(`ap-taf-table` 패턴), `selectedAirport` 우선순위 섹션, active-first 정렬. 심각도 탭 없음(시간상태는 색으로) |
+| `frontend/src/features/notam/NotamPanel.jsx` | (A) 전역 패널: 카테고리 필터 타일 + 밀도형 테이블(`ap-taf-table` 패턴), `selectedAirport` 우선순위 섹션, active-first 정렬, **"향후 7일 기준 · 수집시각" 수평선 표기**. 심각도 탭 없음(시간상태는 색으로) |
 | `frontend/src/features/notam/lib/notamLayers.js` | Mapbox 소스/레이어 설치·동기화·카테고리 필터·시간상태 색, `minzoom` 기반 심볼마커↔폴리곤 전환(`NOTAM_SOURCE_IDS`/`NOTAM_LAYER_IDS` 소유권 export) |
 | `frontend/src/features/notam/lib/notamGeoJson.js` | 백엔드 페이로드 → GeoJSON FeatureCollection 변환(카테고리·시간상태 property 포함), `scope: 'fir'` 레코드 제외 |
 | `frontend/src/features/notam/lib/notamViewModel.js` | `deriveTimeState`(active/soon/upcoming → 색), `formatAltitude`(AGL/AMSL 보존), active-first 정렬, 청크 로딩("더 보기") |
@@ -242,7 +255,8 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 
 - 크롤 소스: KML만 (xls 불필요, KML에 좌표+원문 다 포함)
 - 보관: 최신본만 (store.js 기존 패턴)
-- 주기: 1일 1회(테스트 단계 기준값, 추후 조정 가능)
+- 주기: 1일 1회(테스트 단계 기준값). 크롤 시간창 7일과 조합해야 안전(24h창이면 더 촘촘한 주기 필요)
+- 크롤 시간창: now+7일(발효종료일자 폼 필드로 설정). "예정" NOTAM을 일주일까지 확보 + 1일 1회 크롤 안전성 확보. 데이터 수평선은 패널에 정직 표기
 - 지도 분류: 소수 핵심 카테고리 + 기타(추측 아닌 FAA/ICAO 공식 표 기준으로 확정)
 - 공항 매칭: A)필드 정확 일치(단, `scope: 'fir'`는 예외적으로 전체 공항에 노출 — 위 FIR 광역 스코프 참조)
 - 크롤 방식: 헤드리스 Playwright, 기존 백엔드 스케줄러(`backend/src/index.js`)에 통합(A안) — 별도 프로세스 분리(B안)는 주기가 촘촘해지면 재검토
