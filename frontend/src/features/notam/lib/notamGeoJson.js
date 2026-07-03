@@ -45,6 +45,7 @@ export function notamToFeatureCollection(payload, nowMs = Date.now()) {
           summary: notamSummary(it),
           altitude: formatAltitude(it.altitude),
           location: it.location || '',
+          rawText: it.rawText || it.summary || '', // 지도 팝업 '원문 보기'용
           // 장애물 심볼용(다른 카테고리엔 무해)
           obstacleType: it.category === 'obstacle' ? obstacleType(it.summary || it.rawText) : '',
           heightLabel: it.category === 'obstacle' ? parseObstacleHeight(it.rawText || it.summary) : '',

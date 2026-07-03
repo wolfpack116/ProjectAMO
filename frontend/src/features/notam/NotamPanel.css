@@ -112,3 +112,7 @@
 .notam-pop-ts { float: right; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 3px; }
 .notam-pop-sum { font-size: 12px; color: var(--text-2); margin-top: 2px; }
 .notam-pop-more { border: none; background: none; color: var(--accent); font-weight: 700; cursor: pointer; padding: 6px 0 0; font-size: 12px; }
+.notam-pop-rawwrap { margin-top: 4px; }
+.notam-pop-rawwrap > summary { cursor: pointer; color: var(--accent); font-size: 11px; font-weight: 700; list-style: none; }
+.notam-pop-rawwrap > summary::-webkit-details-marker { display: none; }
+.notam-pop-raw { margin: 4px 0 0; padding: 6px 8px; background: var(--bg-2); border: 1px solid var(--stroke-2); border-radius: 4px; font-size: 11px; color: var(--text-2); white-space: pre-wrap; word-break: break-word; font-family: Consolas, monospace; max-height: 160px; overflow: auto; }

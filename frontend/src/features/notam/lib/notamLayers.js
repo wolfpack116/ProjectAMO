@@ -205,17 +205,24 @@ export function setNotamHighlight(map, feature) {
   if (src) src.setData(feature ? { type: 'FeatureCollection', features: [feature] } : EMPTY_FC)
 }
 
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+}
+
 export function notamPopupHtml(features) {
   const shown = features.slice(0, features.length <= 3 ? features.length : 3)
   const rows = shown.map((f) => {
     const p = f.properties
     const ts = TIME_STATE[p.timeState] || TIME_STATE.upcoming
     const alt = p.altitude ? ` · ${p.altitude}` : ''
+    const raw = p.rawText
+      ? `<details class="notam-pop-rawwrap"><summary>원문 보기</summary><pre class="notam-pop-raw">${escapeHtml(p.rawText)}</pre></details>`
+      : ''
     return `<div class="notam-pop-row">`
       + `<span class="notam-pop-cat">${catLabel(p.category)}</span>`
       + `<span class="notam-pop-id">${p.id}</span>`
       + `<span class="notam-pop-ts ts-${ts.key}">${ts.glyph} ${ts.label}</span>`
-      + `<div class="notam-pop-sum">${p.summary || ''}${alt}</div></div>`
+      + `<div class="notam-pop-sum">${escapeHtml(p.summary)}${alt}</div>${raw}</div>`
   }).join('')
   const header = features.length === 1 ? '' : `<div class="notam-pop-head">이 지점에 ${features.length}건</div>`
   const more = features.length > 3
