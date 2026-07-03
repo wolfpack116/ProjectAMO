@@ -4,9 +4,9 @@ import useIsMobile from '../../shared/ui/useIsMobile.js'
 import MobileSheet from '../../shared/ui/MobileSheet.jsx'
 
 const GROUPS = [
-  { title: '공역', ids: ['fir', 'sector', 'ctr', 'tma', 'restricted', 'prohibited', 'danger'] },
-  { title: '항행시설', ids: ['waypoint', 'navaid', 'airport'] },
   { title: '항공로', ids: ['ats-route', 'rnav-route'] },
+  { title: '항행시설', ids: ['waypoint', 'navaid', 'airport'] },
+  { title: '공역', ids: ['fir', 'sector', 'ctr', 'tma', 'restricted', 'prohibited', 'danger'] },
 ]
 const LAYER_LABELS = {
   fir: '비행정보구역',

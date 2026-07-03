@@ -128,6 +128,7 @@ function initAviationVisibility() {
 
 function initMetVisibility() {
   const visibility = MET_LAYERS.reduce((acc, l) => { acc[l.id] = false; return acc }, {})
+  visibility.radar = true
   visibility.windFlow = true
   visibility.windSpeed = true
   return visibility
