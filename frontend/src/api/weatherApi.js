@@ -101,7 +101,7 @@ export async function loadWeatherData() {
     airports, metar, taf, amos, warning,
     sigmet, airmet, lightning,
     echoMeta, satMeta, sigwxLow, sigwxFrontMeta, sigwxCloudMeta,
-    groundForecast,
+    groundForecast, notam,
   ] = await Promise.all([
     fetchJson('/api/airports', { optional: true }),
     fetchJson('/api/metar', { optional: true }),
@@ -117,6 +117,7 @@ export async function loadWeatherData() {
     fetchJson('/api/sigwx-front-meta', { optional: true }),
     fetchJson('/api/sigwx-cloud-meta', { optional: true }),
     fetchJson('/api/ground-forecast', { optional: true }),
+    fetchJson('/api/notam', { optional: true }),
   ])
 
   return {
@@ -136,6 +137,7 @@ export async function loadWeatherData() {
     sigwxCloudMeta,
     adsb: null,
     groundForecast,
+    notam,
     groundOverview: null,
     environment: null,
     airportInfo: null,
@@ -154,6 +156,10 @@ export async function loadDeferredWeatherData(keys = []) {
   const uniqueKeys = [...new Set(keys)].filter((key) => DEFERRED_WEATHER_FETCHERS[key])
   const values = await Promise.all(uniqueKeys.map((key) => DEFERRED_WEATHER_FETCHERS[key]()))
   return Object.fromEntries(uniqueKeys.map((key, index) => [key, values[index]]))
+}
+
+export async function fetchNotam() {
+  return fetchJson('/api/notam', { optional: true })
 }
 
 export async function fetchSnapshotMeta() {
@@ -254,6 +260,7 @@ export async function loadChangedWeatherData(changes, { deferredKeys = 'all' } =
     keys.push('sigwxCloudMeta')
   }
   if (changes.amos) { fetches.push(fetchJson('/api/amos', { optional: true })); keys.push('amos') }
+  if (changes.notam) { fetches.push(fetchJson('/api/notam', { optional: true })); keys.push('notam') }
   if (changes.lightning) { fetches.push(fetchJson('/api/lightning', { optional: true })); keys.push('lightning') }
   if (!ADSB_FETCH_DISABLED && changes.adsb && includesDeferredKey(deferredKeys, 'adsb')) { fetches.push(fetchJson('/api/adsb', { optional: true })); keys.push('adsb') }
   if (changes.groundForecast) { fetches.push(fetchJson('/api/ground-forecast', { optional: true })); keys.push('groundForecast') }
