@@ -94,9 +94,11 @@ Expected: prints a placemark count **noticeably higher** than the 24h baseline (
 
 - [ ] **Step 4: Delete the spike and commit the dependency**
 
+The real KML test fixture already exists at `backend/test/fixtures/notam-sample.kml` (4 real placemarks: QGAXX Point+Polygon, QRDCA danger Polygon FIR-scope, QOBCE obstacle, QRDCA danger LineString — committed during planning against the actual site download). Task 3 derives its parser tests from this real file, not a hand-authored string. **If the spike reveals the KML shape has changed since planning, re-save the spike's downloaded KML over that fixture and re-derive Task 3's assertions.**
+
 ```bash
 cd backend
-rm _spike-notam-7d.mjs
+rm -f _spike-notam-7d.mjs
 git add package.json package-lock.json
 git commit -m "chore(notam): add playwright dependency for NOTAM crawler"
 ```
@@ -203,66 +205,72 @@ git commit -m "feat(notam): headless KML crawler with 7-day window"
   - `dmsToIso(bcField: string): string | null` — B)/C) field `YYMMDDHHMM` (UTC per NOTAM spec) → ISO.
 - Consumes: KML string from Task 2.
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Write the failing test (against the REAL committed fixture)**
 
-Create `backend/test/notam-parser.test.js`:
+The fixture `backend/test/fixtures/notam-sample.kml` contains 4 real placemarks. These assertions were verified by running the exact parser in Step 3 against that file — they are the frozen contract. Create `backend/test/notam-parser.test.js`:
 ```javascript
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { parseNotamKml, parseQcodeBand, dmsToIso } from '../src/parsers/notam-parser.js'
 
-// Minimal real-shaped KML (one Point placemark, one Polygon placemark). CR-normalized.
-const KML = `<?xml version='1.0' encoding='UTF-8'?><kml xmlns='http://www.opengis.net/kml/2.2'><Document>` +
-`<Placemark id='G3315/26_1'><description><![CDATA[<h3>G3315/26</h3>GG RKZZNAXX
-<br>Q)RKRR/QGAXX/I/NBO/A/000/999/3728N12626E005
-<br>A)RKSI B)2607031047 C)2607041108
-<br>E)GPS RAIM OUTAGES PREDICTED FOR NPA)
-]]></description><MultiGeometry><Point><coordinates>126.4,37.4,30449.52</coordinates></Point></MultiGeometry></Placemark>` +
-`<Placemark id='E3321/26_2'><description><![CDATA[<h3>E3321/26</h3>GG RKZZNAXX
-<br>Q)RKRR/QRTCA/IV/BO/W/040/060/3757N12746E020
-<br>A)RKRR B)2607030105 C)2609301459
-<br>E)TEMPO RESTRICTED AREA ACT
-<br>F)4000FT AMSL G)6000FT AMSL)
-]]></description><MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>126.3,34.9,0 126.4,34.9,0 126.4,35.0,0 126.3,34.9,0</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry></Placemark>` +
-`</Document></kml>`
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const KML = fs.readFileSync(path.join(__dirname, 'fixtures', 'notam-sample.kml'), 'utf8')
 
 test('dmsToIso: YYMMDDHHMM UTC → ISO', () => {
-  assert.equal(dmsToIso('2607031047'), '2026-07-03T10:47:00.000Z')
+  assert.equal(dmsToIso('2607030928'), '2026-07-03T09:28:00.000Z')
   assert.equal(dmsToIso('bad'), null)
 })
 
-test('parseQcodeBand: F)/G) preferred with ref', () => {
-  const b = parseQcodeBand('Q)RKRR/QRTCA/IV/BO/W/040/060/3757N12746E020', '4000FT AMSL', '6000FT AMSL')
-  assert.deepEqual(b, { lower: 4000, upper: 6000, unit: 'FT', ref: 'AMSL' })
+test('parseQcodeBand: F)/G) with AGL preserved', () => {
+  assert.deepEqual(parseQcodeBand('x', 'SFC', '4920FT AGL'), { lower: 0, upper: 4920, unit: 'FT', ref: 'AGL' })
 })
 
 test('parseQcodeBand: falls back to Q-line FL band', () => {
-  const b = parseQcodeBand('Q)RKRR/QGAXX/I/NBO/A/000/999/3728N12626E005', null, null)
-  assert.deepEqual(b, { lower: 0, upper: 999, unit: 'FL', ref: null })
+  assert.deepEqual(parseQcodeBand('Q)RKRR/QGAXX/I/NBO/A/000/999/3459N12623E005', null, null), { lower: 0, upper: 999, unit: 'FL', ref: null })
 })
 
-test('parseNotamKml: two placemarks, fields extracted', () => {
+test('parseNotamKml: 4 real records with correct fields', () => {
   const recs = parseNotamKml(KML)
-  assert.equal(recs.length, 2)
-  const r0 = recs[0]
-  assert.equal(r0.id, 'G3315/26')
-  assert.equal(r0.series, 'G')
-  assert.equal(r0.location, 'RKSI')
-  assert.equal(r0.qcode, 'QGAXX')
-  assert.equal(r0.validFrom, '2026-07-03T10:47:00.000Z')
-  assert.equal(r0.validTo, '2026-07-04T11:08:00.000Z')
-  assert.equal(r0.summary, 'GPS RAIM OUTAGES PREDICTED FOR NPA')
-  assert.equal(r0.geometry.type, 'Point')
-  assert.deepEqual(r0.altitude, { lower: 0, upper: 999, unit: 'FL', ref: null })
-  const r1 = recs[1]
-  assert.equal(r1.geometry.type, 'Polygon')
-  assert.deepEqual(r1.altitude, { lower: 4000, upper: 6000, unit: 'FT', ref: 'AMSL' })
+  assert.equal(recs.length, 4)
+  const byId = Object.fromEntries(recs.map((r) => [r.id, r]))
+
+  // QGAXX GPS RAIM — prefers Polygon over the Point label-anchor
+  const g = byId['G3301/26']
+  assert.equal(g.series, 'G')
+  assert.equal(g.location, 'RKJB')
+  assert.equal(g.qcode, 'QGAXX')
+  assert.equal(g.validFrom, '2026-07-03T09:28:00.000Z')
+  assert.equal(g.validTo, '2026-07-05T10:57:00.000Z')
+  assert.equal(g.geometry.type, 'Polygon')          // NOT 'Point' — MultiGeometry always has a Point anchor
+  assert.deepEqual(g.altitude, { lower: 0, upper: 999, unit: 'FL', ref: null })
+  assert.match(g.summary, /GPS RAIM OUTAGES PREDICTED FOR NPA/)
+
+  // QRDCA danger, FIR-scope, F)SFC G)4920FT AGL — AGL preserved
+  const d = byId['D0816/26']
+  assert.equal(d.location, 'RKRR')
+  assert.equal(d.qcode, 'QRDCA')
+  assert.deepEqual(d.altitude, { lower: 0, upper: 4920, unit: 'FT', ref: 'AGL' })
+  assert.equal(d.geometry.type, 'Polygon')
+
+  // QOBCE obstacle — multi-line E) with many ')' still captured
+  const o = byId['A0798/26']
+  assert.equal(o.qcode, 'QOBCE')
+  assert.match(o.summary, /TEMP OBST\(CRANES\)/)
+
+  // QRDCA LineString (corridor danger area)
+  const l = byId['D1181/26']
+  assert.equal(l.geometry.type, 'LineString')
+  assert.ok(l.geometry.coordinates.length >= 2)
+  assert.deepEqual(l.altitude, { lower: 0, upper: 6561, unit: 'FT', ref: 'AGL' })
 })
 
 test('parseNotamKml: broken placemark skipped, others survive', () => {
-  const broken = KML.replace("A)RKSI B)2607031047 C)2607041108", "A)RKSI") // missing B)/C)
+  const broken = KML.replace('A)RKJB B)2607030928 C)2607051057', 'A)RKJB') // strip B)/C) from G3301
   const recs = parseNotamKml(broken)
-  assert.equal(recs.length, 1) // the valid Polygon one survives
+  assert.equal(recs.length, 3) // 4 minus the broken one
 })
 ```
 
@@ -273,7 +281,7 @@ Expected: FAIL — module not found.
 
 - [ ] **Step 3: Write the parser**
 
-Create `backend/src/parsers/notam-parser.js`:
+Create `backend/src/parsers/notam-parser.js`. **Note the geometry order: Polygon → LineString → Point.** Real KOCA `<MultiGeometry>` always contains a `<Point>` label-anchor plus the actual area/line; Point-first would wrongly return the anchor for every polygon record (verified against the real fixture during planning).
 ```javascript
 // KML (KOCA xNotam) → structured NOTAM records. No XML lib: KML fields are regex-extractable.
 // CR line terminators in source; normalize to LF first.
@@ -306,18 +314,15 @@ export function parseQcodeBand(qLine, fLine, gLine) {
   const f = parseHeightToken(fLine)
   const g = parseHeightToken(gLine)
   if (f && g) return { lower: f.value, upper: g.value, unit: f.unit, ref: f.ref || g.ref || null }
-  // Q-line: .../lower/upper/coord — e.g. /000/999/3728N12626E005
+  // Q-line: .../lower/upper/coord — e.g. /000/999/3459N12623E005
   const m = String(qLine || '').match(/\/(\d{3})\/(\d{3})\/\d/)
   if (m) return { lower: Number(m[1]), upper: Number(m[2]), unit: 'FL', ref: null }
   return null
 }
 
+// Order matters: Polygon → LineString → Point. The Point in a KOCA MultiGeometry is the
+// label anchor, not the affected area; only fall back to it when no polygon/line exists.
 function extractGeometry(placemarkXml) {
-  const pt = placemarkXml.match(/<Point>[\s\S]*?<coordinates>([\s\S]*?)<\/coordinates>/)
-  if (pt) {
-    const [lon, lat] = pt[1].trim().split(/[,\s]+/).map(Number)
-    if (Number.isFinite(lon) && Number.isFinite(lat)) return { type: 'Point', coordinates: [lon, lat] }
-  }
   const poly = placemarkXml.match(/<Polygon>[\s\S]*?<LinearRing>[\s\S]*?<coordinates>([\s\S]*?)<\/coordinates>/)
   if (poly) {
     const ring = poly[1].trim().split(/\s+/).map((tuple) => tuple.split(',').slice(0, 2).map(Number))
@@ -329,6 +334,11 @@ function extractGeometry(placemarkXml) {
     const coords = line[1].trim().split(/\s+/).map((tuple) => tuple.split(',').slice(0, 2).map(Number))
       .filter((p) => p.length === 2 && p.every(Number.isFinite))
     if (coords.length >= 2) return { type: 'LineString', coordinates: coords }
+  }
+  const pt = placemarkXml.match(/<Point>[\s\S]*?<coordinates>([\s\S]*?)<\/coordinates>/)
+  if (pt) {
+    const [lon, lat] = pt[1].trim().split(/[,\s]+/).map(Number)
+    if (Number.isFinite(lon) && Number.isFinite(lat)) return { type: 'Point', coordinates: [lon, lat] }
   }
   return null
 }
@@ -347,7 +357,8 @@ function parseOnePlacemark(xml) {
   const validFrom = dmsToIso(bField)
   const validTo = dmsToIso(cField)
   if (!id || !location || !validFrom || !validTo) return null // required fields
-  const fField = (text.match(/F\)\s*([^\n G]+(?:\s*(?:AMSL|AGL))?)/) || [])[1] || null
+  // F)SFC / F)4000FT AMSL — allow SFC/GND word or a number+unit token; stop before space or ')'
+  const fField = (text.match(/F\)\s*(SFC|GND|[^\n G)]+)/) || [])[1] || null
   const gField = (text.match(/G\)\s*([^\n)]+)/) || [])[1] || null
   const summary = (text.match(/E\)\s*([\s\S]*?)(?:\n[FG]\)|\)?\s*$)/) || [])[1]?.trim().replace(/\)\s*$/, '') || ''
   return {
@@ -383,7 +394,7 @@ export default { parseNotamKml, parseQcodeBand, dmsToIso }
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `cd backend && node --test test/notam-parser.test.js`
-Expected: PASS (5 tests). If the `summary`/`F)` regexes over/under-match on the fixture, adjust the regex until the fixture assertions pass — the fixture values are the contract.
+Expected: PASS (5 tests). This parser + these assertions were verified against the real fixture during planning, so they should pass as written.
 
 - [ ] **Step 5: Commit**
 
@@ -559,6 +570,8 @@ Expected: FAIL — `config.notam` undefined and/or `store.save` throws `Unsuppor
 
 In `backend/src/store.js`, add `'notam'` to the `TYPES` array (line 6), add `notam: 'NOTAM'` to `FILE_PREFIX` (in the object at lines 7-23), and add `notam: { hash: null, prev_data: null },` to the `cache` object (lines 25-42).
 
+**Warning — register in all three, especially `TYPES`.** The codebase has a latent partial-registration trap: `adsb` is in `cache` but NOT in `TYPES`. If you add `notam` to `cache` but forget `TYPES`, `getCached('notam')` silently works while `store.save('notam', ...)` throws `Unsupported type: notam` (`store.js:208`) — a failure that only surfaces at the live crawl in Task 6. Add to `TYPES` first.
+
 - [ ] **Step 4: Add config block**
 
 In `backend/src/config.js`, add before `export const schedule`:
@@ -667,4 +680,14 @@ git commit -m "docs(notam): Architecture.md file roles for NOTAM backend"
 - **AGL/AMSL preserved** in `altitude.ref` ✓ Task 3.
 - **No severity computed** in processor ✓ (spec compliance — color is a Phase B frontend concern).
 - **Contract for Phases B/C:** the canonical item shape in Global Constraints is the frozen interface. Phase C's `matchItems` reuse maps `category`→`phenomenon_code`, `valid_from`/`valid_to`/`altitude`/`geometry` are already the names `matchItems` reads.
-- **Open risk (unchanged from spec):** AWS EC2 Chromium viability unverified — flagged in spec Unresolved Risk; Task 1 spike only proves local. Before production deploy, run Task 1's spike on the EC2 box.
+- **Open risk (unchanged from spec):** AWS EC2 Chromium viability unverified — flagged in spec Unresolved Risk; Task 1 spike only proves local.
+
+## Deploy Gate (must clear before production deploy — do NOT skip)
+
+Task 6 Step 3 only proves the crawler works on the local Windows dev box. Before deploying this to the EC2 production server (`3.34.113.37`, Amazon Linux), a human/agent must complete this checklist on the server, because Chromium headless has heavy system-lib dependencies and the site may block AWS IPs:
+
+- [ ] SSH to the server; run `cd /opt/projectamo/current/backend && npx playwright install chromium --with-deps` — confirm it installs without missing-package errors (Amazon Linux uses `dnf`/`yum`, not `apt`; if `--with-deps` fails, install the libs manually).
+- [ ] On the server, run the Task 1 spike script — confirm it downloads KML (not blocked by outbound-443 firewall or AWS-IP block; server is Seoul-region so an IP block is unlikely but unverified).
+- [ ] Only if both pass, use `bash deploy/deploy-vm-full.sh` (full deploy — new `playwright` dependency requires it, not fast deploy). Confirm `curl http://127.0.0.1:3001/api/notam` returns items post-deploy.
+
+If the crawl cannot run on EC2, the fallback is Phase A "B안" (separate crawler process/host) or a scheduled job elsewhere writing to the shared data path — out of scope for this plan, but the API/store/frontend layers are unaffected.
