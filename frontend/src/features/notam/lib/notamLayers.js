@@ -12,36 +12,11 @@ const TIME_COLOR = [
   /* upcoming */ LEVEL.gray,
 ]
 const POLYGON_FILTER = ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']]
-
-// 특수공역 빗금(해칭) 채움 — 시간상태색 대각선 줄무늬 타일 3종. addImage로 등록, fill-pattern이 참조.
-const HATCH_COLORS = { active: '#c0291f', soon: '#92400e', upcoming: '#475569' }
-export function registerNotamHatchPatterns(map) {
-  if (typeof document === 'undefined') return
-  const pr = Math.max(1, Math.round((typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1))
-  const S = 10 // 굵은 2색 대각선 줄무늬 타일(경고테이프 느낌): 흰 바탕 + 두꺼운 색 대각선
-  for (const [state, color] of Object.entries(HATCH_COLORS)) {
-    const id = `notam-hatch-${state}`
-    if (map.hasImage(id)) continue
-    const canvas = document.createElement('canvas')
-    canvas.width = S * pr; canvas.height = S * pr
-    const ctx = canvas.getContext('2d', { alpha: true })
-    ctx.scale(pr, pr)
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, S, S)       // 흰 줄무늬 바탕
-    ctx.strokeStyle = color; ctx.lineWidth = S * 0.6; ctx.lineCap = 'square'
-    // 두꺼운 45° 색 대각선(+타일 이음매 연속용 wrap 2개) → 색/흰 굵은 줄무늬
-    ctx.beginPath()
-    ctx.moveTo(-S * 0.5, S * 0.5); ctx.lineTo(S * 0.5, -S * 0.5)
-    ctx.moveTo(0, S); ctx.lineTo(S, 0)
-    ctx.moveTo(S * 0.5, S * 1.5); ctx.lineTo(S * 1.5, S * 0.5)
-    ctx.stroke()
-    try { map.addImage(id, ctx.getImageData(0, 0, canvas.width, canvas.height), { pixelRatio: pr }) } catch { /* noop */ }
-  }
-}
 const NOT_FIR = ['!=', ['get', 'scope'], 'fir']
 const IS_FIR = ['==', ['get', 'scope'], 'fir']
 
 export const NOTAM_SOURCE_IDS = ['notam-src']
-export const NOTAM_LAYER_IDS = ['notam-hatch', 'notam-line', 'notam-fir-line', 'notam-marker', 'notam-obstacle', 'notam-label']
+export const NOTAM_LAYER_IDS = ['notam-fill', 'notam-line', 'notam-fir-line', 'notam-marker', 'notam-obstacle', 'notam-label']
 const IS_OBSTACLE = ['==', ['get', 'category'], 'obstacle']
 const IS_POINT = ['==', ['geometry-type'], 'Point']
 // 구역(폴리곤·닫힌 선) 중심 라벨 대상 — 점(장애물/시설) 제외
@@ -56,24 +31,18 @@ export function addNotamLayers(map, featureData) {
   if (!map.getSource('notam-src')) {
     map.addSource('notam-src', { type: 'geojson', data: featureData })
   }
-  // 특수공역 가장자리 빗금 밴드(항공차트식): 경계선 따라 두꺼운 line-pattern(빗금)만, 내부는 비움.
-  // 안쪽으로 오프셋해 경계 안쪽에 밴드. 줌 8+에서만(국가 뷰 덮지 않게), 구역 전체(FIR 포함).
-  if (!map.getLayer('notam-hatch')) {
+  // 구역 내부 옅은 면색(살짝). 줌 8+에서만(국가 뷰 덮지 않게), 색=시간상태.
+  if (!map.getLayer('notam-fill')) {
     map.addLayer({
-      id: 'notam-hatch', type: 'line', source: 'notam-src', slot: 'top', minzoom: 8,
+      id: 'notam-fill', type: 'fill', source: 'notam-src', slot: 'top', minzoom: 8,
       filter: POLYGON_FILTER,
-      layout: { 'line-join': 'round' },
-      paint: {
-        'line-pattern': ['concat', 'notam-hatch-', ['get', 'timeState']],
-        'line-width': ['interpolate', ['linear'], ['zoom'], 8, 9, 12, 16],
-        'line-offset': ['interpolate', ['linear'], ['zoom'], 8, -4.5, 12, -8],
-      },
+      paint: { 'fill-color': TIME_COLOR, 'fill-opacity': 0.1 },
     })
   }
   if (!map.getLayer('notam-line')) {
     map.addLayer({
       id: 'notam-line', type: 'line', source: 'notam-src', slot: 'top',
-      paint: { 'line-color': TIME_COLOR, 'line-width': 1.8, 'line-opacity': 0.95 },
+      paint: { 'line-color': TIME_COLOR, 'line-width': 1.8, 'line-opacity': 0.95, 'line-dasharray': [3, 2] },
       filter: NOT_FIR,
     })
   }
@@ -156,7 +125,7 @@ export function setNotamVisibility(map, isVisible) {
 
 export function setNotamCategoryFilter(map, activeCategoryIds) {
   const catFilter = ['in', ['get', 'category'], ['literal', activeCategoryIds]]
-  if (map.getLayer('notam-hatch')) map.setFilter('notam-hatch', ['all', POLYGON_FILTER, catFilter])
+  if (map.getLayer('notam-fill')) map.setFilter('notam-fill', ['all', POLYGON_FILTER, catFilter])
   if (map.getLayer('notam-line')) map.setFilter('notam-line', ['all', NOT_FIR, catFilter])
   if (map.getLayer('notam-fir-line')) map.setFilter('notam-fir-line', ['all', IS_FIR, catFilter])
   if (map.getLayer('notam-obstacle')) map.setFilter('notam-obstacle', ['all', IS_POINT, IS_OBSTACLE, catFilter])

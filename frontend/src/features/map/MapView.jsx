@@ -16,7 +16,7 @@ import { registerAircraftImages } from '../aviation-layers/aircraftIconImages.js
 import { registerAirlineLogos } from '../aviation-layers/airlineLogoImages.js'
 import AviationLayerPanel from '../aviation-layers/AviationLayerPanel.jsx'
 import NotamPanel from '../notam/NotamPanel.jsx'
-import { updateNotamLayerData, setNotamVisibility, setNotamCategoryFilter as applyNotamCategoryFilter, notamPopupHtml, notamsAtPoint, addNotamHighlight, setNotamHighlight, geometryBounds, registerNotamHatchPatterns } from '../notam/lib/notamLayers.js'
+import { updateNotamLayerData, setNotamVisibility, setNotamCategoryFilter as applyNotamCategoryFilter, notamPopupHtml, notamsAtPoint, addNotamHighlight, setNotamHighlight, geometryBounds } from '../notam/lib/notamLayers.js'
 import { notamToFeatureCollection, displayGeometry } from '../notam/lib/notamGeoJson.js'
 import { registerNotamObstacleImages } from '../notam/lib/notamObstacleIcons.js'
 import { NOTAM_CATEGORIES } from '../notam/lib/notamViewModel.js'
@@ -256,7 +256,6 @@ const MapView = forwardRef(function MapView({
   const notamFc = useMemo(() => notamToFeatureCollection(notamData, Date.now()), [notamData])
   useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
     registerNotamObstacleImages(map) // 장애물 종류별 아이콘 등록(비동기, 준비되면 심볼 레이어가 참조)
-    registerNotamHatchPatterns(map)  // 구역 빗금 채움 패턴 등록
     updateNotamLayerData(map, notamFc)
     addNotamHighlight(map)
     setNotamVisibility(map, metVisibility.notam)
