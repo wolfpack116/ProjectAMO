@@ -1,4 +1,4 @@
-import { deriveTimeState, formatAltitude, notamSummary } from './notamViewModel.js'
+import { deriveTimeState, formatAltitude, formatValidPeriod, notamSummary } from './notamViewModel.js'
 import { obstacleType, parseObstacleHeight } from './notamObstacleIcons.js'
 
 // "DDMMSS[.s]N DDDMMSS[.s]E" (NOTAM E)본문 PSN) → [lon,lat]. 못 읽으면 null.
@@ -43,6 +43,7 @@ export function notamToFeatureCollection(payload, nowMs = Date.now()) {
           scope: it.scope || 'airport',
           timeState: deriveTimeState(it.valid_from, it.valid_to, nowMs),
           summary: notamSummary(it),
+          validPeriod: formatValidPeriod(it.valid_from, it.valid_to),
           altitude: formatAltitude(it.altitude),
           location: it.location || '',
           rawText: it.rawText || it.summary || '', // 지도 팝업 '원문 보기'용

@@ -222,7 +222,9 @@ export function notamPopupHtml(features) {
       + `<span class="notam-pop-cat">${catLabel(p.category)}</span>`
       + `<span class="notam-pop-id">${p.id}</span>`
       + `<span class="notam-pop-ts ts-${ts.key}">${ts.glyph} ${ts.label}</span>`
-      + `<div class="notam-pop-sum">${escapeHtml(p.summary)}${alt}</div>${raw}</div>`
+      + `<div class="notam-pop-sum">${escapeHtml(p.summary)}${alt}</div>`
+      + (p.validPeriod ? `<div class="notam-pop-valid"><span class="notam-pop-valid-lbl">유효</span>${escapeHtml(p.validPeriod)}</div>` : '')
+      + `${raw}</div>`
   }).join('')
   const header = features.length === 1 ? '' : `<div class="notam-pop-head">이 지점에 ${features.length}건</div>`
   const more = features.length > 3

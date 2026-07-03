@@ -116,6 +116,8 @@
 .notam-pop-id { font-size: 11px; color: var(--text-2); font-family: Consolas, monospace; }
 .notam-pop-ts { float: right; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 3px; }
 .notam-pop-sum { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+.notam-pop-valid { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-size: 12px; color: var(--text-1); font-weight: 600; font-family: Consolas, monospace; }
+.notam-pop-valid-lbl { font-family: var(--font-base, sans-serif); font-size: 10px; font-weight: 800; color: #fff; background: var(--accent); padding: 1px 5px; border-radius: 3px; }
 .notam-pop-more { border: none; background: none; color: var(--accent); font-weight: 700; cursor: pointer; padding: 6px 0 0; font-size: 12px; }
 .notam-pop-rawwrap { margin-top: 4px; }
 .notam-pop-rawwrap > summary { cursor: pointer; color: var(--accent); font-size: 11px; font-weight: 700; list-style: none; }
