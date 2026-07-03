@@ -29,33 +29,33 @@ Branch: **feat/notam-backend** (do NOT work on main)
 
 ## Resume Point
 
-- Last completed: **Task 5** (store+config 등록), commit `feat(notam): register notam type in store + config (24h horizon, 6h cron)`.
-- **Next: Task 6** (plan 파일의 "### Task 6: Wire cron + API route") — 다음 3가지:
-  1. `backend/server.js` 518줄 부근(`app.get('/api/takeoff-fcst', ...)` 바로 아래)에
-     `app.get('/api/notam', (_, res) => sendLatest(res, 'notam'))` 추가.
-  2. `backend/src/index.js`: (a) 21줄 뒤 `import notamProcessor from './processors/notam-processor.js'`,
-     (b) `locks` 객체(25줄)에 `notam: false`, (c) `buildInitialCollectionJobs` jobs 배열의 takeoff_fcst
-     엔트리(87줄) 뒤에 `["notam", notamProcessor.process],`, (d) `main()`의 118줄 뒤에
-     `cron.schedule(config.schedule.notam_interval, () => runWithLock("notam", notamProcessor.process))`.
-  3. 라이브 검증: `npm.cmd run dev --prefix backend` 실행 → 시작 로그에 `notam: { type:'notam', saved:true, items:~400 }`
-     확인, `curl http://127.0.0.1:3001/api/notam | head -c 300` 로 JSON 확인. 그다음 `cd backend && node --test`
-     전체 통과 확인 후 커밋.
-- **그다음 Task 7**: Architecture.md에 notam 백엔드 파일 role 추가(plan에 정확한 문구 있음) → 커밋.
+- Last completed: **Task 6** (cron+API route wiring) — 코드 반영 완료, 로컬 검증 완료. **아직 커밋 안 함**(사용자 커밋 승인 대기).
+  - 수정: `backend/server.js`(`GET /api/notam` 라우트), `backend/src/index.js`(import·`locks.notam`·초기수집 job·`cron.schedule(notam_interval)`).
+  - 로컬 검증: 서버 부팅 → `/api/notam` 응답 **376건 / horizon_hours 24 / spec item 계약 일치**, `node --test` **205 pass/0 fail**.
+  - 참고: 검증 중 로컬 `node_modules`에 playwright 미설치가 드러나 `npm install`로 복구함(lockfile엔 이미 있었음).
+- **Next: Task 7** — Architecture.md "Backend" File Roles에 notam 파일 4줄 추가(plan Task 7에 정확한 문구). 단 plan 문구는
+  "(7-day window)"라 되어 있는데 실제는 24h이므로 **"(site-default 24h window)"로 고쳐서** 넣을 것.
 - **그다음**: superpowers:finishing-a-development-branch 로 마무리(테스트 확인 → 머지/PR 옵션 제시).
 
 ## Verified
 
-- `cd backend && node --test` → **205 pass / 0 fail** (Task 5 완료 시점, notam-crawler/parser/processor/store 포함).
+- `cd backend && node --test` → **205 pass / 0 fail** (Task 6 완료 시점, notam-crawler/parser/processor/store 포함).
+- **Task 6 라이브(로컬 Windows)**: 서버 부팅 후 `GET /api/notam` → 376건, `horizon_hours:24`, item 형태가 spec 계약(id/series/location/qcode/category/scope/valid_from/valid_to/altitude/summary/geometry)과 일치. 크롤→파싱→분류→save→route 전 체인 동작 확인.
 - 크롤러 로직(goto + click KML다운로드)은 세션 중 스파이크로 라이브 다운로드 성공 검증(로컬 Windows).
 - 파서: 실제 fixture 4건(QGAXX Point+Polygon, QRDCA danger Poly FIR, QOBCE obstacle, QRDCA LineString)에
   대해 5 test 통과 — 지오메트리/AGL/카테고리/스코프 정확.
 
-## Unverified / Deploy Gate (배포 전 반드시)
+## Deploy Gate (검증 완료 — 2026-07-03)
 
-- **AWS EC2(3.34.113.37, Amazon Linux)에서 Playwright/Chromium 크롤 동작 미검증**(사내망 클라우드 차단으로 이번 세션 확인 불가).
-  plan 파일 맨 아래 "Deploy Gate" 체크리스트 참조: `npx playwright install chromium --with-deps`(Amazon Linux는 dnf/yum),
-  아웃바운드 443, AWS IP 차단 여부. 새 playwright 의존성이라 `deploy-vm-full.sh` 필요(fast deploy 아님).
-- Task 6의 라이브 크롤 검증은 아직 안 함(새 세션 Task 6에서 수행) — `config.notam.timeout_ms`가 실제로 잘 먹는지 포함.
+- **AWS EC2(3.34.113.37, Amazon Linux 2023)에서 라이브 크롤 검증 성공** — 격리 폴더(`~/notam-test`, feat/notam-backend clone)에서
+  `crawlNotamKml()` 단독 실행: **382 Placemark / 855KB KML / 14.5초**, 정상 KML(`A0593/26 ...`) 확인. 임시 폴더는 삭제, 운영 폴더 무손상.
+  - **AWS IP 차단 없음**: `curl https://aim.koca.go.kr/` → 200 / 0.09s.
+  - **Chromium 설치 주의**: `--with-deps`는 Ubuntu(apt-get) 전용이라 Amazon Linux에서 **실패**. 대신
+    `npx playwright install chromium`(바이너리만) + `sudo dnf install -y nss nspr atk at-spi2-atk at-spi2-core cups-libs
+    libdrm libXcomposite libXdamage libXext libXfixes libXrandr mesa-libgbm libxcb libxkbcommon pango cairo alsa-lib`.
+  - **타임아웃 여유**: 14.5초 → `config.notam.timeout_ms`(기본 30000) 안에 충분히 들어옴.
+  - **서버에 남긴 것(실배포 재사용)**: `~/.cache/ms-playwright`(646MB) + 위 dnf 라이브러리. 배포 시 재다운로드 불필요.
+- 새 playwright 의존성이라 실배포는 `deploy-vm-full.sh` 필요(fast deploy 아님).
 
 ## Deviations from Plan
 

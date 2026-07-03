@@ -172,6 +172,10 @@ ProjectAMO/
 - `backend/src/index.js` -> scheduled weather collection jobs, per-type locks, and UTC KIM NWP release-window scheduling.
 - `backend/src/api-client.js` -> upstream KMA/weather API request construction.
 - `backend/src/store.js` -> in-memory cache and SHA-256 change detection.
+- `backend/src/notam/notam-crawler.js` -> headless Playwright crawler for KOCA 유효 NOTAM KML (site-default 24h window; no date manipulation).
+- `backend/src/parsers/notam-parser.js` -> KML -> structured NOTAM records (Q-code, B/C times, F)/G) altitude with AGL/AMSL, geometry).
+- `backend/src/processors/notam-processor.js` -> Q-code -> category/scope, crawl+parse orchestration, `store.save('notam')`; no severity judgment.
+- `backend/server.js` -> exposes `GET /api/notam` (latest NOTAM snapshot from `store.getCached('notam')`).
 - `backend/src/parsers/*` -> per-type raw response parsers.
 - `backend/src/processors/*` -> per-type normalized data processors.
 - `backend/src/processors/kim-surface-wind-processor.js` -> KIM scheduled job/lock orchestrator for multi-level NWP wind, Temp, moisture-level RH, and config-gated icing-variable collection with complete-run skip checks; publishes partial successful runs to canonical `DATA_PATH/kim_nwp/` while preserving the legacy surface-wind cache, then retries incompleteness on later schedules.
