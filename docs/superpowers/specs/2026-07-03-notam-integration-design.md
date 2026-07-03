@@ -10,7 +10,7 @@
 
 - 백엔드: KML 크롤러 → 파서 → 프로세서 → store → API
 - 프론트엔드: 사이드바 전역 NOTAM 패널(카테고리 토글 + 지도 레이어), 공항 패널 NOTAM 탭(공항별 목록)
-- 비행 전 브리핑(route-briefing) 파이프라인 연동: 경로상 NOTAM을 기존 hazard-section 매칭에 태워 Go/No-go 배너·③노선 위험 리스트·지도 레이어 칩에 자동 반영
+- 비행 전 브리핑(route-briefing) 연동: `matchItems` 매칭 코어로 경로상 NOTAM을 뽑아 ③노선의 별도 "경로상 NOTAM" 섹션에 **사실 나열**(위험 등급 아님, Go/No-go 배너 미반영) + 지도 레이어 칩 제공. 상세는 아래 Route-Briefing Integration.
 
 ## Anti-Scope
 
