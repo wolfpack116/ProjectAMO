@@ -16,9 +16,11 @@ const NOT_FIR = ['!=', ['get', 'scope'], 'fir']
 const IS_FIR = ['==', ['get', 'scope'], 'fir']
 
 export const NOTAM_SOURCE_IDS = ['notam-src']
-export const NOTAM_LAYER_IDS = ['notam-fill', 'notam-line', 'notam-fir-line', 'notam-marker', 'notam-obstacle']
+export const NOTAM_LAYER_IDS = ['notam-fill', 'notam-line', 'notam-fir-line', 'notam-marker', 'notam-obstacle', 'notam-label']
 const IS_OBSTACLE = ['==', ['get', 'category'], 'obstacle']
 const IS_POINT = ['==', ['geometry-type'], 'Point']
+// 구역(폴리곤·닫힌 선) 중심 라벨 대상 — 점(장애물/시설) 제외
+const IS_AREA = ['any', POLYGON_FILTER, ['==', ['geometry-type'], 'LineString']]
 
 const CATEGORY_LABEL = Object.fromEntries(NOTAM_CATEGORIES.map((c) => [c.id, c.label]))
 export function catLabel(id) {
@@ -87,7 +89,28 @@ export function addNotamLayers(map, featureData) {
       },
     })
   }
-  for (const id of ['notam-marker', 'notam-obstacle']) if (map.getLayer(id) && typeof map.moveLayer === 'function') map.moveLayer(id)
+  // 구역 중심 라벨: NOTAM 번호 + 고도(EFB식). 줌 확대(7+)에서만·겹치면 자동 생략(디클러터).
+  if (!map.getLayer('notam-label')) {
+    map.addLayer({
+      id: 'notam-label', type: 'symbol', source: 'notam-src', slot: 'top', minzoom: 7,
+      filter: IS_AREA,
+      layout: {
+        'symbol-placement': 'point',
+        'text-field': ['case',
+          ['>', ['length', ['coalesce', ['get', 'altitude'], '']], 0], ['concat', ['get', 'id'], '\n', ['get', 'altitude']],
+          ['get', 'id']],
+        'text-size': 11,
+        'text-line-height': 1.1,
+        'text-anchor': 'center',
+        'text-justify': 'center',
+        'text-allow-overlap': false,
+        'text-optional': true,
+        'text-padding': 6,
+      },
+      paint: { 'text-color': TIME_COLOR, 'text-halo-color': '#ffffff', 'text-halo-width': 1.6 },
+    })
+  }
+  for (const id of ['notam-marker', 'notam-obstacle', 'notam-label']) if (map.getLayer(id) && typeof map.moveLayer === 'function') map.moveLayer(id)
 }
 
 export function updateNotamLayerData(map, featureData) {
@@ -107,6 +130,7 @@ export function setNotamCategoryFilter(map, activeCategoryIds) {
   if (map.getLayer('notam-fir-line')) map.setFilter('notam-fir-line', ['all', IS_FIR, catFilter])
   if (map.getLayer('notam-obstacle')) map.setFilter('notam-obstacle', ['all', IS_POINT, IS_OBSTACLE, catFilter])
   if (map.getLayer('notam-marker')) map.setFilter('notam-marker', ['all', IS_POINT, ['!', IS_OBSTACLE], catFilter])
+  if (map.getLayer('notam-label')) map.setFilter('notam-label', ['all', IS_AREA, catFilter])
 }
 
 // 겹침 팝업 HTML(목업 surface D): 1건 상세 / 2~3건 미니리스트 / 4건+ 상위3 + "전체 목록에서 보기".
