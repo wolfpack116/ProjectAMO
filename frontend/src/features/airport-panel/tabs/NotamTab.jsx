@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Ban, Crosshair, AlertTriangle, ShieldHalf, RadioTower, Radio, MoreHorizontal, ChevronDown, Globe } from 'lucide-react'
+import { Ban, Crosshair, AlertTriangle, ShieldHalf, RadioTower, Radio, MoreHorizontal, ChevronDown } from 'lucide-react'
 import { NOTAM_CATEGORIES, TIME_STATE, deriveTimeState, formatAltitude, formatValidPeriod, sortActiveFirst } from '../../notam/lib/notamViewModel.js'
 import '../../notam/NotamPanel.css'
 
@@ -45,31 +45,13 @@ function NotamTab({ notam, icao, nowMs = Date.now() }) {
     () => sortActiveFirst(items.filter((it) => it.scope !== 'fir' && it.location === icao), nowMs),
     [items, icao, nowMs],
   )
-  const firItems = useMemo(
-    () => sortActiveFirst(items.filter((it) => it.scope === 'fir'), nowMs),
-    [items, nowMs],
-  )
-
-  if (airportItems.length === 0 && firItems.length === 0) {
+  if (airportItems.length === 0) {
     return <div className="ap-empty">유효한 NOTAM이 없습니다.</div>
   }
 
   return (
     <div className="notam-tab">
       {airportItems.map((it) => <NotamCard key={it.id} item={it} nowMs={nowMs} />)}
-
-      {firItems.length > 0 && (
-        <div className="notam-tab-fir">
-          <div className="notam-tab-fir-title"><Globe size={13} aria-hidden="true" />전역 공지(인천FIR) · {firItems.length}건</div>
-          {firItems.map((it) => (
-            <div key={`fir-${it.id}`} className="notam-tab-fir-row">
-              <CatIcon id={it.category} size={14} />
-              <span className="notam-tab-fir-sum">{it.summary}</span>
-              <TimeBadge state={deriveTimeState(it.valid_from, it.valid_to, nowMs)} />
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

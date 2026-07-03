@@ -101,11 +101,6 @@
 .notam-tab-valid-lbl { font-family: var(--font-base, sans-serif); font-size: 10px; font-weight: 800; color: #fff; background: var(--accent); padding: 1px 5px; border-radius: 3px; }
 .notam-tab-sum { font-size: 13px; color: var(--text-2); margin-bottom: 6px; }
 .notam-tab-more { font-size: 12px; color: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 3px; }
-.notam-tab-fir { padding: 10px 0 0; border-top: 1px solid var(--stroke-2); margin-top: 4px; }
-.notam-tab-fir-title { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 800; color: var(--text-2); margin-bottom: 8px; }
-.notam-tab-fir-row { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 3px 0; }
-.notam-tab-fir-sum { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.notam-tab-fir-row .notam-ts { margin-left: auto; flex-shrink: 0; }
 
 /* 겹침 팝업(지도) — notamPopupHtml 구조 */
 .notam-pop { min-width: 180px; font-family: var(--font-base, sans-serif); }
