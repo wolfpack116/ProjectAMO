@@ -141,7 +141,7 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 | 파일 | 역할 |
 |---|---|
 | `frontend/src/api/weatherApi.js` | `fetchNotam()` 클라이언트 추가 |
-| `frontend/src/app/layout/Sidebar.jsx` | NOTAM 아이콘 복귀, `PANEL_MAP`에 `notam` 등록 |
+| `frontend/src/app/layout/Sidebar.jsx` | NOTAM 아이콘 복귀 — `topItems`(또는 `bottomItems`) 배열에 아이콘/라벨 항목 추가 **+** `PANEL_MAP`에 `notam` 등록(둘 다 필요, 최초 스펙은 후자만 언급함) |
 | `frontend/src/app/layout/MobileMoreMenu.jsx` | 모바일도 동일하게 복귀 |
 | `frontend/src/features/notam/NotamPanel.jsx` | (A) 전역 패널: 카테고리 토글 + 심각도 탭(금지·피격/주의/정보) + 밀도형 테이블(`ap-taf-table` 패턴), `selectedAirport` 우선순위 섹션 |
 | `frontend/src/features/notam/lib/notamLayers.js` | Mapbox 소스/레이어 설치·동기화·카테고리 가시성, `minzoom` 기반 마커↔폴리곤 전환(`NOTAM_SOURCE_IDS`/`NOTAM_LAYER_IDS` 소유권 export) |
@@ -151,9 +151,9 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 | `frontend/src/features/airport-panel/tabs/NotamTab.jsx` | (B) 공항별 NOTAM 목록 + `scope: 'fir'` 전역 공지 섹션 |
 | `frontend/src/features/airport-panel/lib/notamViewModel.js` | 공항 탭 표시용 가공(배지/유효기간 포맷) |
 | `frontend/src/features/airport-panel/AirportPanel.jsx` | 탭 목록에 NOTAM 추가 |
-| `frontend/src/features/map/MapView.jsx` | `activePanel === 'notam'` 조건부 렌더 + `useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => syncNotamLayers(map, notamModel), [notamModel])` 한 줄(ADR 0001 seam 재사용, 새 `useEffect` 추가 금지) |
+| `frontend/src/features/map/MapView.jsx` | `activePanel === 'notam'` 조건부 렌더 + `useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => syncNotamLayers(map, notamModel), [notamModel])` 한 줄(ADR 0001 seam 재사용, 새 `useEffect` 추가 금지). `notamModel`을 `App.jsx`에서 prop으로 받는 배선 단계 포함(최초 스펙 누락분) |
+| `frontend/src/features/weather-overlays/lib/weatherOverlayLayers.js` | `MET_LAYERS`에 `{ id: 'notam', label: 'NOTAM', color: ... }` 마스터 토글 등록(위 "레이어 가시성 모델" 참조) |
 | `frontend/src/features/route-briefing/lib/hazardLayers.js` | RULEBOOK에 NOTAM 카테고리→`notam` 레이어 매핑 추가 |
-| `frontend/src/features/map/layerActions.js` | `notam` 레이어 id 등록(공유 레지스트리, `layerActions.test.js`가 강제) |
 
 ### 지도 렌더링
 
@@ -161,18 +161,24 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 - 카테고리별 고정 색상 대신 위 심각도 3단계(red/amber/gray) 색만 사용
 - 클릭 시 팝업: 원문 텍스트 + 유효기간(SIGMET 팝업 패턴 재사용)
 - `scope: 'fir'` 레코드는 폴리곤 렌더 대상에서 제외(위 FIR 광역 스코프 참조) — 342건을 다 그리면 화면이 뒤덮임
-- 줌 레벨 전환: 낮은 줌(전국)에서는 카테고리 아이콘 마커만, 확대(줌 9+)하면 실제 폴리곤/라인 노출. Mapbox 레이어 정의에 `minzoom`/`maxzoom`만 추가하면 되는 기본 기능 — 마커 레이어와 폴리곤 레이어를 같은 소스에서 분리 정의.
+- 줌 레벨 전환: 낮은 줌(전국)에서는 카테고리 아이콘 마커만, 확대(줌 9+)하면 실제 폴리곤/라인 노출. Mapbox 레이어 정의에 `minzoom`/`maxzoom`만 추가(플랜 단계에서 스파이크로 검증 — 이 코드베이스에 동일 소스 내 마커↔폴리곤 이중 레이어 줌 전환 선례는 없음).
+
+### 레이어 가시성 모델 (리뷰로 발견된 수정 사항)
+
+당초 "7개 카테고리 각각 개별 토글"로 설계했으나, `hazardLayers.js`(브리핑 "지도에 관련 레이어 보기" 칩)가 토글 가능한 대상은 `frontend/src/features/weather-overlays/lib/weatherOverlayLayers.js`의 `MET_LAYERS` 배열에 등록된 id뿐이고(`hazardLayers.test.js`가 강제), `MET_LAYERS`는 레이어당 on/off **하나**만 표현한다(`metVisibility.<id>`). 7개를 각각 별도 레이어로 등록하면 이 구조와 안 맞는다.
+
+**수정된 모델**: NOTAM을 `MET_LAYERS`에 `{ id: 'notam', label: 'NOTAM', color: ... }` **마스터 토글 하나**로 등록(레이더/SIGMET과 동일 패턴). `NotamPanel`의 7개 카테고리 타일은 별도의 로컬 카테고리 필터 상태(어떤 카테고리를 보여줄지)로, `notamLayers.js`의 Mapbox `filter` 표현식에 적용 — 마스터가 꺼지면 전부 안 보이고, 마스터가 켜진 상태에서 타일로 세부 필터링. 이러면 브리핑 칩("NOTAM 레이어 보기")도 다른 위험기상 레이어와 동일하게 자연스럽게 작동한다. 카테고리 필터 상태를 어느 파일에 둘지(로컬 훅 vs `App.jsx` 리프트업)는 구현 계획 단계에서 확정.
 
 ## Route-Briefing Integration
 
 `backend/src/briefing/hazard-section.js`의 `matchItems(items, source, ctx)`는 이미 범용이다 — `{geometry, valid_from, valid_to, altitude, phenomenon_code, phenomenon_label}` shape만 맞으면 SIGMET/AIRMET 전용이 아니어도 경로∩시간∩고도 매칭을 그대로 해준다. NOTAM 레코드가 이 shape에 거의 맞으므로 새 매칭 로직을 짜지 않고 기존 파이프라인에 태운다.
 
-**연동 지점 4곳:**
+**연동 지점 4곳** (주의: `matchItems`는 이미 범용이라 재사용하지만, `hazardLevel()`은 소스별로 하드코딩된 분기라 NOTAM 분기 추가가 **필수** — "매칭 로직 재사용, 새 코드 없음"이 아니라 "매칭은 재사용, 레벨 판정 분기 1개는 신규"):
 
-1. `backend/src/briefing/hazard-section.js` — `buildHazardSection`에 `notam` 파라미터 추가, `matchItems(notam, 'NOTAM', ctx)` 호출 추가. `hazardLevel()`에 `source === 'NOTAM'`이면 레코드의 `severity`(red/amber)를 그대로 사용하는 분기 추가.
+1. `backend/src/briefing/hazard-section.js` — `buildHazardSection`에 `notam` 파라미터 추가, `matchItems(notam, 'NOTAM', ctx)` 호출 추가. `hazardLevel()`에 `source === 'NOTAM'`이면 레코드의 `severity`(red/amber)를 그대로 사용하는 분기 추가(안 넣으면 SIGMET도 AIRMET도 아닌 소스는 현재 코드상 amber 고정 분기로 조용히 떨어짐 — red NOTAM이 amber로 격하되는 버그가 됨).
 2. `backend/src/briefing/briefing-composer.js` — `buildHazardSection` 호출에 `notam: data?.notam?.items?.filter(n => n.severity !== 'gray') ?? []` 추가(회색=운영정보는 브리핑 위험요약 노이즈라 제외).
 3. `backend/server.js` — `POST /api/route-briefing` 핸들러가 `store.getCached('notam')`도 읽어 `data.notam`으로 전달.
-4. `frontend/src/features/route-briefing/lib/hazardLayers.js` — RULEBOOK에 `{ codes: ['notam-prohibited', 'notam-danger', 'notam-restricted', 'notam-obstacle'], layers: ['notam'] }` 추가(새 토글 레이어라 `frontend/src/features/map/layerActions.js`에도 `notam` id 등록 필요 — `layerActions.test.js` 커버리지가 강제).
+4. `frontend/src/features/route-briefing/lib/hazardLayers.js` — RULEBOOK에 `{ codes: ['notam-prohibited', 'notam-danger', 'notam-restricted', 'notam-obstacle'], layers: ['notam'] }` 추가. `notam`이 유효한 대상이 되려면 위 "레이어 가시성 모델"대로 `weatherOverlayLayers.js`의 `MET_LAYERS`에 `notam` id를 먼저 등록해야 함(`layerActions.js`가 아니라 `MET_LAYERS`+`hazardLayers.test.js`가 실제 강제 지점 — 최초 스펙의 오기 수정).
 
 **공짜로 딸려오는 것(새 코드 불필요):**
 - Go/No-go 배너(`BriefingBanner.jsx`)가 `adverse.level`을 그대로 쓰므로, 경로상 비행금지구역 조우 시 자동으로 빨강
@@ -206,7 +212,9 @@ function deriveTimeState(validFrom, validTo, nowMs) {
 - 크롤 방식: 헤드리스 Playwright, 기존 백엔드 스케줄러(`backend/src/index.js`)에 통합(A안) — 별도 프로세스 분리(B안)는 주기가 촘촘해지면 재검토
 - 심각도 표시: 카테고리 7개가 아니라 red/amber/gray 3단계로 압축(디자인 헌법 색 절제 원칙 + EFB 업계 리서치로 검증)
 - UI 좌측 색 보더 카드 패턴 배제 — 무채색 카드 + 색 배지 조합으로(범용 AI 대시보드 톤 회피)
-- 브리핑 연동: 기존 `hazard-section.js`의 범용 `matchItems`에 태우는 방식으로 결정, 별도 매칭 로직 신규 작성 안 함
+- 브리핑 연동: 기존 `hazard-section.js`의 범용 `matchItems`에 태우는 방식으로 결정, 매칭 로직 재사용(단 `hazardLevel()` NOTAM 분기는 신규)
+- 지도 가시성 모델: 카테고리별 개별 레이어가 아니라 `MET_LAYERS` 마스터 토글 1개 + 카테고리 필터로 수정(리뷰로 발견 — 최초 설계는 `hazardLayers.js`/브리핑 칩과 안 맞았음)
+- 플랜 단계 분할 권장: 스펙은 하나로 유지, `writing-plans`에서 (a) 크롤러+파서+프로세서+store+API, (b) 프론트 UI(전역패널+공항탭+지도), (c) 브리핑 연동(― (a)에 의존) 3단계로 나눠서 계획
 
 ## Unresolved Risk
 
