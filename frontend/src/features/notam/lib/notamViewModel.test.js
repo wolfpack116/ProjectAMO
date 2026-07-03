@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { deriveTimeState, formatAltitude, sortActiveFirst, NOTAM_CATEGORIES } from './notamViewModel.js'
+import { deriveTimeState, formatAltitude, formatValidPeriod, sortActiveFirst, NOTAM_CATEGORIES } from './notamViewModel.js'
 
 const SOON = 2 * 60 * 60 * 1000
 
@@ -43,6 +43,12 @@ test('formatAltitude: FL band', () => {
 
 test('formatAltitude: null → empty', () => {
   assert.equal(formatAltitude(null), '')
+})
+
+test('formatValidPeriod: B~C in KST MM/DD HH:MM', () => {
+  // 2026-07-03T00:00Z = 07-03 09:00 KST, 2026-07-08T16:00Z = 07-09 01:00 KST
+  assert.equal(formatValidPeriod('2026-07-03T00:00:00Z', '2026-07-08T16:00:00Z', 'KST'), '07/03 09:00 ~ 07/09 01:00')
+  assert.equal(formatValidPeriod('bad', 'bad'), '— ~ —')
 })
 
 test('NOTAM_CATEGORIES: 7 categories in mockup order', () => {

@@ -12,9 +12,12 @@ const TIME_COLOR = [
   /* upcoming */ LEVEL.gray,
 ]
 const POLYGON_FILTER = ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']]
+const NOT_FIR = ['!=', ['get', 'scope'], 'fir']
+const IS_FIR = ['==', ['get', 'scope'], 'fir']
 
 export const NOTAM_SOURCE_IDS = ['notam-src']
-export const NOTAM_LAYER_IDS = ['notam-fill', 'notam-line', 'notam-marker']
+// notam-fir-line: 전국(FIR) 공지는 fill 없이 외곽선만, 모든 줌에서(국가 뷰에서도 RKRR 보이게).
+export const NOTAM_LAYER_IDS = ['notam-fill', 'notam-line', 'notam-fir-line', 'notam-marker']
 
 const CATEGORY_LABEL = Object.fromEntries(NOTAM_CATEGORIES.map((c) => [c.id, c.label]))
 export function catLabel(id) {
@@ -25,24 +28,35 @@ export function addNotamLayers(map, featureData) {
   if (!map.getSource('notam-src')) {
     map.addSource('notam-src', { type: 'geojson', data: featureData })
   }
-  // 폴리곤/라인은 확대(z≥9)에서만, 마커는 축소에서(전국 카테고리 아이콘).
+  // 공항 구역 폴리곤/라인은 확대(z≥9)에서만. fill은 아주 옅게(활주로를 "덮어" 비행금지처럼 보이지 않게) — 경계선 위주.
   if (!map.getLayer('notam-fill')) {
     map.addLayer({
       id: 'notam-fill', type: 'fill', source: 'notam-src', slot: 'top', minzoom: 9,
-      paint: { 'fill-color': TIME_COLOR, 'fill-opacity': 0.14 },
-      filter: POLYGON_FILTER,
+      paint: { 'fill-color': TIME_COLOR, 'fill-opacity': 0.07 },
+      filter: ['all', POLYGON_FILTER, NOT_FIR],
     })
   }
   if (!map.getLayer('notam-line')) {
     map.addLayer({
       id: 'notam-line', type: 'line', source: 'notam-src', slot: 'top', minzoom: 9,
-      paint: { 'line-color': TIME_COLOR, 'line-width': 2, 'line-opacity': 0.9 },
+      paint: { 'line-color': TIME_COLOR, 'line-width': 1.8, 'line-opacity': 0.95 },
+      filter: NOT_FIR,
+    })
+  }
+  // FIR(전국) 공지는 fill 없이 점선 외곽선만, 모든 줌에서 — 화면을 덮지 않으면서 존재를 보여줌.
+  if (!map.getLayer('notam-fir-line')) {
+    map.addLayer({
+      id: 'notam-fir-line', type: 'line', source: 'notam-src', slot: 'top',
+      paint: { 'line-color': TIME_COLOR, 'line-width': 1.2, 'line-opacity': 0.55, 'line-dasharray': [3, 2] },
+      filter: IS_FIR,
     })
   }
   if (!map.getLayer('notam-marker')) {
     // 형태 단서(색맹 대비): 발효중=채운 원 / 곧발효=반채움(진한 테두리+옅은 채움) / 예정=외곽선만.
     map.addLayer({
       id: 'notam-marker', type: 'circle', source: 'notam-src', slot: 'top', maxzoom: 9,
+      // Point 지오메트리만 — 필터 없으면 폴리곤/라인의 모든 꼭짓점에 점이 찍혀 지도가 뒤덮임.
+      filter: ['==', ['geometry-type'], 'Point'],
       paint: {
         'circle-color': ['match', ['get', 'timeState'], 'upcoming', 'rgba(0,0,0,0)', TIME_COLOR],
         'circle-opacity': ['match', ['get', 'timeState'], 'soon', 0.4, 'active', 0.85, 0],
@@ -67,9 +81,10 @@ export function setNotamVisibility(map, isVisible) {
 
 export function setNotamCategoryFilter(map, activeCategoryIds) {
   const catFilter = ['in', ['get', 'category'], ['literal', activeCategoryIds]]
-  if (map.getLayer('notam-fill')) map.setFilter('notam-fill', ['all', POLYGON_FILTER, catFilter])
-  if (map.getLayer('notam-line')) map.setFilter('notam-line', catFilter)
-  if (map.getLayer('notam-marker')) map.setFilter('notam-marker', catFilter)
+  if (map.getLayer('notam-fill')) map.setFilter('notam-fill', ['all', POLYGON_FILTER, NOT_FIR, catFilter])
+  if (map.getLayer('notam-line')) map.setFilter('notam-line', ['all', NOT_FIR, catFilter])
+  if (map.getLayer('notam-fir-line')) map.setFilter('notam-fir-line', ['all', IS_FIR, catFilter])
+  if (map.getLayer('notam-marker')) map.setFilter('notam-marker', ['all', ['==', ['geometry-type'], 'Point'], catFilter])
 }
 
 // 겹침 팝업 HTML(목업 surface D): 1건 상세 / 2~3건 미니리스트 / 4건+ 상위3 + "전체 목록에서 보기".

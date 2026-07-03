@@ -43,6 +43,19 @@ export function formatAltitude(altitude) {
   return `${lo}–${hi}${label}`
 }
 
+// 유효기간(NOTAM 최우선 정보). B) ~ C) 를 'MM/DD HH:MM ~ MM/DD HH:MM' (KST)로.
+export function formatValidPeriod(validFrom, validTo, tz = 'KST') {
+  const off = tz === 'KST' ? 9 * 3600000 : 0
+  const fmt = (v) => {
+    const ms = typeof v === 'number' ? v : Date.parse(v)
+    if (!Number.isFinite(ms)) return '—'
+    const d = new Date(ms + off)
+    const p = (n) => String(n).padStart(2, '0')
+    return `${p(d.getUTCMonth() + 1)}/${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`
+  }
+  return `${fmt(validFrom)} ~ ${fmt(validTo)}`
+}
+
 const RANK = { active: 0, soon: 1, upcoming: 2 }
 export function sortActiveFirst(items, nowMs) {
   return [...items].sort((a, b) =>
@@ -50,4 +63,4 @@ export function sortActiveFirst(items, nowMs) {
     RANK[deriveTimeState(b.valid_from, b.valid_to, nowMs)])
 }
 
-export default { deriveTimeState, formatAltitude, sortActiveFirst, NOTAM_CATEGORIES, TIME_STATE, SOON_WINDOW_MS }
+export default { deriveTimeState, formatAltitude, formatValidPeriod, sortActiveFirst, NOTAM_CATEGORIES, TIME_STATE, SOON_WINDOW_MS }

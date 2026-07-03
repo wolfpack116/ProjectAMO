@@ -22,12 +22,14 @@ const base = {
   ],
 }
 
-test('excludes scope:fir and null-geometry items', () => {
+test('excludes only null-geometry; FIR included with scope property (outline-only in layer)', () => {
   const fc = notamToFeatureCollection(base, now)
   assert.equal(fc.type, 'FeatureCollection')
   const ids = fc.features.map((f) => f.properties.id)
-  assert.ok(!ids.includes('D9/26'), 'FIR scope excluded from map')
   assert.ok(!ids.includes('A2/26'), 'null-geometry excluded')
+  const fir = fc.features.find((f) => f.properties.id === 'D9/26')
+  assert.ok(fir, 'FIR NOTAM now included on map')
+  assert.equal(fir.properties.scope, 'fir')
 })
 
 test('keeps LineString geometry (map/tab exposure; only briefing-matching excludes it)', () => {

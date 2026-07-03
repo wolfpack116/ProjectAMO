@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Ban, Crosshair, AlertTriangle, ShieldHalf, RadioTower, Radio, MoreHorizontal, ChevronDown } from 'lucide-react'
-import { NOTAM_CATEGORIES, TIME_STATE, deriveTimeState, formatAltitude, sortActiveFirst } from './lib/notamViewModel.js'
+import { NOTAM_CATEGORIES, TIME_STATE, deriveTimeState, formatAltitude, formatValidPeriod, sortActiveFirst } from './lib/notamViewModel.js'
 import './NotamPanel.css'
 
 const CAT_ICON = {
@@ -40,15 +40,18 @@ function fmtCollected(iso, tz = 'KST') {
   return `${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`
 }
 
-function NotamRow({ item, nowMs, expanded, onToggle }) {
+function NotamRow({ item, nowMs, tz, expanded, onToggle }) {
   const state = deriveTimeState(item.valid_from, item.valid_to, nowMs)
-  const where = item.scope === 'fir' ? '전역 공지' : item.location
+  const where = item.scope === 'fir' ? '전역' : item.location
   return (
     <>
       <tr className="notam-row" onClick={onToggle}>
         <td className="notam-td-cat"><CatIcon id={item.category} /><span>{catLabelOf(item.category)}</span></td>
         <td className="notam-td-loc">{where}</td>
-        <td className="notam-td-sum">{item.summary}</td>
+        <td className="notam-td-sum">
+          <div className="notam-sum-text">{item.summary}</div>
+          <div className="notam-sum-valid">{formatValidPeriod(item.valid_from, item.valid_to, tz)}</div>
+        </td>
         <td className="notam-td-alt">{formatAltitude(item.altitude) || '—'}</td>
         <td className="notam-td-state">
           <TimeBadge state={state} />
@@ -67,12 +70,21 @@ function NotamRow({ item, nowMs, expanded, onToggle }) {
 function NotamPanel({ payload, selectedAirport, categoryFilter, onCategoryToggle, masterOn, onMasterToggle, nowMs = Date.now(), tz = 'KST' }) {
   const [limit, setLimit] = useState(CHUNK)
   const [openId, setOpenId] = useState(null)
+  const [locationFilter, setLocationFilter] = useState('all')
 
   const items = useMemo(() => Array.isArray(payload?.items) ? payload.items : [], [payload])
   const activeFilter = categoryFilter || NOTAM_CATEGORIES.map((c) => c.id)
+  // 위치(공항/공역) 목록 — 건수 많은 순, 필터 드롭다운용
+  const locations = useMemo(() => {
+    const counts = new Map()
+    for (const it of items) counts.set(it.location, (counts.get(it.location) || 0) + 1)
+    return [...counts.entries()].sort((a, b) => b[1] - a[1])
+  }, [items])
   const filtered = useMemo(
-    () => sortActiveFirst(items.filter((it) => activeFilter.includes(it.category)), nowMs),
-    [items, activeFilter, nowMs],
+    () => sortActiveFirst(items.filter((it) =>
+      activeFilter.includes(it.category) && (locationFilter === 'all' || it.location === locationFilter),
+    ), nowMs),
+    [items, activeFilter, locationFilter, nowMs],
   )
   const priority = useMemo(
     () => selectedAirport ? filtered.filter((it) => it.location === selectedAirport) : [],
@@ -134,7 +146,22 @@ function NotamPanel({ payload, selectedAirport, categoryFilter, onCategoryToggle
           </div>
         </div>
 
-        {priority.length > 0 && (
+        <div className="notam-locfilter">
+          <label className="notam-locfilter-label" htmlFor="notam-loc">위치</label>
+          <select
+            id="notam-loc"
+            className="notam-locfilter-select"
+            value={locationFilter}
+            onChange={(e) => { setLocationFilter(e.target.value); setLimit(CHUNK) }}
+          >
+            <option value="all">전체 ({items.length})</option>
+            {locations.map(([loc, n]) => (
+              <option key={loc} value={loc}>{loc === 'RKRR' ? 'RKRR (인천FIR)' : loc} ({n})</option>
+            ))}
+          </select>
+        </div>
+
+        {priority.length > 0 && locationFilter === 'all' && (
           <div className="notam-priority">
             <div className="notam-priority-title">{selectedAirport} 관련 · {priority.length}건</div>
             {priority.map((it) => (
@@ -164,6 +191,7 @@ function NotamPanel({ payload, selectedAirport, categoryFilter, onCategoryToggle
                     key={it.id}
                     item={it}
                     nowMs={nowMs}
+                    tz={tz}
                     expanded={openId === it.id}
                     onToggle={() => setOpenId((cur) => cur === it.id ? null : it.id)}
                   />
