@@ -516,6 +516,7 @@ app.get('/api/sigwx-low', (_, res) => sendLatest(res, 'sigwx_low'))
 app.get('/api/lightning', (_, res) => sendLatest(res, 'lightning'))
 app.get('/api/amos', (_, res) => sendLatest(res, 'amos'))
 app.get('/api/takeoff-fcst', (_, res) => sendLatest(res, 'takeoff_fcst'))
+app.get('/api/notam', (_, res) => sendLatest(res, 'notam'))
 // ADS-B is collected on demand: only refresh adsb.lol when a viewer requests it and
 // the snapshot is stale. No viewers -> no upstream calls. Cold start waits for the fetch.
 const ADSB_REFRESH_MS = 5 * 60 * 1000
