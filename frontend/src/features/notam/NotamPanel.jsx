@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Ban, Crosshair, AlertTriangle, ShieldHalf, RadioTower, Radio, MoreHorizontal, ChevronDown } from 'lucide-react'
+import { Ban, Crosshair, AlertTriangle, ShieldHalf, RadioTower, Radio, MoreHorizontal, ChevronDown, MapPin } from 'lucide-react'
 import { NOTAM_CATEGORIES, TIME_STATE, deriveTimeState, formatAltitude, formatValidPeriod, sortActiveFirst } from './lib/notamViewModel.js'
 import './NotamPanel.css'
 
@@ -40,14 +40,26 @@ function fmtCollected(iso, tz = 'KST') {
   return `${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`
 }
 
-function NotamRow({ item, nowMs, tz, expanded, onToggle }) {
+function NotamRow({ item, nowMs, tz, expanded, onToggle, onLocate }) {
   const state = deriveTimeState(item.valid_from, item.valid_to, nowMs)
   const where = item.scope === 'fir' ? '전역' : item.location
   return (
     <>
       <tr className="notam-row" onClick={onToggle}>
         <td className="notam-td-cat"><CatIcon id={item.category} /><span>{catLabelOf(item.category)}</span></td>
-        <td className="notam-td-loc">{where}</td>
+        <td className="notam-td-loc">
+          {where}
+          {item.geometry && (
+            <button
+              type="button"
+              className="notam-locate"
+              aria-label={`${item.id} 지도에서 보기`}
+              onClick={(e) => { e.stopPropagation(); onLocate?.(item) }}
+            >
+              <MapPin size={13} aria-hidden="true" />
+            </button>
+          )}
+        </td>
         <td className="notam-td-sum">
           <div className="notam-sum-text">{item.summary}</div>
           <div className="notam-sum-valid">{formatValidPeriod(item.valid_from, item.valid_to, tz)}</div>
@@ -67,7 +79,7 @@ function NotamRow({ item, nowMs, tz, expanded, onToggle }) {
   )
 }
 
-function NotamPanel({ payload, selectedAirport, categoryFilter, onCategoryToggle, masterOn, onMasterToggle, nowMs = Date.now(), tz = 'KST' }) {
+function NotamPanel({ payload, selectedAirport, categoryFilter, onCategoryToggle, masterOn, onMasterToggle, onLocate, nowMs = Date.now(), tz = 'KST' }) {
   const [limit, setLimit] = useState(CHUNK)
   const [openId, setOpenId] = useState(null)
   const [locationFilter, setLocationFilter] = useState('all')
@@ -194,6 +206,7 @@ function NotamPanel({ payload, selectedAirport, categoryFilter, onCategoryToggle
                     tz={tz}
                     expanded={openId === it.id}
                     onToggle={() => setOpenId((cur) => cur === it.id ? null : it.id)}
+                    onLocate={onLocate}
                   />
                 ))}
               </tbody>

@@ -88,6 +88,47 @@ export function setNotamCategoryFilter(map, activeCategoryIds) {
 }
 
 // 겹침 팝업 HTML(목업 surface D): 1건 상세 / 2~3건 미니리스트 / 4건+ 상위3 + "전체 목록에서 보기".
+// 지오메트리 경계 [[minLon,minLat],[maxLon,maxLat]] — 목록→지도 줌인(fitBounds)용.
+export function geometryBounds(geometry) {
+  if (!geometry) return null
+  const pts = []
+  if (geometry.type === 'Point') pts.push(geometry.coordinates)
+  else if (geometry.type === 'LineString') pts.push(...geometry.coordinates)
+  else if (geometry.type === 'Polygon') pts.push(...(geometry.coordinates[0] || []))
+  else if (geometry.type === 'MultiPolygon') for (const poly of geometry.coordinates) pts.push(...(poly[0] || []))
+  const valid = pts.filter((p) => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]))
+  if (valid.length === 0) return null
+  const lons = valid.map((p) => p[0]); const lats = valid.map((p) => p[1])
+  return [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]]
+}
+
+export const NOTAM_HIGHLIGHT_LAYER_IDS = ['notam-hl-fill', 'notam-hl-line', 'notam-hl-point']
+const HL_COLOR = '#0ea5e9' // 시간상태색(red/amber/gray)과 구분되는 '선택' 강조색
+const EMPTY_FC = { type: 'FeatureCollection', features: [] }
+
+export function addNotamHighlight(map) {
+  if (!map.getSource('notam-hl-src')) map.addSource('notam-hl-src', { type: 'geojson', data: EMPTY_FC })
+  if (!map.getLayer('notam-hl-fill')) {
+    map.addLayer({ id: 'notam-hl-fill', type: 'fill', source: 'notam-hl-src', slot: 'top',
+      paint: { 'fill-color': HL_COLOR, 'fill-opacity': 0.18 }, filter: POLYGON_FILTER })
+  }
+  if (!map.getLayer('notam-hl-line')) {
+    map.addLayer({ id: 'notam-hl-line', type: 'line', source: 'notam-hl-src', slot: 'top',
+      paint: { 'line-color': HL_COLOR, 'line-width': 3.5, 'line-opacity': 1 } })
+  }
+  if (!map.getLayer('notam-hl-point')) {
+    map.addLayer({ id: 'notam-hl-point', type: 'circle', source: 'notam-hl-src', slot: 'top',
+      filter: ['==', ['geometry-type'], 'Point'],
+      paint: { 'circle-radius': 12, 'circle-color': HL_COLOR, 'circle-opacity': 0.25, 'circle-stroke-color': HL_COLOR, 'circle-stroke-width': 3 } })
+  }
+  for (const id of NOTAM_HIGHLIGHT_LAYER_IDS) if (map.getLayer(id) && typeof map.moveLayer === 'function') map.moveLayer(id)
+}
+
+export function setNotamHighlight(map, feature) {
+  const src = map.getSource('notam-hl-src')
+  if (src) src.setData(feature ? { type: 'FeatureCollection', features: [feature] } : EMPTY_FC)
+}
+
 export function notamPopupHtml(features) {
   const shown = features.slice(0, features.length <= 3 ? features.length : 3)
   const rows = shown.map((f) => {
@@ -108,6 +149,7 @@ export function notamPopupHtml(features) {
 }
 
 export default {
-  NOTAM_SOURCE_IDS, NOTAM_LAYER_IDS, catLabel,
+  NOTAM_SOURCE_IDS, NOTAM_LAYER_IDS, NOTAM_HIGHLIGHT_LAYER_IDS, catLabel,
   addNotamLayers, updateNotamLayerData, setNotamVisibility, setNotamCategoryFilter, notamPopupHtml,
+  geometryBounds, addNotamHighlight, setNotamHighlight,
 }

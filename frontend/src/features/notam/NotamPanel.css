@@ -61,6 +61,12 @@
 .notam-td-cat { padding: 9px 6px; }
 .notam-td-cat span { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; vertical-align: middle; }
 .notam-td-loc { padding: 9px 6px; font-weight: 700; }
+.notam-locate {
+  display: inline-flex; align-items: center; justify-content: center; margin-top: 3px;
+  padding: 2px; border: 1px solid var(--stroke-1); border-radius: 4px; background: var(--bg-1);
+  color: var(--accent); cursor: pointer;
+}
+.notam-locate:hover { background: color-mix(in srgb, var(--accent) 10%, var(--bg-1)); border-color: var(--accent); }
 /* 안전 핵심 값: 흐리게 금지 — 요약/고도는 최소 --text-2, ≥11px (spec 접근성 2) */
 .notam-td-sum { padding: 9px 6px; overflow: hidden; }
 .notam-sum-text { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -16,7 +16,7 @@ import { registerAircraftImages } from '../aviation-layers/aircraftIconImages.js
 import { registerAirlineLogos } from '../aviation-layers/airlineLogoImages.js'
 import AviationLayerPanel from '../aviation-layers/AviationLayerPanel.jsx'
 import NotamPanel from '../notam/NotamPanel.jsx'
-import { updateNotamLayerData, setNotamVisibility, setNotamCategoryFilter as applyNotamCategoryFilter, notamPopupHtml, NOTAM_LAYER_IDS } from '../notam/lib/notamLayers.js'
+import { updateNotamLayerData, setNotamVisibility, setNotamCategoryFilter as applyNotamCategoryFilter, notamPopupHtml, NOTAM_LAYER_IDS, addNotamHighlight, setNotamHighlight, geometryBounds } from '../notam/lib/notamLayers.js'
 import { notamToFeatureCollection } from '../notam/lib/notamGeoJson.js'
 import { NOTAM_CATEGORIES } from '../notam/lib/notamViewModel.js'
 import { SIGWX_FILTER_OPTIONS } from '../weather-overlays/lib/sigwxData.js'
@@ -255,6 +255,7 @@ const MapView = forwardRef(function MapView({
   const notamFc = useMemo(() => notamToFeatureCollection(notamData, Date.now()), [notamData])
   useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
     updateNotamLayerData(map, notamFc)
+    addNotamHighlight(map)
     setNotamVisibility(map, metVisibility.notam)
     applyNotamCategoryFilter(map, notamCategoryFilter)
     // 겹침 팝업(surface D): 클릭 지점의 모든 NOTAM 후보를 해석(1 / 2-3 미니리스트 / 4+ 전체보기).
@@ -678,6 +679,18 @@ const MapView = forwardRef(function MapView({
     setMetVisibility((prev) => {
       return getNextMetVisibility(prev, id, { lowPower })
     })
+  }
+
+  // 목록에서 NOTAM 클릭 → 지도가 해당 지오메트리로 줌인 + 강조. 지도표시 꺼져있으면 자동 ON.
+  function locateNotam(item) {
+    const map = mapRef.current
+    if (!map || !item?.geometry) return
+    if (!metVisibility.notam) toggleMet('notam')
+    setNotamHighlight(map, { type: 'Feature', geometry: item.geometry, properties: { id: item.id } })
+    const bounds = geometryBounds(item.geometry)
+    if (bounds) {
+      map.fitBounds(bounds, { padding: { top: 70, bottom: 90, left: 470, right: 70 }, maxZoom: 12, duration: 800 })
+    }
   }
 
   function clearAviationLayers() {
@@ -1435,6 +1448,7 @@ const MapView = forwardRef(function MapView({
           onCategoryToggle={(id) => setNotamCategoryFilter((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id])}
           masterOn={metVisibility.notam}
           onMasterToggle={() => toggleMet('notam')}
+          onLocate={locateNotam}
           nowMs={Date.now()}
           tz={tz}
         />
