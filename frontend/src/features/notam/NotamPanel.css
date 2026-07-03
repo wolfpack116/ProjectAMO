@@ -1,5 +1,8 @@
 /* NOTAM 전역 패널. 색 = 시간상태(--level-*), 카테고리 = 아이콘. layer-drawer 셸 재사용. */
-.notam-panel { width: 430px; max-width: 92vw; }
+/* 밀도형 표 + 4열 타일이 있어 기본 --panel-overlay-sm(≤320px)보다 넓어야 함.
+   .map-view-wrapper .layer-drawer 규칙을 이기려 동일 접두 + .notam-panel 로 특이도 확보. */
+.map-view-wrapper .layer-drawer.notam-panel { width: min(440px, 94vw); }
+.notam-panel { width: min(440px, 94vw); }
 
 .notam-master { display: flex; align-items: center; gap: 6px; }
 .notam-master-label { font-size: 12px; font-weight: 700; color: var(--text-2); }
@@ -42,7 +45,12 @@
 .notam-priority-sum { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .notam-priority-row .notam-ts { margin-left: auto; flex-shrink: 0; }
 
-.notam-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+.notam-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+/* 고정 레이아웃 열 너비: 요약(3번째)만 나머지 자동, 긴 값은 셀에서 말줄임 */
+.notam-table th:nth-child(1), .notam-td-cat { width: 62px; }
+.notam-table th:nth-child(2), .notam-td-loc { width: 44px; }
+.notam-table th:nth-child(4), .notam-td-alt { width: 66px; }
+.notam-table th:nth-child(5), .notam-td-state { width: 78px; }
 .notam-table thead th {
   text-align: left; padding: 8px 6px; font-size: 12px; font-weight: 800; color: var(--text-2);
   background: var(--bg-3); border-bottom: 1px solid var(--stroke-2);
@@ -54,7 +62,7 @@
 .notam-td-cat span { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; vertical-align: middle; }
 .notam-td-loc { padding: 9px 6px; font-weight: 700; }
 /* 안전 핵심 값: 흐리게 금지 — 요약/고도는 최소 --text-2, ≥11px (spec 접근성 2) */
-.notam-td-sum { padding: 9px 6px; color: var(--text-2); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notam-td-sum { padding: 9px 6px; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .notam-td-alt { padding: 9px 6px; color: var(--text-2); font-size: 12px; font-weight: 600; white-space: nowrap; }
 .notam-td-state { padding: 9px 6px; text-align: right; white-space: nowrap; }
 .notam-chev { vertical-align: middle; margin-left: 4px; color: var(--text-3); transition: transform 0.15s; }
