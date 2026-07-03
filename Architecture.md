@@ -110,7 +110,11 @@ ProjectAMO/
 - `frontend/src/features/weather-overlays/lib/lightningLayers.js` -> lightning GeoJSON, icon, layer, visibility, and blink helpers.
 - `frontend/src/features/weather-overlays/lib/advisoryLayers.js` -> SIGMET/AIRMET GeoJSON and layer helpers.
 - `frontend/src/features/weather-overlays/lib/sigwxData.js` -> SIGWX_LOW GeoJSON/icon mapping helpers.
-- `frontend/src/features/route-briefing/lib/routePlanner.js` -> route graph loading and route path search.
+- `frontend/src/features/notam/NotamPanel.jsx` -> (surface A) global NOTAM sidebar panel: category filter tiles (`layer-tile` pattern), dense table, selected-airport priority, data-horizon disclosure, colorblind time-state badges (color+glyph+text); master toggle via `metVisibility.notam`.
+- `frontend/src/features/notam/lib/notamViewModel.js` -> pure NOTAM helpers: `deriveTimeState` (active/soon/upcoming = color axis), `formatAltitude` (AGL/AMSL preserved, 전고도 shortening), `sortActiveFirst`, `NOTAM_CATEGORIES`, `TIME_STATE`.
+- `frontend/src/features/notam/lib/notamGeoJson.js` -> payload -> GeoJSON with category+timeState properties; excludes `scope:'fir'` and null geometry (keeps LineString for map/tab).
+- `frontend/src/features/notam/lib/notamLayers.js` -> Mapbox NOTAM source/fill/line/marker install+sync, time-state color (`--level-*`) + colorblind shape, category `filter`, zoom split (marker<->polygon), overlap-popup HTML; owns `NOTAM_SOURCE_IDS`/`NOTAM_LAYER_IDS`.
+- `frontend/src/features/airport-panel/tabs/NotamTab.jsx` -> (surface B) airport NOTAM list (A-field match) + nationwide `scope:'fir'` 전역 공지 section; reads `weatherData.notam`.
 - `frontend/src/features/route-briefing/lib/procedureData.js` -> procedure/navpoint loading helpers.
 - `frontend/src/features/route-briefing/useRouteBriefing.js` -> route briefing state, async route/procedure transitions, VFR waypoint model, route search, and vertical profile orchestration.
 - `frontend/src/features/route-briefing/RouteBriefingPanel.jsx` -> route-check panel UI for IFR/VFR form, route result, VFR altitude editing, and vertical profile controls.
