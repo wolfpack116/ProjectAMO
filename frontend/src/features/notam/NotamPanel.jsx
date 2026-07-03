@@ -85,10 +85,9 @@ function NotamRow({ item, nowMs, tz, expanded, onToggle, onLocate }) {
   )
 }
 
-function NotamPanel({ payload, selectedAirport, categoryFilter, onCategoryToggle, masterOn, onMasterToggle, onLocate, nowMs = Date.now(), tz = 'KST' }) {
+function NotamPanel({ payload, selectedAirport, categoryFilter, onCategoryToggle, locationFilter = 'all', onLocationChange, masterOn, onMasterToggle, onLocate, nowMs = Date.now(), tz = 'KST' }) {
   const [limit, setLimit] = useState(CHUNK)
   const [openId, setOpenId] = useState(null)
-  const [locationFilter, setLocationFilter] = useState('all')
 
   const items = useMemo(() => Array.isArray(payload?.items) ? payload.items : [], [payload])
   const activeFilter = categoryFilter || NOTAM_CATEGORIES.map((c) => c.id)
@@ -170,7 +169,7 @@ function NotamPanel({ payload, selectedAirport, categoryFilter, onCategoryToggle
             id="notam-loc"
             className="notam-locfilter-select"
             value={locationFilter}
-            onChange={(e) => { setLocationFilter(e.target.value); setLimit(CHUNK) }}
+            onChange={(e) => { onLocationChange?.(e.target.value); setLimit(CHUNK) }}
           >
             <option value="all">전체 ({items.length})</option>
             {locations.map(([loc, n]) => (

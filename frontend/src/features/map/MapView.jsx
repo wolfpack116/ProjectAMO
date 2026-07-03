@@ -252,6 +252,7 @@ const MapView = forwardRef(function MapView({
   const [sigwxFilter, setSigwxFilter] = useState(() => Object.fromEntries(SIGWX_FILTER_OPTIONS.map((option) => [option.key, true])))
   const [hiddenAdvisoryKeys, setHiddenAdvisoryKeys] = useState({ sigwxLow: [], sigmet: [], airmet: [] })
   const [notamCategoryFilter, setNotamCategoryFilter] = useState(() => NOTAM_CATEGORIES.map((c) => c.id))
+  const [notamLocationFilter, setNotamLocationFilter] = useState('all')
   const [selectedSigwxFrontMeta, setSelectedSigwxFrontMeta] = useState(sigwxFrontMeta)
   const [selectedSigwxCloudMeta, setSelectedSigwxCloudMeta] = useState(sigwxCloudMeta)
   const notamFc = useMemo(() => notamToFeatureCollection(notamData, Date.now()), [notamData])
@@ -260,13 +261,14 @@ const MapView = forwardRef(function MapView({
     updateNotamLayerData(map, notamFc)
     addNotamHighlight(map)
     setNotamVisibility(map, metVisibility.notam)
-    applyNotamCategoryFilter(map, notamCategoryFilter)
+    applyNotamCategoryFilter(map, notamCategoryFilter, notamLocationFilter)
     // 겹침 팝업(surface D): 클릭 지점의 모든 NOTAM 후보를 해석(1 / 2-3 미니리스트 / 4+ 전체보기).
     // 폴리곤은 point-in-polygon으로 직접 판정(투명/줌 무관, 네모·동그라미 내부 어디든), 점·선은 queryRenderedFeatures.
     const lineLayers = ['notam-marker', 'notam-obstacle', 'notam-line', 'notam-fir-line'].filter((id) => map.getLayer(id))
     function onNotamClick(e) {
       if (!metVisibility.notam) return
       const polyHits = notamsAtPoint(notamFc.features, e.lngLat.lng, e.lngLat.lat, notamCategoryFilter)
+        .filter((f) => notamLocationFilter === 'all' || f.properties?.location === notamLocationFilter)
       const rendered = lineLayers.length ? map.queryRenderedFeatures(e.point, { layers: lineLayers }) : []
       const seen = new Set()
       const uniq = []
@@ -282,7 +284,7 @@ const MapView = forwardRef(function MapView({
     }
     map.on('click', onNotamClick)
     return () => map.off('click', onNotamClick)
-  }, [notamFc, metVisibility.notam, notamCategoryFilter])
+  }, [notamFc, metVisibility.notam, notamCategoryFilter, notamLocationFilter])
   const [adsbData, setAdsbData] = useState(null)
   const [adsbLoading, setAdsbLoading] = useState(false)
   const [basemapId, setBasemapId] = useState('standard')
@@ -1480,6 +1482,8 @@ const MapView = forwardRef(function MapView({
           selectedAirport={selectedAirport}
           categoryFilter={notamCategoryFilter}
           onCategoryToggle={(id) => setNotamCategoryFilter((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id])}
+          locationFilter={notamLocationFilter}
+          onLocationChange={setNotamLocationFilter}
           masterOn={metVisibility.notam}
           onMasterToggle={() => toggleMet('notam')}
           onLocate={locateNotam}

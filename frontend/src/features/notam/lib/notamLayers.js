@@ -123,14 +123,17 @@ export function setNotamVisibility(map, isVisible) {
   for (const id of NOTAM_LAYER_IDS) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', v)
 }
 
-export function setNotamCategoryFilter(map, activeCategoryIds) {
+// 카테고리 + 위치 필터를 지도 레이어에 적용. locationFilter가 'all'이 아니면 해당 공항/공역만.
+export function setNotamCategoryFilter(map, activeCategoryIds, locationFilter = 'all') {
   const catFilter = ['in', ['get', 'category'], ['literal', activeCategoryIds]]
-  if (map.getLayer('notam-fill')) map.setFilter('notam-fill', ['all', POLYGON_FILTER, catFilter])
-  if (map.getLayer('notam-line')) map.setFilter('notam-line', ['all', NOT_FIR, catFilter])
-  if (map.getLayer('notam-fir-line')) map.setFilter('notam-fir-line', ['all', IS_FIR, catFilter])
-  if (map.getLayer('notam-obstacle')) map.setFilter('notam-obstacle', ['all', IS_POINT, IS_OBSTACLE, catFilter])
-  if (map.getLayer('notam-marker')) map.setFilter('notam-marker', ['all', IS_POINT, ['!', IS_OBSTACLE], catFilter])
-  if (map.getLayer('notam-label')) map.setFilter('notam-label', ['all', IS_AREA, catFilter])
+  const locFilter = (locationFilter && locationFilter !== 'all') ? ['==', ['get', 'location'], locationFilter] : true
+  const F = (...conds) => ['all', catFilter, locFilter, ...conds]
+  if (map.getLayer('notam-fill')) map.setFilter('notam-fill', F(POLYGON_FILTER))
+  if (map.getLayer('notam-line')) map.setFilter('notam-line', F(NOT_FIR))
+  if (map.getLayer('notam-fir-line')) map.setFilter('notam-fir-line', F(IS_FIR))
+  if (map.getLayer('notam-obstacle')) map.setFilter('notam-obstacle', F(IS_POINT, IS_OBSTACLE))
+  if (map.getLayer('notam-marker')) map.setFilter('notam-marker', F(IS_POINT, ['!', IS_OBSTACLE]))
+  if (map.getLayer('notam-label')) map.setFilter('notam-label', F(IS_AREA))
 }
 
 // 겹침 팝업 HTML(목업 surface D): 1건 상세 / 2~3건 미니리스트 / 4건+ 상위3 + "전체 목록에서 보기".
