@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<kml xmlns='http://www.opengis.net/kml/2.2'><Document><name>ValideNotam</name>
+<Placemark id='G3301/26_16156391'><description><![CDATA[<h3>G3301/26</h3>GG RKZZNAXX
+<br>030257 RKRRYNYX
+<br>(G3301/26 NOTAMN  
+<br>Q)RKRR/QGAXX/I/NBO/A/000/999/3459N12623E005
+<br>A)RKJB B)2607030928 C)2607051057
+<br>D)03 0928-0931 1041-1105, 04 0924-0927 1037-1101, 05 0920-0923 
+<br>1033-1057
+<br>E)GPS RAIM OUTAGES PREDICTED FOR NPA)
+<br>]]></description><LookAt><longitude>126.38281502777777</longitude><latitude>34.991407</latitude><altitude>30449.52</altitude><TimeSpan><begin>2009-12-31T15:00:00Z</begin><end>3000-12-31T15:00:00Z</end></TimeSpan></LookAt><Style><IconStyle><scale>0.8</scale><heading>0.0</heading><Icon><href>http://aim.koca.go.kr/google/images/marker/RKRR_G.png</href><refreshInterval>0.0</refreshInterval><viewRefreshTime>0.0</viewRefreshTime><viewBoundScale>1.0</viewBoundScale></Icon></IconStyle><LabelStyle><color>ffffff</color><scale>0.7</scale></LabelStyle><LineStyle><color>7d00ffff</color><width>1.0</width></LineStyle><PolyStyle><fill>0</fill><outline>1</outline><color>514B4FF</color><outline>1</outline></PolyStyle></Style><MultiGeometry><Point><extrude>0</extrude><altitudeMode>absolute</altitudeMode><coordinates>126.38281502777777,34.991407,30449.52</coordinates></Point><Polygon><extrude>0</extrude><outerBoundaryIs><LinearRing><coordinates>126.383149730203,34.97879005406961,30449.52 126.38265582535959,34.97878772320822,30449.52 126.38247869017616,35.003968310383684,30449.52 126.38297274698364,35.003970641245076,30449.52 126.383149730203,34.97879005406961,30449.52</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry></Placemark>
+<Placemark id='D0816/26_15755568'><description><![CDATA[<h3>D0816/26</h3>GG RKZZNAXX
+<br>100028 RKRRYNYX
+<br>(D0816/26 NOTAMN  
+<br>Q)RKRR/QRDCA/IV/BO/W/000/050/3737N12903E002
+<br>A)RKRR B)2604100100 C)2607050900
+<br>D)0100-0900
+<br>E)TEMPO DANGER AREA ACT AS FLW
+<br>A CIRCLE RADIUS 1NM CENTERED ON 373715N1290312E
+<br>RMK:THIS AREA IS ESTABLISHED FOR DRONE FLIGHT
+<br>F)SFC G)4920FT AGL)
+<br>]]></description><LookAt><longitude>129.05</longitude><latitude>37.61666666666667</latitude><altitude>1499.616</altitude><TimeSpan><begin>2009-12-31T15:00:00Z</begin><end>3000-12-31T15:00:00Z</end></TimeSpan></LookAt><Style><IconStyle><scale>0.8</scale><heading>0.0</heading><Icon><href>http://aim.koca.go.kr/google/images/marker/RKRR_D.png</href><refreshInterval>0.0</refreshInterval><viewRefreshTime>0.0</viewRefreshTime><viewBoundScale>1.0</viewBoundScale></Icon></IconStyle><LabelStyle><color>ffffff</color><scale>0.7</scale></LabelStyle><LineStyle><color>7d00ffff</color><width>1.0</width></LineStyle><PolyStyle><fill>0</fill><outline>1</outline><color>514F0FF</color><outline>1</outline></PolyStyle></Style><MultiGeometry><Point><extrude>0</extrude><altitudeMode>absolute</altitudeMode><coordinates>129.05,37.61666666666667,1499.616</coordinates></Point><Polygon><extrude>0</extrude><altitudeMode>absolute</altitudeMode><outerBoundaryIs><LinearRing><coordinates>129.05,37.64561302327779,1499.616 129.0594616493673,37.64462632244109,1499.616 129.06827779140343,37.641733537503505,1499.616 129.0758471000035,37.63713201331865,1499.616 129.08165354928863,37.63113561790704,1499.616 129.08530163070185,37.6241532772743,1499.616 129.08654325468058,37.61666103229269,1499.616 129.0852945176013,37.60916954217379,1499.616 129.08164122903582,37.60218926386453,1499.616 129.075832873799,37.596195685639636,1499.616 129.06826547114719,37.59159697864203,1499.616 129.05945453626333,37.58870625602899,1499.616 129.05,37.58772031005555,1499.616 129.0405454637367,37.58870625602899,1499.616 129.03173452885284,37.59159697864203,1499.616 129.02416712620106,37.596195685639636,1499.616 129.0183587709642,37.60218926386453,1499.616 129.01470548239868,37.60916954217379,1499.616 129.01345674531944,37.61666103229269,1499.616 129.01469836929817,37.6241532772743,1499.616 129.0183464507114,37.63113561790704,1499.616 129.02415289999655,37.63713201331865,1499.616 129.03172220859662,37.641733537503505,1499.616 129.04053835063272,37.64462632244109,1499.616 129.05,37.64561302327779,1499.616</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry></Placemark>
+<Placemark id='A0798/26_16054834'><description><![CDATA[<h3>A0798/26</h3>GG RKZZNAXX
+<br>102251 RKRRYNYX
+<br>(A0798/26 NOTAMN  
+<br>Q)RKRR/QOBCE/IV/M/AE/000/999/3459N12623E005
+<br>A)RKJB B)2606102250 C)2609071500
+<br>E)TEMP OBST(CRANES) ERECTED AS FLW :
+<br>1.PSN:345817.12N1262254.71E
+<br>  RADIUS:40M 
+<br>  HGT:22.60M(74.14FT) AMSL
+<br>2.PSN:345817.31N1262254.76E
+<br>  RADIUS:40M
+<br>  HGT:23.35M(76.60FT) AMSL)
+<br>]]></description><LookAt><longitude>126.38281502777777</longitude><latitude>34.991407</latitude><altitude>30449.52</altitude><TimeSpan><begin>2009-12-31T15:00:00Z</begin><end>3000-12-31T15:00:00Z</end></TimeSpan></LookAt><Style><IconStyle><scale>0.8</scale><heading>0.0</heading><Icon><href>http://aim.koca.go.kr/google/images/marker/RKRR_A.png</href><refreshInterval>0.0</refreshInterval><viewRefreshTime>0.0</viewRefreshTime><viewBoundScale>1.0</viewBoundScale></Icon></IconStyle><LabelStyle><color>ffffff</color><scale>0.7</scale></LabelStyle><LineStyle><color>7d00ffff</color><width>1.0</width></LineStyle><PolyStyle><fill>0</fill><outline>1</outline><color>578FF00</color><outline>1</outline></PolyStyle></Style><MultiGeometry><Point><extrude>0</extrude><altitudeMode>absolute</altitudeMode><coordinates>126.38281502777777,34.991407,30449.52</coordinates></Point><Polygon><extrude>0</extrude><outerBoundaryIs><LinearRing><coordinates>126.383149730203,34.97879005406961,30449.52 126.38265582535959,34.97878772320822,30449.52 126.38247869017616,35.003968310383684,30449.52 126.38297274698364,35.003970641245076,30449.52 126.383149730203,34.97879005406961,30449.52</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry></Placemark>
+<Placemark id='D1181/26_15913637'><description><![CDATA[<h3>D1181/26</h3>GG RKZZNAXX
+<br>130844 RKRRYNYX
+<br>(D1181/26 NOTAMN  
+<br>Q)RKRR/QRDCA/IV/BO/W/000/066/3732N12939E023
+<br>A)RKRR B)2605250000 C)2607310800
+<br>D)0000-0800
+<br>E)TEMPO DANGER AREA ACT AS FLW
+<br>AREA BOUNDED BY THE FOLLOWING
+<br>372333N1291339E-372318N1291408E-373951N1300407E-374150N1300200E-37233
+<br>3N1291339E
+<br>RMK : THIS AREA IS ESTABLISHED FOR DRONE FLIGHT
+<br>F)SFC G)6561FT AGL)
+<br>]]></description><LookAt><longitude>129.65</longitude><latitude>37.53333333333333</latitude><altitude>1999.7928</altitude><TimeSpan><begin>2009-12-31T15:00:00Z</begin><end>3000-12-31T15:00:00Z</end></TimeSpan></LookAt><Style><IconStyle><scale>0.8</scale><heading>0.0</heading><Icon><href>http://aim.koca.go.kr/google/images/marker/RKRR_D.png</href><refreshInterval>0.0</refreshInterval><viewRefreshTime>0.0</viewRefreshTime><viewBoundScale>1.0</viewBoundScale></Icon></IconStyle><LabelStyle><color>ffffff</color><scale>0.7</scale></LabelStyle><LineStyle><color>7d00ffff</color><width>1.0</width></LineStyle><PolyStyle><fill>0</fill><outline>1</outline><color>514F0FF</color><outline>1</outline></PolyStyle></Style><MultiGeometry><Point><extrude>0</extrude><altitudeMode>absolute</altitudeMode><coordinates>129.65,37.53333333333333,1999.7928</coordinates></Point><LineString><extrude>0</extrude><tessellate>1</tessellate><altitudeMode>absolute</altitudeMode><coordinates>129.2275,37.3925,1999.7928 129.23555555555555,37.388333333333335,1999.7928 130.0686111111111,37.66416666666667,1999.7928 130.03333333333333,37.697222222222216,1999.7928 129.2275,37.3925,1999.7928 129.2275,37.3925,1999.7928</coordinates></LineString></MultiGeometry></Placemark>
+</Document></kml>
