@@ -121,6 +121,7 @@ export const MET_LAYERS = [
   { id: 'sigwx', label: 'SIGWX', color: '#a78bfa' },
   { id: 'adsb', label: 'ADS-B', color: '#10b981' },
   { id: 'flightCategory', label: '비행기상구역', color: '#f97316' },
+  { id: 'notam', label: 'NOTAM', color: '#334155' },
 ]
 
 const EMPTY_GEOJSON = { type: 'FeatureCollection', features: [] }
