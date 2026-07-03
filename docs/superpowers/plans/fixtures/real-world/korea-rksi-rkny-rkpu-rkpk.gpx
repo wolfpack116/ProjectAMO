@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="OurAirports data" xmlns="http://www.topografix.com/GPX/1/1">
+  <rte>
+    <name>인천-양양-울산-김해 (OurAirports 실좌표)</name>
+    <rtept lat="37.469101" lon="126.450996"><name>인천국제공항 RKSI</name></rtept>
+    <rtept lat="38.060481" lon="128.669822"><name>양양국제공항 RKNY</name></rtept>
+    <rtept lat="35.59349823" lon="129.352005005"><name>울산공항 RKPU</name></rtept>
+    <rtept lat="35.179501" lon="128.938004"><name>김해국제공항 RKPK</name></rtept>
+  </rte>
+</gpx>

@@ -1,0 +1,18 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "인천-양양-울산-김해 (OurAirports 실좌표)" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [126.450996, 37.469101],
+          [128.669822, 38.060481],
+          [129.352005005, 35.59349823],
+          [128.938004, 35.179501]
+        ]
+      }
+    }
+  ]
+}

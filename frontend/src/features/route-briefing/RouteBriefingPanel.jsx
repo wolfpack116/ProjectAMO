@@ -9,9 +9,10 @@ import {
   buildIfrSequenceTokens,
   getVfrAirportAltitudeFt,
 } from './lib/routeBriefingModel.js'
-import { Button, Field, Dropdown, Combobox, Option, Input, SpinButton, TabList, Tab, Badge, MessageBar, MessageBarBody, DatePicker, TimePicker, Menu, MenuTrigger, MenuButton, MenuPopover, MenuList, MenuItem, Divider, makeStyles, tokens } from '../../shared/ui/fluent.js'
+import { Button, Field, Dropdown, Combobox, Option, Input, SpinButton, TabList, Tab, Badge, MessageBar, MessageBarBody, DatePicker, TimePicker, Menu, MenuTrigger, MenuButton, MenuPopover, MenuList, MenuItem, Divider, Dialog, DialogSurface, DialogTitle, DialogBody, DialogContent, makeStyles, tokens } from '../../shared/ui/fluent.js'
 import { listSavedRoutes, saveRoute, deleteSavedRoute } from './lib/routeStore.js'
 import LayerToggleChips from '../map/LayerToggleChips.jsx'
+import RouteImportChooser from './RouteImportChooser.jsx'
 import { aviationLabel } from '../map/layerActions.js'
 import { Folder, Trash2, GripVertical, Undo2, X, RotateCcw } from 'lucide-react'
 import useIsMobile from '../../shared/ui/useIsMobile.js'
@@ -208,6 +209,9 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     editingVfrAltitudeIndex,
     vfrWaypoints,
     vfrLegs = [],
+    importCandidates,
+    importWarning,
+    importError,
     navpointsById,
     hoveredWpInfo,
     starOptions,
@@ -244,6 +248,9 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     undoVfrWaypoints,
     handleRouteSearch,
     loadSavedRoute,
+    importRouteFromFile,
+    applyImportedPath,
+    cancelImportChoice,
     updateVfrWaypointAltitude,
     applyCruiseAltitudeToVfrWaypoints,
     handleVerticalProfileRequest,
@@ -323,6 +330,68 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
         </MenuList>
       </MenuPopover>
     </Menu>
+  )
+
+  const importFileInputRef = useRef(null)
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [isDragOver, setIsDragOver] = useState(false)
+  function handleImportFileChange(e) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // 같은 파일 재선택 가능하도록
+    if (file) { importRouteFromFile(file); setImportDialogOpen(false) }
+  }
+  function handleImportDrop(e) {
+    e.preventDefault()
+    setIsDragOver(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) { importRouteFromFile(file); setImportDialogOpen(false) }
+  }
+  const importButton = (
+    <>
+      <input
+        ref={importFileInputRef}
+        type="file"
+        accept=".geojson,.json,.gpx,.kml"
+        style={{ display: 'none' }}
+        onChange={handleImportFileChange}
+      />
+      <Button appearance="outline" size="small" onClick={() => setImportDialogOpen(true)}>
+        {'경로 불러오기'}
+      </Button>
+    </>
+  )
+  const importDialog = (
+    <Dialog open={importDialogOpen} onOpenChange={(_, d) => setImportDialogOpen(d.open)}>
+      <DialogSurface>
+        <DialogBody>
+          <DialogTitle
+            action={<Button appearance="outline" size="small" onClick={() => importFileInputRef.current?.click()}>{'파일 선택'}</Button>}
+          >
+            {'경로 불러오기'}
+          </DialogTitle>
+          <DialogContent>
+            <div
+              className={`rb-import-dropzone${isDragOver ? ' is-drag-over' : ''}`}
+              onDragEnter={(e) => { e.preventDefault(); setIsDragOver(true) }}
+              onDragOver={(e) => e.preventDefault()}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={handleImportDrop}
+            >
+              <span className="rb-import-dropzone-text">{'GeoJSON · GPX · KML 파일을 여기에 드래그하세요'}</span>
+            </div>
+          </DialogContent>
+        </DialogBody>
+      </DialogSurface>
+    </Dialog>
+  )
+  const importFeedback = (
+    <>
+      {importCandidates.length > 0 && (
+        <RouteImportChooser candidates={importCandidates} onSelect={applyImportedPath} onCancel={cancelImportChoice} />
+      )}
+      {importWarning && <MessageBar intent="warning"><MessageBarBody>{importWarning}</MessageBarBody></MessageBar>}
+      {importError && <MessageBar intent="error"><MessageBarBody>{importError}</MessageBarBody></MessageBar>}
+    </>
   )
 
   // ETA is auto-computed read-only from ETD + planned distance + TAS.
@@ -709,7 +778,10 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
         <div className={s.section}>
           <div className={s.sectionHead}>
             <h3 className={s.sectionTitle}>{'② 경로'}</h3>
-            <Button appearance="secondary" size="small" type="button" icon={<RotateCcw size={14} />} onClick={armOrReset} disabled={routeLoading}>{resetArmed ? '초기화 확인' : '초기화'}</Button>
+            <div style={{ display: 'flex', gap: 'var(--space-xs, 6px)' }}>
+              {importButton}
+              <Button appearance="secondary" size="small" type="button" icon={<RotateCcw size={14} />} onClick={armOrReset} disabled={routeLoading}>{resetArmed ? '초기화 확인' : '초기화'}</Button>
+            </div>
           </div>
           <div className={s.routeRow}>
             {renderDesktopAirportSelect('출발 공항', routeForm.departureAirport, handleDepartureAirportChange, FIR_IN_AIRPORT, 'FIR 진입')}
@@ -748,6 +820,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           </div>
         )}
 
+        {importFeedback}
         {errorBlock}
 
         {/* IFR: 브리핑 조건 → (검색 후)결과. VFR: (검색 후)경유점 → 브리핑 조건 → 결과(껍데기라도 항상). */}
@@ -786,6 +859,9 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
           <div className="route-type-segmented">
             <button type="button" className={`route-type-seg${isIfr ? ' is-active' : ''}`} onClick={() => switchFlightRule('IFR')}>IFR</button>
             <button type="button" className={`route-type-seg${!isIfr ? ' is-active' : ''}`} onClick={() => switchFlightRule('VFR')}>VFR</button>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-xs, 6px)' }}>
+            {importButton}
           </div>
           <div className="rb-route">
             <AirportPickerField label="출발" value={routeForm.departureAirport} options={AIRPORT_OPTIONS} firOption={{ value: FIR_IN_AIRPORT, label: 'FIR 진입' }} onChange={handleDepartureAirportChange} disabledValue={routeForm.arrivalAirport} />
@@ -830,6 +906,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
               {'교체공항·경로유형·절차 더보기'} <span className="rb-detail-caret">{'▾'}</span>
             </button>
           )}
+          {importFeedback}
           {errorBlock}
           {routePreview}
         </>
@@ -893,6 +970,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
 
   return (
     <>
+      {importDialog}
       {hoveredWpInfo && (
         <button
           className="vfr-wp-delete"

@@ -5,8 +5,9 @@ import { buildBriefingRoute, buildVfrRoute, canBuildBriefingRoutePath, loadIapDa
 import { relabeledWaypoints, calcVfrDistance, findInsertIndex } from './lib/routePreview.js'
 import { computeEtaIso } from './lib/etaCalc.js'
 import { getLastUsed } from './lib/aircraftProfiles.js'
-import { initialBearingDeg, magneticCourse, nearestVfrCruiseAltitude } from './lib/altitude.js'
+import { initialBearingDeg, magneticCourse, nearestVfrCruiseAltitude, minVfrCruiseAltitude } from './lib/altitude.js'
 import { buildVerticalProfileRequest } from './lib/verticalProfileRequest.js'
+import { parseRouteFile, extractRoutePaths, simplifyRoute, snapEndpointsToAirports, isWithinKoreaFir } from './lib/routeImport.js'
 import {
   FIR_EXIT_AIRPORT,
   FIR_IN_AIRPORT,
@@ -15,6 +16,7 @@ import {
   buildIfrDistanceBreakdown,
   buildInitialVfrWaypoints,
   buildRoutePreviewModel,
+  buildVfrRouteFromWaypoints,
   buildVisibleSidOptions,
   chooseIapKeyForRunway,
   filterProceduresByRunway,
@@ -30,6 +32,10 @@ export const initialRouteForm = {
   exitFix: '', arrivalAirport: '', routeType: 'RNAV',
 }
 export const DEFAULT_CRUISE_ALTITUDE_FT = 9000
+// 경로 임포트 시 초기고도 자동설정용 지형 여유 마진. 항공안전법 시행규칙 §199(최저비행고도):
+// 밀집지역 300m(1,000ft)/일반지역 150m(500ft) — 혼잡 여부를 지형데이터만으로 판단 못 하므로
+// 보수적으로 밀집지역 기준(1,000ft)을 항상 적용한다.
+const IMPORT_TERRAIN_MARGIN_FT = 1000
 
 export function useRouteBriefing({ activePanel, airports = [], metarData = null }) {
   const [routeForm, setRouteForm] = useState(initialRouteForm)
@@ -47,6 +53,9 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
   const [vfrWaypoints, setVfrWaypoints] = useState([])
   // leg(경유점 i→i+1)별 최고 지형고도(ft), 키 = `from→to`. 가벼운 /vertical-profile로 미리 채움.
   const [vfrLegTerrain, setVfrLegTerrain] = useState({})
+  const [importCandidates, setImportCandidates] = useState([]) // 다중 경로 파일일 때 사용자 선택 대기 목록
+  const [importWarning, setImportWarning] = useState(null)
+  const [importError, setImportError] = useState(null)
   // 되돌리기: 패널에서의 경유점 편집(추가/삭제/순서/전체고도) 직전 스냅샷 스택.
   const [vfrUndoStack, setVfrUndoStack] = useState([])
   const [hoveredWpInfo, setHoveredWpInfo] = useState(null)
@@ -643,6 +652,112 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     }
   }
 
+  // 임포트한 경유점의 중간(비고정) 지점들 초기고도를, 그 지점과 맞닿은 leg의 최고
+  // 지형고도 + IMPORT_TERRAIN_MARGIN_FT 이상이 되는 가장 낮은 반원고도로 채운다.
+  // vfrLegTerrain effect(아래)와 동일한 /vertical-profile 조회·leg 키 규칙을 재사용 —
+  // 새 데이터 없음. 조회 실패 시 조용히 원래 고도 유지(치명적이지 않은 향상 기능).
+  async function computeTerrainSafeAltitudes(waypoints, routeCoords) {
+    try {
+      const profile = await fetchVerticalProfile(buildVerticalProfileRequest({
+        routeGeometry: { type: 'LineString', coordinates: routeCoords },
+        routeResult: { flightRule: 'VFR' },
+        vfrWaypoints: waypoints,
+        plannedCruiseAltitudeFt: Number(cruiseAltitudeFt) || DEFAULT_CRUISE_ALTITUDE_FT,
+      }))
+      const terrainByLegKey = {}
+      for (const leg of profile?.flightPlan?.profile?.legs ?? []) {
+        terrainByLegKey[`${leg.fromLabel}→${leg.toLabel}`] = leg.maxTerrainFt
+      }
+      return waypoints.map((wp, index) => {
+        if (wp.fixed) return wp
+        const prevWp = waypoints[index - 1]
+        const nextWp = waypoints[index + 1]
+        const prevTerrainFt = prevWp ? terrainByLegKey[`${prevWp.id}→${wp.id}`] : null
+        const nextTerrainFt = nextWp ? terrainByLegKey[`${wp.id}→${nextWp.id}`] : null
+        const candidates = [prevTerrainFt, nextTerrainFt].filter(Number.isFinite)
+        if (candidates.length === 0) return wp
+        const maxTerrainFt = Math.max(...candidates)
+        // 방향 기준 = 이 경유점으로 들어오는 leg(기존 vfrLegs 힌트와 동일 관례: "구간이
+        // 향하는 경유점"에 적용).
+        const from = prevWp ?? nextWp
+        if (!Number.isFinite(from?.lat) || !Number.isFinite(wp.lat)) return wp
+        const magCourseDeg = magneticCourse(initialBearingDeg(from.lat, from.lon, wp.lat, wp.lon))
+        return { ...wp, altitudeFt: minVfrCruiseAltitude(maxTerrainFt + IMPORT_TERRAIN_MARGIN_FT, magCourseDeg) }
+      })
+    } catch {
+      return waypoints
+    }
+  }
+
+  // 선택된 후보 경로 1개를 실제로 적용 — loadSavedRoute와 동일한 순서로 상태를
+  // 세팅해야 VFR 자동 경로생성 effect(위 611-621줄)가 이 경유점을 직선으로
+  // 덮어쓰지 않는다: lastVfrKeyRef 선점 → clearRouteDisplay → routeForm → 결과 세팅.
+  async function applyImportedPath(candidate) {
+    setImportError(null)
+    try {
+      const simplified = simplifyRoute(candidate.coords, 20)
+      const { departureAirport, arrivalAirport } = snapEndpointsToAirports(simplified, airports, 5)
+      // RDP 솎기가 점을 실제로 줄이면(트랙처럼 조밀한 입력) 이름 배열의 인덱스가 더는
+      // 좌표와 맞지 않는다 — 원본 개수 그대로 유지된 경우(실제 EFB route가 보통 이 경우)
+      // 에만 이름을 전달한다.
+      const waypointNames = candidate.names && simplified.length === candidate.coords.length ? candidate.names : null
+      const { routeResult: importedResult, vfrWaypoints: importedWaypoints } = buildVfrRouteFromWaypoints(simplified, {
+        departureAirport, arrivalAirport, airports, waypointNames,
+      })
+      const safeWaypoints = await computeTerrainSafeAltitudes(importedWaypoints, simplified)
+
+      lastVfrKeyRef.current = `${departureAirport ?? ''}>${arrivalAirport ?? ''}`
+      clearRouteDisplay()
+      setRouteForm((prev) => ({
+        ...prev,
+        flightRule: 'VFR',
+        departureAirport: departureAirport ?? '',
+        arrivalAirport: arrivalAirport ?? '',
+      }))
+      setRouteResult(importedResult)
+      setVfrWaypoints(safeWaypoints)
+      setFitBoundsRequest({ id: ++fitBoundsRequestRef.current, coordinates: simplified, maxZoom: 8 })
+
+      const warnings = []
+      const [firstLon, firstLat] = simplified[0]
+      const [lastLon, lastLat] = simplified[simplified.length - 1]
+      if (!isWithinKoreaFir(firstLon, firstLat) || !isWithinKoreaFir(lastLon, lastLat)) {
+        warnings.push('경로가 한국 정보구역 밖 — 기상이 비어 있을 수 있습니다.')
+      }
+      setImportWarning(warnings.join(' ') || null)
+    } catch (err) {
+      setImportError(err.message)
+    }
+    setImportCandidates([])
+  }
+
+  // 파일 선택 → 파싱 → 후보 1개면 바로 적용, 여러 개면 선택 대기(importCandidates).
+  async function importRouteFromFile(file) {
+    setImportError(null)
+    setImportWarning(null)
+    if (!file) return
+    try {
+      const text = await file.text()
+      const parsed = parseRouteFile(file.name, text)
+      const candidates = extractRoutePaths(parsed)
+      if (candidates.length === 0) {
+        setImportError('경로 점이 부족합니다.')
+        return
+      }
+      if (candidates.length === 1) {
+        applyImportedPath(candidates[0])
+        return
+      }
+      setImportCandidates(candidates)
+    } catch (err) {
+      setImportError(err.message || '파일을 읽을 수 없습니다 (GeoJSON/GPX/KML 확인)')
+    }
+  }
+
+  function cancelImportChoice() {
+    setImportCandidates([])
+  }
+
   function updateVfrWaypointAltitude(idx, value) {
     setVfrWaypoints((prev) => prev.map((wp, i) => (
       i === idx ? { ...wp, altitudeFt: value } : wp
@@ -833,6 +948,9 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       editingVfrAltitudeIndex,
       vfrWaypoints,
       vfrLegs,
+      importCandidates,
+      importWarning,
+      importError,
       hoveredWpInfo,
       sidOptions,
       availableSidIds,
@@ -886,6 +1004,9 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       undoVfrWaypoints,
       handleRouteSearch,
       loadSavedRoute,
+      importRouteFromFile,
+      applyImportedPath,
+      cancelImportChoice,
       updateVfrWaypointAltitude,
       applyCruiseAltitudeToVfrWaypoints,
       handleVerticalProfileRequest,

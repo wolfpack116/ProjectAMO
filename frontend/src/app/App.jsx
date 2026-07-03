@@ -162,6 +162,7 @@ function MainAppShell() {
           onLayerCountsChange={setLayerCounts}
           onClosePanel={() => { setActivePanel(null); setMobileTask('map') }}
           onOpenNotamPanel={() => setActivePanel('notam')}
+          onOpenRoutePanel={() => setActivePanel('route-check')}
         />
       </main>
       <AirportPanel

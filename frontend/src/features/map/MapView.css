@@ -1034,6 +1034,65 @@
   pointer-events: none;
 }
 
+/* 브리핑 패널이 닫혀도 지도에 남는 경로를 알려주고 지울 수 있는 칩. bottom:140px는
+   타임라인 스크럽 스택(재생버튼 42px·읽기값 90px·NWP슬라이더 최대 104px)보다
+   위에서 항상 안 겹치도록 확인된 값이다(MapView.css .timeline-rail 계열 참고). */
+.active-route-chip {
+  position: absolute;
+  left: 50%;
+  bottom: 140px;
+  z-index: 6;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke-2, rgba(51, 65, 85, 0.16));
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+  font-family: var(--app-font, system-ui, sans-serif);
+  font-size: 12px;
+  color: var(--text-1);
+  cursor: pointer;
+}
+
+.active-route-chip:hover {
+  border-color: var(--accent, #2563eb);
+}
+
+.active-route-chip-route {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.active-route-chip-dist {
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.active-route-chip-clear {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.active-route-chip-clear:hover {
+  background: rgba(15, 23, 42, 0.12);
+  color: var(--text-1);
+}
+
 /* Return-to-now (reset) — shown only when scrubbed away from now. Transparent icon, beside play. */
 .timeline-rail__live {
   position: absolute;

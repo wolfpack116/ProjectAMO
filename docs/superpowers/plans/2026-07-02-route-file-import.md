@@ -24,9 +24,11 @@
 
 - [ ] **Step 1: 의존성 설치**
 
-Run: `npm install @tmcw/togeojson simplify-js --prefix "C:\Users\Jond Doe\Desktop\Project\ProjectAMO\frontend"`
+Run: `npm install @tmcw/togeojson simplify-js @xmldom/xmldom --prefix "C:\Users\Jond Doe\Desktop\Project\ProjectAMO\frontend"`
 
-Expected: `frontend/package.json`의 `dependencies`에 `@tmcw/togeojson`, `simplify-js`가 추가됨. `@tmcw/togeojson`은 KML 파싱에만 쓴다(GPX는 DOM 직접 파싱 — Task 1 Step 3 참고). 브라우저에서는 네이티브 `DOMParser`를 쓰므로 `xmldom`은 불필요(Node 전용 패키지).
+Expected: `frontend/package.json`의 `dependencies`에 `@tmcw/togeojson`, `simplify-js`, `@xmldom/xmldom`가 추가됨.
+
+**중요 — `@xmldom/xmldom`이 왜 필요한가**: 브라우저는 전역 `DOMParser`를 갖고 있지만, 이 프로젝트의 단위테스트는 `node --test`(순수 Node, jsdom 없음)로 돈다. Node엔 전역 `DOMParser`가 없다(`node -e "console.log(typeof DOMParser)"` → `undefined`, Node 22.20.0 확인됨). `@tmcw/togeojson`도 [공식 문서](https://www.npmjs.com/package/@tmcw/togeojson)에서 Node 사용 시 xmldom과 조합하도록 안내한다. 그래서 `parseRouteFile`은 런타임에 전역 `DOMParser`가 있으면(브라우저) 그걸 쓰고, 없으면(Node 테스트) `@xmldom/xmldom`으로 폴백한다(Step 3 참고). GPX는 DOM 직접 파싱, KML은 `@tmcw/togeojson`을 쓴다 — 둘 다 이 폴백을 통해 만든 `doc`을 입력으로 받는다.
 
 - [ ] **Step 2: 실패하는 테스트 작성 — GeoJSON 파싱 + 후보 추출**
 
@@ -81,7 +83,15 @@ Expected: FAIL — `Cannot find module './routeImport.js'`
 // 외부 경로 파일(GeoJSON/GPX/KML)을 우리 VFR 경유점 파이프라인이 먹을 수 있는
 // [lon,lat] 좌표 배열로 바꾸는 순수 함수 모음. UI/상태 없음 — useRouteBriefing이 호출한다.
 import { kml as kmlToGeoJSON } from '@tmcw/togeojson'
+import { DOMParser as NodeDOMParser } from '@xmldom/xmldom'
 import { greatCircleNm } from './routePreview.js'
+
+// 브라우저는 전역 DOMParser를 우선 쓰고, 전역이 없는 환경(node --test)에선 xmldom로
+// 폴백한다. 두 구현 모두 표준 DOM Level 1 API(getElementsByTagName·getAttribute·
+// textContent)를 지원하므로 이후 코드는 어느 쪽이 만든 doc인지 신경 쓸 필요 없다.
+function getDomParserCtor() {
+  return typeof DOMParser !== 'undefined' ? DOMParser : NodeDOMParser
+}
 
 // 지도 maxBounds(frontend/src/features/map/mapConfig.js MAP_CONFIG.maxBounds)와 동일한
 // 한국 FIR 근사 경계. 숫자 4개뿐이라 별도 import로 feature 간 결합을 만들지 않고 값만 미러링.
@@ -103,7 +113,10 @@ function detectFileKind(name) {
 }
 
 // 파일 텍스트 → 중간 표현. GeoJSON은 그대로 파싱, GPX는 DOM(다음 스텝에서 후보 추출 시
-// 직접 순회), KML은 togeojson으로 변환.
+// 직접 순회), KML은 togeojson으로 변환. GPX/KML 파싱 실패(malformed XML) 감지는 이 계획
+// 범위 밖 — 브라우저 DOMParser는 malformed XML에서도 예외를 던지지 않고 <parsererror>
+// 요소를 문서에 심는 방식이라, xmldom과 동일하게 동작을 보장할 테스트가 없는 채로 감지
+// 로직만 넣는 건 미검증 코드가 된다(YAGNI). 필요해지면 전용 테스트와 함께 추가한다.
 export function parseRouteFile(name, text) {
   const kind = detectFileKind(name)
   if (kind === 'geojson') {
@@ -115,15 +128,8 @@ export function parseRouteFile(name, text) {
     }
     return { format: 'geojson', geojson }
   }
-  let doc
-  try {
-    doc = new DOMParser().parseFromString(text, 'text/xml')
-  } catch {
-    throw new Error('파일을 읽을 수 없습니다 (GeoJSON/GPX/KML 확인)')
-  }
-  if (doc.querySelector('parsererror')) {
-    throw new Error('파일을 읽을 수 없습니다 (GeoJSON/GPX/KML 확인)')
-  }
+  const Ctor = getDomParserCtor()
+  const doc = new Ctor().parseFromString(text, 'text/xml')
   if (kind === 'gpx') return { format: 'gpx', doc }
   return { format: 'kml', geojson: kmlToGeoJSON(doc) }
 }

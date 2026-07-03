@@ -1,4 +1,4 @@
-import { augmentRouteWithProcedures } from './routePreview.js'
+import { augmentRouteWithProcedures, buildVfrGeoJSON, calcVfrDistance, relabeledWaypoints } from './routePreview.js'
 
 export const FIR_EXIT_AIRPORT = 'FIR_EXIT'
 export const FIR_IN_AIRPORT = 'FIR_IN'
@@ -160,6 +160,58 @@ export function getVfrAirportAltitudeFt(airports, waypoint) {
   const storedElevationFt = Number(waypoint?.airportElevationFt)
   if (Number.isFinite(storedElevationFt) && storedElevationFt >= 0) return Math.round(storedElevationFt)
   return getAirportElevationFt(airports, waypoint?.id) ?? 0
+}
+
+// 불러온 좌표 배열을 수동 VFR 빌더(buildVfrRoute, routePlanner.js)와 동일한 shape의
+// routeResult + vfrWaypoints로 변환한다. 끝점이 공항으로 스냅됐으면 fixed 경유점(공항
+// 표고 포함) — 배너·현재·목적지 섹션이 정상 작동. 스냅 안 됐으면 일반 지점(중간 WP와
+// 동일 취급) — 해당 공항 의존 섹션만 자연히 비게 된다(composeBriefing이 빈 ICAO를
+// 안전하게 무시함, briefing-composer.js buildBanner 참고).
+//
+// 참고: previewGeojson은 VFR 지도 렌더링에 쓰이지 않는다(syncVfrWaypointData가
+// vfrWaypoints에서 직접 그림, routePreviewSync.js) — 여기선 구조 일관성을 위해서만 채운다.
+export function buildVfrRouteFromWaypoints(coords, { departureAirport = null, arrivalAirport = null, airports = [], waypointNames = null } = {}) {
+  if (!Array.isArray(coords) || coords.length < 2) {
+    throw new Error('경로 점이 부족합니다')
+  }
+
+  const departureElevationFt = departureAirport ? getAirportElevationFt(airports, departureAirport) : null
+  const arrivalElevationFt = arrivalAirport ? getAirportElevationFt(airports, arrivalAirport) : null
+
+  const waypoints = relabeledWaypoints(coords.map(([lon, lat], index) => {
+    const isFirst = index === 0
+    const isLast = index === coords.length - 1
+    if (isFirst && departureAirport) {
+      return {
+        id: departureAirport, uid: crypto.randomUUID(), lon, lat,
+        fixed: true, airportElevationFt: departureElevationFt, altitudeFt: departureElevationFt ?? 0,
+      }
+    }
+    if (isLast && arrivalAirport) {
+      return {
+        id: arrivalAirport, uid: crypto.randomUUID(), lon, lat,
+        fixed: true, airportElevationFt: arrivalElevationFt, altitudeFt: arrivalElevationFt ?? 0,
+      }
+    }
+    // 실제 EFB GPX route는 rtept마다 픽스 이름(예: AGAVO)을 싣는다 — 있으면 WPn 대신
+    // 그 이름을 쓰고 relabeledWaypoints가 재번호를 매기지 않도록 named:true를 붙인다.
+    const realName = waypointNames?.[index]?.trim()
+    if (realName) {
+      return { id: realName, uid: crypto.randomUUID(), lon, lat, fixed: false, named: true, altitudeFt: null }
+    }
+    return { id: `WP${index}`, uid: crypto.randomUUID(), lon, lat, fixed: false, altitudeFt: null }
+  }))
+
+  return {
+    routeResult: {
+      flightRule: 'VFR',
+      departureAirport: departureAirport ?? '',
+      arrivalAirport: arrivalAirport ?? '',
+      distanceNm: calcVfrDistance(waypoints),
+      previewGeojson: buildVfrGeoJSON(waypoints),
+    },
+    vfrWaypoints: waypoints,
+  }
 }
 
 export function buildInitialVfrWaypoints(routeResult, airports) {

@@ -1434,3 +1434,31 @@ button.vfr-waypoint-altitude-pill:focus-visible {
   background: var(--bg-1);
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
 }
+
+/* 경로 불러오기 다이얼로그 드롭존 — 정상=차분한 점선(§2.2), 드래그 중=강조. */
+.rb-import-dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  padding: 24px;
+  border: 2px dashed var(--stroke-2);
+  border-radius: 12px;
+  background: var(--bg-2);
+  text-align: center;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.rb-import-dropzone.is-drag-over {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.rb-import-dropzone-text {
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.rb-import-dropzone.is-drag-over .rb-import-dropzone-text {
+  color: var(--accent);
+}

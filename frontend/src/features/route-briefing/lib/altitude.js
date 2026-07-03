@@ -41,6 +41,18 @@ export function nearestVfrCruiseAltitude(currentFt, magCourseDeg) {
   return Math.max(eastbound ? 3500 : 4500, k * 1000 + 500)
 }
 
+// minFt(예: 지형고도+안전마진) 이상인 규정 고도 중 가장 낮은 값으로 "올림"한다.
+// nearestVfrCruiseAltitude와 달리 아래로 내려가지 않는다 — 지형 여유가 목적이라
+// "가까운 값"이 아니라 "기준선을 절대 못 내려가는 최소값"이어야 한다.
+export function minVfrCruiseAltitude(minFt, magCourseDeg) {
+  const eastbound = (((Number(magCourseDeg) % 360) + 360) % 360) < 180
+  const base = Math.max(500, Number(minFt) || 0)
+  let k = Math.ceil((base - 500) / 1000) // base 이상이 되는 가장 작은 k
+  const isOdd = (((k % 2) + 2) % 2) === 1
+  if (isOdd !== eastbound) k += 1 // 패리티 불일치는 위로만 보정(아래로 가면 기준선 밑으로 떨어짐)
+  return Math.max(eastbound ? 3500 : 4500, k * 1000 + 500)
+}
+
 export function initialBearingDeg(lat1, lon1, lat2, lon2) {
   const toRad = (d) => (d * Math.PI) / 180
   const φ1 = toRad(lat1)
