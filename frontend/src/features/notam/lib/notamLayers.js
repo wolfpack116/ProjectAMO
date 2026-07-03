@@ -18,7 +18,7 @@ const HATCH_COLORS = { active: '#c0291f', soon: '#92400e', upcoming: '#475569' }
 export function registerNotamHatchPatterns(map) {
   if (typeof document === 'undefined') return
   const pr = Math.max(1, Math.round((typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1))
-  const S = 7
+  const S = 10 // 굵은 2색 대각선 줄무늬 타일(경고테이프 느낌): 흰 바탕 + 두꺼운 색 대각선
   for (const [state, color] of Object.entries(HATCH_COLORS)) {
     const id = `notam-hatch-${state}`
     if (map.hasImage(id)) continue
@@ -26,8 +26,14 @@ export function registerNotamHatchPatterns(map) {
     canvas.width = S * pr; canvas.height = S * pr
     const ctx = canvas.getContext('2d', { alpha: true })
     ctx.scale(pr, pr)
-    ctx.strokeStyle = color; ctx.lineWidth = 1.1
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(S, S); ctx.stroke() // 45° "\" (타일 이음매 연속)
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, S, S)       // 흰 줄무늬 바탕
+    ctx.strokeStyle = color; ctx.lineWidth = S * 0.6; ctx.lineCap = 'square'
+    // 두꺼운 45° 색 대각선(+타일 이음매 연속용 wrap 2개) → 색/흰 굵은 줄무늬
+    ctx.beginPath()
+    ctx.moveTo(-S * 0.5, S * 0.5); ctx.lineTo(S * 0.5, -S * 0.5)
+    ctx.moveTo(0, S); ctx.lineTo(S, 0)
+    ctx.moveTo(S * 0.5, S * 1.5); ctx.lineTo(S * 1.5, S * 0.5)
+    ctx.stroke()
     try { map.addImage(id, ctx.getImageData(0, 0, canvas.width, canvas.height), { pixelRatio: pr }) } catch { /* noop */ }
   }
 }
@@ -59,8 +65,8 @@ export function addNotamLayers(map, featureData) {
       layout: { 'line-join': 'round' },
       paint: {
         'line-pattern': ['concat', 'notam-hatch-', ['get', 'timeState']],
-        'line-width': ['interpolate', ['linear'], ['zoom'], 8, 6, 12, 11],
-        'line-offset': ['interpolate', ['linear'], ['zoom'], 8, -3, 12, -5.5],
+        'line-width': ['interpolate', ['linear'], ['zoom'], 8, 9, 12, 16],
+        'line-offset': ['interpolate', ['linear'], ['zoom'], 8, -4.5, 12, -8],
       },
     })
   }
