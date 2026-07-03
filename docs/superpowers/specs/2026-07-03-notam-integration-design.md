@@ -8,6 +8,7 @@
 
 - 백엔드: KML 크롤러 → 파서 → 프로세서 → store → API
 - 프론트엔드: 사이드바 전역 NOTAM 패널(카테고리 토글 + 지도 레이어), 공항 패널 NOTAM 탭(공항별 목록)
+- 비행 전 브리핑(route-briefing) 파이프라인 연동: 경로상 NOTAM을 기존 hazard-section 매칭에 태워 Go/No-go 배너·③노선 위험 리스트·지도 레이어 칩에 자동 반영
 
 ## Anti-Scope
 
@@ -16,6 +17,8 @@
 - 반경 기반 공항 매칭(A필드 정확 일치만)
 - AWS 프로덕션 배포 실증(별도 미해결 리스크로 기록, 이번 스코프 아님)
 - SNOWTAM 등 특수 시리즈에 대한 별도 UX(전부 같은 파이프라인으로 수집·분류만 함)
+- LineString형 NOTAM(회랑형 임시제한구역)의 브리핑 자동 경로매칭(아래 Route-Briefing Integration의 한계 참조 — 지도/탭 노출은 포함, 매칭만 제외)
+- 경로(출발-목적지) 연동 우선순위 정렬(전역 패널에는 "선택 공항" 우선순위만 포함, 경로 연동은 브리핑 섹션 통합으로 대체)
 
 ## Verified Facts (2026-07-03 조사)
 
@@ -63,6 +66,18 @@
 
 → **지도 레이어 카테고리 7개**로 확정: 비행금지구역(RP) / 위험구역(RD) / 제한구역(RR+RT+RA) / 장애물(OB+PO) / 사격·훈련구역(WM) / 항행·공항시설 공지(나머지 시설계열 코드) / 기타(미매핑 폴백)
 
+### 심각도 3단계 매핑 (외부 리서치로 검증됨)
+
+디자인 헌법 §2/§4("색=의미, 색 아껴쓰기, 표준 없는 도메인은 직접 제작이되 절제")에 따라 카테고리 7개를 색 7개로 나누지 않고 3단계로 묶는다. ForeFlight/Garmin Pilot 등 EFB 업계도 공식 심각도 표준은 없지만 유사한 3단계 운영영향 등급을 관행적으로 씀(리서치로 확인, 2026-07-03) — 아래 매핑을 그대로 채택:
+
+| 심각도 | 카테고리 | 의미 |
+|---|---|---|
+| red | 비행금지구역(RP), 사격·훈련구역(WM) | 진입 금지 |
+| amber | 위험구역(RD), 제한구역(RR+RT+RA), 장애물(OB+PO) | 주의 필요 |
+| gray | 항행·공항시설 공지, 기타 | 운영 정보(회피 대상 아님) |
+
+`notam-processor.js`가 카테고리와 함께 `severity: 'red'|'amber'|'gray'`를 레코드에 계산해 넣는다. 색은 배지에만 쓰고 카드/행 자체엔 강조 테두리를 넣지 않는다(좌측 색 보더 카드는 범용 AI 대시보드 톤이라 배제 — 앱의 실제 관례는 `.ap-taf-period`처럼 무채색 카드+색 배지 조합).
+
 ## Architecture
 
 ### 데이터 흐름
@@ -79,18 +94,47 @@ cron(1일 1회, backend/src/index.js)
        └─ (B) AirportPanel NotamTab: A필드 정확 일치 필터
 ```
 
+### FIR 광역 스코프 (실측에서 발견된 갭)
+
+실측 414건 중 342건이 `A)RKRR`(공항 코드가 아니라 **인천 FIR** 코드, 대한민국 전역에 적용됨). "공항탭 = A필드 정확 일치"만으로는 이 342건이 **어떤 개별 공항 탭에도 안 뜬다** — 실제로 전역에 영향 주는데도 누락됨.
+
+`notam-processor.js`가 `scope: 'airport' | 'fir'`를 함께 계산:
+```js
+const KOREA_FIR_CODES = ['RKRR']  // 현재 확인된 것은 이거 하나, 구현 시 재확인
+scope = KOREA_FIR_CODES.includes(location) ? 'fir' : 'airport'
+```
+`scope: 'fir'`인 레코드는 A필드 일치 여부와 무관하게 **모든 공항 탭에 "전역 공지" 섹션**으로 노출. 지도에도 342건을 폴리곤으로 겹쳐 그리면 화면이 붉게 뒤덮이므로, FIR 스코프는 폴리곤 렌더 대상에서 제외하고 리스트(전역 패널/공항탭)에서만 노출한다.
+
+### 시간 상태 (활성 vs 예정)
+
+크롤이 1일 1회라 서버가 `timeState`를 박아두면 최대 24시간 stale해진다 — **프론트에서 렌더 시점마다 계산**한다.
+```js
+// notam-processor.js 등 shared 위치가 아니라 frontend/src/features/notam/lib/notamViewModel.js
+function deriveTimeState(validFrom, validTo, nowMs) {
+  return nowMs < validFrom ? 'upcoming' : 'active'
+}
+```
+`upcoming`은 텍스트를 `--text-3`로 톤다운 + "예정" 라벨. 심각도(배지 색)와는 다른 축이라 겹쳐 쓰지 않는다.
+
+### 선택 공항 우선순위 (전역 패널)
+
+`App.jsx`의 기존 `selectedAirport` 상태를 `NotamPanel`에 prop으로 넘겨, 해당 공항 A필드 일치 항목을 테이블 최상단에 별도 섹션으로 고정. 새 API 호출 불필요(이미 받은 전체 리스트 재정렬만). 경로(출발-목적지) 연동은 아래 Route-Briefing Integration으로 대체하고, 전역 패널 자체의 경로 인식은 범위 밖.
+
 ### 백엔드 파일
 
 | 파일 | 역할 |
 |---|---|
 | `backend/src/notam/notam-crawler.js` | Playwright 크롤러(사이트 접속→다운로드 클릭→버퍼 수신) |
-| `backend/src/parsers/notam-parser.js` | KML → 구조화 레코드 배열 |
-| `backend/src/processors/notam-processor.js` | Q-code→카테고리 매핑, 공항별 그룹 인덱스 |
+| `backend/src/parsers/notam-parser.js` | KML → 구조화 레코드 배열, Q-line·F)/G)필드에서 고도밴드 파싱 |
+| `backend/src/processors/notam-processor.js` | Q-code→카테고리 매핑, `severity`(red/amber/gray) 계산, `scope`(airport/fir) 계산, 공항별 그룹 인덱스 |
 | `backend/src/index.js` | cron 등록(1일 1회, 기존 per-type lock 패턴) |
 | `backend/src/store.js` | `TYPES`에 `'notam'` 추가(최신본만) |
-| `backend/server.js` | `GET /api/notam` 라우트 추가 |
+| `backend/server.js` | `GET /api/notam` 라우트 추가, `POST /api/route-briefing` 핸들러에 `store.getCached('notam')` 주입 |
+| `backend/src/briefing/hazard-section.js` | `buildHazardSection`에 `notam` 파라미터·`matchItems(notam, 'NOTAM', ctx)` 추가, `hazardLevel()`에 NOTAM 분기 |
+| `backend/src/briefing/briefing-composer.js` | `notam` 데이터를 `buildHazardSection` 호출에 주입(회색 심각도 제외) |
 | `backend/test/notam-parser.test.js` | 실제 KML 샘플 fixture 기반 파싱 테스트 |
-| `backend/test/notam-processor.test.js` | Q-code→카테고리 매핑 표 커버리지(확인된 코드 전부 + 미지 코드 폴백) |
+| `backend/test/notam-processor.test.js` | Q-code→카테고리/심각도/스코프 매핑 커버리지(확인된 코드 전부 + 미지 코드 폴백) |
+| `backend/test/hazard-section.test.js` | NOTAM 매칭 케이스 추가(기존 SIGMET/AIRMET 커버리지에 통합) |
 
 ### 프론트엔드 파일
 
@@ -99,20 +143,45 @@ cron(1일 1회, backend/src/index.js)
 | `frontend/src/api/weatherApi.js` | `fetchNotam()` 클라이언트 추가 |
 | `frontend/src/app/layout/Sidebar.jsx` | NOTAM 아이콘 복귀, `PANEL_MAP`에 `notam` 등록 |
 | `frontend/src/app/layout/MobileMoreMenu.jsx` | 모바일도 동일하게 복귀 |
-| `frontend/src/features/notam/NotamPanel.jsx` | (A) 전역 패널: 카테고리 토글 + 유효 NOTAM 리스트 |
-| `frontend/src/features/notam/lib/notamLayers.js` | Mapbox 소스/레이어 설치·동기화·카테고리 가시성(`NOTAM_SOURCE_IDS`/`NOTAM_LAYER_IDS` 소유권 export) |
-| `frontend/src/features/notam/lib/notamGeoJson.js` | 백엔드 페이로드 → 카테고리별 GeoJSON FeatureCollection 변환 |
+| `frontend/src/features/notam/NotamPanel.jsx` | (A) 전역 패널: 카테고리 토글 + 심각도 탭(금지·피격/주의/정보) + 밀도형 테이블(`ap-taf-table` 패턴), `selectedAirport` 우선순위 섹션 |
+| `frontend/src/features/notam/lib/notamLayers.js` | Mapbox 소스/레이어 설치·동기화·카테고리 가시성, `minzoom` 기반 마커↔폴리곤 전환(`NOTAM_SOURCE_IDS`/`NOTAM_LAYER_IDS` 소유권 export) |
+| `frontend/src/features/notam/lib/notamGeoJson.js` | 백엔드 페이로드 → 카테고리별 GeoJSON FeatureCollection 변환, `scope: 'fir'` 레코드 제외 |
+| `frontend/src/features/notam/lib/notamViewModel.js` | `deriveTimeState`(active/upcoming), 심각도별 그룹핑·정렬, 청크 로딩("더 보기") |
 | `frontend/src/features/notam/lib/notamLayers.test.js` | GeoJSON 변환/카테고리 분리 테스트 |
-| `frontend/src/features/airport-panel/tabs/NotamTab.jsx` | (B) 공항별 NOTAM 목록 |
+| `frontend/src/features/airport-panel/tabs/NotamTab.jsx` | (B) 공항별 NOTAM 목록 + `scope: 'fir'` 전역 공지 섹션 |
 | `frontend/src/features/airport-panel/lib/notamViewModel.js` | 공항 탭 표시용 가공(배지/유효기간 포맷) |
 | `frontend/src/features/airport-panel/AirportPanel.jsx` | 탭 목록에 NOTAM 추가 |
 | `frontend/src/features/map/MapView.jsx` | `activePanel === 'notam'` 조건부 렌더 + `useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => syncNotamLayers(map, notamModel), [notamModel])` 한 줄(ADR 0001 seam 재사용, 새 `useEffect` 추가 금지) |
+| `frontend/src/features/route-briefing/lib/hazardLayers.js` | RULEBOOK에 NOTAM 카테고리→`notam` 레이어 매핑 추가 |
+| `frontend/src/features/map/layerActions.js` | `notam` 레이어 id 등록(공유 레지스트리, `layerActions.test.js`가 강제) |
 
 ### 지도 렌더링
 
 - Polygon → 반투명 fill + outline, LineString → line, Point-only(폴리곤 없는 경우, 예: GPS RAIM) → 아이콘 마커
-- 카테고리별 고정 색상(디자인 헌법 토큰 범위 내에서 구현 시 확정)
+- 카테고리별 고정 색상 대신 위 심각도 3단계(red/amber/gray) 색만 사용
 - 클릭 시 팝업: 원문 텍스트 + 유효기간(SIGMET 팝업 패턴 재사용)
+- `scope: 'fir'` 레코드는 폴리곤 렌더 대상에서 제외(위 FIR 광역 스코프 참조) — 342건을 다 그리면 화면이 뒤덮임
+- 줌 레벨 전환: 낮은 줌(전국)에서는 카테고리 아이콘 마커만, 확대(줌 9+)하면 실제 폴리곤/라인 노출. Mapbox 레이어 정의에 `minzoom`/`maxzoom`만 추가하면 되는 기본 기능 — 마커 레이어와 폴리곤 레이어를 같은 소스에서 분리 정의.
+
+## Route-Briefing Integration
+
+`backend/src/briefing/hazard-section.js`의 `matchItems(items, source, ctx)`는 이미 범용이다 — `{geometry, valid_from, valid_to, altitude, phenomenon_code, phenomenon_label}` shape만 맞으면 SIGMET/AIRMET 전용이 아니어도 경로∩시간∩고도 매칭을 그대로 해준다. NOTAM 레코드가 이 shape에 거의 맞으므로 새 매칭 로직을 짜지 않고 기존 파이프라인에 태운다.
+
+**연동 지점 4곳:**
+
+1. `backend/src/briefing/hazard-section.js` — `buildHazardSection`에 `notam` 파라미터 추가, `matchItems(notam, 'NOTAM', ctx)` 호출 추가. `hazardLevel()`에 `source === 'NOTAM'`이면 레코드의 `severity`(red/amber)를 그대로 사용하는 분기 추가.
+2. `backend/src/briefing/briefing-composer.js` — `buildHazardSection` 호출에 `notam: data?.notam?.items?.filter(n => n.severity !== 'gray') ?? []` 추가(회색=운영정보는 브리핑 위험요약 노이즈라 제외).
+3. `backend/server.js` — `POST /api/route-briefing` 핸들러가 `store.getCached('notam')`도 읽어 `data.notam`으로 전달.
+4. `frontend/src/features/route-briefing/lib/hazardLayers.js` — RULEBOOK에 `{ codes: ['notam-prohibited', 'notam-danger', 'notam-restricted', 'notam-obstacle'], layers: ['notam'] }` 추가(새 토글 레이어라 `frontend/src/features/map/layerActions.js`에도 `notam` id 등록 필요 — `layerActions.test.js` 커버리지가 강제).
+
+**공짜로 딸려오는 것(새 코드 불필요):**
+- Go/No-go 배너(`BriefingBanner.jsx`)가 `adverse.level`을 그대로 쓰므로, 경로상 비행금지구역 조우 시 자동으로 빨강
+- ③노선 위험 리스트(`BriefingView.jsx`)에 SIGMET/AIRMET/공항경보와 같은 카드로 NOTAM도 자연 노출(`source` 필드로 라벨만 다름)
+- "지도에 관련 레이어 보기" 칩이 노선상 NOTAM 있으면 자동으로 NOTAM 레이어 토글 노출
+
+**알려진 한계 (정직하게 기록, 이번 스코프 제외):**
+- **고도 밴드 파싱**: Q-line `/000/999/`(FL밴드)와 원문 `F)/G)`필드(명시적 ft AMSL, 있을 때만)가 둘 다 존재 — 우선순위 로직 필요(F)/G) 있으면 그것 우선, 없으면 Q-line 밴드로 폴백). SIGMET/AIRMET보다 파서 작업이 더 든다.
+- **LineString형 NOTAM(26건, 회랑형 임시제한구역) 매칭 불가**: `geo-time-match.js`의 `pointInPolygon`은 Polygon/MultiPolygon만 처리, 선 지오메트리는 경로 교차 판정이 안 됨. 원문에 폭 정보("1NM EITHER SIDE OF LINE")가 있으면 파서에서 얇은 폴리곤으로 버퍼링해 우회 가능하지만 별도 작업 — 이번 스코프에서는 LineString NOTAM을 지도/탭에는 노출하되 브리핑 자동매칭 대상에서는 제외한다.
 
 ## Error Handling
 
@@ -123,9 +192,9 @@ cron(1일 1회, backend/src/index.js)
 
 ## Testing
 
-- 백엔드: 파서/프로세서 단위 테스트(실제 KML fixture 사용)
-- 프론트: GeoJSON 변환 단위 테스트
-- 브라우저 스모크: 사이드바 NOTAM 패널 카테고리 토글→지도 반영, 공항 선택→NotamTab 필터 확인
+- 백엔드: 파서/프로세서 단위 테스트(실제 KML fixture 사용), `hazard-section.test.js`에 NOTAM 매칭 케이스(경로 교차/시간 겹침/고도 밴드) 추가
+- 프론트: GeoJSON 변환 단위 테스트, `deriveTimeState` 단위 테스트
+- 브라우저 스모크: 사이드바 NOTAM 패널 카테고리 토글→지도 반영(줌 전환 포함), 공항 선택→NotamTab 필터+전역 공지 섹션 확인, 경로 브리핑 생성→NOTAM이 노선 위험 리스트/배너에 반영되는지 확인
 
 ## Open Decisions Resolved During Brainstorming
 
@@ -133,8 +202,11 @@ cron(1일 1회, backend/src/index.js)
 - 보관: 최신본만 (store.js 기존 패턴)
 - 주기: 1일 1회(테스트 단계 기준값, 추후 조정 가능)
 - 지도 분류: 소수 핵심 카테고리 + 기타(추측 아닌 FAA/ICAO 공식 표 기준으로 확정)
-- 공항 매칭: A)필드 정확 일치
+- 공항 매칭: A)필드 정확 일치(단, `scope: 'fir'`는 예외적으로 전체 공항에 노출 — 위 FIR 광역 스코프 참조)
 - 크롤 방식: 헤드리스 Playwright, 기존 백엔드 스케줄러(`backend/src/index.js`)에 통합(A안) — 별도 프로세스 분리(B안)는 주기가 촘촘해지면 재검토
+- 심각도 표시: 카테고리 7개가 아니라 red/amber/gray 3단계로 압축(디자인 헌법 색 절제 원칙 + EFB 업계 리서치로 검증)
+- UI 좌측 색 보더 카드 패턴 배제 — 무채색 카드 + 색 배지 조합으로(범용 AI 대시보드 톤 회피)
+- 브리핑 연동: 기존 `hazard-section.js`의 범용 `matchItems`에 태우는 방식으로 결정, 별도 매칭 로직 신규 작성 안 함
 
 ## Unresolved Risk
 
