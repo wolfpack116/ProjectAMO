@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Ban, Crosshair, AlertTriangle, ShieldHalf, RadioTower, Radio, MoreHorizontal, ChevronDown, MapPin } from 'lucide-react'
-import { NOTAM_CATEGORIES, TIME_STATE, deriveTimeState, formatAltitude, formatValidPeriod, sortActiveFirst } from './lib/notamViewModel.js'
+import { NOTAM_CATEGORIES, TIME_STATE, deriveTimeState, formatAltitude, formatValidPeriod, notamSummary, sortActiveFirst } from './lib/notamViewModel.js'
 import './NotamPanel.css'
 
 const CAT_ICON = {
@@ -61,7 +61,7 @@ function NotamRow({ item, nowMs, tz, expanded, onToggle, onLocate }) {
           )}
         </td>
         <td className="notam-td-sum">
-          <div className="notam-sum-text">{item.summary}</div>
+          <div className="notam-sum-text">{notamSummary(item)}</div>
           <div className="notam-sum-valid">{formatValidPeriod(item.valid_from, item.valid_to, tz)}</div>
         </td>
         <td className="notam-td-alt">{formatAltitude(item.altitude) || '—'}</td>
@@ -180,7 +180,7 @@ function NotamPanel({ payload, selectedAirport, categoryFilter, onCategoryToggle
               <div key={`p-${it.id}`} className="notam-priority-row">
                 <CatIcon id={it.category} />
                 <span className="notam-priority-cat">{catLabelOf(it.category)}</span>
-                <span className="notam-priority-sum">{it.summary}</span>
+                <span className="notam-priority-sum">{notamSummary(it)}</span>
                 <TimeBadge state={deriveTimeState(it.valid_from, it.valid_to, nowMs)} />
               </div>
             ))}

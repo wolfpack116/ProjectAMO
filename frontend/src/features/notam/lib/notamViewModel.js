@@ -56,6 +56,60 @@ export function formatValidPeriod(validFrom, validTo, tz = 'KST') {
   return `${fmt(validFrom)} ~ ${fmt(validTo)}`
 }
 
+// 목적(RMK/FOR) 키워드 → 한글. 없으면 ''.
+function purposeKo(t) {
+  if (/DRONE|UAV|UAS|무인/i.test(t)) return '드론'
+  if (/FIRING|SHOOT|GUNNERY|MISSILE|사격/i.test(t)) return '사격'
+  if (/AIR ?SHOW|DISPLAY|에어쇼/i.test(t)) return '에어쇼'
+  if (/PARACHUT|강하/i.test(t)) return '강하'
+  if (/TRAINING|EXERCISE|\bMIL\b|MILITARY|훈련/i.test(t)) return '훈련'
+  return ''
+}
+
+// NOTAM E)본문 → 짧은 한글 요약. 정형 유형은 템플릿, 나머지는 노이즈(좌표/RMK/AS FLW) 앞에서 컷.
+// 원문은 rawText에 그대로 보존(요약은 표시용).
+export function notamSummary(item) {
+  const raw = String(item?.summary || '').replace(/\s+/g, ' ').trim()
+  if (!raw) return ''
+  // 1) 공역 활성: (TEMPO) DANGER/RESTRICTED/PROHIBITED AREA
+  const area = raw.match(/(TEMPO\s+)?(DANGER|RESTRICTED|PROHIBITED)\s+AREA/i)
+  if (area) {
+    const typeKo = { DANGER: '위험구역', RESTRICTED: '제한구역', PROHIBITED: '비행금지구역' }[area[2].toUpperCase()]
+    const parts = [(area[1] ? '임시 ' : '') + typeKo]
+    const rad = raw.match(/RADIUS\s*([\d.]+)\s*NM/i)
+    if (rad) parts.push(`반경 ${rad[1]}NM`)
+    else if (/AREA BOUNDED BY/i.test(raw)) parts.push('다각형')
+    const p = purposeKo(raw)
+    if (p) parts.push(p)
+    return parts.join(' · ')
+  }
+  // 2) GPS RAIM
+  if (/GPS\s+RAIM/i.test(raw)) return `GPS 신호 예측불가${/NPA/i.test(raw) ? '(NPA)' : ''}`
+  // 3) 장애물(크레인/철탑 등) — 개수
+  if (item?.category === 'obstacle' || /\bOBST\b/i.test(raw)) {
+    const typeKo = /TOWER\s*CRANE/i.test(raw) ? '타워크레인' : /CRANE/i.test(raw) ? '크레인' : /TOWER|ANTENNA/i.test(raw) ? '철탑' : '장애물'
+    const cnt = (raw.match(/\d+\s*\.?\s*(?:PSN|POSITION)\s*:/gi) || []).length
+    return `임시 ${typeKo}${cnt > 1 ? ` ${cnt}기` : ''}`
+  }
+  // 4) 활주로/유도로/주기장 폐쇄
+  const clsd = raw.match(/\b(RWY|TWY)\s+([A-Z0-9/]+)\s+CLSD/i)
+  if (clsd) return `${clsd[1].toUpperCase() === 'RWY' ? '활주로' : '유도로'} ${clsd[2]} 폐쇄${/WIP/i.test(raw) ? '(공사)' : ''}`
+  if (/ACFT\s+STAND.*CLSD/i.test(raw)) return `주기장 폐쇄${/WIP/i.test(raw) ? '(공사)' : ''}`
+  // 4-1) 공사(WIP) — 폐쇄 아닌 작업
+  const wip = raw.match(/\b(RWY|TWY)\s+([A-Z0-9/]+)\b[^]*?\bWIP\b/i)
+  if (wip) return `${wip[1].toUpperCase() === 'RWY' ? '활주로' : '유도로'} ${wip[2]} 공사`
+  if (/\bWIP\b/i.test(raw)) return '공사중'
+  // 5) 주파수 불가
+  const freq = raw.match(/FREQ\s*([\d.]+)\s*MHZ\s*NOT\s*AVBL/i)
+  if (freq) {
+    const alt = raw.match(/ALTN\s*FREQ\s*([\d.]+)/i)
+    return `주파수 ${freq[1]}MHz 불가${alt ? ` → ${alt[1]}` : ''}`
+  }
+  // 6) 폴백: 좌표/RMK/AS FLW/BOUNDED 앞에서 컷
+  const head = raw.split(/\s+ACT AS FLW|\s+AREA BOUNDED|\s+RMK\b|\s*\d{6}N\d{7}E|\s+PSN\s*:/i)[0].trim()
+  return head.slice(0, 70)
+}
+
 const RANK = { active: 0, soon: 1, upcoming: 2 }
 export function sortActiveFirst(items, nowMs) {
   return [...items].sort((a, b) =>
@@ -63,4 +117,4 @@ export function sortActiveFirst(items, nowMs) {
     RANK[deriveTimeState(b.valid_from, b.valid_to, nowMs)])
 }
 
-export default { deriveTimeState, formatAltitude, formatValidPeriod, sortActiveFirst, NOTAM_CATEGORIES, TIME_STATE, SOON_WINDOW_MS }
+export default { deriveTimeState, formatAltitude, formatValidPeriod, notamSummary, sortActiveFirst, NOTAM_CATEGORIES, TIME_STATE, SOON_WINDOW_MS }

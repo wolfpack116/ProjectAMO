@@ -1,8 +1,8 @@
 /* NOTAM 전역 패널. 색 = 시간상태(--level-*), 카테고리 = 아이콘. layer-drawer 셸 재사용. */
 /* 밀도형 표 + 4열 타일이 있어 기본 --panel-overlay-sm(≤320px)보다 넓어야 함.
    .map-view-wrapper .layer-drawer 규칙을 이기려 동일 접두 + .notam-panel 로 특이도 확보. */
-.map-view-wrapper .layer-drawer.notam-panel { width: min(440px, 94vw); }
-.notam-panel { width: min(440px, 94vw); }
+.map-view-wrapper .layer-drawer.notam-panel { width: min(520px, 94vw); }
+.notam-panel { width: min(520px, 94vw); }
 
 .notam-master { display: flex; align-items: center; gap: 6px; }
 .notam-master-label { font-size: 12px; font-weight: 700; color: var(--text-2); }

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Ban, Crosshair, AlertTriangle, ShieldHalf, RadioTower, Radio, MoreHorizontal, ChevronDown } from 'lucide-react'
-import { NOTAM_CATEGORIES, TIME_STATE, deriveTimeState, formatAltitude, formatValidPeriod, sortActiveFirst } from '../../notam/lib/notamViewModel.js'
+import { NOTAM_CATEGORIES, TIME_STATE, deriveTimeState, formatAltitude, formatValidPeriod, notamSummary, sortActiveFirst } from '../../notam/lib/notamViewModel.js'
 import '../../notam/NotamPanel.css'
 
 const CAT_ICON = {
@@ -32,7 +32,7 @@ function NotamCard({ item, nowMs }) {
       </div>
       <div className="notam-tab-meta"><span>{item.id}</span>{alt && <><span>·</span><span>{alt}</span></>}</div>
       <div className="notam-tab-valid"><span className="notam-tab-valid-lbl">유효</span>{formatValidPeriod(item.valid_from, item.valid_to)}</div>
-      <div className="notam-tab-sum">{item.summary}</div>
+      <div className="notam-tab-sum">{notamSummary(item)}</div>
       <div className="notam-tab-more">원문 보기 <ChevronDown size={13} className={open ? 'notam-chev is-open' : 'notam-chev'} aria-hidden="true" /></div>
       {open && <pre className="notam-raw">{item.rawText || item.summary}</pre>}
     </div>

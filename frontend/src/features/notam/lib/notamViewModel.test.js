@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { deriveTimeState, formatAltitude, formatValidPeriod, sortActiveFirst, NOTAM_CATEGORIES } from './notamViewModel.js'
+import { deriveTimeState, formatAltitude, formatValidPeriod, notamSummary, sortActiveFirst, NOTAM_CATEGORIES } from './notamViewModel.js'
 
 const SOON = 2 * 60 * 60 * 1000
 
@@ -49,6 +49,18 @@ test('formatValidPeriod: B~C in KST MM/DD HH:MM', () => {
   // 2026-07-03T00:00Z = 07-03 09:00 KST, 2026-07-08T16:00Z = 07-09 01:00 KST
   assert.equal(formatValidPeriod('2026-07-03T00:00:00Z', '2026-07-08T16:00:00Z', 'KST'), '07/03 09:00 ~ 07/09 01:00')
   assert.equal(formatValidPeriod('bad', 'bad'), '— ~ —')
+})
+
+test('notamSummary: 실제 NOTAM 유형별 한글 요약', () => {
+  assert.equal(notamSummary({ category: 'danger', summary: 'TEMPO DANGER AREA ACT AS FLW A CIRCLE RADIUS 1NM CENTERED ON 373715N1290312E RMK:THIS AREA IS ESTABLISHED FOR DRONE FLIGHT' }),
+    '임시 위험구역 · 반경 1NM · 드론')
+  assert.equal(notamSummary({ category: 'restricted', summary: 'TEMPO RESTRICTED AREA ACT AS FLW AREA BOUNDED BY THE FOLLOWING 331000N1243005E-331002N1254558E' }),
+    '임시 제한구역 · 다각형')
+  assert.equal(notamSummary({ category: 'facility', summary: 'GPS RAIM OUTAGES PREDICTED FOR NPA' }), 'GPS 신호 예측불가(NPA)')
+  assert.equal(notamSummary({ category: 'obstacle', summary: 'TEMP OBST(CRANES) ERECTED AS FLW : 1.PSN:345817N... 2.PSN:345818N...' }), '임시 크레인 2기')
+  assert.equal(notamSummary({ category: 'facility', summary: 'RWY 01/19 CLSD DUE TO WIP RMK : 1. EXC ...' }), '활주로 01/19 폐쇄(공사)')
+  assert.equal(notamSummary({ category: 'facility', summary: 'DEP FREQ 124.700MHZ NOT AVBL DUE TO FREQ INTERFERENCE USE ALTN FREQ 120.475MHZ' }), '주파수 124.700MHz 불가 → 120.475')
+  assert.equal(notamSummary({ summary: '' }), '')
 })
 
 test('NOTAM_CATEGORIES: 7 categories in mockup order', () => {
