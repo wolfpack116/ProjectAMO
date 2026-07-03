@@ -1,0 +1,62 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { deriveTimeState, formatAltitude, sortActiveFirst, NOTAM_CATEGORIES } from './notamViewModel.js'
+
+const SOON = 2 * 60 * 60 * 1000
+
+test('deriveTimeState: active when now within [from,to]', () => {
+  const from = Date.parse('2026-07-03T00:00:00Z')
+  const to = Date.parse('2026-07-03T12:00:00Z')
+  assert.equal(deriveTimeState(from, to, Date.parse('2026-07-03T06:00:00Z'), SOON), 'active')
+})
+
+test('deriveTimeState: soon when from within soon window', () => {
+  const from = Date.parse('2026-07-03T06:00:00Z')
+  const to = Date.parse('2026-07-03T12:00:00Z')
+  const now = Date.parse('2026-07-03T05:00:00Z') // 1h before from, inside 2h window
+  assert.equal(deriveTimeState(from, to, now, SOON), 'soon')
+})
+
+test('deriveTimeState: upcoming when from beyond soon window', () => {
+  const from = Date.parse('2026-07-03T12:00:00Z')
+  const to = Date.parse('2026-07-03T18:00:00Z')
+  const now = Date.parse('2026-07-03T06:00:00Z') // 6h before
+  assert.equal(deriveTimeState(from, to, now, SOON), 'upcoming')
+})
+
+test('formatAltitude: SFC to unlimited FL → 전고도', () => {
+  assert.equal(formatAltitude({ lower: 0, upper: 999, unit: 'FL', ref: null }), '전고도')
+})
+
+test('formatAltitude: FT band keeps AGL/AMSL label', () => {
+  assert.equal(formatAltitude({ lower: 0, upper: 4920, unit: 'FT', ref: 'AGL' }), 'SFC–4,920FT AGL')
+  assert.equal(formatAltitude({ lower: 4000, upper: 6000, unit: 'FT', ref: 'AMSL' }), '4,000–6,000FT AMSL')
+})
+
+test('formatAltitude: FT band with null ref → no trailing label', () => {
+  assert.equal(formatAltitude({ lower: 0, upper: 4920, unit: 'FT', ref: null }), 'SFC–4,920FT')
+})
+
+test('formatAltitude: FL band', () => {
+  assert.equal(formatAltitude({ lower: 100, upper: 200, unit: 'FL', ref: null }), 'FL100–FL200')
+})
+
+test('formatAltitude: null → empty', () => {
+  assert.equal(formatAltitude(null), '')
+})
+
+test('NOTAM_CATEGORIES: 7 categories in mockup order', () => {
+  assert.deepEqual(NOTAM_CATEGORIES.map((c) => c.id),
+    ['prohibited', 'firing', 'danger', 'restricted', 'obstacle', 'facility', 'other'])
+})
+
+test('sortActiveFirst: active before soon before upcoming', () => {
+  const now = Date.parse('2026-07-03T06:00:00Z')
+  const mk = (id, from, to) => ({ id, valid_from: from, valid_to: to })
+  const items = [
+    mk('up', '2026-07-03T12:00:00Z', '2026-07-03T18:00:00Z'),   // upcoming
+    mk('act', '2026-07-03T00:00:00Z', '2026-07-03T12:00:00Z'),  // active
+    mk('soon', '2026-07-03T07:00:00Z', '2026-07-03T09:00:00Z'), // soon
+  ]
+  assert.deepEqual(sortActiveFirst(items, now).map((i) => i.id), ['act', 'soon', 'up'])
+})
