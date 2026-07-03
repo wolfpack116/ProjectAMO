@@ -6,6 +6,7 @@ import EnhancedTafTab from './tabs/TafTab.jsx'
 import AmosBoardTab from './tabs/AmosTab.jsx'
 import WarningTab from './tabs/WarningTab.jsx'
 import AirportInfoTab from './tabs/AirportInfoTab.jsx'
+import NotamTab from './tabs/NotamTab.jsx'
 import './AirportPanel.css'
 
 const AIRPORT_HEADER_NAME_KO = {
@@ -27,6 +28,7 @@ const TABS_FULL = [
   { id: 'taf',     label: 'TAF' },
   { id: 'amos',    label: 'AMOS' },
   { id: 'warn',    label: '공항경보' },
+  { id: 'notam',   label: 'NOTAM' },
   { id: 'info',    label: '기상정보' },
 ]
 
@@ -35,6 +37,7 @@ const TABS_LIMITED = [
   { id: 'metar',   label: 'METAR' },
   { id: 'taf',     label: 'TAF' },
   { id: 'warn',    label: '공항경보' },
+  { id: 'notam',   label: 'NOTAM' },
 ]
 
 function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherData }) {
@@ -123,6 +126,7 @@ function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherD
           {tab === 'taf'   && <EnhancedTafTab taf={taf} icao={icao} />}
           {tab === 'amos'  && <AmosBoardTab amos={amos} metar={metar} airportMeta={airport} />}
           {tab === 'warn'  && <WarningTab warning={warning} />}
+          {tab === 'notam' && <NotamTab notam={weatherData?.notam || null} icao={icao} />}
           {tab === 'info'  && <AirportInfoTab info={airportInfo} />}
         </div>
       </div>

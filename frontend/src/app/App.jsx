@@ -154,12 +154,14 @@ function MainAppShell() {
           sigwxLowHistoryData={weatherData?.sigwxLowHistory || null}
           sigwxFrontMeta={weatherData?.sigwxFrontMeta || null}
           sigwxCloudMeta={weatherData?.sigwxCloudMeta || null}
+          notamData={weatherData?.notam || null}
           selectedAirport={selectedAirport}
           warnedAirports={warnedAirports}
           onAirportSelect={setSelectedAirport}
           onRequestDeferredWeatherData={requestDeferredWeatherData}
           onLayerCountsChange={setLayerCounts}
           onClosePanel={() => { setActivePanel(null); setMobileTask('map') }}
+          onOpenNotamPanel={() => setActivePanel('notam')}
         />
       </main>
       <AirportPanel

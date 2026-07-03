@@ -1,14 +1,14 @@
 import {
   Cloud, FileText, Layers, Settings,
-  Menu, Monitor, HelpCircle, Bell, Search
+  Menu, Monitor, HelpCircle, Bell, Search, FileWarning
 } from 'lucide-react'
 import { CURRENT_VERSION } from '../../features/about/changelog.js'
 import './Sidebar.css'
 
-// NOTAM은 본 기능 도입 전까지 숨김(모바일 더보기와 일관). 검색창도 동일.
 const topItems = [
   { label: '항공정보',         icon: Layers, active: true },
   { label: '기상정보',         icon: Cloud },
+  { label: 'NOTAM',            icon: FileWarning },
   { label: '상황판',           icon: Monitor, href: '/monitoring' },
   { label: '비행 전 브리핑',   icon: FileText },
 ]
@@ -43,6 +43,7 @@ function SidebarButton({ item, isExpanded, onClick }) {
 const PANEL_MAP = {
   항공정보:        'aviation',
   기상정보:        'met',
+  NOTAM:           'notam',
   '비행 전 브리핑': 'route-check',
   업데이트:        'updates',
   설정:            'settings',

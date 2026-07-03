@@ -15,6 +15,10 @@ import { addAdsbLayers, bindAdsbHover, createAdsbGeoJSON, createAdsbTrailGeoJSON
 import { registerAircraftImages } from '../aviation-layers/aircraftIconImages.js'
 import { registerAirlineLogos } from '../aviation-layers/airlineLogoImages.js'
 import AviationLayerPanel from '../aviation-layers/AviationLayerPanel.jsx'
+import NotamPanel from '../notam/NotamPanel.jsx'
+import { updateNotamLayerData, setNotamVisibility, setNotamCategoryFilter as applyNotamCategoryFilter, notamPopupHtml, NOTAM_LAYER_IDS } from '../notam/lib/notamLayers.js'
+import { notamToFeatureCollection } from '../notam/lib/notamGeoJson.js'
+import { NOTAM_CATEGORIES } from '../notam/lib/notamViewModel.js'
 import { SIGWX_FILTER_OPTIONS } from '../weather-overlays/lib/sigwxData.js'
 import AdvisoryBadges from '../weather-overlays/AdvisoryBadges.jsx'
 import AdsbTimestamp from '../weather-overlays/AdsbTimestamp.jsx'
@@ -198,12 +202,14 @@ const MapView = forwardRef(function MapView({
   sigwxLowHistoryData = null,
   sigwxFrontMeta = null,
   sigwxCloudMeta = null,
+  notamData = null,
   selectedAirport,
   warnedAirports = [],
   onAirportSelect,
   onRequestDeferredWeatherData,
   onLayerCountsChange,
   onClosePanel,
+  onOpenNotamPanel,
   enableWindOverlay = true,
 }, ref) {
   const isMobile = useIsMobile()
@@ -243,8 +249,34 @@ const MapView = forwardRef(function MapView({
   const [openAdvisoryPanel, setOpenAdvisoryPanel] = useState(null)
   const [sigwxFilter, setSigwxFilter] = useState(() => Object.fromEntries(SIGWX_FILTER_OPTIONS.map((option) => [option.key, true])))
   const [hiddenAdvisoryKeys, setHiddenAdvisoryKeys] = useState({ sigwxLow: [], sigmet: [], airmet: [] })
+  const [notamCategoryFilter, setNotamCategoryFilter] = useState(() => NOTAM_CATEGORIES.map((c) => c.id))
   const [selectedSigwxFrontMeta, setSelectedSigwxFrontMeta] = useState(sigwxFrontMeta)
   const [selectedSigwxCloudMeta, setSelectedSigwxCloudMeta] = useState(sigwxCloudMeta)
+  const notamFc = useMemo(() => notamToFeatureCollection(notamData, Date.now()), [notamData])
+  useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
+    updateNotamLayerData(map, notamFc)
+    setNotamVisibility(map, metVisibility.notam)
+    applyNotamCategoryFilter(map, notamCategoryFilter)
+    // 겹침 팝업(surface D): 클릭 지점의 모든 NOTAM 후보를 해석(1 / 2-3 미니리스트 / 4+ 전체보기).
+    const layers = NOTAM_LAYER_IDS.filter((id) => map.getLayer(id))
+    function onNotamClick(e) {
+      if (!metVisibility.notam || layers.length === 0) return
+      const feats = map.queryRenderedFeatures(e.point, { layers })
+      if (feats.length === 0) return
+      const seen = new Set()
+      const uniq = []
+      for (const f of feats) {
+        const id = f.properties?.id
+        if (id && !seen.has(id)) { seen.add(id); uniq.push(f) }
+      }
+      const popup = new mapboxgl.Popup({ closeButton: true, maxWidth: '280px' })
+        .setLngLat(e.lngLat).setHTML(notamPopupHtml(uniq)).addTo(map)
+      const moreBtn = popup.getElement()?.querySelector('.notam-pop-more')
+      if (moreBtn) moreBtn.addEventListener('click', () => { onOpenNotamPanel?.(); popup.remove() })
+    }
+    map.on('click', onNotamClick)
+    return () => map.off('click', onNotamClick)
+  }, [notamFc, metVisibility.notam, notamCategoryFilter])
   const [adsbData, setAdsbData] = useState(null)
   const [adsbLoading, setAdsbLoading] = useState(false)
   const [basemapId, setBasemapId] = useState('standard')
@@ -1392,6 +1424,19 @@ const MapView = forwardRef(function MapView({
           onWindFlowOpacityChange={setWindFlowOpacity}
           onWindFlowTrailChange={setWindFlowTrail}
           onWindFlowWidthChange={setWindFlowWidth}
+        />
+      )}
+
+      {activePanel === 'notam' && (
+        <NotamPanel
+          payload={notamData}
+          selectedAirport={selectedAirport}
+          categoryFilter={notamCategoryFilter}
+          onCategoryToggle={(id) => setNotamCategoryFilter((cur) => cur.includes(id) ? cur.filter((c) => c !== id) : [...cur, id])}
+          masterOn={metVisibility.notam}
+          onMasterToggle={() => toggleMet('notam')}
+          nowMs={Date.now()}
+          tz={tz}
         />
       )}
 
