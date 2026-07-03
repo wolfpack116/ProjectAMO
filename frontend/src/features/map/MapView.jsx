@@ -17,7 +17,7 @@ import { registerAirlineLogos } from '../aviation-layers/airlineLogoImages.js'
 import AviationLayerPanel from '../aviation-layers/AviationLayerPanel.jsx'
 import NotamPanel from '../notam/NotamPanel.jsx'
 import { updateNotamLayerData, setNotamVisibility, setNotamCategoryFilter as applyNotamCategoryFilter, notamPopupHtml, notamsAtPoint, addNotamHighlight, setNotamHighlight, geometryBounds } from '../notam/lib/notamLayers.js'
-import { notamToFeatureCollection } from '../notam/lib/notamGeoJson.js'
+import { notamToFeatureCollection, displayGeometry } from '../notam/lib/notamGeoJson.js'
 import { NOTAM_CATEGORIES } from '../notam/lib/notamViewModel.js'
 import { SIGWX_FILTER_OPTIONS } from '../weather-overlays/lib/sigwxData.js'
 import AdvisoryBadges from '../weather-overlays/AdvisoryBadges.jsx'
@@ -686,10 +686,11 @@ const MapView = forwardRef(function MapView({
   // 목록에서 NOTAM 클릭 → 지도가 해당 지오메트리로 줌인 + 강조. 지도표시 꺼져있으면 자동 ON.
   function locateNotam(item) {
     const map = mapRef.current
-    if (!map || !item?.geometry) return
+    const geom = displayGeometry(item)
+    if (!map || !geom) return
     if (!metVisibility.notam) toggleMet('notam')
-    setNotamHighlight(map, { type: 'Feature', geometry: item.geometry, properties: { id: item.id } })
-    const bounds = geometryBounds(item.geometry)
+    setNotamHighlight(map, { type: 'Feature', geometry: geom, properties: { id: item.id } })
+    const bounds = geometryBounds(geom)
     if (bounds) {
       map.fitBounds(bounds, { padding: { top: 70, bottom: 90, left: 470, right: 70 }, maxZoom: 12, duration: 800 })
     }

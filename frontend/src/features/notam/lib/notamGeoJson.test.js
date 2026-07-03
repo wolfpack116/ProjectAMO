@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { notamToFeatureCollection } from './notamGeoJson.js'
+import { notamToFeatureCollection, parsePsnPoint, displayGeometry } from './notamGeoJson.js'
 
 const now = Date.parse('2026-07-03T06:00:00Z')
 const base = {
@@ -50,4 +50,33 @@ test('feature carries category + precomputed timeState + formatted altitude', ()
 test('empty / missing payload → empty collection', () => {
   assert.deepEqual(notamToFeatureCollection(null, now).features, [])
   assert.deepEqual(notamToFeatureCollection({ items: [] }, now).features, [])
+})
+
+test('parsePsnPoint: DDMMSS N/E → [lon,lat]', () => {
+  const p = parsePsnPoint('- PSN : 350656N1264748E')
+  assert.ok(p)
+  assert.ok(Math.abs(p[0] - 126.7967) < 0.001, 'lon')
+  assert.ok(Math.abs(p[1] - 35.1156) < 0.001, 'lat')
+  assert.equal(parsePsnPoint('no coords here'), null)
+})
+
+test('displayGeometry: 장애물 → PSN 정확한 점', () => {
+  const item = { category: 'obstacle', summary: 'TEMP OBST(CRANE) PSN : 350656N1264748E HGT 20M',
+    geometry: { type: 'Polygon', coordinates: [[[126.8, 35.1], [126.81, 35.1], [126.81, 35.13], [126.8, 35.1]]] } }
+  const g = displayGeometry(item)
+  assert.equal(g.type, 'Point')
+  assert.ok(Math.abs(g.coordinates[0] - 126.7967) < 0.001)
+})
+
+test('displayGeometry: 시설 → 도형 중심 점(활주로 덮지 않게)', () => {
+  const item = { category: 'facility', summary: 'RWY 01/19 CLSD',
+    geometry: { type: 'Polygon', coordinates: [[[126.0, 35.0], [126.2, 35.0], [126.2, 35.2], [126.0, 35.2], [126.0, 35.0]]] } }
+  const g = displayGeometry(item)
+  assert.equal(g.type, 'Point')
+  assert.ok(Math.abs(g.coordinates[0] - 126.08) < 0.05)
+})
+
+test('displayGeometry: 구역 계열(위험/제한)은 폴리곤 유지', () => {
+  const item = { category: 'danger', geometry: { type: 'Polygon', coordinates: [[[126, 36], [127, 36], [127, 37], [126, 36]]] } }
+  assert.equal(displayGeometry(item).type, 'Polygon')
 })
