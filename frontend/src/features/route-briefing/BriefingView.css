@@ -48,6 +48,15 @@
   border-left: 3px solid var(--stroke-2); border-top: 0.5px solid var(--stroke-2);
 }
 .bv-haz-row:first-of-type { border-top: none; }
+/* 경로상 NOTAM 목록 행 (bv-haz-row 컨벤션 재사용) */
+.bv-notam-row { display: flex; gap: var(--space-s); align-items: flex-start; padding: var(--space-snudge) 0; border-top: 0.5px solid var(--stroke-2); }
+.bv-notam-row:first-of-type { border-top: none; }
+.bv-notam-main { min-width: 0; }
+.bv-notam-line1 { display: flex; gap: var(--space-xs); align-items: baseline; flex-wrap: wrap; }
+.bv-banner-notam { margin-top: var(--space-snudge); }
+.bv-notam-layerbtn { margin: var(--space-snudge) 0 var(--space-s); }
+.bv-notam-grouphead { margin: var(--space-s) 0 var(--space-xs); font-size: var(--fs-300); font-weight: var(--fw-semibold); color: var(--text-2); }
+.bv-notam-grouphead .dim { color: var(--text-3); font-weight: var(--fw-regular); }
 .bv-haz-enc { flex: none; margin-top: 2px; }
 .bv-haz-main { flex: 1; min-width: 0; }
 .bv-haz-line1 { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-xs); font-size: var(--fs-400); font-weight: var(--fw-semibold); }

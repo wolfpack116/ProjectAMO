@@ -99,3 +99,44 @@ test('enroute section reflects 3D encounters', () => {
   assert.equal(b.sections.enroute.encounters.length, onCount)
   assert.equal(onCount, 1) // icing FL060-120 ∩ cruise 9000 → 조우
 })
+
+const onRoutePoly = { type: 'Polygon', coordinates: [[[125, 34], [128, 34], [128, 36], [125, 36], [125, 34]]] }
+const notamData = () => ({
+  ...data,
+  notam: { fetched_at: '2026-06-26T08:00:00Z', horizon_hours: 24, items: [
+    { id: 'D0001/26', category: 'danger', scope: 'airport', valid_from: '2026-06-26T08:00:00Z', valid_to: '2026-06-26T14:00:00Z',
+      altitude: { lower: 0, upper: 999, unit: 'FL', ref: null }, summary: 'DANGER AREA ACT', geometry: onRoutePoly },
+    { id: 'O0002/26', category: 'obstacle', scope: 'airport', valid_from: '2026-06-26T08:00:00Z', valid_to: '2026-06-26T14:00:00Z',
+      altitude: { lower: 0, upper: 500, unit: 'FT', ref: 'AGL' }, summary: 'CRANE', geometry: onRoutePoly },
+    { id: 'F0003/26', category: 'danger', scope: 'fir', valid_from: '2026-06-26T08:00:00Z', valid_to: '2026-06-26T14:00:00Z',
+      altitude: { lower: 0, upper: 999, unit: 'FL', ref: null }, summary: 'NATIONWIDE', geometry: onRoutePoly },
+  ] },
+})
+
+test('composeBriefing: routeNotams lists route-crossing NOTAMs, excludes scope:fir', () => {
+  const b = composeBriefing(request, notamData())
+  const ids = b.routeNotams.map((n) => n.id)
+  assert.ok(ids.includes('D0001/26'))
+  assert.ok(ids.includes('O0002/26'))
+  assert.ok(!ids.includes('F0003/26')) // fir 제외
+})
+
+test('composeBriefing: routeConflicts = restriction in effect crossing at altitude (obstacle excluded)', () => {
+  const b = composeBriefing(request, notamData())
+  assert.equal(b.routeConflicts.length, 1)
+  assert.equal(b.routeConflicts[0].id, 'D0001/26')
+})
+
+test('composeBriefing: routeConflicts raises a summary chip', () => {
+  const b = composeBriefing(request, notamData())
+  const chip = b.summary.find((s) => s.key === 'notam')
+  assert.ok(chip)
+  assert.equal(chip.level, 'red')
+})
+
+test('composeBriefing: no notam data → empty routeNotams, no chip', () => {
+  const b = composeBriefing(request, data)
+  assert.deepEqual(b.routeNotams, [])
+  assert.deepEqual(b.routeConflicts, [])
+  assert.equal(b.summary.some((s) => s.key === 'notam'), false)
+})

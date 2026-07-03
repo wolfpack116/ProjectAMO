@@ -782,6 +782,7 @@ app.post('/api/route-briefing', (req, res) => {
       warning: store.getCached('warning'),
       amos: store.getCached('amos'),
       takeoff_fcst: store.getCached('takeoff_fcst'),
+      notam: store.getCached('notam'),
     }
     const briefing = composeBriefing(body, data)
 

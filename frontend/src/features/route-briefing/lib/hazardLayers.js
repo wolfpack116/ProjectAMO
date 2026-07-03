@@ -9,16 +9,19 @@ const RULEBOOK = [
   { codes: ['TS', 'EMBD_TS', 'OBSC_TS', 'FRQ_TS', 'SQL_TS'], layers: ['radar', 'lightning', 'sigmet'] },
   { codes: ['TC'], layers: ['radar', 'sigmet'] },
   // 추후 추가: CB/GR(적란운·우박), MTW(산악파), VA(화산재), LLWS(윈드시어), IFR/SFC_VIS 등.
+  // NOTAM 카테고리(사실 분류) → notam 마스터 레이어. 경로상 NOTAM 있으면 "지도에 NOTAM 레이어 보기" 칩.
+  { codes: ['prohibited', 'restricted', 'danger', 'firing', 'obstacle', 'facility', 'other'], layers: ['notam'] },
 ]
 
 // 브리핑이 계산한 경로상 위험(adverse.hazards 코드 + enroute.model kind)에서
 // 룰북에 따라 켤 MET 레이어 id 집합을 만든다. 레이어 토글 자체는 MapView 소유.
 export function hazardMapLayers(briefing) {
   const codes = (briefing?.sections?.adverse?.hazards ?? []).map((h) => h.code || '')
+  const notamCats = (briefing?.routeNotams ?? []).map((n) => n.category || '')
   const modelKinds = new Set((briefing?.sections?.enroute?.model?.elements ?? []).map((e) => e.kind))
   const layers = new Set()
 
-  for (const code of codes)
+  for (const code of [...codes, ...notamCats])
     for (const rule of RULEBOOK)
       if (rule.codes.includes(code)) rule.layers.forEach((l) => layers.add(l))
 

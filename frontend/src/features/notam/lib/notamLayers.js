@@ -123,11 +123,13 @@ export function setNotamVisibility(map, isVisible) {
   for (const id of NOTAM_LAYER_IDS) if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', v)
 }
 
-// 카테고리 + 위치 필터를 지도 레이어에 적용. locationFilter가 'all'이 아니면 해당 공항/공역만.
-export function setNotamCategoryFilter(map, activeCategoryIds, locationFilter = 'all') {
+// 카테고리 + 위치 + (선택)id 필터를 지도 레이어에 적용. locationFilter가 'all'이 아니면 해당 공항/공역만.
+// idFilter가 배열이면 해당 NOTAM id만(브리핑 "경로에 걸린 NOTAM만" 모드). null이면 전체.
+export function setNotamCategoryFilter(map, activeCategoryIds, locationFilter = 'all', idFilter = null) {
   const catFilter = ['in', ['get', 'category'], ['literal', activeCategoryIds]]
   const locFilter = (locationFilter && locationFilter !== 'all') ? ['==', ['get', 'location'], locationFilter] : true
-  const F = (...conds) => ['all', catFilter, locFilter, ...conds]
+  const idExpr = Array.isArray(idFilter) ? ['in', ['get', 'id'], ['literal', idFilter]] : true
+  const F = (...conds) => ['all', catFilter, locFilter, idExpr, ...conds]
   if (map.getLayer('notam-fill')) map.setFilter('notam-fill', F(POLYGON_FILTER))
   if (map.getLayer('notam-line')) map.setFilter('notam-line', F(NOT_FIR))
   if (map.getLayer('notam-fir-line')) map.setFilter('notam-fir-line', F(IS_FIR))

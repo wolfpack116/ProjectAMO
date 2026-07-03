@@ -4,6 +4,7 @@ import { buildDestination } from './taf-window.js'
 import { buildHazardSection } from './hazard-section.js'
 import { buildRouteAxis } from './route-axis.js'
 import { timeWindowsOverlap } from './geo-time-match.js'
+import { matchRouteNotams } from './notam-briefing.js'
 
 function airportRoles(request) {
   const roles = [
@@ -72,6 +73,12 @@ export function composeBriefing(request, data) {
     airportWarnings: buildAirportWarningHazards(data?.warning, airportRoles(request), request.etd, request.eta),
   })
 
+  // 경로상 NOTAM(사실 나열) + 경로 저촉(공역제한 계열 ∩ 발효중 ∩ 계획고도 통과). scope:'fir' 제외.
+  const { routeNotams, routeConflicts } = matchRouteNotams(data?.notam?.items ?? [], {
+    axis, etd: request.etd, eta: request.eta, cruiseAltitudeFt,
+    airports: airportRoles(request), // 출/도착/교체 공항 NOTAM은 경로 미교차라도 포함
+  })
+
   const amosByIcao = data?.amos?.airports ?? {}
   const takeoffByIcao = data?.takeoff_fcst?.airports ?? {}
   const airports = airportRoles(request).map(({ role, icao }) => ({
@@ -100,6 +107,7 @@ export function composeBriefing(request, data) {
   const summary = [
     { key: 'hazard', label: '위험', level: adverse.level },
     ...airports.map((a) => ({ key: a.icao, label: `${ROLE_LABEL[a.role]} ${a.icao}`, level: a.level })),
+    ...(routeConflicts.length ? [{ key: 'notam', label: `경로 저촉 ${routeConflicts.length}`, level: 'red' }] : []),
   ]
 
   return {
@@ -114,6 +122,8 @@ export function composeBriefing(request, data) {
     },
     summary,
     banner,
+    routeNotams,
+    routeConflicts,
     sections: { adverse, enroute, current: { airports }, destination },
     warnings: [],
   }

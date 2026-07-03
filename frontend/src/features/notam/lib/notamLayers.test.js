@@ -1,6 +1,34 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { notamsAtPoint, geometryBounds } from './notamLayers.js'
+import { notamsAtPoint, geometryBounds, setNotamCategoryFilter } from './notamLayers.js'
+
+// setFilter 호출을 기록하는 최소 fake map (idFilter 경로전용 필터 검증용).
+function fakeMap() {
+  const filters = {}
+  return { filters, getLayer: () => true, setFilter: (id, f) => { filters[id] = f } }
+}
+const exprHas = (expr, needle) => JSON.stringify(expr).includes(needle)
+
+test('setNotamCategoryFilter: idFilter=null → no id constraint', () => {
+  const map = fakeMap()
+  setNotamCategoryFilter(map, ['danger'], 'all', null)
+  assert.ok(!exprHas(map.filters['notam-fill'], '"id"'))
+})
+
+test('setNotamCategoryFilter: idFilter=[ids] → id "in" constraint on every notam layer', () => {
+  const map = fakeMap()
+  setNotamCategoryFilter(map, ['danger'], 'all', ['D0001/26', 'D0002/26'])
+  for (const id of ['notam-fill', 'notam-line', 'notam-marker', 'notam-obstacle', 'notam-label']) {
+    assert.ok(exprHas(map.filters[id], 'D0001/26'), `id filter missing on ${id}`)
+    assert.ok(exprHas(map.filters[id], '"id"'), `id get missing on ${id}`)
+  }
+})
+
+test('setNotamCategoryFilter: idFilter=[] → empty in-list (shows nothing)', () => {
+  const map = fakeMap()
+  setNotamCategoryFilter(map, ['danger'], 'all', [])
+  assert.ok(exprHas(map.filters['notam-fill'], '"literal",[]'))
+})
 
 const ALL = ['restricted', 'danger', 'other']
 // 사각형 면: Polygon 과 '닫힌 LineString'(KOCA가 면을 선으로 인코딩) 두 형태

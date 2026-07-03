@@ -4,7 +4,8 @@ import assert from 'node:assert/strict'
 import { MET_LAYERS } from '../../weather-overlays/lib/weatherOverlayLayers.js'
 import { hazardMapLayers } from './hazardLayers.js'
 
-const briefing = (hazards = [], modelKinds = []) => ({
+const briefing = (hazards = [], modelKinds = [], routeNotams = []) => ({
+  routeNotams,
   sections: {
     adverse: { hazards },
     enroute: { model: { elements: modelKinds.map((kind) => ({ kind })) } },
@@ -35,6 +36,15 @@ test('룰북은 코드 기준(출처 무관), 룰북 밖 코드는 무시', () =
 test('위험 없으면 빈 배열', () => {
   assert.deepEqual(hazardMapLayers(briefing([], [])), [])
   assert.deepEqual(hazardMapLayers(undefined), [])
+})
+
+test('경로상 NOTAM이 있으면 notam 레이어', () => {
+  const ids = hazardMapLayers(briefing([], [], [{ id: 'D1/26', category: 'danger' }]))
+  assert.ok(ids.includes('notam'))
+})
+
+test('경로상 NOTAM 없으면 notam 레이어 아님', () => {
+  assert.ok(!hazardMapLayers(briefing([{ code: 'EMBD_TS' }])).includes('notam'))
 })
 
 test('반환 id는 모두 실제 MET 레이어 id (드리프트 방지)', () => {

@@ -20,6 +20,7 @@ import { phenomenonKo } from '../../shared/weather/phenomenonKo.js'
 import { buildAmosConsoleModel } from '../../shared/weather/amosViewModel.js'
 import { useCrossSectionLayers, CrossSectionToggles } from './crossSectionLayers.jsx'
 import { buildRawWindsTable } from './lib/rawWindsModel.js'
+import { deriveTimeState, formatAltitude, notamSummary, NOTAM_CATEGORIES, TIME_STATE } from '../notam/lib/notamViewModel.js'
 import './BriefingView.css'
 
 const LEVEL_BADGE = { green: 'success', amber: 'warning', red: 'danger', gray: 'subtle' }
@@ -27,6 +28,9 @@ const CAT_COLOR = { VFR: '#166534', MVFR: '#1d4ed8', IFR: '#c0291f', LIFR: '#9d2
 const CAT_RANK = { VFR: 0, MVFR: 1, IFR: 2, LIFR: 3 }
 const SEG_RANK = { '약': 1, '중': 2, '심': 3 }
 const FIELDS = [['바람', 'wind'], ['시정', 'visibility'], ['운고', 'ceiling'], ['기온/노점', 'temp'], ['현상', 'weather'], ['QNH', 'qnh']]
+const NOTAM_CAT_LABEL = Object.fromEntries(NOTAM_CATEGORIES.map((c) => [c.id, c.label]))
+// 시간상태 색(색의 유일한 축). 안전값(고도·요약)은 --text-2 이상, 흐린 색 금지(spec 접근성 #2).
+const TS_COLOR = { active: 'var(--level-red)', soon: 'var(--level-amber)', upcoming: 'var(--text-3)' }
 
 // 위험현상 code → 아이콘 (substring 매칭, 코드 변종에 견고).
 function hazardIcon(code) {
@@ -96,6 +100,8 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   useEffect(() => { if (activeId) onFocusRef.current?.(activeId) }, [activeId])
 
   const hasEnroute = Boolean(briefing?.sections?.enroute)
+  const hasNotam = (briefing?.routeNotams ?? []).length > 0
+  const destNum = hasNotam ? '⑥' : '⑤' // NOTAM(⑤)이 노선과 목적지 사이에 들어오면 목적지는 ⑥
   const steps = briefing
     ? [
         { id: 'banner', label: 'Go/No-go' },
@@ -103,7 +109,8 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
         { id: 'current', label: '② 현재' },
         { id: 'synopsis', label: '③ 개황' },
         ...(hasEnroute ? [{ id: 'enroute', label: '④ 노선' }] : []),
-        { id: 'destination', label: '⑤ 목적지' },
+        ...(hasNotam ? [{ id: 'notam', label: '⑤ NOTAM' }] : []),
+        { id: 'destination', label: `${destNum} 목적지` },
       ]
     : []
 
@@ -441,6 +448,72 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
     </section>
   )
 
+  const routeNotams = briefing.routeNotams ?? []
+  const routeConflicts = briefing.routeConflicts ?? []
+  // 분류: 공항 소속(출/도착/교체) 우선 → 나머지 순수 경로상. 도착공항 NOTAM이 경로 끝과 겹쳐도
+  // "경로상"이 아니라 "도착 공항"으로 가야 보는 사람이 헷갈리지 않는다(공항 매칭 우선).
+  const notamAirportGroups = ['departure', 'arrival', 'alternate']
+    .map((role) => {
+      const items = routeNotams.filter((n) => n.airportRole === role)
+      return items.length ? { role, icao: items[0].airportIcao, items } : null
+    })
+    .filter(Boolean)
+  const notamRouteGroup = routeNotams.filter((n) => n.onRoute && !n.airportRole) // 어느 공항에도 안 속한 순수 경로 통과
+  const notamRow = (n, showNm) => {
+    const ts = deriveTimeState(n.validFrom, n.validTo, Date.now())
+    const t = TIME_STATE[ts]
+    return (
+      <div key={n.id} className="bv-notam-row" data-conflict={n.conflict ? 'true' : 'false'}>
+        <Badge appearance={n.conflict ? 'filled' : 'tint'}
+          style={n.conflict ? { backgroundColor: TS_COLOR[ts], color: '#fff' } : { color: TS_COLOR[ts] }}>
+          {t.glyph} {NOTAM_CAT_LABEL[n.category] || n.category}
+        </Badge>
+        <div className="bv-notam-main">
+          <div className="bv-notam-line1">
+            {n.conflict ? <b style={{ color: 'var(--level-red)' }}>경로 저촉 · </b> : null}
+            <span style={{ color: 'var(--text-2)' }}>{notamSummary(n) || n.summary || n.id}</span>
+            <span className="bv-haz-code">{n.id}</span>
+          </div>
+          <Caption1 style={{ color: 'var(--text-2)' }}>
+            {t.label} · {formatAltitude(n.altitude) || '고도 미상'}
+            {showNm && n.routeIntervalNm ? <> · <span className="tnum">{n.routeIntervalNm.startNm}–{n.routeIntervalNm.endNm}NM</span></> : ''}
+          </Caption1>
+        </div>
+      </div>
+    )
+  }
+  const notamSection = routeNotams.length > 0 && (
+    <section data-bvid="notam" className="bv-section">
+      <Card>
+        <div className="bv-haz-head">
+          <Subtitle2 as="h3">⑤ 경로·공항 NOTAM</Subtitle2>
+          <Caption1 style={{ color: 'var(--text-3)' }}>
+            {routeNotams.length}건{routeConflicts.length ? ` · 저촉 ${routeConflicts.length}` : ''}
+          </Caption1>
+        </div>
+        {onToggleMetLayer && (
+          // 이 섹션 전용: 지도로 가서 경로에 걸린 NOTAM만 켠다(Task 6 경로전용 필터가 자동 적용).
+          <Button appearance="secondary" size="small" icon={<Layers size={14} />} className="bv-notam-layerbtn"
+            onClick={() => { onEnterMapMode?.(); if (!metVisibility?.notam) onToggleMetLayer('notam') }}>
+            지도에 NOTAM 레이어 보기
+          </Button>
+        )}
+        {notamRouteGroup.length > 0 && (
+          <>
+            <div className="bv-notam-grouphead">경로상 <span className="dim">{notamRouteGroup.length}</span></div>
+            {notamRouteGroup.map((n) => notamRow(n, true))}
+          </>
+        )}
+        {notamAirportGroups.map((g) => (
+          <Fragment key={g.role}>
+            <div className="bv-notam-grouphead">{roleLabel(g.role)} 공항 {g.icao} <span className="dim">{g.items.length}</span></div>
+            {g.items.map((n) => notamRow(n, false))}
+          </Fragment>
+        ))}
+      </Card>
+    </section>
+  )
+
   const dest = sections.destination
   const CAT3_LEGEND = [['VFR', 'vfr'], ['IFR', 'ifr'], ['LIFR', 'lifr']]
   const catBar = (timeline, validity, eta, tall) => {
@@ -463,7 +536,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   const destination = (
     <section data-bvid="destination" className="bv-section">
       <Card>
-        <Subtitle2 as="h3">⑤ 목적지 예보</Subtitle2>
+        <Subtitle2 as="h3">{destNum} 목적지 예보</Subtitle2>
         {!dest.taf ? <Body1 style={{ color: 'var(--text-3)' }}>TAF 없음</Body1> : (
           <>
             <div className="bv-dest-head">
@@ -549,8 +622,8 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
           onClose={onClose} detent={detent} onDetentChange={setDetent} peekContent={peek}>
           <div className="bv-mobile" ref={containerRef}>
             {etdEtaLine && <Caption1 style={{ color: 'var(--accent)', fontVariantNumeric: 'tabular-nums' }}>{etdEtaLine}</Caption1>}
-            <BriefingBanner banner={briefing.banner} />
-            {nav}{board}{layerAction}{adverse}{currentMobile}<BriefingSynopsis />{enroute}{destination}
+            <BriefingBanner banner={briefing.banner} routeConflicts={routeConflicts} />
+            {nav}{board}{layerAction}{adverse}{currentMobile}<BriefingSynopsis />{enroute}{notamSection}{destination}
           </div>
         </MobileSheet>
         {xsectionFull && verticalProfile && (
@@ -579,8 +652,8 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
           <Button appearance="secondary" size="small" onClick={onClose}>지도로</Button>
         </div>
       </div>
-      <BriefingBanner banner={briefing.banner} />
-      {nav}{board}{layerAction}{adverse}{currentDesktop}<BriefingSynopsis />{enroute}{destination}
+      <BriefingBanner banner={briefing.banner} routeConflicts={routeConflicts} />
+      {nav}{board}{layerAction}{adverse}{currentDesktop}<BriefingSynopsis />{enroute}{notamSection}{destination}
     </div>
   )
 }

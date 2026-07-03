@@ -255,13 +255,20 @@ const MapView = forwardRef(function MapView({
   const [notamLocationFilter, setNotamLocationFilter] = useState('all')
   const [selectedSigwxFrontMeta, setSelectedSigwxFrontMeta] = useState(sigwxFrontMeta)
   const [selectedSigwxCloudMeta, setSelectedSigwxCloudMeta] = useState(sigwxCloudMeta)
+  // 브리핑 NOTAM 경로전용 필터가 아래 NOTAM 동기화 effect에서 참조 → 반드시 effect보다 먼저 선언(TDZ 방지).
+  const [routeBriefingMapMode, setRouteBriefingMapMode] = useState(false)
+  const routeBriefing = useRouteBriefing({ activePanel, airports, metarData })
   const notamFc = useMemo(() => notamToFeatureCollection(notamData, Date.now()), [notamData])
   useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
     registerNotamObstacleImages(map) // 장애물 종류별 아이콘 등록(비동기, 준비되면 심볼 레이어가 참조)
     updateNotamLayerData(map, notamFc)
     addNotamHighlight(map)
     setNotamVisibility(map, metVisibility.notam)
-    applyNotamCategoryFilter(map, notamCategoryFilter, notamLocationFilter)
+    // 브리핑 "경로에 걸린 NOTAM만" 모드: 맵모드 + 브리핑 존재 시 routeNotams id로 제한. 그 외엔 전체(null).
+    const notamIdFilter = (routeBriefingMapMode && routeBriefing.state.briefing)
+      ? (routeBriefing.state.briefing.routeNotams ?? []).map((n) => n.id)
+      : null
+    applyNotamCategoryFilter(map, notamCategoryFilter, notamLocationFilter, notamIdFilter)
     // 겹침 팝업(surface D): 클릭 지점의 모든 NOTAM 후보를 해석(1 / 2-3 미니리스트 / 4+ 전체보기).
     // 폴리곤은 point-in-polygon으로 직접 판정(투명/줌 무관, 네모·동그라미 내부 어디든), 점·선은 queryRenderedFeatures.
     const lineLayers = ['notam-marker', 'notam-obstacle', 'notam-line', 'notam-fir-line'].filter((id) => map.getLayer(id))
@@ -269,6 +276,7 @@ const MapView = forwardRef(function MapView({
       if (!metVisibility.notam) return
       const polyHits = notamsAtPoint(notamFc.features, e.lngLat.lng, e.lngLat.lat, notamCategoryFilter)
         .filter((f) => notamLocationFilter === 'all' || f.properties?.location === notamLocationFilter)
+        .filter((f) => !notamIdFilter || notamIdFilter.includes(f.properties?.id))
       const rendered = lineLayers.length ? map.queryRenderedFeatures(e.point, { layers: lineLayers }) : []
       const seen = new Set()
       const uniq = []
@@ -284,7 +292,7 @@ const MapView = forwardRef(function MapView({
     }
     map.on('click', onNotamClick)
     return () => map.off('click', onNotamClick)
-  }, [notamFc, metVisibility.notam, notamCategoryFilter, notamLocationFilter])
+  }, [notamFc, metVisibility.notam, notamCategoryFilter, notamLocationFilter, routeBriefingMapMode, routeBriefing.state.briefing])
   const [adsbData, setAdsbData] = useState(null)
   const [adsbLoading, setAdsbLoading] = useState(false)
   const [basemapId, setBasemapId] = useState('standard')
@@ -296,8 +304,6 @@ const MapView = forwardRef(function MapView({
     else if (kind === 'aviation') setAviationVisibility((prev) => (prev[id] ? prev : { ...prev, [id]: true }))
   }
   useImperativeHandle(ref, () => ({ setLayerOn, switchBasemap }))
-  const [routeBriefingMapMode, setRouteBriefingMapMode] = useState(false)
-  const routeBriefing = useRouteBriefing({ activePanel, airports, metarData })
   const { routeResult, fitBoundsRequest } = routeBriefing.state
   const { vfrWaypointsRef, hideTimerRef } = routeBriefing.refs
   const { setHoveredWpInfo, setVfrWaypoints } = routeBriefing.actions
