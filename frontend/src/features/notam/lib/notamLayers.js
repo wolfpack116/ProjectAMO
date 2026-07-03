@@ -35,7 +35,7 @@ const NOT_FIR = ['!=', ['get', 'scope'], 'fir']
 const IS_FIR = ['==', ['get', 'scope'], 'fir']
 
 export const NOTAM_SOURCE_IDS = ['notam-src']
-export const NOTAM_LAYER_IDS = ['notam-fill', 'notam-line', 'notam-fir-line', 'notam-marker', 'notam-obstacle', 'notam-label']
+export const NOTAM_LAYER_IDS = ['notam-hatch', 'notam-line', 'notam-fir-line', 'notam-marker', 'notam-obstacle', 'notam-label']
 const IS_OBSTACLE = ['==', ['get', 'category'], 'obstacle']
 const IS_POINT = ['==', ['geometry-type'], 'Point']
 // 구역(폴리곤·닫힌 선) 중심 라벨 대상 — 점(장애물/시설) 제외
@@ -50,12 +50,18 @@ export function addNotamLayers(map, featureData) {
   if (!map.getSource('notam-src')) {
     map.addSource('notam-src', { type: 'geojson', data: featureData })
   }
-  // 특수공역 빗금 채움(대각선 해칭, 색=시간상태). 줌 8+에서만(국가 뷰 덮지 않게), 구역 전체(FIR 포함).
-  if (!map.getLayer('notam-fill')) {
+  // 특수공역 가장자리 빗금 밴드(항공차트식): 경계선 따라 두꺼운 line-pattern(빗금)만, 내부는 비움.
+  // 안쪽으로 오프셋해 경계 안쪽에 밴드. 줌 8+에서만(국가 뷰 덮지 않게), 구역 전체(FIR 포함).
+  if (!map.getLayer('notam-hatch')) {
     map.addLayer({
-      id: 'notam-fill', type: 'fill', source: 'notam-src', slot: 'top', minzoom: 8,
-      paint: { 'fill-pattern': ['concat', 'notam-hatch-', ['get', 'timeState']], 'fill-opacity': 0.9 },
+      id: 'notam-hatch', type: 'line', source: 'notam-src', slot: 'top', minzoom: 8,
       filter: POLYGON_FILTER,
+      layout: { 'line-join': 'round' },
+      paint: {
+        'line-pattern': ['concat', 'notam-hatch-', ['get', 'timeState']],
+        'line-width': ['interpolate', ['linear'], ['zoom'], 8, 6, 12, 11],
+        'line-offset': ['interpolate', ['linear'], ['zoom'], 8, -3, 12, -5.5],
+      },
     })
   }
   if (!map.getLayer('notam-line')) {
@@ -144,7 +150,7 @@ export function setNotamVisibility(map, isVisible) {
 
 export function setNotamCategoryFilter(map, activeCategoryIds) {
   const catFilter = ['in', ['get', 'category'], ['literal', activeCategoryIds]]
-  if (map.getLayer('notam-fill')) map.setFilter('notam-fill', ['all', POLYGON_FILTER, catFilter])
+  if (map.getLayer('notam-hatch')) map.setFilter('notam-hatch', ['all', POLYGON_FILTER, catFilter])
   if (map.getLayer('notam-line')) map.setFilter('notam-line', ['all', NOT_FIR, catFilter])
   if (map.getLayer('notam-fir-line')) map.setFilter('notam-fir-line', ['all', IS_FIR, catFilter])
   if (map.getLayer('notam-obstacle')) map.setFilter('notam-obstacle', ['all', IS_POINT, IS_OBSTACLE, catFilter])
