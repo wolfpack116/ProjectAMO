@@ -61,7 +61,7 @@ export function formatAltitudeBand(altitude) {
   return `${up}\n───\n${lo}`
 }
 
-// 유효기간(NOTAM 최우선 정보). B) ~ C) 를 'MM/DD HH:MM ~ MM/DD HH:MM' (KST)로.
+// 유효기간(NOTAM 최우선 정보). B) ~ C) 를 'MM/DD HH:MM ~ MM/DD HH:MM KST'(또는 Z)로 — 설정탭 tz 반영 + 표기.
 export function formatValidPeriod(validFrom, validTo, tz = 'KST') {
   const off = tz === 'KST' ? 9 * 3600000 : 0
   const fmt = (v) => {
@@ -71,7 +71,8 @@ export function formatValidPeriod(validFrom, validTo, tz = 'KST') {
     const p = (n) => String(n).padStart(2, '0')
     return `${p(d.getUTCMonth() + 1)}/${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`
   }
-  return `${fmt(validFrom)} ~ ${fmt(validTo)}`
+  const suffix = tz === 'KST' ? 'KST' : 'Z'
+  return `${fmt(validFrom)} ~ ${fmt(validTo)} ${suffix}`
 }
 
 // 목적(RMK/FOR) 키워드 → 한글. 없으면 ''.

@@ -62,20 +62,17 @@ function mergeState(base, g) {
     wx: g.wx_touched ? g.wx : base.wx,
   }
 }
-// 필드별 임계 레벨(하이라이트용). green=무해(표시 안 함/null), amber=주의(IFR급), red=경고(LIFR급).
-// 시정·운고는 flight-category 임계 재사용, 바람/현상은 운영 관례.
+// 필드별 하이라이트 — ② 현재 실황(airport-summary.js field())과 동일 임계값·이진 red.
 function fieldLevels(s) {
   const vis = s.cavok ? 9999 : s.vis
   const ceil = ceilingFromClouds(s.clouds)
-  const w = s.wind || {}
-  const spd = Number(w.speed); const gust = Number(w.gust)
+  const gust = Number(s.wind?.gust)
   const wxRaw = (s.wx && s.wx.length) ? s.wx.map((x) => x.raw || x).join(' ') : ''
   return {
-    visLevel: !Number.isFinite(vis) ? null : vis < 1600 ? 'red' : vis < 5000 ? 'amber' : null,
-    ceilLevel: !Number.isFinite(ceil) ? null : ceil < 500 ? 'red' : ceil < 1000 ? 'amber' : null,
-    windLevel: ((Number.isFinite(spd) && spd >= 35) || (Number.isFinite(gust) && gust >= 45)) ? 'red'
-      : (Number.isFinite(gust) || (Number.isFinite(spd) && spd >= 25)) ? 'amber' : null,
-    wxLevel: !wxRaw ? null : /TS|FZ|\+|GR|FC|VA|SS|DS|SQ/.test(wxRaw) ? 'red' : 'amber',
+    visLevel: Number.isFinite(vis) && vis < 5000 ? 'red' : null,
+    ceilLevel: Number.isFinite(ceil) && ceil < 1000 ? 'red' : null,
+    windLevel: Number.isFinite(gust) && gust >= 30 ? 'red' : null,
+    wxLevel: wxRaw ? 'red' : null,
   }
 }
 function periodRow(type, start, end, s) {

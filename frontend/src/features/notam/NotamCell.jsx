@@ -1,13 +1,14 @@
 import { Ban, Crosshair, AlertTriangle, ShieldHalf, RadioTower, Radio, MoreHorizontal, ChevronDown } from 'lucide-react'
-import { TIME_STATE } from './lib/notamViewModel.js'
+import { NOTAM_CATEGORIES, TIME_STATE } from './lib/notamViewModel.js'
 import './NotamCell.css'
 
-// 밀도형 NOTAM 셀 — 공항탭·브리핑 공용(동일 룩). 2줄: ① ●점 + 아이콘 + 요약 + 고도 + 펼침, ② 카테고리·번호.
-// 펼치면(네이티브 details, 키보드 접근) 유효기간 + 원문. 시간상태 색=●◐○(색맹 대비 형태).
+// 밀도형 NOTAM 셀 — 공항탭·브리핑 공용(동일 룩). 좌: 카테고리 아이콘+라벨, 중: 요약, 우: 고도+시간상태 배지, 끝: 펼침.
+// 펼치면(네이티브 details, 키보드 접근) 유효기간 + 원문.
 const CAT_ICON = {
   prohibited: Ban, firing: Crosshair, danger: AlertTriangle, restricted: ShieldHalf,
   obstacle: RadioTower, facility: Radio, other: MoreHorizontal,
 }
+const catLabelOf = (id) => (NOTAM_CATEGORIES.find((c) => c.id === id) || { label: '기타' }).label
 
 export default function NotamCell({ category, timeState, summary, metaText, altitude, rawText, validText, conflict = false }) {
   const t = TIME_STATE[timeState] || TIME_STATE.upcoming
@@ -16,14 +17,19 @@ export default function NotamCell({ category, timeState, summary, metaText, alti
   return (
     <details className="notam-cell" data-conflict={conflict ? 'true' : undefined}>
       <summary className="notam-cell-summary">
-        <span className={`notam-cell-dot ts-${t.key}`} aria-hidden="true">{t.glyph}</span>
-        <Icon size={15} strokeWidth={2} className="notam-cell-ic" aria-hidden="true" />
+        <span className="notam-cell-catcol">
+          <Icon size={26} strokeWidth={1.75} className="notam-cell-ic" aria-hidden="true" />
+          <span className="notam-cell-catlabel">{catLabelOf(category)}</span>
+        </span>
         <span className="notam-cell-body">
           <span className="notam-cell-title">{conflict ? <b className="notam-cell-conf">저촉 · </b> : null}{summary}</span>
           <span className="notam-cell-meta">{metaText}</span>
         </span>
-        <span className={`notam-cell-alt${isBand ? ' is-band' : ''}`}>{altitude || '—'}</span>
-        <ChevronDown size={14} className="notam-cell-chev" aria-hidden="true" />
+        <span className="notam-cell-right">
+          <span className={`notam-cell-alt${isBand ? ' is-band' : ''}`}>{altitude || '—'}</span>
+          <span className={`notam-cell-ts ts-${t.key}`}>{t.label}</span>
+        </span>
+        <ChevronDown size={16} className="notam-cell-chev" aria-hidden="true" />
       </summary>
       <div className="notam-cell-expand">
         {validText ? <div className="notam-cell-valid"><span className="notam-cell-valid-lbl">유효</span>{validText}</div> : null}
