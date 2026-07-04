@@ -70,6 +70,15 @@ function scheduleTakeoffFcstJob(scheduler = cron) {
   )
 }
 
+// 시작 시점 NOTAM 캐시가 재크롤이 필요할 만큼 오래됐나. 없음/빈것/시각손상은 stale로 간주(크롤).
+function isNotamCacheStale() {
+  const cached = store.getCached('notam')
+  const fetchedMs = Date.parse(cached?.fetched_at)
+  if (!(cached?.items?.length > 0) || !Number.isFinite(fetchedMs)) return true
+  const maxAgeMs = (config.notam?.startup_max_age_hours ?? 6) * 3600000
+  return Date.now() - fetchedMs >= maxAgeMs
+}
+
 function buildInitialCollectionJobs({ includeKimNwp = config.kim_nwp?.collect_on_startup !== false } = {}) {
   const jobs = [
     ["metar", metarProcessor.processAll],
@@ -86,11 +95,13 @@ function buildInitialCollectionJobs({ includeKimNwp = config.kim_nwp?.collect_on
     ["environment", environmentProcessor.process],
     ["airport_info", airportInfoProcessor.process],
     ["takeoff_fcst", takeoffForecastProcessor.process],
-    ["notam", notamProcessor.process],
   ]
   if (includeKimNwp) jobs.splice(10, 0, ["kim_surface_wind", kimSurfaceWindProcessor.process])
   if (config.ktg?.collect_on_startup !== false) jobs.push(["ktg", ktgProcessor.process])
   if (config.flight_category?.collect_on_startup !== false) jobs.push(["flight_category", flightCategoryProcessor.process])
+  // NOTAM 시작 크롤: 명시적으로 끄지 않았고(collect_on_startup) 캐시가 오래됐을 때만.
+  // 유효한 최신 스냅샷이 이미 있으면(신선도 내) 굳이 재크롤 안 하고 그걸 그대로 씀 — 재시작해도 즉시 표시.
+  if (config.notam?.collect_on_startup !== false && isNotamCacheStale()) jobs.push(["notam", notamProcessor.process])
   return jobs
 }
 

@@ -205,6 +205,11 @@ export const notam = {
   horizon_hours: 24, // site hard-caps the search window at 24h (validateAndSearch clamps)
   timeout_ms: Number(process.env.NOTAM_TIMEOUT_MS || 30000),
   fir_codes: (process.env.NOTAM_FIR_CODES || 'RKRR').split(','),
+  // 시작 시 크롤 여부. 기본 ON이되(아래 신선도 조건과 결합), NOTAM_COLLECT_ON_STARTUP=0 이면 완전히 끔.
+  collect_on_startup: process.env.NOTAM_COLLECT_ON_STARTUP !== '0',
+  // 시작 시 캐시가 이 시간(h)보다 오래됐을 때만 크롤. 그 안이면 유효한 최신본이라 스킵.
+  // 기본 6h = 크롤 주기. 이러면 재시작해도 유효 데이터는 재크롤 없이 즉시 씀.
+  startup_max_age_hours: Number(process.env.NOTAM_STARTUP_MAX_AGE_HOURS || 6),
 }
 
 export const schedule = {

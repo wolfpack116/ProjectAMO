@@ -206,6 +206,7 @@ const MapView = forwardRef(function MapView({
   notamData = null,
   selectedAirport,
   warnedAirports = [],
+  warningLabels = {},
   onAirportSelect,
   onRequestDeferredWeatherData,
   onLayerCountsChange,
@@ -1263,6 +1264,7 @@ const MapView = forwardRef(function MapView({
       <AdvisoryBadges
         badgeItems={advisoryBadgeItems}
         warnedAirports={warnedAirports}
+        warningLabels={warningLabels}
         openPanel={openAdvisoryPanel}
         panelItems={advisoryPanelItems}
         hiddenKeys={hiddenAdvisoryKeys}

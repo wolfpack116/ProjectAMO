@@ -5827,64 +5827,6 @@
     },
     {
       "type": "Feature",
-      "id": "lt_c_aisresc.61",
-      "geometry": {
-        "type": "MultiPolygon",
-        "coordinates": [
-          [
-            [
-              [
-                126.7,
-                35.15
-              ],
-              [
-                126.7333335,
-                35.15
-              ],
-              [
-                126.75743889,
-                35.13795
-              ],
-              [
-                126.72954167,
-                35.08845278
-              ],
-              [
-                126.6833335,
-                35.1
-              ],
-              [
-                126.688222,
-                35.1294445
-              ],
-              [
-                126.6824165,
-                35.135
-              ],
-              [
-                126.7,
-                35.15
-              ]
-            ]
-          ]
-        ]
-      },
-      "geometry_name": "ag_geom",
-      "properties": {
-        "restricted": "<FNT name='TW Cen MT' size='6'><CLR cyan='70' magenta='10' yellow='100' black='0'>R14</CLR></FNT>",
-        "res_lbl_1": "R14",
-        "res_lbl_2": null,
-        "res_lbl_3": null
-      },
-      "bbox": [
-        126.6824165,
-        35.08845278,
-        126.75743889,
-        35.15
-      ]
-    },
-    {
-      "type": "Feature",
       "id": "lt_c_aisresc.62",
       "geometry": {
         "type": "MultiPolygon",

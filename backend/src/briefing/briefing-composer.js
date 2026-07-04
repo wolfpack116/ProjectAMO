@@ -50,7 +50,9 @@ const CAT_RANK = { VFR: 0, IFR: 1, LIFR: 2 } // 3레벨 표시 기준(MVFR fold 
 function buildBanner(airports) {
   const scored = airports
     .filter((a) => a.category && a.category !== 'UNKNOWN')
-    .map((a) => ({ icao: a.icao, role: a.role, category: to3Level(a.category), driver: a.driver }))
+    // level = 심각도(VFR/MVFR=green, IFR=amber, LIFR=red). 라벨은 3단계 fold(MVFR→VFR).
+    // 색은 category 고정색이 아니라 level로 매긴다(프론트 색 일치용).
+    .map((a) => ({ icao: a.icao, role: a.role, category: to3Level(a.category), driver: a.driver, level: a.level }))
   if (scored.length === 0) return { worst: null, airports: [] }
   const worst = scored.reduce((acc, x) => ((CAT_RANK[x.category] ?? -1) > (CAT_RANK[acc.category] ?? -1) ? x : acc))
   return { worst, airports: scored }
@@ -74,10 +76,17 @@ export function composeBriefing(request, data) {
   })
 
   // 경로상 NOTAM(사실 나열) + 경로 저촉(공역제한 계열 ∩ 발효중 ∩ 계획고도 통과). scope:'fir' 제외.
-  const { routeNotams, routeConflicts } = matchRouteNotams(data?.notam?.items ?? [], {
+  const { routeNotams, routeConflicts: notamConflicts } = matchRouteNotams(data?.notam?.items ?? [], {
     axis, etd: request.etd, eta: request.eta, cruiseAltitudeFt,
     airports: airportRoles(request), // 출/도착/교체 공항 NOTAM은 경로 미교차라도 포함
   })
+
+  // 상시 유효 공역(제한/금지/위험구역) 저촉 — NOTAM 목록엔 안 섞고 저촉 배너에만 합류(airspace-zones.js).
+  // data.airspaceZones 없으면(=기존 테스트) 그냥 빈 배열 → 기존 동작 그대로.
+  const { routeConflicts: zoneConflicts } = matchRouteNotams(data?.airspaceZones ?? [], {
+    axis, etd: request.etd, eta: request.eta, cruiseAltitudeFt, airports: [],
+  })
+  const routeConflicts = [...notamConflicts, ...zoneConflicts]
 
   const amosByIcao = data?.amos?.airports ?? {}
   const takeoffByIcao = data?.takeoff_fcst?.airports ?? {}

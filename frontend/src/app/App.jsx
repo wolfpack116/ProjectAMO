@@ -74,6 +74,12 @@ function MainAppShell() {
     [weatherData],
   )
 
+  // 경보 종류 → 짧은 한글 라벨(칩용). wrng_type_key 우선, 없으면 원문 이름.
+  const WARNING_KO = {
+    WIND_SHEAR: '급변풍', LOW_VISIBILITY: '저시정', STRONG_WIND: '강풍', HEAVY_RAIN: '호우',
+    LOW_CEILING: '저운고', THUNDERSTORM: '뇌우', TYPHOON: '태풍', HEAVY_SNOW: '대설', YELLOW_DUST: '황사',
+  }
+  const warningTypeKo = (w) => WARNING_KO[w?.wrng_type_key] || w?.wrng_type_name || '경보'
   // 활성 공항경보가 있는 공항 ICAO 목록(상시 위험 요약 칩용).
   const warnedAirports = useMemo(
     () => Object.entries(weatherData?.warning?.airports || {})
@@ -81,6 +87,16 @@ function MainAppShell() {
       .map(([icao]) => icao),
     [weatherData],
   )
+  // 공항별 경보 종류 짧은 라벨(칩 펼침에 "RKPC · 급변풍"처럼). 같은 종류 중복 제거.
+  const warningLabels = useMemo(() => {
+    const out = {}
+    for (const [icao, w] of Object.entries(weatherData?.warning?.airports || {})) {
+      const labels = [...new Set((w?.warnings || []).map(warningTypeKo))]
+      if (labels.length) out[icao] = labels
+    }
+    return out
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weatherData])
 
   // Cmd/Ctrl+K → 검색 팔레트 (사이드바 검색 아이콘과 동일).
   useEffect(() => {
@@ -157,6 +173,7 @@ function MainAppShell() {
           notamData={weatherData?.notam || null}
           selectedAirport={selectedAirport}
           warnedAirports={warnedAirports}
+          warningLabels={warningLabels}
           onAirportSelect={setSelectedAirport}
           onRequestDeferredWeatherData={requestDeferredWeatherData}
           onLayerCountsChange={setLayerCounts}

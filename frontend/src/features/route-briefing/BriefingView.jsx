@@ -24,7 +24,10 @@ import { deriveTimeState, formatAltitude, notamSummary, NOTAM_CATEGORIES, TIME_S
 import './BriefingView.css'
 
 const LEVEL_BADGE = { green: 'success', amber: 'warning', red: 'danger', gray: 'subtle' }
-const CAT_COLOR = { VFR: '#166534', MVFR: '#1d4ed8', IFR: '#c0291f', LIFR: '#9d2c9d' }
+// 색 = 심각도(level): VFR/MVFR=green(양호) / IFR=amber(주의) / LIFR=red(경고). 카테고리 고정색 폐기.
+const LEVEL_COLOR = { green: 'var(--level-green)', amber: 'var(--level-amber)', red: 'var(--level-red)', gray: '#94a3b8' }
+const catLevel = (c) => (c === 'VFR' || c === 'MVFR' ? 'green' : c === 'IFR' ? 'amber' : c === 'LIFR' ? 'red' : 'gray')
+const catColorOf = (c) => LEVEL_COLOR[catLevel(c)]
 const CAT_RANK = { VFR: 0, MVFR: 1, IFR: 2, LIFR: 3 }
 const SEG_RANK = { '약': 1, '중': 2, '심': 3 }
 const FIELDS = [['바람', 'wind'], ['시정', 'visibility'], ['운고', 'ceiling'], ['기온/노점', 'temp'], ['현상', 'weather'], ['QNH', 'qnh']]
@@ -55,21 +58,21 @@ function tafBarSegments(timeline, validity) {
   const span = e - s
   const segs = []
   for (const entry of timeline) {
-    const cat = catDisplay(entry.category)
+    const color = catColorOf(entry.category)
     const left = Math.max(0, Math.min(100, pctOf(entry.time, s, span)))
-    if (segs.length && segs[segs.length - 1].cat === cat) continue
-    segs.push({ cat, left })
+    if (segs.length && segs[segs.length - 1].color === color) continue
+    segs.push({ color, left })
   }
   return segs.map((sg, i) => ({ ...sg, width: (i < segs.length - 1 ? segs[i + 1].left : 100) - sg.left }))
 }
 
-// 표시용 3레벨 fold (배너·②·⑥ 일관): MVFR→IFR.
-const catDisplay = (c) => (c === 'MVFR' ? 'IFR' : c)
+// 표시용 3레벨 fold (배너·②·⑥ 일관): MVFR→VFR(마진 VFR은 VFR로).
+const catDisplay = (c) => (c === 'MVFR' ? 'VFR' : c)
 
-// 카테고리 배지(표준색) — Fluent 팔레트 밖이라 색만 inline. 표시는 3레벨.
+// 카테고리 배지 — 라벨은 3단계 fold, 색은 심각도(level). MVFR="VFR"(green), IFR=amber, LIFR=red.
 function CatBadge({ category }) {
   const c = catDisplay(category)
-  return <Badge appearance="filled" style={{ backgroundColor: CAT_COLOR[c] || '#94a3b8', color: '#fff' }}>{c}</Badge>
+  return <Badge appearance="filled" style={{ backgroundColor: catColorOf(category), color: '#fff' }}>{c}</Badge>
 }
 
 export default function BriefingView({ briefing, verticalProfile = null, crossSection = null, advisories = [], onClose, onOpenProfile, onFocus, metVisibility, onToggleMetLayer, onEnterMapMode }) {
@@ -515,7 +518,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   )
 
   const dest = sections.destination
-  const CAT3_LEGEND = [['VFR', 'vfr'], ['IFR', 'ifr'], ['LIFR', 'lifr']]
+  const CAT3_LEGEND = [['VFR', 'green'], ['IFR', 'amber'], ['LIFR', 'red']]
   const catBar = (timeline, validity, eta, tall) => {
     const segs = tafBarSegments(timeline, validity)
     if (segs.length === 0) return null
@@ -526,7 +529,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
       <div className={`bv-tafbar${tall ? ' bv-tafbar-tall' : ''}`}>
         {etaLeft != null && <span className="bv-tafbar-eta" style={{ left: `${etaLeft}%` }}><span className="bv-tafbar-eta-mark">▼ETA</span></span>}
         <div className="bv-tafbar-track">
-          {segs.map((sg, i) => <span key={i} style={{ left: `${sg.left}%`, width: `${sg.width}%`, background: CAT_COLOR[sg.cat] || '#94a3b8' }} />)}
+          {segs.map((sg, i) => <span key={i} style={{ left: `${sg.left}%`, width: `${sg.width}%`, background: sg.color }} />)}
         </div>
       </div>
     )
@@ -546,7 +549,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
             </div>
             {catBar(dest.timeline, dest.validity, dest.eta, true)}
             <div className="bv-tafbar-legend">
-              {CAT3_LEGEND.map(([label, k]) => <span key={k}><i style={{ background: `var(--cat-${k})` }} />{label}</span>)}
+              {CAT3_LEGEND.map(([label, k]) => <span key={k}><i style={{ background: LEVEL_COLOR[k] }} />{label}</span>)}
               <span className="dim">시간대별 최악 범주</span>
             </div>
             {dest.etaOutOfRange && (

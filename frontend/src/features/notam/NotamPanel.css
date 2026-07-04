@@ -36,7 +36,16 @@
 .notam-filter { padding: 4px 0 12px; }
 .notam-filter-title { font-size: 10px; font-weight: 800; letter-spacing: 0.04em; color: var(--text-3); text-transform: uppercase; margin-bottom: 8px; }
 .notam-filter-count { color: var(--accent); }
-.notam-tile-grid { grid-template-columns: repeat(4, 1fr); }
+/* NOTAM 카테고리 필터: 타일 패러다임 유지하되 컴팩트 가로형(아이콘+라벨 한 줄)로 축소 —
+   기본 전체 켜짐이라 큰 자리를 먹지 않게, NOTAM 목록이 바로 보이도록(감사 Sev3). */
+.notam-tile-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.notam-tile-grid .layer-tile {
+  flex-direction: row; justify-content: flex-start; gap: 6px;
+  min-height: 0; padding: 7px 8px; border-radius: 8px; border-width: 1px;
+}
+.notam-tile-grid .layer-tile-visual { height: auto; }
+.notam-tile-grid .layer-tile-label { font-size: 11px; text-align: left; }
+.notam-tile-grid .layer-tile-check { top: 3px; right: 5px; font-size: 10px; }
 
 .notam-priority { padding: 10px 0; border-top: 1px solid var(--stroke-2); }
 .notam-priority-title { font-size: 11px; font-weight: 800; color: var(--accent); margin-bottom: 6px; }
@@ -61,9 +70,10 @@
 .notam-td-cat { padding: 9px 6px; }
 .notam-td-cat span { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; vertical-align: middle; }
 .notam-td-loc { padding: 9px 6px; font-weight: 700; }
+/* 목록→지도 핵심 동작 — 어포던스 확보 위해 살짝 키움 + 호버 강조(감사 Sev2). */
 .notam-locate {
-  display: inline-flex; align-items: center; justify-content: center; margin-top: 3px;
-  padding: 2px; border: 1px solid var(--stroke-1); border-radius: 4px; background: var(--bg-1);
+  display: inline-flex; align-items: center; justify-content: center; margin-top: 4px;
+  padding: 3px 5px; border: 1px solid var(--accent); border-radius: 5px; background: var(--bg-1);
   color: var(--accent); cursor: pointer;
 }
 .notam-locate:hover { background: color-mix(in srgb, var(--accent) 10%, var(--bg-1)); border-color: var(--accent); }
@@ -100,10 +110,12 @@
 .notam-tab-card-head { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
 .notam-tab-cat { font-weight: 800; }
 .notam-tab-card-head .notam-ts { margin-left: auto; }
-.notam-tab-meta { display: flex; gap: 8px; font-size: 12px; color: var(--text-2); font-weight: 600; font-family: Consolas, monospace; margin-bottom: 5px; }
-.notam-tab-valid { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-1); font-weight: 600; font-family: Consolas, monospace; margin-bottom: 5px; }
+/* 요약(무슨 NOTAM인가)이 핵심 스캔 대상 — 헤더 바로 아래·굵게·--text-1 (감사 Sev3). */
+.notam-tab-sum { font-size: 13px; color: var(--text-1); font-weight: 700; line-height: 1.35; margin-bottom: 6px; }
+.notam-tab-valid { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-1); font-weight: 600; font-family: Consolas, monospace; margin-bottom: 4px; }
 .notam-tab-valid-lbl { font-family: var(--font-base, sans-serif); font-size: 10px; font-weight: 800; color: #fff; background: var(--accent); padding: 1px 5px; border-radius: 3px; }
-.notam-tab-sum { font-size: 13px; color: var(--text-2); margin-bottom: 6px; }
+/* id·고도: 보조 정보로 카드 아래. 고도는 안전값이라 --text-2 유지(더 흐리게 금지, spec 접근성2). */
+.notam-tab-meta { display: flex; gap: 8px; font-size: 12px; color: var(--text-2); font-weight: 600; font-family: Consolas, monospace; margin-bottom: 5px; }
 .notam-tab-more { font-size: 12px; color: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 3px; }
 
 /* 겹침 팝업(지도) — notamPopupHtml 구조 */
@@ -112,7 +124,8 @@
 .notam-pop-head { font-size: 12px; font-weight: 800; color: var(--text-1); margin-bottom: 6px; }
 .notam-pop-row { padding: 5px 0; border-top: 1px solid var(--stroke-2); }
 .notam-pop-row:first-child { border-top: none; }
-.notam-pop-cat { font-weight: 700; font-size: 12px; margin-right: 6px; }
+.notam-pop-cat { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-size: 12px; margin-right: 6px; color: var(--text-1); }
+.notam-pop-cat-ic { flex: none; color: var(--text-2); }
 .notam-pop-id { font-size: 11px; color: var(--text-2); font-family: Consolas, monospace; }
 .notam-pop-ts { float: right; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 3px; }
 .notam-pop-sum { font-size: 12px; color: var(--text-2); margin-top: 2px; }

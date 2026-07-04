@@ -13,6 +13,7 @@ import warningTypes from '../shared/warning-types.js'
 import alertDefaults from '../shared/alert-defaults.js'
 import { buildVerticalProfile } from './src/briefing/vertical-profile.js'
 import { composeBriefing } from './src/briefing/briefing-composer.js'
+import { loadAirspaceZoneItems } from './src/briefing/airspace-zones.js'
 import { summarizeEnrouteModel } from './src/briefing/enroute-model.js'
 import { createDefaultTerrainSampler } from './src/terrain/terrain-sampler.js'
 import {
@@ -783,6 +784,7 @@ app.post('/api/route-briefing', (req, res) => {
       amos: store.getCached('amos'),
       takeoff_fcst: store.getCached('takeoff_fcst'),
       notam: store.getCached('notam'),
+      airspaceZones: loadAirspaceZoneItems(),
     }
     const briefing = composeBriefing(body, data)
 

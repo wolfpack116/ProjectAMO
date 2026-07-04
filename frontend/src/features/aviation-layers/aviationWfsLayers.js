@@ -1,3 +1,49 @@
+// TMA 라벨 원본이 로마자 도시명뿐("TMA GWANGJU") — 지도 표기만 한글로 치환. 그 외 정보는 그대로 영문.
+// 같은 도시 TMA라도 실제로는 고도대별 하위구역(AREA T01~T09 등, 국토부 AIP ENR 1.4 기준)이
+// 여러 개 겹쳐있는 게 정상 — 이름만 같아 다 똑같아 보이던 걸 구역코드+고도로 구분되게 한다.
+const TMA_CITY_KO = {
+  DAEGU: '대구', GANGNEUNG: '강릉', GIMHAE: '김해', GUNSAN: '군산', GWANGJU: '광주',
+  HAEMI: '해미', INCHEON: '인천', JEJU: '제주', JUNGWON: '중원', OSAN: '오산',
+  POHANG: '포항', SACHEON: '사천', SEOUL: '서울', WONJU: '원주', YECHEON: '예천',
+}
+const TMA_CITY_KO_MATCH = [
+  'match',
+  ['get', 'tma_lbl_1'],
+  ...Object.entries(TMA_CITY_KO).flatMap(([en, ko]) => [`TMA ${en}`, ko]),
+  ['get', 'tma_lbl_1'], // 매핑에 없는 값은 원문 그대로(fallback)
+]
+// tma_lbl_2 = "AREA T01" 형식 — "AREA " 접두 5글자를 잘라 코드만("T01") 남긴다.
+const TMA_LABEL_MATCH = [
+  'format',
+  TMA_CITY_KO_MATCH, { 'font-scale': 1.1 },
+  '\nTMA ', {},
+  ['slice', ['get', 'tma_lbl_2'], 5], {},
+  '\n \n', {},
+  ['get', 'tma_lbl_3'], { 'font-scale': 0.8 },
+  '\n───\n', {},
+  ['get', 'tma_lbl_4'], { 'font-scale': 0.75 },
+]
+
+// 제한/금지/위험구역 지도 라벨 = 카테고리명(한글) + 코드 + 고도밴드(상한───하한).
+// NOTAM 구역 라벨(notamGeoJson.js buildMapLabel)과 같은 포맷을 정적 WFS 데이터에 맞게 재구성.
+// 원본 데이터에 고도가 아예 없는 구역(예: 제한구역 R14)이 드물게 있음 — 그럴 땐 빈 줄 없이 코드만.
+function areaLabelField(koText, codeField, ceilingField, floorField) {
+  // 'has'는 키 존재만 확인 — R14처럼 키는 있고 값이 null인 경우를 놓친다. null 값 자체를 검사.
+  const hasAltitude = ['all', ['!=', ['get', ceilingField], null], ['!=', ['get', floorField], null]]
+  const altitudeBlock = ['case',
+    hasAltitude,
+    ['concat', '\n \n', ['get', ceilingField], '\n───\n', ['get', floorField]],
+    '',
+  ]
+  return [
+    'format',
+    koText, {},
+    ' ', {},
+    ['get', codeField], { 'font-scale': 1.1 },
+    altitudeBlock, { 'font-scale': 0.8 },
+  ]
+}
+
 // 이 레이어들은 공유 레이어 레지스트리(features/map/layerActions.js)에 연동됨.
 // id 추가/삭제 시 layerActions.test.js 커버리지 테스트가 동기화를 강제한다.
 export const AVIATION_WFS_LAYERS = [
@@ -179,6 +225,12 @@ export const AVIATION_WFS_LAYERS = [
     sourceId: 'wfs-tma',
     fillLayerId: 'wfs-tma-fill',
     lineLayerId: 'wfs-tma-line',
+    labelLayerId: 'wfs-tma-labels',
+    labelTextField: TMA_LABEL_MATCH,
+    // TMA는 실제로 같은 도시 이름 아래 고도대별 하위구역이 여러 개 겹쳐있어 라벨도 여러 개 —
+    // allow-overlap:true였을 때 서로 겹쳐 찍혀 글자가 뭉개짐. 겹치면 하나만 남기고, 4줄짜리라 여유 있는 줌부터.
+    labelAllowOverlap: false,
+    labelMinzoom: 7,
     typeName: 'lt_c_aistmac',
     dataUrl: '/data/tma.geojson',
     color: '#0891b2',
@@ -194,6 +246,10 @@ export const AVIATION_WFS_LAYERS = [
     sourceId: 'wfs-restricted',
     fillLayerId: 'wfs-restricted-fill',
     lineLayerId: 'wfs-restricted-line',
+    labelLayerId: 'wfs-restricted-labels',
+    labelTextField: areaLabelField('제한구역', 'res_lbl_1', 'res_lbl_2', 'res_lbl_3'),
+    labelMinzoom: 7,
+    labelAllowOverlap: false,
     typeName: 'lt_c_aisresc',
     dataUrl: '/data/restricted.geojson',
     color: '#dc2626',
@@ -209,6 +265,10 @@ export const AVIATION_WFS_LAYERS = [
     sourceId: 'wfs-prohibited',
     fillLayerId: 'wfs-prohibited-fill',
     lineLayerId: 'wfs-prohibited-line',
+    labelLayerId: 'wfs-prohibited-labels',
+    labelTextField: areaLabelField(['coalesce', ['get', 'prh_lbl_4'], '비행금지구역'], 'prh_lbl_1', 'prh_lbl_2', 'prh_lbl_3'),
+    labelMinzoom: 7,
+    labelAllowOverlap: false,
     typeName: 'lt_c_aisprhc',
     dataUrl: '/data/prohibited.geojson',
     color: '#dc2626',
@@ -224,6 +284,10 @@ export const AVIATION_WFS_LAYERS = [
     sourceId: 'wfs-danger',
     fillLayerId: 'wfs-danger-fill',
     lineLayerId: 'wfs-danger-line',
+    labelLayerId: 'wfs-danger-labels',
+    labelTextField: areaLabelField('위험구역', 'dng_lbl_1', 'dng_lbl_2', 'dng_lbl_3'),
+    labelMinzoom: 7,
+    labelAllowOverlap: false,
     typeName: 'lt_c_aisdngc',
     dataUrl: '/data/danger.geojson',
     color: '#dc2626',

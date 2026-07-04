@@ -140,3 +140,30 @@ test('composeBriefing: no notam data → empty routeNotams, no chip', () => {
   assert.deepEqual(b.routeConflicts, [])
   assert.equal(b.summary.some((s) => s.key === 'notam'), false)
 })
+
+test('composeBriefing: airspaceZones conflict raises the same red banner as NOTAM, without polluting routeNotams', () => {
+  const zone = {
+    id: 'zone-restricted-R1-0', category: 'restricted', summary: '제한구역 R1',
+    altitude: { lower: 0, upper: null, unit: 'FT', ref: 'AMSL' }, // UNL — cruise 고도 무관하게 겹침
+    valid_from: '2000-01-01T00:00:00Z', valid_to: '2100-01-01T00:00:00Z',
+    geometry: onRoutePoly,
+  }
+  const b = composeBriefing(request, { ...data, airspaceZones: [zone] })
+  assert.deepEqual(b.routeNotams, []) // 상시 구역은 NOTAM 목록에 안 섞임
+  assert.equal(b.routeConflicts.length, 1)
+  assert.equal(b.routeConflicts[0].id, 'zone-restricted-R1-0')
+  assert.ok(b.summary.find((s) => s.key === 'notam'))
+})
+
+test('composeBriefing: airspaceZones + real NOTAM conflicts both merge into routeConflicts', () => {
+  const zone = {
+    id: 'zone-danger-D1-0', category: 'danger', summary: '위험구역 D1',
+    altitude: { lower: 0, upper: null, unit: 'FT', ref: 'AMSL' }, // UNL — cruise 고도 무관하게 겹침
+    valid_from: '2000-01-01T00:00:00Z', valid_to: '2100-01-01T00:00:00Z',
+    geometry: onRoutePoly,
+  }
+  const b = composeBriefing(request, { ...notamData(), airspaceZones: [zone] })
+  const ids = b.routeConflicts.map((c) => c.id)
+  assert.ok(ids.includes('D0001/26'))
+  assert.ok(ids.includes('zone-danger-D1-0'))
+})

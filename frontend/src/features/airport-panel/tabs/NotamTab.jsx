@@ -30,9 +30,9 @@ function NotamCard({ item, nowMs }) {
         <span className="notam-tab-cat">{catLabelOf(item.category)}</span>
         <TimeBadge state={state} />
       </div>
-      <div className="notam-tab-meta"><span>{item.id}</span>{alt && <><span>·</span><span>{alt}</span></>}</div>
-      <div className="notam-tab-valid"><span className="notam-tab-valid-lbl">유효</span>{formatValidPeriod(item.valid_from, item.valid_to)}</div>
       <div className="notam-tab-sum">{notamSummary(item)}</div>
+      <div className="notam-tab-valid"><span className="notam-tab-valid-lbl">유효</span>{formatValidPeriod(item.valid_from, item.valid_to)}</div>
+      <div className="notam-tab-meta"><span>{item.id}</span>{alt && <><span>·</span><span>{alt}</span></>}</div>
       <div className="notam-tab-more">원문 보기 <ChevronDown size={13} className={open ? 'notam-chev is-open' : 'notam-chev'} aria-hidden="true" /></div>
       {open && <pre className="notam-raw">{item.rawText || item.summary}</pre>}
     </div>

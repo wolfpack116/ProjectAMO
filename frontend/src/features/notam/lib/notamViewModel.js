@@ -43,6 +43,19 @@ export function formatAltitude(altitude) {
   return `${lo}–${hi}${label}`
 }
 
+// 지도 라벨용 차트식 고도밴드: 상한 / 수평선 / 하한 (기준면 AGL/AMSL 접미사 없음 — 세부는 팝업에서).
+// 예) 4920FT AGL → "4920\n───\nSFC", 전고도 → "UNL\n───\nSFC", FL밴드 → "FL120\n───\nFL060".
+export function formatAltitudeBand(altitude) {
+  if (!altitude) return ''
+  const { lower, upper, unit } = altitude
+  const isFL = String(unit || '').toUpperCase() === 'FL'
+  const up = isFL
+    ? (Number(upper) >= 999 ? 'UNL' : `FL${upper}`)
+    : (upper == null ? 'UNL' : comma(upper))
+  const lo = Number(lower) === 0 ? 'SFC' : (isFL ? `FL${lower}` : comma(lower))
+  return `${up}\n───\n${lo}`
+}
+
 // 유효기간(NOTAM 최우선 정보). B) ~ C) 를 'MM/DD HH:MM ~ MM/DD HH:MM' (KST)로.
 export function formatValidPeriod(validFrom, validTo, tz = 'KST') {
   const off = tz === 'KST' ? 9 * 3600000 : 0
@@ -117,4 +130,4 @@ export function sortActiveFirst(items, nowMs) {
     RANK[deriveTimeState(b.valid_from, b.valid_to, nowMs)])
 }
 
-export default { deriveTimeState, formatAltitude, formatValidPeriod, notamSummary, sortActiveFirst, NOTAM_CATEGORIES, TIME_STATE, SOON_WINDOW_MS }
+export default { deriveTimeState, formatAltitude, formatAltitudeBand, formatValidPeriod, notamSummary, sortActiveFirst, NOTAM_CATEGORIES, TIME_STATE, SOON_WINDOW_MS }

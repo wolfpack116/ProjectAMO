@@ -25,15 +25,17 @@ export function categoryDetail({ visibilityM, ceilingFt }) {
   return { category, driver }
 }
 
-// 표시용 3레벨 fold: MVFR을 IFR로 접는다(배너·②·⑥ 표시 일관, 내부 계산은 4등급 유지).
+// 표시용 3레벨 fold: MVFR을 VFR로 올려 접는다(운영 기준: 마진 VFR은 VFR로 취급).
+// 내부 계산은 4등급 유지, 표시/색만 3단계(VFR·IFR·LIFR).
 export function to3Level(category) {
-  return category === 'MVFR' ? 'IFR' : category
+  return category === 'MVFR' ? 'VFR' : category
 }
 
+// 색 = 심각도: VFR/MVFR=green(양호), IFR=amber(주의), LIFR=red(경고).
 export function levelForCategory(category) {
-  if (category === 'VFR') return 'green'
-  if (category === 'MVFR') return 'amber'
-  return 'red' // IFR, LIFR
+  if (category === 'VFR' || category === 'MVFR') return 'green'
+  if (category === 'IFR') return 'amber'
+  return 'red' // LIFR
 }
 
 export default { categoryFor, categoryDetail, to3Level, levelForCategory }

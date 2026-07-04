@@ -32,15 +32,15 @@ test('categoryDetail: driver=both when vis and ceiling agree', () => {
 test('categoryDetail: category matches categoryFor', () => {
   assert.equal(categoryDetail({ visibilityM: 3000, ceilingFt: 5000 }).category, categoryFor({ visibilityM: 3000, ceilingFt: 5000 }))
 })
-test('to3Level: folds MVFR into IFR, leaves others', () => {
-  assert.equal(to3Level('MVFR'), 'IFR')
+test('to3Level: folds MVFR up into VFR, leaves others', () => {
+  assert.equal(to3Level('MVFR'), 'VFR')
   assert.equal(to3Level('VFR'), 'VFR')
   assert.equal(to3Level('IFR'), 'IFR')
   assert.equal(to3Level('LIFR'), 'LIFR')
 })
-test('levelForCategory maps to colors', () => {
+test('levelForCategory: VFR/MVFR=green, IFR=amber, LIFR=red', () => {
   assert.equal(levelForCategory('VFR'), 'green')
-  assert.equal(levelForCategory('MVFR'), 'amber')
-  assert.equal(levelForCategory('IFR'), 'red')
+  assert.equal(levelForCategory('MVFR'), 'green')
+  assert.equal(levelForCategory('IFR'), 'amber')
   assert.equal(levelForCategory('LIFR'), 'red')
 })

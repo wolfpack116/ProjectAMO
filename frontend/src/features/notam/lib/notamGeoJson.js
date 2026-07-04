@@ -1,5 +1,16 @@
-import { deriveTimeState, formatAltitude, formatValidPeriod, notamSummary } from './notamViewModel.js'
+import { deriveTimeState, formatAltitude, formatAltitudeBand, formatValidPeriod, notamSummary, NOTAM_CATEGORIES } from './notamViewModel.js'
 import { obstacleType, parseObstacleHeight } from './notamObstacleIcons.js'
+
+// 지도 라벨용 카테고리명: 구역 계열은 정식 명칭, 그 외는 짧은 라벨(notam-label은 구역만 렌더).
+const AREA_LABEL = { prohibited: '비행금지구역', restricted: '제한구역', danger: '위험구역', firing: '사격훈련구역' }
+const CAT_SHORT = Object.fromEntries(NOTAM_CATEGORIES.map((c) => [c.id, c.label]))
+// 지도 구역 라벨 = 카테고리명 + 차트식 고도밴드(상한/수평선/하한). 일련번호·원문은 클릭 팝업으로.
+function buildMapLabel(item) {
+  const cat = AREA_LABEL[item.category] || CAT_SHORT[item.category] || '기타'
+  const band = formatAltitudeBand(item.altitude)
+  // 제목-밴드 사이엔 빈 줄( )로 간격, 밴드(상한/수평선/하한)는 좁은 line-height로 바짝 붙음.
+  return band ? `${cat}\n \n${band}` : cat
+}
 
 // "DDMMSS[.s]N DDDMMSS[.s]E" (NOTAM E)본문 PSN) → [lon,lat]. 못 읽으면 null.
 export function parsePsnPoint(text) {
@@ -45,6 +56,7 @@ export function notamToFeatureCollection(payload, nowMs = Date.now()) {
           summary: notamSummary(it),
           validPeriod: formatValidPeriod(it.valid_from, it.valid_to),
           altitude: formatAltitude(it.altitude),
+          mapLabel: buildMapLabel(it), // 구역 라벨: 카테고리명 + 차트식 고도밴드 (notam-label 레이어)
           location: it.location || '',
           rawText: it.rawText || it.summary || '', // 지도 팝업 '원문 보기'용
           // 장애물 심볼용(다른 카테고리엔 무해)

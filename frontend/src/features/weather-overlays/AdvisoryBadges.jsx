@@ -18,6 +18,7 @@ const TONE_HEX = { sigwx: '#6d28d9', sigmet: 'var(--level-red)', airmet: 'var(--
 function AdvisoryBadges({
   badgeItems,
   warnedAirports = [],
+  warningLabels = {},
   openPanel,
   panelItems,
   hiddenKeys,
@@ -73,7 +74,12 @@ function AdvisoryBadges({
                   onClick={() => { onSelectAirport?.(icao); onOpenPanel(item.key, false) }}
                 >
                   <span className="advisory-pop-acc" style={{ background: TONE_HEX.warning }} />
-                  <span className="advisory-pop-body"><span className="advisory-pop-name">{icao}</span></span>
+                  <span className="advisory-pop-body">
+                    <span className="advisory-pop-name">{icao}</span>
+                    {warningLabels[icao]?.length > 0 && (
+                      <span className="advisory-pop-time">{warningLabels[icao].join(', ')}</span>
+                    )}
+                  </span>
                   <ChevronRight size={18} className="advisory-pop-trail" aria-hidden="true" />
                 </Button>
               </Tooltip>

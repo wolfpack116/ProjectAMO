@@ -54,6 +54,7 @@ function NotamRow({ item, nowMs, tz, expanded, onToggle, onLocate }) {
               type="button"
               className="notam-locate"
               aria-label={`${item.id} 지도에서 보기`}
+              title="지도에서 보기"
               onClick={(e) => { e.stopPropagation(); onLocate?.(item) }}
             >
               <MapPin size={13} aria-hidden="true" />

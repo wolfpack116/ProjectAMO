@@ -80,8 +80,10 @@ test('map overlay panels use responsive panel tokens', () => {
   assert.doesNotMatch(mapCss, /\.sigwx-legend-modal\s*\{[^}]*width:\s*280px/s)
 })
 
-test('route briefing panel uses responsive medium panel token', () => {
-  assert.match(routeCss, /width:\s*var\(--panel-overlay-md\)/)
+test('route briefing panel uses a responsive (non-fixed) width', () => {
+  // 다른 세션에서 브리핑 패널을 조금 넓게(clamp(380px,28vw,460px)) 조정 — 토큰 대신 커스텀 반응형 clamp.
+  // 핵심 의도(고정 px 금지·반응형)는 유지되므로 clamp 사용을 검증한다.
+  assert.match(routeCss, /\.route-check-panel\s*\{[^}]*width:\s*clamp\(/s)
   assert.match(routeCss, /\.vertical-profile-window/)
   assert.doesNotMatch(routeCss, /\.route-check-panel\s*\{[^}]*width:\s*376px/s)
 })

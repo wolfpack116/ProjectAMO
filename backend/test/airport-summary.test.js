@@ -23,11 +23,11 @@ const metarRkpc = {
   cavok_flag: false,
 }
 
-test('summarizeAirport: RKPC arrival is IFR/red with flagged fields', () => {
+test('summarizeAirport: RKPC arrival is IFR/amber with flagged fields', () => {
   const s = summarizeAirport('arrival', metarRkpc)
   assert.equal(s.icao, 'RKPC')
   assert.equal(s.category, 'IFR')
-  assert.equal(s.level, 'red')
+  assert.equal(s.level, 'amber') // 색=심각도: IFR=amber(주의), LIFR=red — flight-category.js levelForCategory
   assert.equal(s.fields.visibility.flag, true)
   assert.equal(s.fields.ceiling.flag, true)
   assert.equal(s.fields.wind.flag, true)

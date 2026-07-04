@@ -109,20 +109,37 @@ function addFirLabelLayer(map, layer, labelLayerId, role, textOffset, visibility
   })
 }
 
-function addSectorLabelLayer(map, layer, visibility) {
+function addPolygonLabelLayer(map, layer, visibility) {
   if (!layer.labelLayerId || map.getLayer(layer.labelLayerId)) {
     return
   }
+
+  // labelTextField(완전한 MapLibre 표현식)이 있으면 그대로 사용 — 구역별 한글 카테고리명·코드·고도밴드
+  // 조합처럼 커스텀 포맷이 필요한 경우. 없으면 기존 primary/secondary 필드 조합, 그마저 없으면 sector 기본값.
+  const textField = layer.labelTextField
+    ?? (layer.labelPrimaryField
+      ? [
+          'format',
+          ['get', layer.labelPrimaryField],
+          { 'font-scale': 1.1 },
+          ...(layer.labelSecondaryField ? ['\n', {}, ['get', layer.labelSecondaryField], { 'font-scale': 0.8 }] : []),
+        ]
+      : ['coalesce', ['get', 'displayName'], ['get', 'name']])
+
+  // 밀집 폴리곤(제한/금지/위험구역)은 NOTAM 구역 라벨과 같은 디클러터 방식(minzoom + 겹치면 생략).
+  // 나머지(sector, TMA)는 기존처럼 항상 표시.
+  const strict = layer.labelAllowOverlap === false
 
   map.addLayer({
     id: layer.labelLayerId,
     type: 'symbol',
     source: layer.sourceId,
     slot: 'top',
+    minzoom: layer.labelMinzoom ?? 0,
     filter: POLYGON_FILTER,
     layout: {
       visibility,
-      'text-field': ['coalesce', ['get', 'displayName'], ['get', 'name']],
+      'text-field': textField,
       'text-size': [
         'interpolate',
         ['linear'],
@@ -135,8 +152,9 @@ function addSectorLabelLayer(map, layer, visibility) {
         14,
       ],
       'text-font': ['Noto Sans CJK JP Bold'],
-      'text-allow-overlap': true,
-      'text-ignore-placement': true,
+      'text-allow-overlap': !strict,
+      'text-ignore-placement': !strict,
+      'text-optional': strict,
       'text-max-width': 10,
     },
     paint: {
@@ -471,7 +489,7 @@ export function addAviationWfsLayers(map) {
       addFirLabelLayer(map, layer, layer.internalLabelLayerId, 'internal-label', [0, 0], visibility)
     }
 
-    addSectorLabelLayer(map, layer, visibility)
+    addPolygonLabelLayer(map, layer, visibility)
   })
 
   movePointLayersToTop(map)

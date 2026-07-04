@@ -3,7 +3,8 @@ import { NOTAM_CATEGORIES } from '../notam/lib/notamViewModel.js'
 
 // Go/No-go 배너: 최악 카테고리(3레벨) + 공항 + 이유(운고/시정) + 역할별 범주 체인.
 // §2.2 정상=차분(무채/연녹), 위험(IFR/LIFR)만 솔리드 채색.
-const CAT_COLOR = { VFR: 'var(--cat-vfr)', IFR: 'var(--cat-ifr)', LIFR: 'var(--cat-lifr)' }
+// 색 = 심각도(level): VFR/MVFR=green / IFR=amber / LIFR=red (BriefingView와 동일 체계).
+const LEVEL_COLOR = { green: 'var(--level-green)', amber: 'var(--level-amber)', red: 'var(--level-red)' }
 const ROLE_LABEL = { departure: '출발', arrival: '도착', alternate: '교체' }
 const DRIVER_LABEL = { ceiling: '운고', visibility: '시정', both: '운고·시정' }
 const NOTAM_CAT_LABEL = Object.fromEntries(NOTAM_CATEGORIES.map((c) => [c.id, c.label]))
@@ -13,7 +14,7 @@ export default function BriefingBanner({ banner, routeConflicts = [] }) {
   const hasConflict = routeConflicts.length > 0
   if (!worst && !hasConflict) return null
   const good = worst?.category === 'VFR'
-  const catColor = CAT_COLOR[worst?.category] || 'var(--text-3)'
+  const catColor = LEVEL_COLOR[worst?.level] || 'var(--text-3)'
 
   const reason = good
     ? '전 구간 시정·운고 여유'
@@ -36,7 +37,7 @@ export default function BriefingBanner({ banner, routeConflicts = [] }) {
                 <span key={a.role} className="bv-banner-chain-item">
                   <span className="bv-banner-chain-role">{ROLE_LABEL[a.role]}</span>
                   <b>{a.icao}</b>
-                  <b style={{ color: CAT_COLOR[a.category] || 'var(--text-3)' }}>{a.category}</b>
+                  <b style={{ color: LEVEL_COLOR[a.level] || 'var(--text-3)' }}>{a.category}</b>
                 </span>
               ))}
             </div>

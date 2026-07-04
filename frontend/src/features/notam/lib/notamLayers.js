@@ -89,18 +89,17 @@ export function addNotamLayers(map, featureData) {
       },
     })
   }
-  // 구역 중심 라벨: NOTAM 번호 + 고도(EFB식). 줌 확대(7+)에서만·겹치면 자동 생략(디클러터).
+  // 구역 중심 라벨: 카테고리명 + 차트식 고도밴드(상한/수평선/하한). 일련번호·원문은 클릭 팝업.
+  // 줌 확대(7+)에서만·겹치면 자동 생략(디클러터).
   if (!map.getLayer('notam-label')) {
     map.addLayer({
       id: 'notam-label', type: 'symbol', source: 'notam-src', slot: 'top', minzoom: 7,
       filter: IS_AREA,
       layout: {
         'symbol-placement': 'point',
-        'text-field': ['case',
-          ['>', ['length', ['coalesce', ['get', 'altitude'], '']], 0], ['concat', ['get', 'id'], '\n', ['get', 'altitude']],
-          ['get', 'id']],
+        'text-field': ['get', 'mapLabel'],
         'text-size': 11,
-        'text-line-height': 1.1,
+        'text-line-height': 0.8, // 밴드(상한/수평선/하한)를 분수처럼 바짝 붙임(제목-밴드 간격은 빈 줄로 확보)
         'text-anchor': 'center',
         'text-justify': 'center',
         'text-allow-overlap': false,
@@ -214,6 +213,21 @@ function escapeHtml(s) {
   return String(s || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
 }
 
+// 팝업 카테고리 아이콘(표·공항탭과 동일 lucide 아이콘의 인라인 SVG — HTML 팝업이라 React 못 씀).
+// 아이콘 매핑은 NotamPanel/NotamTab CAT_ICON과 동일: 금지=Ban, 사격=Crosshair, 위험=TriangleAlert 등.
+const CAT_SVG = {
+  prohibited: '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
+  firing: '<circle cx="12" cy="12" r="10"/><line x1="22" x2="18" y1="12" y2="12"/><line x1="6" x2="2" y1="12" y2="12"/><line x1="12" x2="12" y1="6" y2="2"/><line x1="12" x2="12" y1="22" y2="18"/>',
+  danger: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  restricted: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 22V2"/>',
+  obstacle: '<path d="M4.9 16.1C1 12.2 1 5.8 4.9 1.9"/><path d="M7.8 4.7a6.14 6.14 0 0 0-.8 7.5"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.8c2 2 2.26 5.11.8 7.47"/><path d="M19.1 1.9a9.96 9.96 0 0 1 0 14.1"/><path d="M9.5 18h5"/><path d="m8 22 4-11 4 11"/>',
+  facility: '<path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/>',
+  other: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+}
+function catIconSvg(category) {
+  return `<svg class="notam-pop-cat-ic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${CAT_SVG[category] || CAT_SVG.other}</svg>`
+}
+
 export function notamPopupHtml(features) {
   const shown = features.slice(0, features.length <= 3 ? features.length : 3)
   const rows = shown.map((f) => {
@@ -224,7 +238,7 @@ export function notamPopupHtml(features) {
       ? `<details class="notam-pop-rawwrap"><summary>원문 보기</summary><pre class="notam-pop-raw">${escapeHtml(p.rawText)}</pre></details>`
       : ''
     return `<div class="notam-pop-row">`
-      + `<span class="notam-pop-cat">${catLabel(p.category)}</span>`
+      + `<span class="notam-pop-cat">${catIconSvg(p.category)}${catLabel(p.category)}</span>`
       + `<span class="notam-pop-id">${p.id}</span>`
       + `<span class="notam-pop-ts ts-${ts.key}">${ts.glyph} ${ts.label}</span>`
       + `<div class="notam-pop-sum">${escapeHtml(p.summary)}${alt}</div>`

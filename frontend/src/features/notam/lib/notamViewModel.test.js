@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { deriveTimeState, formatAltitude, formatValidPeriod, notamSummary, sortActiveFirst, NOTAM_CATEGORIES } from './notamViewModel.js'
+import { deriveTimeState, formatAltitude, formatAltitudeBand, formatValidPeriod, notamSummary, sortActiveFirst, NOTAM_CATEGORIES } from './notamViewModel.js'
 
 const SOON = 2 * 60 * 60 * 1000
 
@@ -43,6 +43,13 @@ test('formatAltitude: FL band', () => {
 
 test('formatAltitude: null → empty', () => {
   assert.equal(formatAltitude(null), '')
+})
+
+test('formatAltitudeBand: 지도 라벨 차트식(상한/수평선/하한, 기준면 라벨 없음)', () => {
+  assert.equal(formatAltitudeBand({ lower: 0, upper: 4920, unit: 'FT', ref: 'AGL' }), '4,920\n───\nSFC')
+  assert.equal(formatAltitudeBand({ lower: 0, upper: 999, unit: 'FL', ref: null }), 'UNL\n───\nSFC')
+  assert.equal(formatAltitudeBand({ lower: 60, upper: 120, unit: 'FL', ref: null }), 'FL120\n───\nFL60')
+  assert.equal(formatAltitudeBand(null), '')
 })
 
 test('formatValidPeriod: B~C in KST MM/DD HH:MM', () => {
