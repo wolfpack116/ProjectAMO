@@ -41,13 +41,19 @@ test('formatAltitude: FL band', () => {
   assert.equal(formatAltitude({ lower: 100, upper: 200, unit: 'FL', ref: null }), 'FL100–FL200')
 })
 
+test('formatAltitude: 저고도 FL은 ft로 환산(장애물 등)', () => {
+  assert.equal(formatAltitude({ lower: 0, upper: 5, unit: 'FL', ref: null }), 'SFC–500FT')
+  assert.equal(formatAltitude({ lower: 10, upper: 30, unit: 'FL', ref: null }), '1,000FT–3,000FT')
+})
+
 test('formatAltitude: null → empty', () => {
   assert.equal(formatAltitude(null), '')
 })
 
 test('formatAltitudeBand: 지도 라벨 차트식(상한/수평선/하한, 기준면 라벨 없음)', () => {
   assert.equal(formatAltitudeBand({ lower: 0, upper: 4920, unit: 'FT', ref: 'AGL' }), '4,920\n───\nSFC')
-  assert.equal(formatAltitudeBand({ lower: 0, upper: 999, unit: 'FL', ref: null }), 'UNL\n───\nSFC')
+  assert.equal(formatAltitudeBand({ lower: 0, upper: 999, unit: 'FL', ref: null }), '전고도') // 목록/탭과 통일
+  assert.equal(formatAltitudeBand({ lower: 0, upper: 5, unit: 'FL', ref: null }), '500FT\n───\nSFC') // 저고도 ft
   assert.equal(formatAltitudeBand({ lower: 60, upper: 120, unit: 'FL', ref: null }), 'FL120\n───\nFL60')
   assert.equal(formatAltitudeBand(null), '')
 })

@@ -67,6 +67,8 @@
 .notam-th-state { text-align: right; }
 .notam-row { border-bottom: 1px solid var(--stroke-2); cursor: pointer; }
 .notam-row:hover { background: var(--level-gray-bg); }
+/* 키보드 포커스 가시화(접근성): 목록 행·공항탭 카드 */
+.notam-row:focus-visible, .notam-tab-card:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .notam-td-cat { padding: 9px 6px; }
 .notam-td-cat span { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; vertical-align: middle; }
 .notam-td-loc { padding: 9px 6px; font-weight: 700; }

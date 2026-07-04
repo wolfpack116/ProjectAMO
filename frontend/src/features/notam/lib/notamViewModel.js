@@ -31,11 +31,16 @@ function comma(n) {
   return Number(n).toLocaleString('en-US')
 }
 
-// SFC(0)~무제한(FL 999 등) → "전고도". 그 외 실제 범위. FT는 AGL/AMSL 라벨 보존, FL은 FLxxx.
+// 저고도 FL 밴드는 ft로 환산(장애물/저공역은 FL 표기가 어색 — 파일럿은 ft AGL로 인지). FL30=3,000ft 이하만.
+const LOW_FL_MAX = 30
+function lowFlToFt(v) { return Number(v) === 0 ? 'SFC' : `${comma(Number(v) * 100)}FT` }
+
+// SFC(0)~무제한(FL 999 등) → "전고도". 저고도 FL은 ft. 그 외 FL은 FLxxx. FT는 AGL/AMSL 라벨 보존.
 export function formatAltitude(altitude) {
   if (!altitude) return ''
   const { lower, upper, unit, ref } = altitude
   if (unit === 'FL' && Number(lower) === 0 && Number(upper) >= 999) return '전고도'
+  if (unit === 'FL' && Number(upper) <= LOW_FL_MAX) return `${lowFlToFt(lower)}–${lowFlToFt(upper)}`
   if (unit === 'FL') return `FL${lower}–FL${upper}`
   const lo = Number(lower) === 0 ? 'SFC' : comma(lower)
   const hi = `${comma(upper)}FT`
@@ -49,9 +54,9 @@ export function formatAltitudeBand(altitude) {
   if (!altitude) return ''
   const { lower, upper, unit } = altitude
   const isFL = String(unit || '').toUpperCase() === 'FL'
-  const up = isFL
-    ? (Number(upper) >= 999 ? 'UNL' : `FL${upper}`)
-    : (upper == null ? 'UNL' : comma(upper))
+  if (isFL && Number(lower) === 0 && Number(upper) >= 999) return '전고도' // 목록/탭과 동일 라벨(밴드 대신)
+  if (isFL && Number(upper) <= LOW_FL_MAX) return `${lowFlToFt(upper)}\n───\n${lowFlToFt(lower)}` // 저고도는 ft
+  const up = isFL ? `FL${upper}` : (upper == null ? '무제한' : comma(upper))
   const lo = Number(lower) === 0 ? 'SFC' : (isFL ? `FL${lower}` : comma(lower))
   return `${up}\n───\n${lo}`
 }

@@ -57,6 +57,31 @@
 .bv-notam-layerbtn { margin: var(--space-snudge) 0 var(--space-s); }
 .bv-notam-grouphead { margin: var(--space-s) 0 var(--space-xs); font-size: var(--fs-300); font-weight: var(--fw-semibold); color: var(--text-2); }
 .bv-notam-grouphead .dim { color: var(--text-3); font-weight: var(--fw-regular); }
+/* 브리핑 NOTAM 행 원문 펼침 + 그룹 더보기(네이티브 details — 키보드 접근) */
+.bv-notam-raw > summary, .bv-notam-groupmore > summary { cursor: pointer; color: var(--accent); font-size: var(--fs-200); font-weight: var(--fw-semibold); list-style: none; padding: 2px 0; }
+.bv-notam-raw > summary::-webkit-details-marker, .bv-notam-groupmore > summary::-webkit-details-marker { display: none; }
+.bv-notam-raw pre { margin: 4px 0 2px; padding: 6px 8px; background: var(--bg-2); border: 0.5px solid var(--stroke-2); border-radius: var(--radius-md); font-size: var(--fs-200); color: var(--text-2); white-space: pre-wrap; word-break: break-word; font-family: Consolas, monospace; }
+.bv-notam-groupmore > summary { margin: 2px 0 4px; }
+/* ⑥ 목적지 예보 표 — 범주 칸 좁게(빈칸 제거), 셀 상단 정렬 */
+.bv-dest-periods { table-layout: fixed; }
+.bv-dest-periods td, .bv-dest-periods th { vertical-align: top; word-break: keep-all; }
+/* 기간 변화군 타입 칩(base/BECMG/TEMPO/PROB) — 중립색(심각도 색과 구분) */
+.bv-dest-ptype { display: inline-block; font-size: var(--fs-100); font-weight: var(--fw-semibold); padding: 0 4px; border-radius: 3px; background: var(--bg-3); color: var(--text-2); white-space: nowrap; }
+.bv-dest-ptype[data-type="base"] { background: transparent; color: var(--text-3); padding: 0; }
+.bv-dest-eta-tag { display: inline-block; margin-left: 4px; font-size: var(--fs-100); font-weight: var(--fw-bold); padding: 0 5px; border-radius: 3px; background: var(--accent); color: #fff; }
+/* 원문 TAF에서 ETA 포함 라인 강조(경고색 아님 — "도착 시간대"라는 액센트 하이라이트) */
+.bv-dest-raw-eta { display: block; background: color-mix(in srgb, var(--accent) 14%, transparent); font-weight: var(--fw-semibold); border-radius: 3px; }
+/* 타임라인 바 시간축(6h 눈금) — 색만 있던 바에 시각 맥락 부여 */
+.bv-tafbar-axis { position: relative; height: 15px; margin-top: 4px; }
+.bv-tafbar-tick { position: absolute; top: 0; font-size: var(--fs-100); line-height: 1; color: var(--text-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bv-tafbar-tick[data-align="mid"] { transform: translateX(-50%); }
+.bv-tafbar-tick[data-align="end"] { transform: translateX(-100%); }
+/* 전환점 눈금선 — 라벨 기준선을 실제 경계에 맞춤 */
+.bv-tafbar-tick::before { content: ''; position: absolute; top: -5px; width: 1px; height: 4px; background: var(--text-3); }
+.bv-tafbar-tick[data-align="mid"]::before { left: 50%; }
+.bv-tafbar-tick[data-align="start"]::before { left: 0; }
+.bv-tafbar-tick[data-align="end"]::before { right: 0; }
+.bv-tafbar-tick b { color: var(--text-3); margin-right: 2px; font-weight: var(--fw-semibold); }
 .bv-haz-enc { flex: none; margin-top: 2px; }
 .bv-haz-main { flex: 1; min-width: 0; }
 .bv-haz-line1 { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-xs); font-size: var(--fs-400); font-weight: var(--fw-semibold); }

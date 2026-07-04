@@ -65,7 +65,8 @@ export function addNotamLayers(map, featureData) {
         'icon-size': 0.95,
         'icon-allow-overlap': true,
         'icon-anchor': 'bottom',
-        'text-field': ['get', 'heightLabel'],
+        // 높이 라벨은 확대(줌 9+)에서만 — 낮은 줌에서 장애물 다수 겹칠 때 라벨 도배 방지
+        'text-field': ['step', ['zoom'], '', 9, ['get', 'heightLabel']],
         'text-size': 11,
         'text-offset': [0, 0.4],
         'text-anchor': 'top',

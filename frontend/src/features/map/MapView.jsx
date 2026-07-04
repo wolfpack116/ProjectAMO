@@ -292,7 +292,15 @@ const MapView = forwardRef(function MapView({
       if (moreBtn) moreBtn.addEventListener('click', () => { onOpenNotamPanel?.(); popup.remove() })
     }
     map.on('click', onNotamClick)
-    return () => map.off('click', onNotamClick)
+    // 클릭 가능 신호: NOTAM 구역/마커 위에서 커서 포인터(어포던스)
+    const hoverLayers = ['notam-fill', 'notam-line', 'notam-fir-line', 'notam-marker', 'notam-obstacle'].filter((id) => map.getLayer(id))
+    const onNotamEnter = () => { if (metVisibility.notam) map.getCanvas().style.cursor = 'pointer' }
+    const onNotamLeave = () => { map.getCanvas().style.cursor = '' }
+    for (const id of hoverLayers) { map.on('mouseenter', id, onNotamEnter); map.on('mouseleave', id, onNotamLeave) }
+    return () => {
+      map.off('click', onNotamClick)
+      for (const id of hoverLayers) { map.off('mouseenter', id, onNotamEnter); map.off('mouseleave', id, onNotamLeave) }
+    }
   }, [notamFc, metVisibility.notam, notamCategoryFilter, notamLocationFilter, routeBriefingMapMode, routeBriefing.state.briefing])
   const [adsbData, setAdsbData] = useState(null)
   const [adsbLoading, setAdsbLoading] = useState(false)

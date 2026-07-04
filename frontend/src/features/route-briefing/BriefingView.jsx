@@ -20,7 +20,8 @@ import { phenomenonKo } from '../../shared/weather/phenomenonKo.js'
 import { buildAmosConsoleModel } from '../../shared/weather/amosViewModel.js'
 import { useCrossSectionLayers, CrossSectionToggles } from './crossSectionLayers.jsx'
 import { buildRawWindsTable } from './lib/rawWindsModel.js'
-import { deriveTimeState, formatAltitude, notamSummary, NOTAM_CATEGORIES, TIME_STATE } from '../notam/lib/notamViewModel.js'
+import { deriveTimeState, formatAltitude, formatValidPeriod, notamSummary, NOTAM_CATEGORIES } from '../notam/lib/notamViewModel.js'
+import NotamCell from '../notam/NotamCell.jsx'
 import './BriefingView.css'
 
 const LEVEL_BADGE = { green: 'success', amber: 'warning', red: 'danger', gray: 'subtle' }
@@ -32,8 +33,7 @@ const CAT_RANK = { VFR: 0, MVFR: 1, IFR: 2, LIFR: 3 }
 const SEG_RANK = { '약': 1, '중': 2, '심': 3 }
 const FIELDS = [['바람', 'wind'], ['시정', 'visibility'], ['운고', 'ceiling'], ['기온/노점', 'temp'], ['현상', 'weather'], ['QNH', 'qnh']]
 const NOTAM_CAT_LABEL = Object.fromEntries(NOTAM_CATEGORIES.map((c) => [c.id, c.label]))
-// 시간상태 색(색의 유일한 축). 안전값(고도·요약)은 --text-2 이상, 흐린 색 금지(spec 접근성 #2).
-const TS_COLOR = { active: 'var(--level-red)', soon: 'var(--level-amber)', upcoming: 'var(--text-3)' }
+const NOTAM_GROUP_LIMIT = 5 // 공항 그룹당 기본 표시 수(나머지는 "더 보기"로 접음 — 브리핑 볼륨 통제)
 
 // 위험현상 code → 아이콘 (substring 매칭, 코드 변종에 견고).
 function hazardIcon(code) {
@@ -61,7 +61,7 @@ function tafBarSegments(timeline, validity) {
     const color = catColorOf(entry.category)
     const left = Math.max(0, Math.min(100, pctOf(entry.time, s, span)))
     if (segs.length && segs[segs.length - 1].color === color) continue
-    segs.push({ color, left })
+    segs.push({ color, left, time: entry.time }) // time = 이 색(범주)이 시작되는 시각 = 전환점
   }
   return segs.map((sg, i) => ({ ...sg, width: (i < segs.length - 1 ? segs[i + 1].left : 100) - sg.left }))
 }
@@ -462,29 +462,19 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
     })
     .filter(Boolean)
   const notamRouteGroup = routeNotams.filter((n) => n.onRoute && !n.airportRole) // 어느 공항에도 안 속한 순수 경로 통과
-  const notamRow = (n, showNm) => {
-    const ts = deriveTimeState(n.validFrom, n.validTo, Date.now())
-    const t = TIME_STATE[ts]
-    return (
-      <div key={n.id} className="bv-notam-row" data-conflict={n.conflict ? 'true' : 'false'}>
-        <Badge appearance={n.conflict ? 'filled' : 'tint'}
-          style={n.conflict ? { backgroundColor: TS_COLOR[ts], color: '#fff' } : { color: TS_COLOR[ts] }}>
-          {t.glyph} {NOTAM_CAT_LABEL[n.category] || n.category}
-        </Badge>
-        <div className="bv-notam-main">
-          <div className="bv-notam-line1">
-            {n.conflict ? <b style={{ color: 'var(--level-red)' }}>경로 저촉 · </b> : null}
-            <span style={{ color: 'var(--text-2)' }}>{notamSummary(n) || n.summary || n.id}</span>
-            <span className="bv-haz-code">{n.id}</span>
-          </div>
-          <Caption1 style={{ color: 'var(--text-2)' }}>
-            {t.label} · {formatAltitude(n.altitude) || '고도 미상'}
-            {showNm && n.routeIntervalNm ? <> · <span className="tnum">{n.routeIntervalNm.startNm}–{n.routeIntervalNm.endNm}NM</span></> : ''}
-          </Caption1>
-        </div>
-      </div>
-    )
-  }
+  const notamCell = (n) => (
+    <NotamCell
+      key={n.id}
+      category={n.category}
+      timeState={deriveTimeState(n.validFrom, n.validTo, Date.now())}
+      summary={notamSummary(n) || n.summary || n.id}
+      metaText={`${NOTAM_CAT_LABEL[n.category] || n.category} · ${n.id}${n.routeIntervalNm ? ` · ${n.routeIntervalNm.startNm}–${n.routeIntervalNm.endNm}NM` : ''}`}
+      altitude={formatAltitude(n.altitude)}
+      rawText={n.rawText}
+      validText={formatValidPeriod(n.validFrom, n.validTo)}
+      conflict={n.conflict}
+    />
+  )
   const notamSection = routeNotams.length > 0 && (
     <section data-bvid="notam" className="bv-section">
       <Card>
@@ -504,15 +494,25 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
         {notamRouteGroup.length > 0 && (
           <>
             <div className="bv-notam-grouphead">경로상 <span className="dim">{notamRouteGroup.length}</span></div>
-            {notamRouteGroup.map((n) => notamRow(n, true))}
+            <div className="notam-cellgrid">{notamRouteGroup.map(notamCell)}</div>
           </>
         )}
-        {notamAirportGroups.map((g) => (
-          <Fragment key={g.role}>
-            <div className="bv-notam-grouphead">{roleLabel(g.role)} 공항 {g.icao} <span className="dim">{g.items.length}</span></div>
-            {g.items.map((n) => notamRow(n, false))}
-          </Fragment>
-        ))}
+        {notamAirportGroups.map((g) => {
+          const head = g.items.slice(0, NOTAM_GROUP_LIMIT) // 발효중·저촉 우선 정렬돼 있어 앞쪽이 중요
+          const rest = g.items.slice(NOTAM_GROUP_LIMIT)
+          return (
+            <Fragment key={g.role}>
+              <div className="bv-notam-grouphead">{roleLabel(g.role)} 공항 {g.icao} <span className="dim">{g.items.length}</span></div>
+              <div className="notam-cellgrid">{head.map(notamCell)}</div>
+              {rest.length > 0 && (
+                <details className="bv-notam-groupmore">
+                  <summary>{rest.length}건 더 보기</summary>
+                  <div className="notam-cellgrid">{rest.map(notamCell)}</div>
+                </details>
+              )}
+            </Fragment>
+          )
+        })}
       </Card>
     </section>
   )
@@ -522,19 +522,55 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
   const catBar = (timeline, validity, eta, tall) => {
     const segs = tafBarSegments(timeline, validity)
     if (segs.length === 0) return null
-    const etaLeft = validity?.start && validity?.end && eta
-      ? Math.max(0, Math.min(100, pctOf(eta, Date.parse(validity.start), Date.parse(validity.end) - Date.parse(validity.start))))
-      : null
+    const s = Date.parse(validity?.start); const e = Date.parse(validity?.end)
+    const span = e - s
+    const etaLeft = (Number.isFinite(s) && Number.isFinite(e) && span > 0 && eta)
+      ? Math.max(0, Math.min(100, pctOf(eta, s, span))) : null
+    // 눈금 = 색(범주) 전환 시각 + 끝점(유효종료). "언제 바뀌는지"를 그 자리에 표기. 날짜는 바뀔 때만.
+    const ticks = []
+    let prevDate = null
+    const pushTick = (iso, left) => {
+      const p = kstParts(iso); if (!p) return
+      ticks.push({ left, time: p.time, day: p.date !== prevDate ? p.date : null }); prevDate = p.date
+    }
+    for (const sg of segs) pushTick(sg.time, sg.left)
+    if (Number.isFinite(e)) pushTick(validity.end, 100)
+    const etaT = etaLeft != null ? kstParts(eta) : null
     return (
       <div className={`bv-tafbar${tall ? ' bv-tafbar-tall' : ''}`}>
-        {etaLeft != null && <span className="bv-tafbar-eta" style={{ left: `${etaLeft}%` }}><span className="bv-tafbar-eta-mark">▼ETA</span></span>}
+        {etaLeft != null && <span className="bv-tafbar-eta" style={{ left: `${etaLeft}%` }}><span className="bv-tafbar-eta-mark">▼ETA {etaT?.time}</span></span>}
         <div className="bv-tafbar-track">
           {segs.map((sg, i) => <span key={i} style={{ left: `${sg.left}%`, width: `${sg.width}%`, background: sg.color }} />)}
         </div>
+        {ticks.length > 0 && (
+          <div className="bv-tafbar-axis" aria-hidden="true">
+            {ticks.map((tk, i) => (
+              <span key={i} className="bv-tafbar-tick" data-align={tk.left <= 2 ? 'start' : tk.left >= 98 ? 'end' : 'mid'} style={{ left: `${tk.left}%` }}>
+                {tk.day ? <b>{tk.day}</b> : null}{tk.time}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     )
   }
   const periodTypeLabel = (t) => (t === 'base' ? 'base' : t.replace('_', ' '))
+  // 기간 표시(간결): 같은 날이면 "MM/DD HH:MM–HH:MM", 넘어가면 "MM/DD HH:MM → MM/DD HH:MM". tz는 헤더에 이미 표기.
+  const kstParts = (iso) => {
+    const ms = Date.parse(iso); if (!Number.isFinite(ms)) return null
+    const d = new Date(ms + (tz === 'UTC' ? 0 : 9 * 3600000)); const q = (n) => String(n).padStart(2, '0')
+    return { date: `${q(d.getUTCMonth() + 1)}/${q(d.getUTCDate())}`, time: `${q(d.getUTCHours())}:${q(d.getUTCMinutes())}` }
+  }
+  const fmtPeriod = (start, end) => {
+    const a = kstParts(start); const b = kstParts(end); if (!a || !b) return ''
+    return a.date === b.date ? `${a.date} ${a.time}–${b.time}` : `${a.date} ${a.time} → ${b.date} ${b.time}`
+  }
+  // 필드 임계 하이라이트: amber=주의, red=경고(백엔드 levels 재사용)
+  const LVL_CELL = {
+    amber: { background: 'var(--level-amber-bg)', color: 'var(--level-amber)', fontWeight: 700 },
+    red: { background: 'var(--level-red-bg)', color: 'var(--level-red)', fontWeight: 700 },
+  }
+  const destCellStyle = (lvl) => ({ fontVariantNumeric: 'tabular-nums', ...(LVL_CELL[lvl] || {}) })
 
   const destination = (
     <section data-bvid="destination" className="bv-section">
@@ -558,34 +594,44 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
             {dest.periods.length > 0 && (
               <Table size="small" className="bv-dest-periods" style={{ width: '100%' }}>
                 <TableHeader><TableRow>
-                  <TableHeaderCell>범주</TableHeaderCell><TableHeaderCell>기간</TableHeaderCell>
-                  <TableHeaderCell>바람</TableHeaderCell><TableHeaderCell>시정</TableHeaderCell>
-                  <TableHeaderCell>운고</TableHeaderCell><TableHeaderCell>현상</TableHeaderCell>
+                  <TableHeaderCell style={{ width: 52 }}>범주</TableHeaderCell><TableHeaderCell style={{ width: '30%' }}>기간</TableHeaderCell>
+                  <TableHeaderCell style={{ width: 92 }}>바람</TableHeaderCell><TableHeaderCell style={{ width: 64 }}>시정</TableHeaderCell>
+                  <TableHeaderCell>운고</TableHeaderCell><TableHeaderCell style={{ width: 52 }}>현상</TableHeaderCell>
                 </TableRow></TableHeader>
                 <TableBody>
                   {dest.periods.map((p, i) => {
                     const hl = p.etaActive === true // ETA 시점의 지속조건/TEMPO (백엔드 계산)
+                    const L = p.levels || {}
                     return (
                       <TableRow key={i} className={hl ? 'bv-dest-row-hl' : undefined}>
                         <TableCell><CatBadge category={p.category} /></TableCell>
-                        <TableCell style={{ color: 'var(--text-3)', fontVariantNumeric: 'tabular-nums' }}>
-                          {formatBriefingTime(p.start, tz, { withDate: true })}~{formatBriefingTime(p.end, tz, { withDate: true })}
-                          {' '}<b style={{ color: 'var(--accent)' }}>{p.type !== 'base' ? periodTypeLabel(p.type) : 'base'}</b>{hl ? ' ◀ETA' : ''}
+                        <TableCell style={{ fontVariantNumeric: 'tabular-nums' }}>
+                          <span style={{ color: 'var(--text-2)' }}>{fmtPeriod(p.start, p.end)}</span>{' '}
+                          <span className="bv-dest-ptype" data-type={p.type}>{p.type === 'base' ? 'base' : periodTypeLabel(p.type)}</span>
+                          {hl ? <span className="bv-dest-eta-tag">ETA</span> : null}
                         </TableCell>
-                        <TableCell className="tnum">{p.wind}</TableCell>
-                        <TableCell className="tnum">{p.vis}</TableCell>
-                        <TableCell className="tnum">{p.clouds}</TableCell>
-                        <TableCell>{p.wx}</TableCell>
+                        <TableCell className="tnum" style={destCellStyle(L.windLevel)}>{p.wind}</TableCell>
+                        <TableCell className="tnum" style={destCellStyle(L.visLevel)}>{p.vis}</TableCell>
+                        <TableCell className="tnum" style={destCellStyle(L.ceilLevel)}>{p.clouds}</TableCell>
+                        <TableCell style={destCellStyle(L.wxLevel)}>{p.wx}</TableCell>
                       </TableRow>
                     )
                   })}
                 </TableBody>
               </Table>
             )}
-            {dest.raw && (
+            {(dest.rawLines?.length || dest.raw) && (
               <details className="bv-rawwinds bv-dest-raw">
                 <summary>원문 TAF</summary>
-                <pre className="bv-dest-raw-pre">{dest.raw}</pre>
+                <pre className="bv-dest-raw-pre">
+                  {dest.rawLines?.length
+                    ? dest.rawLines.map((ln, i) => (
+                      <div key={i} className={ln.etaActive ? 'bv-dest-raw-eta' : undefined}>
+                        {ln.text}{i === dest.rawLines.length - 1 ? '=' : ''}
+                      </div>
+                    ))
+                    : dest.raw}
+                </pre>
               </details>
             )}
           </>

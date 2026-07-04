@@ -45,7 +45,14 @@ function NotamRow({ item, nowMs, tz, expanded, onToggle, onLocate }) {
   const where = item.scope === 'fir' ? '전역' : item.location
   return (
     <>
-      <tr className="notam-row" onClick={onToggle}>
+      <tr
+        className="notam-row"
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
+        onClick={onToggle}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
+      >
         <td className="notam-td-cat"><CatIcon id={item.category} /><span>{catLabelOf(item.category)}</span></td>
         <td className="notam-td-loc">
           {where}

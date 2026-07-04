@@ -62,11 +62,28 @@ function mergeState(base, g) {
     wx: g.wx_touched ? g.wx : base.wx,
   }
 }
+// 필드별 임계 레벨(하이라이트용). green=무해(표시 안 함/null), amber=주의(IFR급), red=경고(LIFR급).
+// 시정·운고는 flight-category 임계 재사용, 바람/현상은 운영 관례.
+function fieldLevels(s) {
+  const vis = s.cavok ? 9999 : s.vis
+  const ceil = ceilingFromClouds(s.clouds)
+  const w = s.wind || {}
+  const spd = Number(w.speed); const gust = Number(w.gust)
+  const wxRaw = (s.wx && s.wx.length) ? s.wx.map((x) => x.raw || x).join(' ') : ''
+  return {
+    visLevel: !Number.isFinite(vis) ? null : vis < 1600 ? 'red' : vis < 5000 ? 'amber' : null,
+    ceilLevel: !Number.isFinite(ceil) ? null : ceil < 500 ? 'red' : ceil < 1000 ? 'amber' : null,
+    windLevel: ((Number.isFinite(spd) && spd >= 35) || (Number.isFinite(gust) && gust >= 45)) ? 'red'
+      : (Number.isFinite(gust) || (Number.isFinite(spd) && spd >= 25)) ? 'amber' : null,
+    wxLevel: !wxRaw ? null : /TS|FZ|\+|GR|FC|VA|SS|DS|SQ/.test(wxRaw) ? 'red' : 'amber',
+  }
+}
 function periodRow(type, start, end, s) {
   return {
     type, start, end,
     category: stateCategory({ visibilityM: s.vis, cavok: s.cavok, clouds: s.clouds }),
     wind: windText(s.wind), vis: visText(s.vis, s.cavok), clouds: cloudText(s.clouds, s.cavok), wx: wxText(s.wx),
+    levels: fieldLevels(s), // { windLevel, visLevel, ceilLevel, wxLevel }
   }
 }
 function buildPeriods(taf, validity) {
@@ -125,6 +142,7 @@ function rawGroupSeg(g) {
   if (g.clouds_touched) parts.push(rawCloudTok(g.clouds))
   return parts.join(' ')
 }
+// 라인 배열 반환(각 라인은 periods와 같은 순서: base + change_groups) → ETA 라인 하이라이트에 사용.
 function reconstructRaw(taf) {
   if (!taf?.base) return null
   const h = taf.header ?? {}
@@ -132,7 +150,7 @@ function reconstructRaw(taf) {
   for (const g of (taf.change_groups ?? [])) {
     lines.push(`  ${g.type.replace('_', ' ')} ${ddhh(g.start)}/${ddhh(g.end)} ${rawGroupSeg(g)}`)
   }
-  return `${lines.join('\n')}=`
+  return { lines, text: `${lines.join('\n')}=` }
 }
 
 // 교체공항 병렬 요약. 교체공항이 선택됐으면(icao) TAF 없어도 표시(noTaf).
@@ -178,6 +196,9 @@ export function buildDestination(taf, etaIso, { alternateTaf = null, alternateIc
   const validity = { start: taf?.header?.valid_start ?? null, end: taf?.header?.valid_end ?? null }
   const periods = buildPeriods(taf, validity)
   const etaOutOfRange = markEtaActive(periods, etaIso, validity)
+  const rawObj = reconstructRaw(taf)
+  // 원문 라인 = periods와 동일 순서 → 각 라인에 ETA 활성 여부 부착(프론트에서 그 줄 하이라이트).
+  const rawLines = rawObj ? rawObj.lines.map((text, i) => ({ text, etaActive: !!periods[i]?.etaActive })) : []
   return {
     icao: taf?.header?.icao ?? null,
     category: tafAtEta?.category ?? null,
@@ -187,7 +208,8 @@ export function buildDestination(taf, etaIso, { alternateTaf = null, alternateIc
     etaOutOfRange,
     timeline: categoryTimeline(taf),
     periods,
-    raw: reconstructRaw(taf),
+    raw: rawObj?.text ?? null,
+    rawLines,
     alternate: buildAlternate(alternateTaf, etaIso, alternateIcao),
     alternateRequired: alt.required,
     alternateReason: alt.reason,
