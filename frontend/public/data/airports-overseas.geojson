@@ -7,6 +7,7 @@
         "icao": "RCKH",
         "name": "Kaohsiung International Airport",
         "nameKo": "가오슝",
+        "region": "대만·홍콩·마카오·몽골",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -24,6 +25,7 @@
         "icao": "RCMQ",
         "name": "Taichung International Airport / Ching Chuang Kang Air Base",
         "nameKo": "타이중",
+        "region": "대만·홍콩·마카오·몽골",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -41,6 +43,7 @@
         "icao": "RCTP",
         "name": "Taiwan Taoyuan International Airport",
         "nameKo": "타이베이 타오위안",
+        "region": "대만·홍콩·마카오·몽골",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -58,6 +61,7 @@
         "icao": "RJAA",
         "name": "Narita International Airport",
         "nameKo": "도쿄 나리타",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -75,6 +79,7 @@
         "icao": "RJBB",
         "name": "Kansai International Airport",
         "nameKo": "오사카 간사이",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -92,6 +97,7 @@
         "icao": "RJCC",
         "name": "New Chitose Airport",
         "nameKo": "삿포로 신치토세",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -109,6 +115,7 @@
         "icao": "RJFF",
         "name": "Fukuoka Airport",
         "nameKo": "후쿠오카",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -126,6 +133,7 @@
         "icao": "RJFK",
         "name": "Kagoshima Airport",
         "nameKo": "가고시마",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -143,6 +151,7 @@
         "icao": "RJFR",
         "name": "Kitakyushu Airport",
         "nameKo": "기타큐슈",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -160,6 +169,7 @@
         "icao": "RJFT",
         "name": "Kumamoto Airport",
         "nameKo": "구마모토",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -177,6 +187,7 @@
         "icao": "RJGG",
         "name": "Chubu Centrair International Airport",
         "nameKo": "나고야 주부",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -194,6 +205,7 @@
         "icao": "RJOA",
         "name": "Hiroshima Airport",
         "nameKo": "히로시마",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -211,6 +223,7 @@
         "icao": "RJOH",
         "name": "Yonago Kitaro Airport / JASDF Miho Air Base",
         "nameKo": "요나고",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -228,6 +241,7 @@
         "icao": "RJOM",
         "name": "Matsuyama Airport",
         "nameKo": "마쓰야마",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -245,6 +259,7 @@
         "icao": "RJOT",
         "name": "Takamatsu Airport",
         "nameKo": "다카마쓰",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -262,6 +277,7 @@
         "icao": "RJSS",
         "name": "Sendai Airport",
         "nameKo": "센다이",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -279,6 +295,7 @@
         "icao": "RJTT",
         "name": "Tokyo Haneda International Airport",
         "nameKo": "도쿄 하네다",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -296,6 +313,7 @@
         "icao": "ROAH",
         "name": "Naha International Airport",
         "nameKo": "오키나와 나하",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -313,6 +331,7 @@
         "icao": "ROMY",
         "name": "Miyako Airport",
         "nameKo": "미야코지마",
+        "region": "일본",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -330,6 +349,7 @@
         "icao": "RPLC",
         "name": "Clark International Airport / Clark Air Base",
         "nameKo": "클라크",
+        "region": "필리핀",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -347,6 +367,7 @@
         "icao": "RPLL",
         "name": "Ninoy Aquino International Airport",
         "nameKo": "마닐라",
+        "region": "필리핀",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -364,6 +385,7 @@
         "icao": "RPVM",
         "name": "Mactan Cebu International Airport",
         "nameKo": "세부",
+        "region": "필리핀",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -381,6 +403,7 @@
         "icao": "VDPP",
         "name": "Phnom Penh International Airport",
         "nameKo": "프놈펜",
+        "region": "동남아",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -398,6 +421,7 @@
         "icao": "VHHH",
         "name": "Hong Kong International Airport",
         "nameKo": "홍콩",
+        "region": "대만·홍콩·마카오·몽골",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -415,6 +439,7 @@
         "icao": "VMMC",
         "name": "Macau International Airport",
         "nameKo": "마카오",
+        "region": "대만·홍콩·마카오·몽골",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -432,6 +457,7 @@
         "icao": "VTBS",
         "name": "Suvarnabhumi Airport",
         "nameKo": "방콕 수완나품",
+        "region": "태국",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -449,6 +475,7 @@
         "icao": "VTCC",
         "name": "Chiang Mai International Airport",
         "nameKo": "치앙마이",
+        "region": "태국",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -466,6 +493,7 @@
         "icao": "VVCR",
         "name": "Cam Ranh International Airport / Cam Ranh Air Base",
         "nameKo": "나트랑 깜라인",
+        "region": "베트남",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -483,6 +511,7 @@
         "icao": "VVDN",
         "name": "Da Nang International Airport",
         "nameKo": "다낭",
+        "region": "베트남",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -500,6 +529,7 @@
         "icao": "VVNB",
         "name": "Noi Bai International Airport",
         "nameKo": "하노이",
+        "region": "베트남",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -517,6 +547,7 @@
         "icao": "VVPQ",
         "name": "Phú Quốc International Airport",
         "nameKo": "푸꾸옥",
+        "region": "베트남",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -534,6 +565,7 @@
         "icao": "VVTS",
         "name": "Tan Son Nhat International Airport",
         "nameKo": "호찌민",
+        "region": "베트남",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -551,6 +583,7 @@
         "icao": "WADD",
         "name": "Denpasar I Gusti Ngurah Rai International Airport",
         "nameKo": "발리 덴파사르",
+        "region": "동남아",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -568,6 +601,7 @@
         "icao": "WBKK",
         "name": "Kota Kinabalu International Airport",
         "nameKo": "코타키나발루",
+        "region": "동남아",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -585,6 +619,7 @@
         "icao": "WIII",
         "name": "Soekarno-Hatta International Airport",
         "nameKo": "자카르타 수카르노하타",
+        "region": "동남아",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -602,6 +637,7 @@
         "icao": "WMKK",
         "name": "Kuala Lumpur International Airport",
         "nameKo": "쿠알라룸푸르",
+        "region": "동남아",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -619,6 +655,7 @@
         "icao": "WSSS",
         "name": "Singapore Changi Airport",
         "nameKo": "싱가포르 창이",
+        "region": "동남아",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -636,6 +673,7 @@
         "icao": "ZBAA",
         "name": "Beijing Capital International Airport",
         "nameKo": "베이징 수도",
+        "region": "중국",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -653,6 +691,7 @@
         "icao": "ZBAD",
         "name": "Beijing Daxing International Airport",
         "nameKo": "베이징 다싱",
+        "region": "중국",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -670,6 +709,7 @@
         "icao": "ZGGG",
         "name": "Guangzhou Baiyun International Airport",
         "nameKo": "광저우",
+        "region": "중국",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -687,6 +727,7 @@
         "icao": "ZGSZ",
         "name": "Shenzhen Bao'an International Airport",
         "nameKo": "선전",
+        "region": "중국",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -704,6 +745,7 @@
         "icao": "ZMCK",
         "name": "Ulaanbaatar Chinggis Khaan International Airport",
         "nameKo": "울란바토르",
+        "region": "대만·홍콩·마카오·몽골",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -721,6 +763,7 @@
         "icao": "ZSHC",
         "name": "Hangzhou Xiaoshan International Airport",
         "nameKo": "항저우",
+        "region": "중국",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -738,6 +781,7 @@
         "icao": "ZSPD",
         "name": "Shanghai Pudong International Airport",
         "nameKo": "상하이 푸둥",
+        "region": "중국",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -755,6 +799,7 @@
         "icao": "ZSQD",
         "name": "Qingdao Jiaodong International Airport",
         "nameKo": "칭다오",
+        "region": "중국",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -772,6 +817,7 @@
         "icao": "ZSSS",
         "name": "Shanghai Hongqiao International Airport",
         "nameKo": "상하이 훙차오",
+        "region": "중국",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -789,6 +835,7 @@
         "icao": "ZYTL",
         "name": "Dalian Zhoushuizi International Airport",
         "nameKo": "다롄",
+        "region": "중국",
         "airportUse": "civil",
         "source": "OurAirports"
       },
@@ -806,6 +853,7 @@
         "icao": "ZYTX",
         "name": "Shenyang Taoxian International Airport",
         "nameKo": "선양",
+        "region": "중국",
         "airportUse": "civil",
         "source": "OurAirports"
       },

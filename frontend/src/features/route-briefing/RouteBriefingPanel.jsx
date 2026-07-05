@@ -30,7 +30,7 @@ const AIRPORT_KO = {
   RKJB: '무안', RKNY: '양양', RKJY: '여수', RKPU: '울산',
 }
 // ponytail: static for domestic only; overseas loaded dynamically via useEffect in component.
-const DOMESTIC_AIRPORT_OPTIONS = KNOWN_AIRPORTS.map((icao) => ({ value: icao, ko: AIRPORT_KO[icao] ?? icao }))
+const DOMESTIC_AIRPORT_OPTIONS = KNOWN_AIRPORTS.map((icao) => ({ value: icao, ko: AIRPORT_KO[icao] ?? icao, region: '대한민국' }))
 const NONE_OPTION = { value: '', label: '-- 없음 --' }
 
 // 데스크톱 폼 레이아웃 — 커스텀 .css 대신 Fluent griffel + 토큰
@@ -198,8 +198,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
         return
       }
       const overseasOptions = Object.entries(overseasAirports)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([icao, ap]) => ({ value: icao, ko: ap?.nameKo ?? icao }))
+        .map(([icao, ap]) => ({ value: icao, ko: ap?.nameKo ?? icao, region: ap?.region ?? '해외' }))
       setAllAirportOptions([...DOMESTIC_AIRPORT_OPTIONS, ...overseasOptions])
     }).catch(() => {
       setAllAirportOptions(DOMESTIC_AIRPORT_OPTIONS)
@@ -694,18 +693,19 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   // showGenerate: desktop keeps the 브리핑 생성 button inside this section; mobile
   // moves it to the sheet footer (progressive primary action), so pass false there.
   // ── Desktop panel ──
-  function renderDesktopAirportSelect(label, value, onChange, firSentinel, firLabel) {
-    const known = allAirportOptions.some((o) => o.value === value)
-    const sel = known ? value : value === firSentinel ? firSentinel : ''
-    const options = [
-      { value: '', label: '-- 선택 --' },
-      ...allAirportOptions.map((o) => ({ value: o.value, label: o.ko && o.ko !== o.value ? `${o.value} ${o.ko}` : o.value })),
-      { value: firSentinel, label: firLabel },
-    ]
+  function renderDesktopAirportSelect(label, value, onChange, firSentinel, firLabel, disabledValue, align) {
     return (
-      <Field className={s.field} label={label}>
-        <FDropdown className={s.ctrl} value={sel} onChange={onChange} placeholder="-- 선택 --" options={options} />
-      </Field>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <AirportPickerField
+          label={label}
+          value={value}
+          options={allAirportOptions}
+          firOption={{ value: firSentinel, label: firLabel }}
+          onChange={onChange}
+          disabledValue={disabledValue}
+          align={align}
+        />
+      </div>
     )
   }
 
@@ -805,11 +805,11 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
             </div>
           </div>
           <div className={s.routeRow}>
-            {renderDesktopAirportSelect('출발 공항', routeForm.departureAirport, handleDepartureAirportChange, FIR_IN_AIRPORT, 'FIR 진입')}
+            {renderDesktopAirportSelect('출발 공항', routeForm.departureAirport, handleDepartureAirportChange, FIR_IN_AIRPORT, 'FIR 진입', routeForm.arrivalAirport, 'left')}
             <Button className={s.swapBtn} appearance="subtle" type="button" aria-label="출발 도착 교환"
               disabled={routeForm.departureAirport === FIR_IN_AIRPORT || routeForm.arrivalAirport === FIR_EXIT_AIRPORT}
               onClick={swapAirports}>⇄</Button>
-            {renderDesktopAirportSelect('도착 공항', routeForm.arrivalAirport, handleArrivalAirportChange, FIR_EXIT_AIRPORT, 'FIR 이탈')}
+            {renderDesktopAirportSelect('도착 공항', routeForm.arrivalAirport, handleArrivalAirportChange, FIR_EXIT_AIRPORT, 'FIR 이탈', routeForm.departureAirport, 'right')}
           </div>
           {isIfr && (
             <Field label="경로 유형">

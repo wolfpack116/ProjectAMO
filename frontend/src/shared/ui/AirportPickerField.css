@@ -1,5 +1,6 @@
 .apf {
   display: block;
+  position: relative;
 }
 
 .apf .apf-row {
@@ -47,13 +48,77 @@
   font-size: 12px;
 }
 
-.apf .apf-picker {
-  margin-top: 8px;
+/* 버튼 바로 아래에 뜨는 드롭다운 — 좌 지역목록 / 우 해당 지역 공항 (2단 드릴다운) */
+.apf-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  width: 360px;
+  max-width: min(360px, 88vw);
+  height: 320px;
+  display: flex;
+  background: var(--bg-1);
+  border: 1px solid var(--stroke-1);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+.apf-align-right .apf-pop {
+  left: auto;
+  right: 0;
+}
+
+.apf-regions {
+  width: 122px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--stroke-1);
+  background: color-mix(in srgb, var(--stroke-1) 12%, var(--bg-1));
+  display: flex;
+  flex-direction: column;
+}
+
+.apf-region {
+  text-align: left;
+  padding: 12px 14px;
+  border: none;
+  border-left: 3px solid transparent;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-2, var(--text-1));
+  cursor: pointer;
+}
+
+.apf-region.is-active {
+  color: var(--accent);
+  background: var(--bg-1);
+  border-left-color: var(--accent);
+}
+
+.apf-region--fir {
+  margin-top: auto;
+  border-top: 1px solid var(--stroke-1);
+  color: var(--text-3);
+  font-weight: 600;
+}
+
+.apf-airports {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  align-content: start;
 }
 
 .apf .apf-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
 }
 

@@ -52,6 +52,18 @@ AIRPORTS_KO = {
     "WIII": "자카르타 수카르노하타", "WADD": "발리 덴파사르", "VDPP": "프놈펜",
 }
 
+# 공항 피커 대분류(국가/지역). 값은 표시 순서대로.
+REGIONS = {
+    "일본": ["RJAA", "RJTT", "RJBB", "RJFF", "RJCC", "RJGG", "ROAH", "RJSS", "RJOA", "RJOT", "RJOM", "RJFR", "RJFT", "RJFK", "RJOH", "ROMY"],
+    "중국": ["ZBAA", "ZBAD", "ZSPD", "ZSSS", "ZSQD", "ZYTL", "ZYTX", "ZGGG", "ZGSZ", "ZSHC"],
+    "대만·홍콩·마카오·몽골": ["RCTP", "RCKH", "RCMQ", "VHHH", "VMMC", "ZMCK"],
+    "베트남": ["VVNB", "VVTS", "VVDN", "VVCR", "VVPQ"],
+    "필리핀": ["RPLL", "RPVM", "RPLC"],
+    "태국": ["VTBS", "VTCC"],
+    "동남아": ["WSSS", "WMKK", "WBKK", "WIII", "WADD", "VDPP"],
+}
+REGION_OF = {icao: region for region, icaos in REGIONS.items() for icao in icaos}
+
 
 def haversine_nm(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     r = 3440.065
@@ -129,6 +141,7 @@ def main() -> None:
                 "icao": icao,
                 "name": name,
                 "nameKo": AIRPORTS_KO[icao],
+                "region": REGION_OF.get(icao, "기타"),
                 "airportUse": "civil",
                 "source": "OurAirports",
             },
@@ -139,6 +152,7 @@ def main() -> None:
             "coordinates": {"lat": lat, "lon": lon},
             "name": name,
             "nameKo": AIRPORTS_KO[icao],
+            "region": REGION_OF.get(icao, "기타"),
             "source": "OurAirports",
         }
 
