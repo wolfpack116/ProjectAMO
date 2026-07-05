@@ -384,7 +384,15 @@ function parse(xmlString) {
       valid_start: valid.start,
       valid_end: valid.end,
       report_status: text(taf?.["iwxxm:reportStatus"]) || text(taf?.["@_reportStatus"]) || null,
-      temperatures: parseTemperatureHeader(taf, baseForecastNode, issued)
+      temperatures: parseTemperatureHeader(taf, baseForecastNode, issued),
+      // #1 출처·시각 배지용. TAF는 유효기간 있음. fetch_time은 프로세서가 배치 수신시각으로 채움.
+      source: {
+        identifier: "KMA",
+        publish_time: issued || null,
+        valid_from: valid.start || null,
+        valid_to: valid.end || null,
+        fetch_time: null
+      }
     },
     base,          // 브리핑 ⑥ 기간표/원문 재구성용 (base forecast state)
     change_groups: changes, // TEMPO/BECMG/PROB 구조화(type·start·end·wind·vis·wx·clouds)

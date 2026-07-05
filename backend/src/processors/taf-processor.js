@@ -18,6 +18,7 @@ async function processAll() {
       const xml = await apiClient.fetch("taf", airport.icao);
       const parsed = tafParser.parse(xml);
       if (parsed) {
+        if (parsed.header?.source) parsed.header.source.fetch_time = result.fetched_at;
         result.airports[airport.icao] = parsed;
       }
     } catch (error) {

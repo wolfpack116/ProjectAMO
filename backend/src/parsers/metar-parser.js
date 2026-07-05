@@ -280,6 +280,14 @@ export function parse(xmlString) {
       issue_time: issueTime,
       observation_time: observationTime,
       automated: String(metar['@_automatedStation'] || 'false').toLowerCase() === 'true',
+      // #1 출처·시각 배지용. METAR는 관측 스냅샷이라 유효기간 없음(valid_* null). fetch_time은 프로세서가 배치 수신시각으로 채움.
+      source: {
+        identifier: 'KMA',
+        publish_time: issueTime || observationTime || null,
+        valid_from: null,
+        valid_to: null,
+        fetch_time: null,
+      },
     },
     observation,
     cavok_flag: cavok,

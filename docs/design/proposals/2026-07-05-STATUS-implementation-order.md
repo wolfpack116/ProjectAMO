@@ -15,9 +15,10 @@
 
 | 파 | 항목 | 상태 | 메모 |
 |---|---|---|---|
-| **1 토대** | #1 출처·시각 + #4 KIM 메타 | ⬜ 미착수 | 공용 "출처/시각 배지" 컴포넌트(앱 전체 신뢰) |
+| **1 토대** | #1 출처·발표·유효·수신 배지 | ✅ 구현·검증(빌드/테스트15/라이브 육안) | 공용 `frontend/src/shared/ui/DataProvenance.jsx` → 패널 METAR·TAF 헤더 + 브리핑② 행펼치기. 백엔드 `header.source`(KMA·publish·valid·fetch), 파서2·프로세서2·airport-summary 통과. ⚠️ 파서 경로 실제는 `backend/src/parsers/`(스펙의 `weather/`는 stale) |
+| | #4 KIM 메타 | ⏸ 보류 | `data_cutoff` 실제값이 상류·manifest 어디에도 없음(가정 금지 규칙) → 사용자 결정으로 이번 세션 스킵. 해상도(km, 경도 ×cos(lat) 보정)·`initial_time`(=`tmfc`)은 즉시 구현 가능, **KMA cutoff 실제값 확보 시 재개** |
 | | #5 RVR 표면화 | ✅ 구현·검증(빌드/로직) | 모든 METAR 표면(현재기상·METAR탭·지도툴팁·브리핑②) 일관, 없으면 "2000+". 공유 `formatRvr`. ⚠️ 육안(표 폭·툴팁 높이) 미확인 |
-| | #6 TAF 일원화 | ⬜ | **#13·#15 전에** 리팩터(중복 확산 방지). 핵심=`stateCategory` 단일화 |
+| | #6 TAF 일원화 | ⬜ **다음** | **#13·#15 전에** 리팩터(중복 확산 방지). 핵심=`stateCategory` 단일화 |
 | **2 키스톤** | #7 로그인/계정/역할/예보관 문의 | ⬜ | 나머지 토대이자 최대 불확실 → 일찍. 세션+쿠키·SQLite·bcrypt·분리 인증경로 |
 | **3 가치** | #13 경로 예보변화 알림 | ⬜ | #7 위에. 트리거=내 미니마 선 크로싱(카테고리 프리셋), 이벤트구동+인덱스 |
 | | #15 지역 브리핑 | ⬜ | 독립. 영역=직접그리기+관제섹터 복수. 신규 `@turf/boolean-intersects` |
@@ -34,4 +35,4 @@
 - 제외(사용자 작업): 없음(툴팁은 커밋함).
 
 ## 다음 액션
-→ #5 완료. **다음: 1파 남은 것 = #1+#4(출처·시각 배지 + KIM cutoff) → #6(TAF 일원화 리팩터).** 둘 다 백엔드+다중파일/리팩터라 새 세션에서 착수 권장. 상세는 [잔여 기능 스펙](2026-07-05-remaining-features-implementation-notes.md)에 file:line 수준으로 있음.
+→ #1 완료(라이브 육안까지). #4 보류(cutoff 실제값 대기). **다음: #6 TAF 일원화 리팩터** — 핵심은 `stateCategory` 두 구현(`taf-window.js` vs `tafViewModel.js`) 단일화, 필터/표시는 표면별 유지. 상세는 [잔여 기능 스펙 #6](2026-07-05-remaining-features-implementation-notes.md)에. #4 재개 조건: KMA KIM 사이클별 `data_cutoff` 실제값 확인.

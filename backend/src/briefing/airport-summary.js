@@ -60,7 +60,7 @@ function formatRvr(obs) {
 
 export function summarizeAirport(role, metar) {
   if (!metar?.observation) {
-    return { role, icao: metar?.header?.icao ?? null, category: 'UNKNOWN', driver: null, level: 'gray', fields: {}, raw: null, observationTime: null, reportType: null }
+    return { role, icao: metar?.header?.icao ?? null, category: 'UNKNOWN', driver: null, level: 'gray', fields: {}, raw: null, observationTime: null, reportType: null, source: null }
   }
   const obs = metar.observation
   const visibilityM = obs.visibility?.cavok ? 9999 : obs.visibility?.value
@@ -89,6 +89,7 @@ export function summarizeAirport(role, metar) {
     fields,
     observationTime: metar.header?.observation_time ?? null,
     reportType: metar.header?.report_type ?? null, // 'METAR' | 'SPECI'
+    source: metar.header?.source ?? null, // #1 출처·시각 배지(KMA·발표·수신)
     raw: reconstructMetarRaw(metar), // 원문 METAR 재구성(IWXXM라 원본 없음 → 파싱데이터 재조립)
   }
 }

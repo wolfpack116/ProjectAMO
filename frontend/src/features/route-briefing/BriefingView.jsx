@@ -11,6 +11,7 @@ import BriefingBanner from './BriefingBanner.jsx'
 import BriefingSynopsis from './BriefingSynopsis.jsx'
 import useIsMobile from '../../shared/ui/useIsMobile.js'
 import MobileSheet from '../../shared/ui/MobileSheet.jsx'
+import DataProvenance from '../../shared/ui/DataProvenance.jsx'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
 import { formatBriefingTime } from './lib/briefingTime.js'
 import { hazardMapLayers } from './lib/hazardLayers.js'
@@ -301,8 +302,9 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
     const takeoff = a.role === 'departure' ? takeoffBlock(a) : null
     const amos = amosBlock(a)
     const raw = a.raw ? <div className="bv-amos-raw">{a.raw}</div> : null
-    if (!takeoff && !amos && !raw) return <Caption1 style={{ color: 'var(--text-3)' }}>추가 정보 없음</Caption1>
-    return <div className="bv-expand-stack">{takeoff}{amos}{raw}</div>
+    const prov = a.source ? <DataProvenance source={a.source} /> : null
+    if (!takeoff && !amos && !raw && !prov) return <Caption1 style={{ color: 'var(--text-3)' }}>추가 정보 없음</Caption1>
+    return <div className="bv-expand-stack">{takeoff}{amos}{prov}{raw}</div>
   }
 
   // ② 현재 실황 — 공항=행 비교 매트릭스 (범주 리딩 열, 관측시각+SPECI, 행 펼치기).
