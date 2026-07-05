@@ -37,6 +37,23 @@ ssh -i "C:\Users\Jond Doe\.ssh\key.pem" ec2-user@3.34.113.37
 cd /opt/projectamo/current
 ```
 
+## 2.5 .env 필수 항목 (운영)
+
+`.env`는 `/opt/projectamo/current/.env`에 있으며 **커밋하지 않는다**(참고: `backend/.env.example`).
+운영(`NODE_ENV=production`)에서 아래가 없으면 backend가 부팅 시 크래시한다.
+
+- `SESSION_SECRET` — 세션 서명 시크릿. **운영 필수.** 없으면 `Error: SESSION_SECRET is required in production`로 pm2 크래시 루프.
+  - 최초 세팅/신규 서버:
+    ```bash
+    cd /opt/projectamo/current
+    grep -q '^SESSION_SECRET=' .env || echo "SESSION_SECRET=$(openssl rand -hex 32)" >> .env
+    pm2 restart projectamo-backend --update-env
+    ```
+- `KMA_AUTH_KEY`(기상청), 기타 수집 API 키 — 없으면 국내 수집만 실패(백엔드 자체는 뜸).
+- 해외 기상(NOAA)은 무인증이라 추가 키 불필요.
+
+> ⚠️ 새 기능이 새 필수 env를 요구할 수 있다(예: 0.2.3 로그인 도입 시 `SESSION_SECRET`). 배포 후 `/api/health`가 죽어 있으면 §6으로 PM2 로그부터 확인.
+
 ## 3. 빠른 배포
 
 의존성 변경이 없으면 fast deploy를 사용합니다.
@@ -138,7 +155,8 @@ pm2 logs projectamo-backend --lines 80 --nostream
 
 자주 볼 항목:
 
-- `ERR_MODULE_NOT_FOUND`
+- `SESSION_SECRET is required in production` → `.env`에 `SESSION_SECRET` 추가(§2.5) 후 `pm2 restart --update-env`
+- `ERR_MODULE_NOT_FOUND` → 새 의존성 미설치. `bash deploy/deploy-vm-full.sh`로 재배포
 - `.env` 누락
 - `DATA_PATH` 잘못된 경로
 - collector upstream API 오류
