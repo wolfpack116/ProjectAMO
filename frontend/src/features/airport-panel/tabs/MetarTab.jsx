@@ -3,6 +3,7 @@ import WeatherIcon from '../../../shared/ui/WeatherIcon.jsx'
 import { fmtKstShort } from '../lib/formatters.js'
 import { useTimeZone } from '../../../shared/timezone/TimeZoneContext.jsx'
 import { buildMetarViewModel } from '../lib/metarViewModel.js'
+import { formatRvr } from '../../../shared/weather/helpers.js'
 
 export default function MetarTab({ metar, amosData, icao, airportMeta }) {
   const { tz } = useTimeZone()
@@ -164,12 +165,10 @@ export default function MetarTab({ metar, amosData, icao, airportMeta }) {
 
       {/* ── 하단 보조 정보 ── */}
       <div className="ap-mv2-footer">
-        {obs?.rvr?.length > 0 && (
-          <div className="ap-mv2-footer-item">
-            <span className="ap-mv2-footer-label">RVR</span>
-            <span className="ap-mv2-footer-value">{obs.rvr.map((r) => `R${r.runway}/${r.mean}m`).join(' ')}</span>
-          </div>
-        )}
+        <div className="ap-mv2-footer-item">
+          <span className="ap-mv2-footer-label">RVR</span>
+          <span className="ap-mv2-footer-value">{formatRvr(obs)}</span>
+        </div>
         {obs?.wind_shear && (
           <div className="ap-mv2-footer-item">
             <span className="ap-mv2-footer-label">Wind Shear</span>

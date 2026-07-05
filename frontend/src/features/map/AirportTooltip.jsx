@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
-import { classifyVisibilityCategory, classifyCeilingCategory } from '../../shared/weather/helpers.js'
+import { classifyVisibilityCategory, classifyCeilingCategory, formatRvr } from '../../shared/weather/helpers.js'
 import { AIRPORT_CATEGORY_UNKNOWN_COLOR, getCeilingFeet, getVisibilityMeters } from './lib/airportStationModel.js'
 import './AirportTooltip.css'
 
@@ -143,6 +143,10 @@ export default function AirportTooltip({ metar, airport, flightCategory, categor
         <div className="airport-tooltip-row">
           <span className="airport-tooltip-label">운고</span>
           <span className="airport-tooltip-value" style={ceilIsDriver ? driverStyle : undefined}>{clouds}</span>
+        </div>
+        <div className="airport-tooltip-row">
+          <span className="airport-tooltip-label">RVR</span>
+          <span className="airport-tooltip-value">{formatRvr(obs)}</span>
         </div>
         <div className="airport-tooltip-row">
           <span className="airport-tooltip-label">기온</span>

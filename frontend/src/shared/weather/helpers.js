@@ -2,6 +2,16 @@ export function safe(value, fallback = '-') {
   return value == null || value === '' ? fallback : value;
 }
 
+// RVR 표시 — METAR observation.rvr([{runway, mean}])를 "R15L/2000m, R33R/1800m"로.
+// 보고값 없으면(저시정 아님) "2000+"(보고 최댓값 초과)로 항상 표시. METAR 표시 전 지점 공용.
+export function formatRvr(observation) {
+  const entries = Array.isArray(observation?.rvr) ? observation.rvr : [];
+  const parts = entries
+    .map((item) => (item?.runway && Number.isFinite(item?.mean) ? `R${item.runway}/${item.mean}m` : null))
+    .filter(Boolean);
+  return parts.length > 0 ? parts.join(', ') : '2000+';
+}
+
 export function getDisplayDate(isoString, tz) {
   const base = new Date(isoString);
   if (tz === 'KST') return new Date(base.getTime() + 9 * 60 * 60 * 1000);
