@@ -113,6 +113,7 @@ function isRevalidatedApiRequest(req) {
   return (
     /^\/(?:airports|warning-types|alert-defaults)$/i.test(req.path)
     || /^\/(?:metar|taf|warning|sigmet|airmet|sigwx-low|lightning|amos|adsb|ground-forecast|ground-overview|environment|airport-info)$/i.test(req.path)
+    || /^\/(?:metar|taf|sigmet)-overseas$/i.test(req.path)
     || /^\/sigwx-low-history$/i.test(req.path)
     || /^\/radar\/echo-meta$/i.test(req.path)
     || /^\/satellite\/meta$/i.test(req.path)
@@ -327,9 +328,12 @@ function buildKtgSnapshotEntry() {
 // keys: 출력 키(이중 키는 둘 다) · files: mtime로 캐시 무효화할 정적 파일 · build: 소스별 차이를 숨긴 thunk.
 const SNAPSHOT_SOURCES = [
   { keys: ['metar'], files: [snapshotMetaLatest('metar')], build: () => buildHashEntry('metar') },
+  { keys: ['metarOverseas', 'metar_overseas'], files: [snapshotMetaLatest('metar_overseas')], build: () => buildHashEntry('metar_overseas') },
   { keys: ['taf'], files: [snapshotMetaLatest('taf')], build: () => buildHashEntry('taf') },
+  { keys: ['tafOverseas', 'taf_overseas'], files: [snapshotMetaLatest('taf_overseas')], build: () => buildHashEntry('taf_overseas') },
   { keys: ['warning'], files: [snapshotMetaLatest('warning')], build: () => buildHashEntry('warning') },
   { keys: ['sigmet'], files: [snapshotMetaLatest('sigmet')], build: () => buildHashEntry('sigmet') },
+  { keys: ['sigmetOverseas', 'sigmet_overseas'], files: [snapshotMetaLatest('sigmet_overseas')], build: () => buildHashEntry('sigmet_overseas') },
   { keys: ['airmet'], files: [snapshotMetaLatest('airmet')], build: () => buildHashEntry('airmet') },
   { keys: ['sigwxLow', 'sigwx_low'], files: [snapshotMetaLatest('sigwx_low')], build: () => buildHashEntry('sigwx_low') },
   { keys: ['amos'], files: [snapshotMetaLatest('amos')], build: () => buildHashEntry('amos') },
@@ -538,6 +542,10 @@ app.get('/api/metar', (_, res) => sendLatest(res, 'metar'))
 app.get('/api/taf', (_, res) => sendLatest(res, 'taf'))
 app.get('/api/warning', (_, res) => sendLatest(res, 'warning'))
 app.get('/api/sigmet', (_, res) => sendLatest(res, 'sigmet'))
+// 해외(NOAA) — 국내와 별도 파일/별도 API로 유지.
+app.get('/api/metar-overseas', (_, res) => sendLatest(res, 'metar_overseas'))
+app.get('/api/taf-overseas', (_, res) => sendLatest(res, 'taf_overseas'))
+app.get('/api/sigmet-overseas', (_, res) => sendLatest(res, 'sigmet_overseas'))
 app.get('/api/airmet', (_, res) => sendLatest(res, 'airmet'))
 app.get('/api/sigwx-low', (_, res) => sendLatest(res, 'sigwx_low'))
 app.get('/api/lightning', (_, res) => sendLatest(res, 'lightning'))
@@ -802,8 +810,11 @@ app.post('/api/route-briefing', (req, res) => {
   try {
     const data = {
       metar: store.getCached('metar'),
+      metarOverseas: store.getCached('metar_overseas'),
       taf: store.getCached('taf'),
+      tafOverseas: store.getCached('taf_overseas'),
       sigmet: store.getCached('sigmet'),
+      sigmetOverseas: store.getCached('sigmet_overseas'),
       airmet: store.getCached('airmet'),
       warning: store.getCached('warning'),
       amos: store.getCached('amos'),

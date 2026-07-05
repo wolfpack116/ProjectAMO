@@ -3,7 +3,7 @@
   top: 12px;
   left: 12px;
   z-index: 6;
-  width: clamp(380px, 28vw, 460px);
+  width: clamp(440px, 32vw, 540px);
   max-height: calc(100% - 24px);
   overflow: auto;
   padding: 0;

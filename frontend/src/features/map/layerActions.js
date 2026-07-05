@@ -25,7 +25,8 @@ const MET_META = {
   cloud: { label: '습기', aliases: ['수분', 'moisture', '구름'] },
   icing: { label: '착빙', aliases: ['icing'] },
   turbulence: { label: '난류', aliases: ['turbulence'] },
-  sigmet: { label: 'SIGMET', aliases: ['시그멧'] },
+  sigmet: { label: 'SIGMET(국내)', aliases: ['시그멧', '국내시그멧'] },
+  sigmet_intl: { label: 'SIGMET(해외)', aliases: ['해외시그멧', '국제시그멧', 'overseas sigmet'] },
   airmet: { label: 'AIRMET', aliases: ['에어멧'] },
   sigwx: { label: 'SIGWX', aliases: ['시그윅스', '악기상'] },
   adsb: { label: 'ADS-B', aliases: ['항공기', '실시간항공기', 'adsb'] },
@@ -53,7 +54,9 @@ const AVIATION_META = {
   'rnav-route': { label: 'RNAV 항공로', aliases: ['rnav'] },
   'overseas-route': { label: '국제 항공로', aliases: ['해외항로', '국제항로', 'overseas'] },
   'overseas-waypoint': { label: '해외 웨이포인트', aliases: ['해외웨이포인트', 'overseas waypoint', '해외픽스'] },
+  'overseas-navaid': { label: '해외 항행안전시설', aliases: ['해외항행안전시설', 'overseas navaid', '해외항행', '국제항행'] },
   'overseas-airport': { label: '해외 공항', aliases: ['해외공항', 'overseas airport', '국제공항'] },
+  'overseas-fir': { label: '해외 FIR', aliases: ['해외fir', '국제fir', 'overseas fir', '비행정보구역'] },
 }
 export const AVIATION_ACTIONS = AVIATION_WFS_LAYERS.map((l) => ({
   id: l.id, type: 'aviation', panelId: 'aviation',

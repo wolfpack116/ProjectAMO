@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Cloud, Layers } from 'lucide-react'
 import MapView from '../map/MapView.jsx'
+import { mergeAdvisoryPayloads, mergeAirportPayloads } from '../../api/weatherApi.js'
 
 function MonitoringMap({
   weather,
@@ -8,6 +9,8 @@ function MonitoringMap({
   onAirportSelect,
 }) {
   const [activeMapPanel, setActiveMapPanel] = useState(null)
+  const mapMetarData = mergeAirportPayloads(weather?.metar || null, weather?.metarOverseas || null)
+  const mapSigmetData = mergeAdvisoryPayloads(weather?.sigmet || null, weather?.sigmetOverseas || null)
 
   function toggleMapPanel(panelId) {
     setActiveMapPanel((current) => (current === panelId ? null : panelId))
@@ -38,10 +41,10 @@ function MonitoringMap({
       <MapView
         activePanel={activeMapPanel}
         airports={weather?.airports || []}
-        metarData={weather?.metar}
+        metarData={mapMetarData}
         echoMeta={weather?.echoMeta}
         satMeta={weather?.satMeta}
-        sigmetData={weather?.sigmet}
+        sigmetData={mapSigmetData}
         airmetData={weather?.airmet}
         lightningData={weather?.lightning}
         sigwxLowData={weather?.sigwxLow}

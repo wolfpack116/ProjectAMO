@@ -20,10 +20,11 @@ import takeoffForecastProcessor from './processors/takeoff-forecast-processor.js
 import ktgProcessor from './processors/ktg-processor.js'
 import flightCategoryProcessor from './processors/flight-category-processor.js'
 import notamProcessor from './processors/notam-processor.js'
+import overseasProcessor from './processors/overseas-weather-processor.js'
 
 // ADS-B is collected on demand by the /api/adsb route (only when a viewer is watching),
 // so it is intentionally not scheduled here.
-const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, kim_surface_wind: false, ktg: false, satellite: false, ground_forecast: false, environment: false, airport_info: false, takeoff_fcst: false, flight_category: false, notam: false };
+const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, kim_surface_wind: false, ktg: false, satellite: false, ground_forecast: false, environment: false, airport_info: false, takeoff_fcst: false, flight_category: false, notam: false, metar_overseas: false, taf_overseas: false, sigmet_overseas: false };
 const KIM_NWP_CRON_OPTIONS = { timezone: 'Etc/UTC' }
 const AIRPORT_INFO_CRON_OPTIONS = { timezone: 'Asia/Seoul' }
 
@@ -85,6 +86,9 @@ function buildInitialCollectionJobs({ includeKimNwp = config.kim_nwp?.collect_on
     ["taf", tafProcessor.processAll],
     ["warning", warningProcessor.process],
     ["sigmet", sigmetProcessor.process],
+    ["metar_overseas", overseasProcessor.processMetar],
+    ["taf_overseas", overseasProcessor.processTaf],
+    ["sigmet_overseas", overseasProcessor.processSigmet],
     ["airmet", airmetProcessor.process],
     ["sigwx_low", sigwxLowProcessor.process],
     ["amos", amosProcessor.process],
@@ -116,6 +120,10 @@ async function main() {
   cron.schedule(config.schedule.taf_interval, () => runWithLock("taf", tafProcessor.processAll));
   cron.schedule(config.schedule.warning_interval, () => runWithLock("warning", warningProcessor.process));
   cron.schedule(config.schedule.sigmet_interval, () => runWithLock("sigmet", sigmetProcessor.process));
+  // 해외(NOAA) — 국내와 같은 주기, 별도 job·별도 저장 파일.
+  cron.schedule(config.schedule.metar_interval, () => runWithLock("metar_overseas", overseasProcessor.processMetar));
+  cron.schedule(config.schedule.taf_interval, () => runWithLock("taf_overseas", overseasProcessor.processTaf));
+  cron.schedule(config.schedule.sigmet_interval, () => runWithLock("sigmet_overseas", overseasProcessor.processSigmet));
   cron.schedule(config.schedule.airmet_interval, () => runWithLock("airmet", airmetProcessor.process));
   cron.schedule(config.schedule.sigwx_low_interval, () => runWithLock("sigwx_low", sigwxLowProcessor.process));
   cron.schedule(config.schedule.amos_interval, () => runWithLock("amos", amosProcessor.process));

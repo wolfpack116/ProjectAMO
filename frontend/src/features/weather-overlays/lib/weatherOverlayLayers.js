@@ -59,6 +59,8 @@ export const WEATHER_OVERLAY_SOURCE_IDS = [
   LIGHTNING_SOURCE,
   ADVISORY_LAYER_DEFS.sigmet.sourceId,
   `${ADVISORY_LAYER_DEFS.sigmet.sourceId}-labels`,
+  ADVISORY_LAYER_DEFS.sigmet_intl.sourceId,
+  `${ADVISORY_LAYER_DEFS.sigmet_intl.sourceId}-labels`,
   ADVISORY_LAYER_DEFS.airmet.sourceId,
   `${ADVISORY_LAYER_DEFS.airmet.sourceId}-labels`,
 ]
@@ -73,6 +75,9 @@ export const WEATHER_OVERLAY_LAYER_IDS = [
   ADVISORY_LAYER_DEFS.sigmet.fillLayerId,
   ADVISORY_LAYER_DEFS.sigmet.lineLayerId,
   ADVISORY_LAYER_DEFS.sigmet.iconLayerId,
+  ADVISORY_LAYER_DEFS.sigmet_intl.fillLayerId,
+  ADVISORY_LAYER_DEFS.sigmet_intl.lineLayerId,
+  ADVISORY_LAYER_DEFS.sigmet_intl.iconLayerId,
   ADVISORY_LAYER_DEFS.airmet.fillLayerId,
   ADVISORY_LAYER_DEFS.airmet.lineLayerId,
   ADVISORY_LAYER_DEFS.airmet.iconLayerId,
@@ -117,6 +122,7 @@ export const MET_LAYERS = [
   { id: 'icing', label: 'Icing Potential', color: 'rgba(220, 75, 116, 0.74)' },
   { id: 'turbulence', label: 'Turbulence', color: 'rgba(251, 146, 60, 0.85)' },
   { id: 'sigmet', label: 'SIGMET', color: ADVISORY_LAYER_DEFS.sigmet.color },
+  { id: 'sigmet_intl', label: 'SIGMET(해외)', color: ADVISORY_LAYER_DEFS.sigmet_intl.color },
   { id: 'airmet', label: 'AIRMET', color: ADVISORY_LAYER_DEFS.airmet.color },
   { id: 'sigwx', label: 'SIGWX', color: '#a78bfa' },
   { id: 'adsb', label: 'ADS-B', color: '#10b981' },
@@ -445,15 +451,19 @@ export function syncRasterAndSigwxLayers(map, model) {
 
 export function syncAdvisoryLayers(map, model) {
   updateAdvisoryLayerData(map, 'sigmet', model.sigmetFeatures, model.sigmetLabels)
+  updateAdvisoryLayerData(map, 'sigmet_intl', model.sigmetIntlFeatures, model.sigmetIntlLabels)
   updateAdvisoryLayerData(map, 'airmet', model.airmetFeatures, model.airmetLabels)
   setAdvisoryVisibility(map, 'sigmet', model.visibility.sigmet)
+  setAdvisoryVisibility(map, 'sigmet_intl', model.visibility.sigmet_intl)
   setAdvisoryVisibility(map, 'airmet', model.visibility.airmet)
 }
 
 export function installAdvisoryLayers(map, model) {
   addAdvisoryLayers(map, 'sigmet', model.sigmetFeatures, model.sigmetLabels)
+  addAdvisoryLayers(map, 'sigmet_intl', model.sigmetIntlFeatures, model.sigmetIntlLabels)
   addAdvisoryLayers(map, 'airmet', model.airmetFeatures, model.airmetLabels)
   setAdvisoryVisibility(map, 'sigmet', model.visibility.sigmet)
+  setAdvisoryVisibility(map, 'sigmet_intl', model.visibility.sigmet_intl)
   setAdvisoryVisibility(map, 'airmet', model.visibility.airmet)
 }
 
@@ -462,9 +472,11 @@ export function installWeatherOverlayLayers(map) {
   installAdvisoryLayers(map, {
     sigmetFeatures: EMPTY_GEOJSON,
     sigmetLabels: EMPTY_GEOJSON,
+    sigmetIntlFeatures: EMPTY_GEOJSON,
+    sigmetIntlLabels: EMPTY_GEOJSON,
     airmetFeatures: EMPTY_GEOJSON,
     airmetLabels: EMPTY_GEOJSON,
-    visibility: { sigmet: false, airmet: false },
+    visibility: { sigmet: false, sigmet_intl: false, airmet: false },
   })
   syncLightningLayers(map, {
     lightningGeoJSON: EMPTY_GEOJSON,

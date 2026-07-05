@@ -12,6 +12,7 @@ import { AuthProvider } from '../features/auth/AuthContext.jsx'
 import UpdatesModal from '../features/about/UpdatesModal.jsx'
 import SearchPalette from '../features/search/SearchPalette.jsx'
 import { buildSearchCatalog } from '../features/map/layerActions.js'
+import { mergeAdvisoryPayloads, mergeAirportPayloads } from '../api/weatherApi.js'
 import { useLastSeenVersion } from '../features/about/useLastSeenVersion.js'
 import useIsMobile from '../shared/ui/useIsMobile.js'
 import { TimeZoneProvider, useTimeZone } from '../shared/timezone/TimeZoneContext.jsx'
@@ -75,6 +76,15 @@ function MainAppShell() {
   const searchCatalog = useMemo(
     () => buildSearchCatalog(weatherData?.airports || []),
     [weatherData],
+  )
+
+  const mapMetarData = useMemo(
+    () => mergeAirportPayloads(weatherData?.metar || null, weatherData?.metarOverseas || null),
+    [weatherData?.metar, weatherData?.metarOverseas],
+  )
+  const mapSigmetData = useMemo(
+    () => mergeAdvisoryPayloads(weatherData?.sigmet || null, weatherData?.sigmetOverseas || null),
+    [weatherData?.sigmet, weatherData?.sigmetOverseas],
   )
 
   // 경보 종류 → 짧은 한글 라벨(칩용). wrng_type_key 우선, 없으면 원문 이름.
@@ -164,10 +174,10 @@ function MainAppShell() {
           ref={mapRef}
           activePanel={activePanel}
           airports={weatherData?.airports || []}
-          metarData={weatherData?.metar || null}
+          metarData={mapMetarData}
           echoMeta={weatherData?.echoMeta || null}
           satMeta={weatherData?.satMeta || null}
-          sigmetData={weatherData?.sigmet || null}
+          sigmetData={mapSigmetData}
           airmetData={weatherData?.airmet || null}
           lightningData={weatherData?.lightning || null}
           sigwxLowData={weatherData?.sigwxLow || null}

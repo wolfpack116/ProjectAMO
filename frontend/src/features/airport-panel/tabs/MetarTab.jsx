@@ -4,6 +4,7 @@ import { fmtKstShort } from '../lib/formatters.js'
 import { useTimeZone } from '../../../shared/timezone/TimeZoneContext.jsx'
 import { buildMetarViewModel } from '../lib/metarViewModel.js'
 import { formatRvr } from '../../../shared/weather/helpers.js'
+import { RAW_TAC_STYLE } from './TafTab.jsx'
 
 export default function MetarTab({ metar, amosData, icao, airportMeta }) {
   const { tz } = useTimeZone()
@@ -178,6 +179,14 @@ export default function MetarTab({ metar, amosData, icao, airportMeta }) {
           </div>
         )}
       </div>
+
+      {/* ── 원문(TAC) — NOAA 해외 공항 등 원문 제공 시 ── */}
+      {metar?.header?.raw_text && (
+        <div className="ap-raw-tac" style={RAW_TAC_STYLE.wrap}>
+          <span style={RAW_TAC_STYLE.label}>원문 (TAC)</span>
+          <code style={RAW_TAC_STYLE.text}>{metar.header.raw_text}</code>
+        </div>
+      )}
     </div>
   )
 }

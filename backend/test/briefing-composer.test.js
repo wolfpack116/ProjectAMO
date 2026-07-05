@@ -167,3 +167,34 @@ test('composeBriefing: airspaceZones + real NOTAM conflicts both merge into rout
   assert.ok(ids.includes('D0001/26'))
   assert.ok(ids.includes('zone-danger-D1-0'))
 })
+
+test('composeBriefing merges overseas METAR/TAF/SIGMET for overseas routes', () => {
+  const overseasRequest = {
+    ...request,
+    departureAirport: 'RKSI',
+    arrivalAirport: 'RJTT',
+    alternateAirport: null,
+    routeGeometry: { type: 'LineString', coordinates: [[126.45, 37.46], [139.78, 35.55]] },
+  }
+  const overseasSigmet = {
+    id: 'noaa-rjjj',
+    source: 'NOAA',
+    phenomenon_code: 'SEV_TURB',
+    phenomenon_label: 'Severe Turbulence',
+    valid_from: '2026-06-26T08:00:00Z',
+    valid_to: '2026-06-26T14:00:00Z',
+    geometry: { type: 'Polygon', coordinates: [[[138, 34], [141, 34], [141, 37], [138, 37], [138, 34]]] },
+    altitude: { lower_fl: 60, upper_fl: 120, lower_uom: 'FL', upper_uom: 'FL' },
+  }
+  const b = composeBriefing(overseasRequest, {
+    ...data,
+    metar_overseas: { airports: { RJTT: { header: { icao: 'RJTT' }, ...goodObs('IFR') } } },
+    taf_overseas: { airports: { RJTT: { header: { icao: 'RJTT' }, timeline: [{ time: '2026-06-26T10:00:00Z', visibility: { value: 3000 }, clouds: [{ amount: 'BKN', base: 600, raw: 'BKN006' }], display: { wind: '14020KT', clouds: 'BKN006' } }] } } },
+    sigmet_overseas: { items: [overseasSigmet] },
+  })
+
+  const arrival = b.sections.current.airports.find((a) => a.icao === 'RJTT')
+  assert.equal(arrival.category, 'IFR')
+  assert.equal(b.sections.destination.taf.category, 'IFR')
+  assert.ok(b.sections.adverse.hazards.some((h) => h.source === 'SIGMET' && h.code === 'SEV_TURB'))
+})

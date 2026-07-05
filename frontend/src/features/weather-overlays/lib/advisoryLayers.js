@@ -9,6 +9,15 @@ export const ADVISORY_LAYER_DEFS = {
     color: '#dc2626',
     label: 'SIGMET',
   },
+  // 해외(NOAA) SIGMET — 국내와 별도 소스/레이어라 독립 토글. 렌더는 SIGMET과 동일(빨강 실선).
+  sigmet_intl: {
+    sourceId: 'noaa-sigmet-advisories',
+    fillLayerId: 'noaa-sigmet-advisories-fill',
+    lineLayerId: 'noaa-sigmet-advisories-line',
+    iconLayerId: 'noaa-sigmet-advisories-icon',
+    color: '#dc2626',
+    label: 'SIGMET(해외)',
+  },
   airmet: {
     sourceId: 'kma-airmet-advisories',
     fillLayerId: 'kma-airmet-advisories-fill',
@@ -22,7 +31,7 @@ export const ADVISORY_LAYER_DEFS = {
 export function advisorySymbolUrl(kind, phenomenonCode) {
   const code = String(phenomenonCode || '').trim().toUpperCase()
   if (!code) return null
-  const folder = kind === 'sigmet' ? 'icon_SIGMET' : 'icon_AIRMET'
+  const folder = kind.startsWith('sigmet') ? 'icon_SIGMET' : 'icon_AIRMET'
   const file = `${code}.png`
   return `/Symbols/Reference%20Symbols/${folder}/${encodeURIComponent(file)}`
 }
@@ -66,7 +75,7 @@ function formatMotion(item) {
 
 // 지도 라벨은 공간이 좁아 한글명만(코드 생략). 없으면 영문 라벨→코드.
 function formatLabel(item, kind) {
-  const base = kind === 'sigmet' ? 'SIGMET' : 'AIRMET'
+  const base = kind.startsWith('sigmet') ? 'SIGMET' : 'AIRMET'
   const phenomenon = phenomenonKo(item?.phenomenon_code)
     || item?.phenomenon_label || item?.phenomenon_code || ''
   const sequence = item?.sequence_number ? ` ${item.sequence_number}` : ''
@@ -222,7 +231,7 @@ export function addAdvisoryLayers(map, kind, featureData, labelData) {
       slot: 'top',
       paint: {
         'fill-color': def.color,
-        'fill-opacity': kind === 'sigmet' ? 0.16 : 0.12,
+        'fill-opacity': kind.startsWith('sigmet') ? 0.16 : 0.12,
       },
       filter: ['any', ['==', ['geometry-type'], 'Polygon'], ['==', ['geometry-type'], 'MultiPolygon']],
     })
@@ -237,8 +246,8 @@ export function addAdvisoryLayers(map, kind, featureData, labelData) {
       paint: {
         'line-color': def.color,
         'line-opacity': 0.9,
-        'line-width': kind === 'sigmet' ? 2.4 : 2,
-        'line-dasharray': kind === 'sigmet' ? [1, 0] : [2, 1.5],
+        'line-width': kind.startsWith('sigmet') ? 2.4 : 2,
+        'line-dasharray': kind.startsWith('sigmet') ? [1, 0] : [2, 1.5],
       },
     })
   }

@@ -368,16 +368,20 @@ const MapView = forwardRef(function MapView({
       const h = Math.round(sheet.getBoundingClientRect().height) || 0
       return { top: 40, left: 30, right: 30, bottom: h + 30 }
     }
-    // Desktop: when the briefing panel covers the right, pad that side so the
-    // route centers in the visible LEFT map (otherwise fits center under the panel).
-    const panel = doc?.querySelector('.briefing-view')
-    if (panel) {
-      const w = Math.round(panel.getBoundingClientRect().width) || 0
-      const cw = container?.clientWidth || 1200
-      const base = typeof desktopPad === 'number' ? desktopPad : 60
-      return { top: base, bottom: base, left: base, right: Math.min(w + 24, cw - 120) }
-    }
-    return desktopPad
+    // Desktop: pad the side(s) a panel covers so the route centers in the *visible* map
+    // (not under a panel). 경로 결과(.briefing-view, 오른쪽)와 경로 입력(.route-check-panel, 왼쪽)
+    // 둘 다 보일 때 각각 그 폭만큼 패딩 → 어느 패널에 가려지지 않게 맞춰짐.
+    const cw = container?.clientWidth || 1200
+    const base = typeof desktopPad === 'number' ? desktopPad : 60
+    const pad = { top: base, bottom: base, left: base, right: base }
+    const cap = (w) => Math.min(w + 24, cw - 120)
+    const rightPanel = doc?.querySelector('.briefing-view')
+    const rw = rightPanel ? Math.round(rightPanel.getBoundingClientRect().width) : 0
+    if (rw > 0) pad.right = cap(rw)
+    const leftPanel = doc?.querySelector('.route-check-panel')
+    const lw = leftPanel ? Math.round(leftPanel.getBoundingClientRect().width) : 0
+    if (lw > 0) pad.left = cap(lw)
+    return pad
   }
 
   useEffect(() => {
@@ -665,17 +669,23 @@ const MapView = forwardRef(function MapView({
   const advisoryLayerModel = useMemo(() => ({
     visibility: {
       sigmet: weatherOverlayModel.visibility.sigmet,
+      sigmet_intl: weatherOverlayModel.visibility.sigmet_intl,
       airmet: weatherOverlayModel.visibility.airmet,
     },
     sigmetFeatures: weatherOverlayModel.sigmetFeatures,
     sigmetLabels: weatherOverlayModel.sigmetLabels,
+    sigmetIntlFeatures: weatherOverlayModel.sigmetIntlFeatures,
+    sigmetIntlLabels: weatherOverlayModel.sigmetIntlLabels,
     airmetFeatures: weatherOverlayModel.airmetFeatures,
     airmetLabels: weatherOverlayModel.airmetLabels,
   }), [
     weatherOverlayModel.visibility.sigmet,
+    weatherOverlayModel.visibility.sigmet_intl,
     weatherOverlayModel.visibility.airmet,
     weatherOverlayModel.sigmetFeatures,
     weatherOverlayModel.sigmetLabels,
+    weatherOverlayModel.sigmetIntlFeatures,
+    weatherOverlayModel.sigmetIntlLabels,
     weatherOverlayModel.airmetFeatures,
     weatherOverlayModel.airmetLabels,
   ])

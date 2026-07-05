@@ -65,8 +65,11 @@ function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherD
   const headerNameEn = airport.name || AIRPORT_NAME_KO[icao] || icao
   const headerImageSrc = `/images/${String(icao || 'RKSI').toLowerCase()}_banner.webp`
 
-  const metar      = weatherData?.metar?.airports?.[icao] || null
-  const taf        = weatherData?.taf?.airports?.[icao] || null
+  const airportWeatherSource = airport?.overseas ? 'overseas' : 'domestic'
+  const metarPayload = airportWeatherSource === 'overseas' ? weatherData?.metarOverseas : weatherData?.metar
+  const tafPayload = airportWeatherSource === 'overseas' ? weatherData?.tafOverseas : weatherData?.taf
+  const metar      = metarPayload?.airports?.[icao] || null
+  const taf        = tafPayload?.airports?.[icao] || null
   const amos       = weatherData?.amos?.airports?.[icao] || null
   const warning    = weatherData?.warning?.airports?.[icao] || null
   const warnCount  = warning?.warnings?.length || 0

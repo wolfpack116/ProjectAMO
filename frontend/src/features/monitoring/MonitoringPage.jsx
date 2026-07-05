@@ -78,9 +78,12 @@ function overlayKey(entry) {
 function buildSnapshotStateFromData(data) {
   return {
     metar: data.metar?.content_hash || null,
+    metarOverseas: data.metarOverseas?.content_hash || null,
     taf: data.taf?.content_hash || null,
+    tafOverseas: data.tafOverseas?.content_hash || null,
     warning: data.warning?.content_hash || null,
     sigmet: data.sigmet?.content_hash || null,
+    sigmetOverseas: data.sigmetOverseas?.content_hash || null,
     airmet: data.airmet?.content_hash || null,
     sigwxLow: data.sigwxLow?.content_hash || null,
     amos: data.amos?.content_hash || null,
@@ -99,6 +102,9 @@ function buildSnapshotStateFromData(data) {
 
 function detectChanges(snapshot, saved) {
   const sigwxLow = snapshot?.sigwxLow || snapshot?.sigwx_low
+  const metarOverseas = snapshot?.metarOverseas || snapshot?.metar_overseas
+  const tafOverseas = snapshot?.tafOverseas || snapshot?.taf_overseas
+  const sigmetOverseas = snapshot?.sigmetOverseas || snapshot?.sigmet_overseas
   const groundForecast = snapshot?.groundForecast || snapshot?.ground_forecast
   const groundOverview = snapshot?.groundOverview || snapshot?.ground_overview
   const echo = snapshot?.echoMeta || snapshot?.echo
@@ -106,9 +112,12 @@ function detectChanges(snapshot, saved) {
 
   return {
     metar: hashOf(snapshot?.metar) !== saved.metar,
+    metarOverseas: hashOf(metarOverseas) !== saved.metarOverseas,
     taf: hashOf(snapshot?.taf) !== saved.taf,
+    tafOverseas: hashOf(tafOverseas) !== saved.tafOverseas,
     warning: hashOf(snapshot?.warning) !== saved.warning,
     sigmet: hashOf(snapshot?.sigmet) !== saved.sigmet,
+    sigmetOverseas: hashOf(sigmetOverseas) !== saved.sigmetOverseas,
     airmet: hashOf(snapshot?.airmet) !== saved.airmet,
     sigwxLow: hashOf(sigwxLow) !== saved.sigwxLow,
     amos: hashOf(snapshot?.amos) !== saved.amos,
@@ -127,6 +136,9 @@ function detectChanges(snapshot, saved) {
 
 function nextSnapshotState(snapshot, changedData, saved) {
   const sigwxLow = snapshot?.sigwxLow || snapshot?.sigwx_low
+  const metarOverseas = snapshot?.metarOverseas || snapshot?.metar_overseas
+  const tafOverseas = snapshot?.tafOverseas || snapshot?.taf_overseas
+  const sigmetOverseas = snapshot?.sigmetOverseas || snapshot?.sigmet_overseas
   const groundForecast = snapshot?.groundForecast || snapshot?.ground_forecast
   const groundOverview = snapshot?.groundOverview || snapshot?.ground_overview
   const echo = snapshot?.echoMeta || snapshot?.echo
@@ -134,9 +146,12 @@ function nextSnapshotState(snapshot, changedData, saved) {
 
   return {
     metar: changedData.metar?.content_hash ?? hashOf(snapshot?.metar) ?? saved.metar,
+    metarOverseas: changedData.metarOverseas?.content_hash ?? hashOf(metarOverseas) ?? saved.metarOverseas,
     taf: changedData.taf?.content_hash ?? hashOf(snapshot?.taf) ?? saved.taf,
+    tafOverseas: changedData.tafOverseas?.content_hash ?? hashOf(tafOverseas) ?? saved.tafOverseas,
     warning: changedData.warning?.content_hash ?? hashOf(snapshot?.warning) ?? saved.warning,
     sigmet: changedData.sigmet?.content_hash ?? hashOf(snapshot?.sigmet) ?? saved.sigmet,
+    sigmetOverseas: changedData.sigmetOverseas?.content_hash ?? hashOf(sigmetOverseas) ?? saved.sigmetOverseas,
     airmet: changedData.airmet?.content_hash ?? hashOf(snapshot?.airmet) ?? saved.airmet,
     sigwxLow: changedData.sigwxLow?.content_hash ?? hashOf(sigwxLow) ?? saved.sigwxLow,
     amos: changedData.amos?.content_hash ?? hashOf(snapshot?.amos) ?? saved.amos,
@@ -257,7 +272,9 @@ export default function MonitoringPage() {
       setSelectedAirport((prev) => {
         const available = new Set([
           ...Object.keys(merged.metar?.airports || {}),
+          ...Object.keys(merged.metarOverseas?.airports || {}),
           ...Object.keys(merged.taf?.airports || {}),
+          ...Object.keys(merged.tafOverseas?.airports || {}),
           ...Object.keys(merged.warning?.airports || {}),
           ...(merged.airports || []).filter((airport) => airport.icao !== 'TST1').map((airport) => airport.icao),
         ])

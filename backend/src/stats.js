@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-const TYPES = ['metar', 'taf', 'warning', 'sigmet', 'airmet', 'sigwx_low', 'lightning', 'radar', 'amos', 'adsb']
+const TYPES = ['metar', 'taf', 'warning', 'sigmet', 'airmet', 'sigwx_low', 'lightning', 'radar', 'amos', 'adsb', 'metar_overseas', 'taf_overseas', 'sigmet_overseas']
 const MAX_RECENT_RUNS = 50
 
 const METAR_LIMIT_MIN = { RKSI: 40 }

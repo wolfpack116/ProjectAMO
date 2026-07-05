@@ -246,6 +246,65 @@ def write_airways_geojson(route_segments) -> int:
     return len(features)
 
 
+def classify_vor(name_tokens) -> str:
+    """VOR 레코드 이름 끝 키워드로 국내와 동일한 종류로 분류(VORTAC/VOR/DME/TACAN)."""
+    last = name_tokens[-1] if name_tokens else ""
+    if last == "VORTAC":
+        return "VORTAC"
+    if last == "TACAN":
+        return "TACAN"
+    return "VOR/DME"  # VOR-DME 및 순수 VOR → VOR/DME 아이콘
+
+
+def parse_nav(path: Path, fir_rings=None):
+    """earth_nav.dat에서 VOR 계열(타입 3)만 — 국내 항행안전시설이 VORTAC/VOR/DME/TACAN이라 그에 맞춤.
+    NDB(2)·DME(12,13)는 제외(항공로 표시용 항행시설 아님). 아시아 안 + 인천 FIR 밖(국내 중복 제외)."""
+    if not path.exists():
+        return []
+    fir_bbox = rings_bbox(fir_rings) if fir_rings else None
+    out, seen = [], set()
+    with path.open("r", encoding="utf-8", errors="replace") as f:
+        for line in f:
+            parts = line.split()
+            if len(parts) < 8 or parts[0] != "3":  # VOR 계열만
+                continue
+            try:
+                lat, lon = float(parts[1]), float(parts[2])
+            except ValueError:
+                continue
+            if not in_box(lat, lon, ASIA):
+                continue
+            if fir_rings is not None:
+                if point_in_fir(lon, lat, fir_rings, fir_bbox):
+                    continue
+            elif in_box(lat, lon, KOREA):
+                continue
+            ident = parts[7]
+            key = (ident, round(lat, 3), round(lon, 3))
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append({"ident": ident, "lat": lat, "lon": lon, "navType": classify_vor(parts[8:])})
+    return out
+
+
+def write_navaids_geojson(navaids) -> int:
+    """지도 표시용 해외 항행안전시설 Point GeoJSON. `type`은 국내 navaid와 동일 값(아이콘 매칭)."""
+    features = [
+        {
+            "type": "Feature",
+            "properties": {"ident": n["ident"], "type": n["navType"], "source": "xplane", "cycle": CYCLE},
+            "geometry": {"type": "Point", "coordinates": [n["lon"], n["lat"]]},
+        }
+        for n in sorted(navaids, key=lambda x: x["ident"])
+    ]
+    path = OUT.parent / "navaids-overseas.geojson"
+    with path.open("w", encoding="utf-8") as f:
+        json.dump({"type": "FeatureCollection", "features": features}, f, ensure_ascii=True)
+        f.write("\n")
+    return len(features)
+
+
 def write_waypoints_geojson(navpoints: dict) -> int:
     """지도 표시용 해외 웨이포인트 Point GeoJSON. `ident`+circle 표시(라벨은 밀집이라 기본 비활성)."""
     features = [
@@ -280,6 +339,7 @@ def main() -> None:
     write_json("route-graph-overseas.json", graph)
     airway_features = write_airways_geojson(route_segments)
     waypoint_features = write_waypoints_geojson(navpoints)
+    navaid_features = write_navaids_geojson(parse_nav(SRC / "earth_nav.dat", fir_rings))
 
     print(json.dumps({
         "srcFixes": len(build_fixes),
@@ -289,6 +349,7 @@ def main() -> None:
         "navpoints": len(navpoints),
         "airwayGeojsonFeatures": airway_features,
         "waypointGeojsonFeatures": waypoint_features,
+        "navaidGeojsonFeatures": navaid_features,
     }, indent=2))
 
     # ponytail 셀프체크: (1) 해외 항로가 실제로 남았고 (2) 인천 FIR을 통과하는 세그먼트가 하나도 없어야

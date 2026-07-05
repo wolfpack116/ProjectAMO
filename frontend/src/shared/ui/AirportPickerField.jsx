@@ -70,7 +70,7 @@ export default function AirportPickerField({ label, value, options, firOption, o
         <span className="apf-label">{label}</span>
         <span className="apf-value">
           {selected
-            ? (<>{selected.ko} <span className="apf-icao">{selected.value}</span></>)
+            ? (<><span className="apf-ko">{selected.ko}</span> <span className="apf-icao">{selected.value}</span></>)
             : isFir
               ? firOption.label
               : <span className="apf-placeholder">선택</span>}

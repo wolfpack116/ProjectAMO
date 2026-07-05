@@ -203,8 +203,49 @@ export async function fetchKimGrid(params) {
   }
 }
 
+// ── NOAA Aviation Weather (해외 기상, JSON, 무인증) ─────────────────────────
+// KMA 경로와 분리: resultCode 검사 없음, EUC-KR 디코딩 없음(항상 UTF-8 JSON).
+const { noaa } = config
+
+async function fetchNoaaJson(pathname, params) {
+  const query = new URLSearchParams({ ...params, format: 'json' })
+  const url = `${noaa.base_url}${pathname}?${query.toString()}`
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), noaa.timeout_ms || 20000)
+  try {
+    const response = await fetch(url, { signal: controller.signal })
+    if (!response.ok) {
+      const body = (await response.text()).slice(0, 200)
+      throw new Error(`NOAA HTTP ${response.status}: ${body}`)
+    }
+    const data = await response.json()
+    return Array.isArray(data) ? data : []
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+// ids = ICAO 배열(벌크 다건 1콜). 빈 배열이면 호출 안 함.
+export async function fetchNoaaMetar(ids) {
+  if (!Array.isArray(ids) || ids.length === 0) return []
+  return fetchNoaaJson('/metar', { ids: ids.join(',') })
+}
+
+export async function fetchNoaaTaf(ids) {
+  if (!Array.isArray(ids) || ids.length === 0) return []
+  return fetchNoaaJson('/taf', { ids: ids.join(',') })
+}
+
+// 국제 SIGMET은 ids 없음 — 전세계 전량 1콜(프로세서가 firId로 필터).
+export async function fetchNoaaSigmet() {
+  return fetchNoaaJson('/isigmet', {})
+}
+
 export default {
   fetch: fetchApi,
+  fetchNoaaMetar,
+  fetchNoaaTaf,
+  fetchNoaaSigmet,
   fetchSigwxLow,
   fetchAirportInfo,
   fetchTakeoffFcst,

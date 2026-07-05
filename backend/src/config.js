@@ -30,6 +30,25 @@ import airportsData from '../../shared/airports.js'
 
 export const airports = airportsData
 
+const DEFAULT_OVERSEAS_AIRPORTS = [
+  'RCKH', 'RCMQ', 'RCTP', 'RJAA', 'RJBB', 'RJCC', 'RJFF', 'RJFK', 'RJFR', 'RJFT',
+  'RJGG', 'RJOA', 'RJOH', 'RJOM', 'RJOT', 'RJSS', 'RJTT', 'ROAH', 'ROMY', 'RPLC',
+  'RPLL', 'RPVM', 'VDPP', 'VHHH', 'VMMC', 'VTBS', 'VTCC', 'VVCR', 'VVDN', 'VVNB',
+  'VVPQ', 'VVTS', 'WADD', 'WBKK', 'WIII', 'WMKK', 'WSSS', 'ZBAA', 'ZBAD', 'ZGGG',
+  'ZGSZ', 'ZMCK', 'ZSHC', 'ZSPD', 'ZSQD', 'ZSSS', 'ZYTL', 'ZYTX',
+]
+
+function loadOverseasAirportIds() {
+  const filePath = path.join(projectRoot, 'frontend', 'public', 'data', 'navdata', 'airports-overseas.json')
+  try {
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+    const ids = Object.keys(data || {}).filter((id) => /^[A-Z0-9]{4}$/.test(id)).sort()
+    return ids.length > 0 ? ids : DEFAULT_OVERSEAS_AIRPORTS
+  } catch {
+    return DEFAULT_OVERSEAS_AIRPORTS
+  }
+}
+
 export const api = {
   base_url: process.env.API_BASE_URL || 'https://apihub.kma.go.kr/api/typ02/openApi',
   lightning_url: process.env.LIGHTNING_API_URL || 'https://apihub.kma.go.kr/api/typ01/url/lgt_pnt.php',
@@ -212,6 +231,20 @@ export const notam = {
   startup_max_age_hours: Number(process.env.NOTAM_STARTUP_MAX_AGE_HOURS || 6),
 }
 
+// 해외 기상: NOAA Aviation Weather(JSON, 무인증). 국내(RKxx)=KMA 유지, 해외만 NOAA.
+// overseas_airports = frontend/public/data/navdata/airports-overseas.json에서 파생.
+// asia_firs = NOAA 국제 SIGMET(전세계 1콜)에서 남길 아시아 FIR. RKRR(국내)은 KMA와 중복되므로 제외.
+// ⚠️ 프놈펜은 공항코드 VDPP이지만 FIR코드는 VDPF(ICAO 재지정) — SIGMET firId 매칭엔 VDPF.
+export const noaa = {
+  base_url: process.env.NOAA_BASE_URL || 'https://aviationweather.gov/api/data',
+  timeout_ms: Number(process.env.NOAA_TIMEOUT_MS || 20000),
+  overseas_airports: loadOverseasAirportIds(),
+  asia_firs: [
+    'RJJJ', 'RCAA', 'VHHK', 'ZMUB', 'ZBPE', 'ZSHA', 'ZGZU', 'ZYSH', 'ZHWH', 'ZJSA',
+    'ZLHW', 'VVHN', 'VVHM', 'VDPF', 'VTBB', 'WMFC', 'WSJC', 'WIIF', 'WAAF', 'RPHI',
+  ],
+}
+
 export const schedule = {
   notam_interval: '0 */6 * * *', // 6시간 주기(00,06,12,18 UTC)
   metar_interval: '*/10 * * * *',
@@ -245,6 +278,7 @@ export const storage = {
 export default {
   api,
   airports,
+  noaa,
   notam,
   environment,
   ground_forecast,

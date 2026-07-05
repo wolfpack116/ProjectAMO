@@ -17,6 +17,21 @@ test('뇌우(TS) → 레이더+낙뢰+SIGMET', () => {
   for (const x of ['radar', 'lightning', 'sigmet']) assert.ok(ids.includes(x), `누락: ${x}`)
 })
 
+test('해외(NOAA) SIGMET 뇌우 → SIGMET(국내) 대신 SIGMET(해외)', () => {
+  const ids = hazardMapLayers(briefing([{ code: 'EMBD_TS', source: 'SIGMET', overseas: true }]))
+  assert.ok(ids.includes('sigmet_intl'), 'sigmet_intl 누락')
+  assert.ok(!ids.includes('sigmet'), '국내 sigmet가 잘못 포함됨')
+  assert.ok(ids.includes('radar') && ids.includes('lightning'))
+})
+
+test('국내+해외 SIGMET 둘 다 걸리면 두 칩 모두', () => {
+  const ids = hazardMapLayers(briefing([
+    { code: 'EMBD_TS', source: 'SIGMET' },
+    { code: 'TC', source: 'SIGMET', overseas: true },
+  ]))
+  assert.ok(ids.includes('sigmet') && ids.includes('sigmet_intl'))
+})
+
 test('착빙/난류는 코드와 enroute 모델 둘 다에서 잡힌다', () => {
   assert.ok(hazardMapLayers(briefing([{ code: 'SEV_ICE', source: 'AIRMET' }])).includes('icing'))
   assert.ok(hazardMapLayers(briefing([], ['turbulence'])).includes('turbulence'))

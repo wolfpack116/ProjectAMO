@@ -16,9 +16,12 @@ function overlayMetaDiffer(prev, next) {
 export function detectSnapshotChanges(prev, next) {
   return {
     metar: hashesDiffer(prev?.metar, next?.metar),
+    metarOverseas: hashesDiffer(prev?.metarOverseas || prev?.metar_overseas, next?.metarOverseas || next?.metar_overseas),
     taf: hashesDiffer(prev?.taf, next?.taf),
+    tafOverseas: hashesDiffer(prev?.tafOverseas || prev?.taf_overseas, next?.tafOverseas || next?.taf_overseas),
     warning: hashesDiffer(prev?.warning, next?.warning),
     sigmet: hashesDiffer(prev?.sigmet, next?.sigmet),
+    sigmetOverseas: hashesDiffer(prev?.sigmetOverseas || prev?.sigmet_overseas, next?.sigmetOverseas || next?.sigmet_overseas),
     airmet: hashesDiffer(prev?.airmet, next?.airmet),
     sigwxLow: hashesDiffer(prev?.sigwxLow, next?.sigwxLow),
     amos: hashesDiffer(prev?.amos, next?.amos),

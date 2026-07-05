@@ -47,6 +47,20 @@ function buildAirportWarningHazards(warningData, roles, etd, eta) {
 const CAT_RANK = { VFR: 0, IFR: 1, LIFR: 2 } // 3레벨 표시 기준(MVFR fold 후)
 
 // Go/No-go 배너: 실측 METAR 있는 공항 중 최악(3레벨) + 이유(운고/시정), 공항별 3레벨 체인.
+function mergeAirportPayloads(primary, secondary) {
+  return {
+    ...(primary || secondary || {}),
+    airports: { ...(primary?.airports || {}), ...(secondary?.airports || {}) },
+  }
+}
+
+function mergeAdvisoryPayloads(primary, secondary) {
+  return {
+    ...(primary || secondary || {}),
+    items: [...(primary?.items || []), ...(secondary?.items || [])],
+  }
+}
+
 function buildBanner(airports) {
   const scored = airports
     .filter((a) => a.category && a.category !== 'UNKNOWN')
@@ -59,14 +73,17 @@ function buildBanner(airports) {
 }
 
 export function composeBriefing(request, data) {
-  const metarByIcao = data?.metar?.airports ?? {}
-  const tafByIcao = data?.taf?.airports ?? {}
+  const metarPayload = mergeAirportPayloads(data?.metar, data?.metarOverseas || data?.metar_overseas)
+  const tafPayload = mergeAirportPayloads(data?.taf, data?.tafOverseas || data?.taf_overseas)
+  const sigmetPayload = mergeAdvisoryPayloads(data?.sigmet, data?.sigmetOverseas || data?.sigmet_overseas)
+  const metarByIcao = metarPayload.airports ?? {}
+  const tafByIcao = tafPayload.airports ?? {}
 
   const axis = buildRouteAxis(request.routeGeometry, 2000)
   const cruiseAltitudeFt = Number(request.plannedCruiseAltitudeFt) || 0
 
   const adverse = buildHazardSection({
-    sigmet: data?.sigmet?.items ?? [],
+    sigmet: sigmetPayload.items ?? [],
     airmet: data?.airmet?.items ?? [],
     axis,
     etd: request.etd,

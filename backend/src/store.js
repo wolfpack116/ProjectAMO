@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import config from './config.js'
 
-const TYPES = ['metar', 'taf', 'warning', 'lightning', 'sigmet', 'airmet', 'sigwx_low', 'amos', 'adsb', 'kim_surface_wind', 'ground_forecast', 'ground_overview', 'environment', 'airport_info', 'takeoff_fcst', 'flight_category_overlay', 'notam']
+const TYPES = ['metar', 'taf', 'warning', 'lightning', 'sigmet', 'airmet', 'sigwx_low', 'amos', 'adsb', 'kim_surface_wind', 'ground_forecast', 'ground_overview', 'environment', 'airport_info', 'takeoff_fcst', 'flight_category_overlay', 'notam', 'metar_overseas', 'taf_overseas', 'sigmet_overseas']
 const FILE_PREFIX = {
   metar: 'METAR',
   taf: 'TAF',
@@ -11,6 +11,9 @@ const FILE_PREFIX = {
   lightning: 'LIGHTNING',
   sigmet: 'SIGMET',
   airmet: 'AIRMET',
+  metar_overseas: 'METAR_OVERSEAS',
+  taf_overseas: 'TAF_OVERSEAS',
+  sigmet_overseas: 'SIGMET_OVERSEAS',
   sigwx_low: 'SIGWX_LOW',
   amos: 'AMOS',
   kim_surface_wind: 'KIM_SURFACE_WIND',
@@ -41,6 +44,9 @@ const cache = {
   takeoff_fcst: { hash: null, prev_data: null },
   flight_category_overlay: { hash: null, prev_data: null },
   notam: { hash: null, prev_data: null },
+  metar_overseas: { hash: null, prev_data: null },
+  taf_overseas: { hash: null, prev_data: null },
+  sigmet_overseas: { hash: null, prev_data: null },
 }
 
 export function ensureDirectories(basePath) {

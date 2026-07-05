@@ -79,3 +79,30 @@ test('loadChangedWeatherData does not fetch deferred datasets until they are loa
     recorder.restore()
   }
 })
+
+test('loadChangedWeatherData fetches overseas datasets independently from domestic changes', async () => {
+  const recorder = installFetchRecorder()
+  try {
+    const data = await loadChangedWeatherData({
+      metar: false,
+      metarOverseas: true,
+      taf: false,
+      tafOverseas: true,
+      sigmet: false,
+      sigmetOverseas: true,
+    })
+
+    assert.ok(data.metarOverseas)
+    assert.ok(data.tafOverseas)
+    assert.ok(data.sigmetOverseas)
+    assert.equal(data.metar, undefined)
+    assert.equal(data.taf, undefined)
+    assert.equal(data.sigmet, undefined)
+    assert.deepEqual(
+      recorder.calls,
+      ['/api/metar-overseas', '/api/taf-overseas', '/api/sigmet-overseas'],
+    )
+  } finally {
+    recorder.restore()
+  }
+})

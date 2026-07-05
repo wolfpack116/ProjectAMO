@@ -27,12 +27,22 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0; /* 자식 ellipsis 허용 */
   font-size: 14px;
   font-weight: 700;
   color: var(--text-1);
 }
 
+/* 공항 한글명: 한 줄 유지, 넘치면 … (칸 부족해도 줄바꿈 안 함) */
+.apf .apf-ko {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .apf .apf-icao {
+  flex-shrink: 0;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-3);
@@ -44,6 +54,7 @@
 }
 
 .apf .apf-caret {
+  flex-shrink: 0;
   color: var(--text-3);
   font-size: 12px;
 }

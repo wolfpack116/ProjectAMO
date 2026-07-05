@@ -391,6 +391,8 @@ export function addAviationWfsLayers(map) {
       map.addSource(layer.sourceId, {
         type: 'geojson',
         data: layer.dataUrl,
+        // 데이터 출처 표기(레이어 켜졌을 때만 Mapbox attribution에 노출). VAT-Spy FIR = CC-BY-SA-4.0.
+        ...(layer.attribution ? { attribution: layer.attribution } : {}),
       })
     }
 

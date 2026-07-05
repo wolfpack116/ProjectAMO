@@ -342,8 +342,9 @@ export const AVIATION_WFS_LAYERS = [
     lineWidth: 1.2,
   },
   {
-    // 해외 웨이포인트 — X-Plane earth_fix 기반 테스트 데이터. 밀집(1900+)이라 세모 아이콘만(라벨 생략).
-    // 정식 회사 AIRAC 붙으면 waypoints-overseas.geojson만 교체.
+    // 해외 웨이포인트 — X-Plane earth_fix(2012) 기반 테스트 데이터. 원본에 종류 정보가 없어(위경도+식별자뿐)
+    // 종류별 구분 불가 → 항로 지점 대부분인 RNAV 웨이포인트 아이콘으로 통일(국내 waypoint 기본 아이콘과 동일).
+    // 회사 AIRAC 붙으면 종류(symbolType)를 담아 국내처럼 종류별 아이콘 매핑 가능.
     id: 'overseas-waypoint',
     nameKo: '해외 웨이포인트',
     nameEn: 'Overseas Waypoint',
@@ -359,25 +360,50 @@ export const AVIATION_WFS_LAYERS = [
     iconSize: 0.6,
     iconImageByProperty: {
       property: 'symbolType',
-      fallback: 'triangle',
+      fallback: 'rnav',
       values: {
-        triangle: {
-          imageId: 'symbol-waypoint-overseas-tri',
-          url: '/Symbols/waypoint-conventional-flyover.svg',
+        rnav: {
+          imageId: 'symbol-waypoint-overseas-rnav',
+          url: '/Symbols/waypoint-rnav-flyby.svg',
         },
       },
     },
   },
   {
+    // 해외 항행안전시설(VOR/NDB/DME) — X-Plane earth_nav 기반 테스트 데이터(아시아+인천FIR밖).
+    // 정식 회사 AIRAC 붙으면 navaids-overseas.geojson만 교체.
+    id: 'overseas-navaid',
+    nameKo: '해외 항행안전시설',
+    nameEn: 'Overseas NAVAID',
+    sourceId: 'aviation-overseas-navaid',
+    pointLayerId: 'aviation-overseas-navaid-point',
+    inlineLabelField: 'ident',
+    pointLabelMinzoom: 6,
+    iconAllowOverlap: false,
+    pointMinzoom: 4,
+    dataUrl: '/data/navaids-overseas.geojson',
+    color: '#7c3aed',
+    defaultVisible: false,
+    iconSize: 0.8,
+    iconImageByProperty: {
+      // 국내 navaid와 동일한 종류별 아이콘(VORTAC/VOR-DME/TACAN)
+      property: 'type',
+      fallback: 'VOR/DME',
+      values: {
+        VORTAC: { imageId: 'symbol-ov-vortac', url: '/Symbols/navaid-vortac.svg' },
+        'VOR/DME': { imageId: 'symbol-ov-vor-dme', url: '/Symbols/navaid-vor-dme.svg' },
+        TACAN: { imageId: 'symbol-ov-tacan', url: '/Symbols/navaid-tacan.svg' },
+      },
+    },
+  },
+  {
     // 해외 공항 — OurAirports 좌표(scripts/generate_overseas_airports.py). MVP 대상 해외 목적지.
-    // 국내 공항과 같은 아이콘. ICAO 코드 라벨(줌5+). 회사 자료 오면 airports-overseas만 교체.
+    // 아이콘만 표시(ICAO 빨간 라벨 제거 — 기상 마커와 중복·혼잡 방지). 회사 자료 오면 airports-overseas만 교체.
     id: 'overseas-airport',
     nameKo: '해외 공항',
     nameEn: 'Overseas Airport',
     sourceId: 'aviation-overseas-airport',
     pointLayerId: 'aviation-overseas-airport-point',
-    inlineLabelField: 'icao',
-    pointLabelMinzoom: 5,
     dataUrl: '/data/airports-overseas.geojson',
     color: '#be123c',
     defaultVisible: false,
@@ -389,5 +415,26 @@ export const AVIATION_WFS_LAYERS = [
         civil: { imageId: 'symbol-airport-civil', url: '/Symbols/airport-civil.svg' },
       },
     },
+  },
+  {
+    // 해외 FIR 경계 — VATSIM VAT-Spy Boundaries(scripts/generate_overseas_fir.mjs, CC-BY-SA-4.0).
+    // 인천 FIR처럼 경계선+라벨로 표시. 인천 전용(마스크·틱)은 제외한 단순 경계. 점선으로 국내와 구분.
+    id: 'overseas-fir',
+    nameKo: '해외 FIR',
+    nameEn: 'Overseas FIR',
+    attribution: 'FIR boundaries © VATSIM VAT-Spy (CC-BY-SA-4.0)',
+    sourceId: 'aviation-overseas-fir',
+    fillLayerId: 'aviation-overseas-fir-fill',
+    lineLayerId: 'aviation-overseas-fir-line',
+    labelLayerId: 'aviation-overseas-fir-labels',
+    labelTextField: ['get', 'label'], // "RJJJ\nFUKUOKA FIR"
+    labelMinzoom: 4,
+    dataUrl: '/data/fir-overseas.geojson',
+    color: '#1485d4',
+    defaultVisible: false,
+    fillOpacity: 0,
+    lineOpacity: 0.6,
+    lineWidth: 1.2,
+    lineDasharray: [3, 2],
   },
 ]

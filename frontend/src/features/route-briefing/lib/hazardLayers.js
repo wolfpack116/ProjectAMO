@@ -16,14 +16,22 @@ const RULEBOOK = [
 // 브리핑이 계산한 경로상 위험(adverse.hazards 코드 + enroute.model kind)에서
 // 룰북에 따라 켤 MET 레이어 id 집합을 만든다. 레이어 토글 자체는 MapView 소유.
 export function hazardMapLayers(briefing) {
-  const codes = (briefing?.sections?.adverse?.hazards ?? []).map((h) => h.code || '')
+  const hazards = briefing?.sections?.adverse?.hazards ?? []
   const notamCats = (briefing?.routeNotams ?? []).map((n) => n.category || '')
   const modelKinds = new Set((briefing?.sections?.enroute?.model?.elements ?? []).map((e) => e.kind))
   const layers = new Set()
 
-  for (const code of [...codes, ...notamCats])
+  // adverse 위험: 코드→룰북. sigmet 레이어는 해당 위험이 해외(NOAA) SIGMET이면 sigmet_intl(국제)로.
+  // 국내·해외 SIGMET이 둘 다 걸리면 두 칩 모두 표시.
+  for (const h of hazards)
     for (const rule of RULEBOOK)
-      if (rule.codes.includes(code)) rule.layers.forEach((l) => layers.add(l))
+      if (rule.codes.includes(h.code || ''))
+        for (const l of rule.layers) layers.add(l === 'sigmet' && h.overseas ? 'sigmet_intl' : l)
+
+  // 경로상 NOTAM 카테고리 → notam 레이어
+  for (const cat of notamCats)
+    for (const rule of RULEBOOK)
+      if (rule.codes.includes(cat)) rule.layers.forEach((l) => layers.add(l))
 
   // enroute 모델(KTG 난류·KIM 착빙)에서 직접 잡힌 것
   if (modelKinds.has('icing')) layers.add('icing')
