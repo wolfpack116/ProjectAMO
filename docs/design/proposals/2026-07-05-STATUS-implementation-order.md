@@ -45,7 +45,8 @@
 | ④ 프리셋(미니마) 서버화 | ✅ `backend/src/me/presets.js`(GET/PUT/DELETE `/api/me/presets`, requireAuth·session.userId만·zod). SettingsModal이 로그인 시 서버 로드/저장(서버우선, 게스트=localStorage, 서버빈값이면 로컬이 첫저장으로 마이그레이션). 테스트4 + Playwright 왕복(GET/PUT 200) |
 | ⑤ 경로 서버화 | ✅ `backend/src/me/routes.js`(GET/POST/DELETE `/api/me/routes`, session.userId만·zod·snapshot을 payload JSON으로 무손실·용량/개수 상한). routes 테이블 `payload` 컬럼 추가(기존 DB idempotent ALTER). routeStore 서버우선·게스트 localStorage 폴백(async). 테스트4 + 브라우저 왕복(POST 201·무손실·삭제) |
 | ⑥ 문의 큐 — 백엔드 | ✅ 결정: 예보관 7공항(RKSI·RKSS·RKPC·RKJB·RKNY·RKJY·RKPU), 예보관은 여러 공항 담당(users.airports), 조종사는 7개 중 자유선택, 콘솔=앱 내 패널. API: POST `/api/me/requests`(조종사, route 소유·공항검증) · `/api/forecaster/requests`(담당공항만)·`/:id`(경로payload)·`/claim`·`/close`. 타공항 격리(404), requireRole. 생성: `AIRPORTS=RKSI,RKSS ROLE=forecaster`. 테스트 통과 |
-| ⑥ 문의 큐 — 프론트 | ⬜ 다음(UI, **설계 확정** ↓) |
+| ⑥ 문의 큐 — 프론트(조종사) | ✅ `ForecasterInquiry.jsx`(+css·forecasterContacts) — **브리핑 문서(BriefingView) 맨끝**에 안내문+[전화번호 보기](7공항 자리표시자)+[담당 예보관에게 보내기](공항선택7·메시지→경로 자동저장 후 POST /api/me/requests). MapView가 routeSnapshot 전달. 빌드+사용자 육안 확인 |
+| ⑥ 문의 큐 — 프론트(예보관 콘솔) | ⬜ 다음(UI): 사이드바 [문의함]·배지·토스트 폴링 + 대기열 + 전체 브리핑 재현 + claim/close |
 | ⑦ 보안 하드닝 | ⬜ |
 
 ### ⑥ 프론트 설계 확정 (2026-07-05, 착수 시 이대로)

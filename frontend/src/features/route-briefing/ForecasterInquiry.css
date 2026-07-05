@@ -1,0 +1,30 @@
+.rb-inquiry {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bg-3, #e0e0e0);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rb-inquiry-notice { margin: 0; font-size: 12.5px; color: var(--text-3, #616161); line-height: 1.5; }
+.rb-inquiry-open { display: flex; flex-direction: column; gap: 8px; }
+.rb-phone-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.rb-phone-list li { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; }
+.rb-phone-ap { color: var(--text-1, #242424); font-weight: 600; }
+.rb-phone-icao { color: var(--text-3, #616161); font-weight: 400; font-size: 11px; }
+.rb-phone-num { color: var(--accent, #2563eb); font-weight: 600; text-decoration: none; font-variant-numeric: tabular-nums; }
+.rb-inquiry-done { margin: 0; font-size: 13px; font-weight: 700; color: #166534; }
+.rb-inquiry-hint { margin: 0; font-size: 11.5px; color: var(--text-3, #616161); }
+.rb-inquiry-form { display: flex; flex-direction: column; gap: 12px; min-width: 280px; }
+.rb-inquiry-field { display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 700; color: var(--text-2, #424242); }
+.rb-inquiry-msg {
+  resize: vertical;
+  border: 1px solid var(--bg-3, #e0e0e0);
+  border-radius: 8px;
+  padding: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+}
+.rb-inquiry-err { margin: 0; font-size: 12.5px; color: #c0291f; }
+.rb-inquiry-actions { display: flex; justify-content: flex-end; gap: 8px; }

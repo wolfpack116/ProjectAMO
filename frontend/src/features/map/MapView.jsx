@@ -1416,6 +1416,13 @@ const MapView = forwardRef(function MapView({
                 metVisibility={metVisibility}
                 onToggleMetLayer={toggleMet}
                 onEnterMapMode={() => setRouteBriefingMapMode(true)}
+                routeSnapshot={{
+                  routeForm: routeBriefing.state.routeForm,
+                  vfrWaypoints: routeBriefing.state.vfrWaypoints,
+                  cruiseAltitudeFt: routeBriefing.state.cruiseAltitudeFt,
+                  alternateAirport: routeBriefing.state.alternateAirport,
+                  etd: routeBriefing.state.etd,
+                }}
               />
             </Suspense>
           )}

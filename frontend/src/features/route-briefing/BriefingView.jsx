@@ -12,6 +12,7 @@ import BriefingSynopsis from './BriefingSynopsis.jsx'
 import useIsMobile from '../../shared/ui/useIsMobile.js'
 import MobileSheet from '../../shared/ui/MobileSheet.jsx'
 import DataProvenance from '../../shared/ui/DataProvenance.jsx'
+import ForecasterInquiry from './ForecasterInquiry.jsx'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
 import { formatBriefingTime } from './lib/briefingTime.js'
 import { hazardMapLayers } from './lib/hazardLayers.js'
@@ -76,7 +77,7 @@ function CatBadge({ category }) {
   return <Badge appearance="filled" style={{ backgroundColor: catColorOf(category), color: '#fff' }}>{c}</Badge>
 }
 
-export default function BriefingView({ briefing, verticalProfile = null, crossSection = null, advisories = [], onClose, onOpenProfile, onFocus, metVisibility, onToggleMetLayer, onEnterMapMode }) {
+export default function BriefingView({ briefing, verticalProfile = null, crossSection = null, advisories = [], onClose, onOpenProfile, onFocus, metVisibility, onToggleMetLayer, onEnterMapMode, routeSnapshot = null }) {
   const isMobile = useIsMobile()
   const { tz } = useTimeZone()
   const containerRef = useRef(null)
@@ -690,6 +691,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
             {etdEtaLine && <Caption1 style={{ color: 'var(--accent)', fontVariantNumeric: 'tabular-nums' }}>{etdEtaLine}</Caption1>}
             <BriefingBanner banner={briefing.banner} routeConflicts={routeConflicts} />
             {nav}{board}{layerAction}{adverse}{currentMobile}<BriefingSynopsis />{enroute}{notamSection}{destination}
+            <ForecasterInquiry snapshot={routeSnapshot} disabled={!routeSnapshot} />
           </div>
         </MobileSheet>
         {xsectionFull && verticalProfile && (
@@ -727,6 +729,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
         </div>
         <BriefingBanner banner={briefing.banner} routeConflicts={routeConflicts} />
         {nav}{board}{layerAction}{adverse}{currentDesktop}<BriefingSynopsis />{enroute}{notamSection}{destination}
+        <ForecasterInquiry snapshot={routeSnapshot} disabled={!routeSnapshot} />
       </div>
     </div>
   )
