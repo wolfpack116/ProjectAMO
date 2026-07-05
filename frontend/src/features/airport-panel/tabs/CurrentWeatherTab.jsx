@@ -187,12 +187,13 @@ function MetarSummary({ metar, amosData, icao, airportMeta }) {
 
   const cardList = [
     model.cards.visibility,
+    model.cards.rvr,
     model.cards.weather,
     model.cards.wind,
     model.cards.ceiling,
     model.cards.qnh,
     model.cards.temperature,
-  ]
+  ].filter(Boolean)
 
   function renderCardLabel(card) {
     if (card.id === 'weather') {

@@ -72,6 +72,7 @@ export function buildCompactMetarModel({ metar, amosData, icao, airportMeta }) {
   const temperatureValue = Number.isFinite(temperature.air) && Number.isFinite(temperature.dewpoint)
     ? `${Math.round(temperature.air)}°C / ${Math.round(temperature.dewpoint)}°C`
     : vm.tempDisplay
+  const rvrText = formatRvrSummary(vm.obs)
 
   return {
     empty: false,
@@ -98,7 +99,7 @@ export function buildCompactMetarModel({ metar, amosData, icao, airportMeta }) {
         id: 'visibility',
         label: '시정',
         value: vm.visValue,
-        secondary: formatRvrSummary(vm.obs),
+        secondary: null,
         color: vm.visCat.valueColor,
         background: vm.visCat.bg,
         border: vm.visCat.border,
@@ -121,6 +122,7 @@ export function buildCompactMetarModel({ metar, amosData, icao, airportMeta }) {
         label: '기온/이슬점',
         value: temperatureValue,
       },
+      rvr: rvrText ? { id: 'rvr', label: 'RVR', value: rvrText } : null,
     },
   }
 }
