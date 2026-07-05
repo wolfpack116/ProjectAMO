@@ -65,7 +65,7 @@ export function summarizeAirport(role, metar) {
   const obs = metar.observation
   const visibilityM = obs.visibility?.cavok ? 9999 : obs.visibility?.value
   const ceilingFt = ceilingFromClouds(obs.clouds)
-  const { category, driver } = categoryDetail({ visibilityM, ceilingFt })
+  const { category, driver } = categoryDetail({ visibilityM, ceilingFt, icao: metar.header?.icao })
   const gust = obs.wind?.gust
 
   const tempText = obs.display?.temperature ? `${obs.display.temperature}℃` : null

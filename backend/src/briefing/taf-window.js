@@ -20,7 +20,7 @@ export function selectTafAtEta(taf, etaIso) {
     const delta = Math.abs(t - eta)
     if (!best || delta < best.delta) {
       const { visibilityM, ceilingFt } = entryMetrics(entry)
-      best = { delta, entry: { time: entry.time, ...entry.display, category: categoryFor({ visibilityM, ceilingFt }) } }
+      best = { delta, entry: { time: entry.time, ...entry.display, category: categoryFor({ visibilityM, ceilingFt, icao: taf?.header?.icao }) } }
     }
   }
   return best?.entry ?? null
@@ -31,9 +31,9 @@ export function selectTafAtEta(taf, etaIso) {
 const pad2 = (n) => String(n).padStart(2, '0')
 const pad3 = (n) => String(n).padStart(3, '0')
 
-function stateCategory({ visibilityM, cavok, clouds }) {
+function stateCategory({ visibilityM, cavok, clouds, icao }) {
   const vis = cavok ? 9999 : visibilityM
-  return categoryFor({ visibilityM: vis, ceilingFt: ceilingFromClouds(clouds) })
+  return categoryFor({ visibilityM: vis, ceilingFt: ceilingFromClouds(clouds), icao })
 }
 function windText(wind) {
   if (!wind) return '-'
@@ -75,10 +75,10 @@ function fieldLevels(s) {
     wxLevel: wxRaw ? 'red' : null,
   }
 }
-function periodRow(type, start, end, s) {
+function periodRow(type, start, end, s, icao) {
   return {
     type, start, end,
-    category: stateCategory({ visibilityM: s.vis, cavok: s.cavok, clouds: s.clouds }),
+    category: stateCategory({ visibilityM: s.vis, cavok: s.cavok, clouds: s.clouds, icao }),
     wind: windText(s.wind), vis: visText(s.vis, s.cavok), clouds: cloudText(s.clouds, s.cavok), wx: wxText(s.wx),
     levels: fieldLevels(s), // { windLevel, visLevel, ceilLevel, wxLevel }
   }
@@ -86,15 +86,17 @@ function periodRow(type, start, end, s) {
 function buildPeriods(taf, validity) {
   const base = taf?.base
   if (!base) return []
+  const icao = taf?.header?.icao
   const baseState = { wind: base.wind, vis: base.vis, cavok: base.cavok_flag, clouds: base.clouds, wx: base.wx }
-  const rows = [periodRow('base', validity.start, validity.end, baseState)]
-  for (const g of (taf.change_groups ?? [])) rows.push(periodRow(g.type, g.start, g.end, mergeState(base, g)))
+  const rows = [periodRow('base', validity.start, validity.end, baseState, icao)]
+  for (const g of (taf.change_groups ?? [])) rows.push(periodRow(g.type, g.start, g.end, mergeState(base, g), icao))
   return rows
 }
 function categoryTimeline(taf) {
+  const icao = taf?.header?.icao
   return (taf?.timeline ?? []).map((e) => ({
     time: e.time,
-    category: stateCategory({ visibilityM: e.visibility?.value, cavok: e.visibility?.cavok, clouds: e.clouds }),
+    category: stateCategory({ visibilityM: e.visibility?.value, cavok: e.visibility?.cavok, clouds: e.clouds, icao }),
   }))
 }
 // ── 원문 TAF 재구성 — 실제 TAC 토큰(03006KT·9999·6000·SCT030 …) ──
