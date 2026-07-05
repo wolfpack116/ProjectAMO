@@ -51,6 +51,9 @@ const AVIATION_META = {
   airport: { label: '공항', aliases: ['airport'] },
   'ats-route': { label: 'ATS 항공로', aliases: ['ats', '항로'] },
   'rnav-route': { label: 'RNAV 항공로', aliases: ['rnav'] },
+  'overseas-route': { label: '국제 항공로', aliases: ['해외항로', '국제항로', 'overseas'] },
+  'overseas-waypoint': { label: '해외 웨이포인트', aliases: ['해외웨이포인트', 'overseas waypoint', '해외픽스'] },
+  'overseas-airport': { label: '해외 공항', aliases: ['해외공항', 'overseas airport', '국제공항'] },
 }
 export const AVIATION_ACTIONS = AVIATION_WFS_LAYERS.map((l) => ({
   id: l.id, type: 'aviation', panelId: 'aviation',

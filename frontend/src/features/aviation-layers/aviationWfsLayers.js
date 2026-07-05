@@ -326,4 +326,68 @@ export const AVIATION_WFS_LAYERS = [
     lineOpacity: 0.9,
     lineWidth: 1.4,
   },
+  {
+    // 해외(아시아) 항로 — X-Plane navdata 기반 테스트 데이터(scripts/generate_overseas_navdata.py).
+    // 도메스틱 airways.geojson과 동일 ident_txt/MultiLineString 스키마라 같은 라인 렌더 경로 사용.
+    // 정식 회사 AIRAC 붙으면 airways-overseas.geojson만 교체.
+    id: 'overseas-route',
+    nameKo: '해외 항로',
+    nameEn: 'Overseas Route',
+    sourceId: 'aviation-overseas-route',
+    lineLayerId: 'aviation-overseas-route-line',
+    dataUrl: '/data/airways-overseas.geojson',
+    color: '#e0651a',
+    defaultVisible: false,
+    lineOpacity: 0.85,
+    lineWidth: 1.2,
+  },
+  {
+    // 해외 웨이포인트 — X-Plane earth_fix 기반 테스트 데이터. 밀집(1900+)이라 세모 아이콘만(라벨 생략).
+    // 정식 회사 AIRAC 붙으면 waypoints-overseas.geojson만 교체.
+    id: 'overseas-waypoint',
+    nameKo: '해외 웨이포인트',
+    nameEn: 'Overseas Waypoint',
+    sourceId: 'aviation-overseas-waypoint',
+    pointLayerId: 'aviation-overseas-waypoint-point',
+    inlineLabelField: 'ident', // 아이콘과 같은 심볼로 이름 표시(text-optional=아이콘 우선)
+    pointLabelMinzoom: 6, // 이 줌부터 이름 표시(한 단계 낮춰 줌아웃해도 보이게)
+    iconAllowOverlap: false, // 겹치면 아이콘 생략 → 줌아웃할수록 듬성듬성
+    pointMinzoom: 4, // 대륙 스케일(줌<4)에선 아예 숨김
+    dataUrl: '/data/waypoints-overseas.geojson',
+    color: '#0f766e',
+    defaultVisible: false,
+    iconSize: 0.6,
+    iconImageByProperty: {
+      property: 'symbolType',
+      fallback: 'triangle',
+      values: {
+        triangle: {
+          imageId: 'symbol-waypoint-overseas-tri',
+          url: '/Symbols/waypoint-conventional-flyover.svg',
+        },
+      },
+    },
+  },
+  {
+    // 해외 공항 — OurAirports 좌표(scripts/generate_overseas_airports.py). MVP 대상 해외 목적지.
+    // 국내 공항과 같은 아이콘. ICAO 코드 라벨(줌5+). 회사 자료 오면 airports-overseas만 교체.
+    id: 'overseas-airport',
+    nameKo: '해외 공항',
+    nameEn: 'Overseas Airport',
+    sourceId: 'aviation-overseas-airport',
+    pointLayerId: 'aviation-overseas-airport-point',
+    inlineLabelField: 'icao',
+    pointLabelMinzoom: 5,
+    dataUrl: '/data/airports-overseas.geojson',
+    color: '#be123c',
+    defaultVisible: false,
+    iconSize: 0.9,
+    iconImageByProperty: {
+      property: 'airportUse',
+      fallback: 'civil',
+      values: {
+        civil: { imageId: 'symbol-airport-civil', url: '/Symbols/airport-civil.svg' },
+      },
+    },
+  },
 ]

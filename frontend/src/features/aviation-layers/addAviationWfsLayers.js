@@ -203,19 +203,41 @@ function addPointLayer(map, layer, visibility) {
 
     iconMatch.push(fallbackImage)
 
+    // iconAllowOverlap:false면 겹치는 아이콘을 자동 생략(충돌 감지) → 줌아웃할수록 듬성듬성.
+    // 미지정 레이어는 기존 동작(항상 표시) 유지. pointMinzoom으로 아주 넓은 줌에선 숨김.
+    const iconOverlap = layer.iconAllowOverlap ?? true
+    // inlineLabelField가 있으면 아이콘과 글자를 같은 심볼로(별도 라벨 레이어와 충돌 방지).
+    // 글자는 text-optional이라 아이콘이 항상 우선, 자리 있을 때만 이름 표시. pointLabelMinzoom부터 노출.
+    const inlineLabel = layer.inlineLabelField
     map.addLayer({
       id: layer.pointLayerId,
       type: 'symbol',
       source: layer.sourceId,
       slot: 'top',
+      minzoom: layer.pointMinzoom ?? 0,
       filter: POINT_FILTER,
       layout: {
         visibility,
         'icon-image': iconMatch,
         'icon-size': layer.iconSize ?? 1,
-        'icon-allow-overlap': true,
-        'icon-ignore-placement': true,
+        'icon-allow-overlap': iconOverlap,
+        'icon-ignore-placement': iconOverlap,
+        ...(inlineLabel ? {
+          'text-field': ['step', ['zoom'], '', layer.pointLabelMinzoom ?? 0, ['get', inlineLabel]],
+          'text-font': ['Noto Sans CJK JP Bold'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 11, 12],
+          'text-anchor': 'top',
+          'text-offset': [0, 0.7],
+          'text-optional': true,
+        } : {}),
       },
+      ...(inlineLabel ? {
+        paint: {
+          'text-color': layer.color,
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 1.5,
+        },
+      } : {}),
     })
     return
   }
@@ -253,11 +275,16 @@ function addPointLabelLayer(map, layer, visibility) {
     return
   }
 
+  // 밀집 레이어(해외 웨이포인트 등)는 pointLabelAllowOverlap:false로 겹치면 생략(디클러터).
+  // pointLabelMinzoom으로 일정 줌 이상에서만 라벨 표시. 미지정 레이어는 기존 동작(0, 항상 표시) 유지.
+  const declutter = layer.pointLabelAllowOverlap === false
+
   map.addLayer({
     id: layer.pointLabelLayerId,
     type: 'symbol',
     source: layer.sourceId,
     slot: 'top',
+    minzoom: layer.pointLabelMinzoom ?? 0,
     filter: POINT_FILTER,
     layout: {
       visibility,
@@ -276,8 +303,9 @@ function addPointLabelLayer(map, layer, visibility) {
       'text-font': ['Noto Sans CJK JP Bold'],
       'text-anchor': 'top',
       'text-offset': [0, 0.75],
-      'text-allow-overlap': true,
-      'text-ignore-placement': true,
+      'text-allow-overlap': !declutter,
+      'text-ignore-placement': !declutter,
+      'text-optional': declutter,
     },
     paint: {
       'text-color': layer.color,

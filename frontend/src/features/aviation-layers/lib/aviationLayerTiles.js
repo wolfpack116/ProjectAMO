@@ -20,4 +20,7 @@ export const AVIATION_TILE_META = {
   airport: { kind: 'symbol', symbolUrl: '/Symbols/airport-civil.svg' },
   'ats-route': { kind: 'line', color: colorById['ats-route'] },
   'rnav-route': { kind: 'line', color: colorById['rnav-route'], dashed: true },
+  'overseas-route': { kind: 'line', color: colorById['overseas-route'] },
+  'overseas-waypoint': { kind: 'symbol', symbolUrl: '/Symbols/waypoint-conventional-flyover.svg' },
+  'overseas-airport': { kind: 'symbol', symbolUrl: '/Symbols/airport-civil.svg' },
 }

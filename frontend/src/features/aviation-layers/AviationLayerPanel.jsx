@@ -4,8 +4,8 @@ import useIsMobile from '../../shared/ui/useIsMobile.js'
 import MobileSheet from '../../shared/ui/MobileSheet.jsx'
 
 const GROUPS = [
-  { title: '항공로', ids: ['ats-route', 'rnav-route'] },
-  { title: '항행시설', ids: ['waypoint', 'navaid', 'airport'] },
+  { title: '항공로', ids: ['ats-route', 'rnav-route', 'overseas-route'] },
+  { title: '항행시설', ids: ['waypoint', 'overseas-waypoint', 'navaid', 'airport', 'overseas-airport'] },
   { title: '공역', ids: ['fir', 'sector', 'ctr', 'tma', 'restricted', 'prohibited', 'danger'] },
 ]
 const LAYER_LABELS = {
@@ -21,6 +21,9 @@ const LAYER_LABELS = {
   airport: '공항',
   'ats-route': 'ATS 항공로',
   'rnav-route': 'RNAV 항공로',
+  'overseas-route': '국제 항공로',
+  'overseas-waypoint': '해외 웨이포인트',
+  'overseas-airport': '해외 공항',
 }
 
 function AviationTileVisual({ id }) {
