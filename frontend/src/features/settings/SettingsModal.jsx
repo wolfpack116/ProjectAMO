@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import {
   DEFAULT_AIRPORT_MINIMA_RULES,
   normalizeAirportMinimaSettings,
 } from '../../shared/weather/helpers.js'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
+import { useAuth } from '../auth/AuthContext.jsx'
 import { FONT_OPTIONS, applyFont, getFontPref } from '../../shared/theme/fontPrefs.js'
 import './SettingsModal.css'
 
@@ -22,6 +23,7 @@ function loadMinima() {
 
 export default function SettingsModal({ onClose }) {
   const { setTz } = useTimeZone()
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('general')
 
   const [timeZone, setTimeZone] = useState(() => localStorage.getItem('time_zone') || 'KST')
@@ -42,11 +44,38 @@ export default function SettingsModal({ onClose }) {
     }))
   }
 
-  function saveToStorage() {
+  // 로그인 시 서버 프리셋을 소스로(서버 우선). 서버가 비어 있으면 로컬값 유지 → 첫 저장 때 서버로 올라감(마이그레이션).
+  useEffect(() => {
+    if (!user) return undefined
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/me/presets', { credentials: 'include' })
+        if (!res.ok) return
+        const { presets } = await res.json()
+        if (!cancelled && presets && Object.keys(presets).length > 0) {
+          setMinima(normalizeAirportMinimaSettings(presets))
+        }
+      } catch { /* 서버 불가 → 로컬 유지 */ }
+    })()
+    return () => { cancelled = true }
+  }, [user])
+
+  async function saveToStorage() {
     localStorage.setItem('time_zone', timeZone)
     localStorage.setItem('language', language)
     localStorage.setItem('airport_minima_settings', JSON.stringify(minima))
     setTz(timeZone)
+    if (user) {
+      try {
+        await fetch('/api/me/presets', {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ presets: minima }),
+        })
+      } catch { /* 서버 저장 실패 → 로컬만 유지 */ }
+    }
   }
 
   function handleApply() {

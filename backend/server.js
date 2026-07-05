@@ -11,6 +11,7 @@ import { main as startScheduler } from './src/index.js'
 import cors from 'cors'
 import { sessionMiddleware } from './src/auth/session.js'
 import { createAuthRouter } from './src/auth/router.js'
+import { createMeRouter } from './src/me/presets.js'
 import adsbProcessor from './src/processors/adsb-processor.js'
 import warningTypes from '../shared/warning-types.js'
 import alertDefaults from '../shared/alert-defaults.js'
@@ -128,6 +129,7 @@ app.use('/api', (req, res, next) => {
 // #7 인증 라우터 (공개 날씨 API와 분리). register/login/logout/me. 세션과 동일하게 실서버에서만.
 if (process.env.NODE_ENV !== 'test') {
   app.use('/api/auth', createAuthRouter())
+  app.use('/api/me', createMeRouter()) // 내 프리셋·경로(로그인 필요, 자기 것만)
 }
 
 function readLatest(type) {
