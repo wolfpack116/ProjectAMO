@@ -84,7 +84,23 @@
 **엣지·리스크**: AMOS 없으면 카드 null(안전). runway 라벨은 기존 기본값 처리. 카드 순서만 조정.
 **검증**: RKSI→RVR 카드(2 runway), RKPK→카드 없음.
 
-## #6 TAF 표시 일원화 — 중 (리팩터)
+## #6 TAF 표시 일원화 — 중~대 (리팩터, **동작 변화 있음**)
+
+> ⟢ **2026-07-05 심층조사 결정 (착수 전 필독) — 스펙의 "안전한 무동작 리팩터" 프레이밍은 틀렸다.**
+> **판정 함수가 두 곳에서 실제로 갈린다(불일치 실재):**
+> - 패널 `frontend/src/shared/weather/helpers.js:230 getFlightCategory` — 3단계(VFR/IFR/LIFR), 운고<1500→IFR, **공항별 미니마** 적용(미만이면 LIFR).
+> - 브리핑 `backend/src/briefing/flight-category.js:2 categoryFor`(=`taf-window.js:34 stateCategory`가 호출) — 국제표준 4단계(**MVFR 포함**), 운고<1000→IFR, 미니마 없음.
+> - **실증**: RKSI 시정 9km·운고 1400ft → 패널 **IFR** vs 브리핑 **MVFR**. 같은 관측, 다른 라벨.
+>
+> **사용자 도메인 결정: 「패널식 3단계 + 공항미니마」로 통일한다.**
+> → 브리핑도 `getFlightCategory` 기준 채택: **MVFR 폐기**(3단계로), 운고컷 1500, **공항미니마 적용**. 브리핑 라벨이 바뀌므로 **before/after 육안(Playwright) 필수.**
+>
+> **착수 시 함정(이번 조사에서 발견):**
+> 1. **런타임 경계**: 백엔드(Node)는 `frontend/src/shared/`를 import 못 한다. 통일하려면 3단계+미니마 판정 로직을 **양 런타임이 쓸 공용 형태**로 둬야 함(공용 패키지화 or 백엔드에 미러 + 단일 테이블). TAF core 분리(스펙 step1~3)와 **같은 경계 문제**.
+> 2. **미니마 출처**: 패널 미니마는 사용자 SettingsModal(프론트 localStorage)에서 온다. 백엔드 브리핑은 사용자 커스텀을 모름 → 백엔드는 **`DEFAULT_AIRPORT_MINIMA_RULES`(helpers.js:155)** 기준만 적용 가능. "패널=사용자미니마 / 브리핑=기본미니마"로 여전히 갈릴 수 있음 — 이 한계를 결정할 것(기본으로 통일 or 클라이언트가 미니마를 briefing 요청에 실어보냄).
+> 3. **MVFR 폐기 파급**: 브리핑의 `levelForCategory`·색·`periodRow`·`categoryTimeline`·4단계 가정 UI 전부 3단계로 정리.
+> 4. `stateCategory` 단일화가 **핵심**이지만, 위 1·2 때문에 "완전 단일 모듈"이 아니라 "**단일 임계값·미니마 테이블을 양쪽이 공유**"가 현실적 목표.
+
 **현황**
 - 패널: `CurrentWeatherTab.TafSummary:284-354` ← `buildCompactTafModel`(`currentWeatherViewModel.js:128-169`) ← `buildTafViewModel`(`tafViewModel.js:87-95`).
 - 브리핑 ④: `BriefingView.jsx:538-671` ← 백엔드 `taf-window.js:190-213 buildDestination`.
