@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   role          TEXT NOT NULL DEFAULT 'pilot' CHECK (role IN ('pilot','forecaster','admin')),
   display_name  TEXT,
+  airports      TEXT,                         -- 예보관 담당공항(JSON 배열, 7개 부분집합). #6
   created_at    TEXT NOT NULL
 );
 

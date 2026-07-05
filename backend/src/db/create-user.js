@@ -8,15 +8,17 @@ const username = process.env.USERNAME
 const password = process.env.PASSWORD
 const role = process.env.ROLE || 'admin'
 const displayName = process.env.DISPLAY_NAME || null
+// 예보관 담당공항(쉼표구분). 예: AIRPORTS=RKSI,RKSS
+const airports = process.env.AIRPORTS ? process.env.AIRPORTS.split(',').map((s) => s.trim()) : null
 
 if (!username || !password) {
-  console.error("Usage: USERNAME=.. PASSWORD=.. [ROLE=admin|forecaster|pilot] [DISPLAY_NAME=..] node src/db/create-user.js")
+  console.error("Usage: USERNAME=.. PASSWORD=.. [ROLE=admin|forecaster|pilot] [DISPLAY_NAME=..] [AIRPORTS=RKSI,RKSS] node src/db/create-user.js")
   process.exit(1)
 }
 
 try {
-  const user = createUser(getDb(), { username, password, role, displayName })
-  console.log(`Created ${user.role} '${user.username}' (id ${user.id})`)
+  const user = createUser(getDb(), { username, password, role, displayName, airports })
+  console.log(`Created ${user.role} '${user.username}' (id ${user.id})${user.airports ? ` airports=${user.airports.join(',')}` : ''}`)
 } catch (err) {
   console.error('Failed:', err.message)
   process.exit(1)

@@ -1,7 +1,7 @@
 import { Router } from 'express'
 
 import { getDb } from '../db/index.js'
-import { createUser, verifyLogin } from '../db/users.js'
+import { createUser, verifyLogin, getUserById } from '../db/users.js'
 import { registerSchema, loginSchema } from './validation.js'
 import { requireAuth } from './middleware.js'
 import { ABSOLUTE_TTL_MS } from './session.js'
@@ -47,9 +47,7 @@ export function createAuthRouter({ db = null } = {}) {
   })
 
   router.get('/me', requireAuth, (req, res) => {
-    const u = database()
-      .prepare('SELECT id, username, role, display_name FROM users WHERE id = ?')
-      .get(req.session.userId)
+    const u = getUserById(database(), req.session.userId)
     if (!u) return res.status(401).json({ error: 'unauthenticated' })
     return res.json(u)
   })

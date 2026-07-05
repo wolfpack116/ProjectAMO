@@ -12,6 +12,9 @@ const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8')
 function ensureColumns(database) {
   const routeCols = database.prepare('PRAGMA table_info(routes)').all().map((c) => c.name)
   if (!routeCols.includes('payload')) database.exec('ALTER TABLE routes ADD COLUMN payload TEXT')
+
+  const userCols = database.prepare('PRAGMA table_info(users)').all().map((c) => c.name)
+  if (!userCols.includes('airports')) database.exec('ALTER TABLE users ADD COLUMN airports TEXT') // 예보관 담당공항(JSON 배열), #6
 }
 
 // 스키마 적용된 연결 생성. dbPath=':memory:'면 테스트용 인메모리.
