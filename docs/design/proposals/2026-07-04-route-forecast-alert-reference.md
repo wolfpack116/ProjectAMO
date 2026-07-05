@@ -21,7 +21,7 @@
 | "이상없음" 확인알림 | **ETD−60분** 옵션 | — | — | — | — |
 | 비용 | 무료 | 구독 | 구독 | 구독 | 상용 |
 
-**결론:** **ACAS가 우리 기능과 거의 동일**하고 파라미터가 가장 잘 문서화됨 → 라이프사이클·고도필터·확인알림은 ACAS를 뼈대로. **"의미있는 변화" 판정은 상용 앱 실용 기준(§3: 비행 카테고리 변화 + 개인 미니마 — ICAO/SPECI 단계 기준 아님)**, 알림피로 방지는 Maverick(§5)을 가져온다.
+**결론:** **ACAS가 우리 기능과 거의 동일**하고 파라미터가 가장 잘 문서화됨 → 라이프사이클·고도필터·확인알림은 ACAS를 뼈대로. **"의미있는 변화" 판정은 상용 앱 실용 기준(§3: "내 미니마 선" 크로싱 — 카테고리는 선을 고르는 프리셋일 뿐, ICAO/SPECI 단계 기준 아님)**, 알림피로 방지는 Maverick(§5)을 가져온다.
 
 ---
 
@@ -49,16 +49,19 @@
 
 > ⚠️ **ICAO/SPECI 개정 기준은 알림에 쓰지 않는다.** 그건 예보관이 SPECI 발행·TAF 개정할 때 쓰는 기준(운고 500ft·시정 1SM·풍향 45° 단계마다)이라 너무 민감 → 악기상 시 시간당 수십 건 → 사용자가 알림을 꺼버린다. 상용 앱 조사 결과(ForeFlight·1800wxbrief·Minimums·EZWxBrief·Windy) **전부 (1) 비행 카테고리 변화 + (2) 사용자 개인 미니마**를 알림 단위로 씀. 우리도 그대로. 출처: ForeFlight blog(Flight Rules/Category), Minimums App, EZWxBrief, FAA/AOPA Personal Minimums, neuaviation MVFR 해설.
 
-### 3.1 1차 트리거 — 비행 카테고리 변화 (기본, 항상 ON) ★핵심
-- **VFR ↔ MVFR ↔ IFR ↔ LIFR 경계를 넘을 때만** 알림. 카테고리 내부 미세변화(예: 운고 3000→2700ft, VFR 유지)는 **알림 안 함** — 이게 스팸 방지의 핵심.
-- 경계(우리 `flight-category.js`와 동일): VFR `>3000ft & >5SM(≈8km)` / MVFR `1000–3000ft & 3–5SM` / IFR `500–999ft & 1–3SM(≈1.6–5km)` / LIFR `<500ft & <1SM(≈1.6km)`.
-- **악화 방향만** 기본 알림(호전은 옵션): →LIFR = CRITICAL · →IFR = HIGH · →MVFR = MEDIUM.
-- 효과: 카테고리는 4단계뿐 → 한 비행에 **1~3건**으로 수렴(ICAO 단계 크로싱이면 수십 건).
+### 3.1 유일 핵심 트리거 — "내 미니마 선"을 예보가 넘을 때 ★핵심
+- 알림의 본질 = **예보가 "내가 못 가는 선"을 넘을 때.** 그 선은 조종사 유형·기량에 따라 다르므로 **사용자가 설정**한다. 우리는 이미 `SettingsModal`에 공항별 `ceilingFt`·`visibilityM`을 저장(`airport_minima_settings`) → 그대로 사용(#8과 동일).
+- **카테고리(VFR/MVFR/IFR/LIFR)는 별도의 상시 알람이 아니라, 이 선을 쉽게 고르게 해주는 "프리셋 어휘"**일 뿐이다. (그래서 "VFR→IFR 알람", "IFR→LIFR 알람"은 각각 아래 프리셋의 *결과*.)
+- **유형별 프리셋(선 자동 채움, 이후 사용자 조정 가능):**
+  - **VFR 조종사** → 예보가 **IFR로 진입**할 때(운고 <1000ft 또는 시정 <3SM≈5000m). VFR은 IFR 되면 못 감.
+  - **IFR 조종사** → 예보가 **LIFR/접근최저치 근처**로 갈 때(운고 <500ft 또는 시정 <1SM≈1600m). #8 접근최저치와 연계 가능.
+  - **회전익/기타** → 저고도 국지 기준 등 사용자 직접.
+- **악화 방향만** 알림(호전은 옵션). 미니마에서 얼마나 아래냐로 severity(선 근처=HIGH, 접근최저치 근처=CRITICAL).
+- 바람도 같은 방식(사용자 값). 기본값: 지속풍 15kt, 측풍성분 10kt, 돌풍 스프레드 10kt. 측풍성분은 AMOS(정풍/측풍, `amosViewModel`) 재사용.
+- 효과: 사람마다 **자기 선 하나**로만 울림 → 한 비행에 **0~2건**으로 수렴(ICAO 단계 크로싱이면 수십 건).
 
-### 3.2 2차 트리거 — 사용자 개인 미니마 크로싱 (옵션, 이미 저장됨)
-- 우리는 이미 `SettingsModal`에 공항별 `visibilityM`·`ceilingFt`를 저장(`airport_minima_settings`). 예보가 그 값을 **밑돌면** 알림. #7·#8과 그대로 연결.
-- **권장 기본값**(FAA/AOPA·상용 관행): 운고 **2000ft**, 시정 **5000m(≈3SM)**, 지속풍 **15kt**, 측풍성분 **10kt**, 돌풍 스프레드(gust−steady) **10kt**. 측풍성분은 AMOS(정풍/측풍, `amosViewModel`) 재사용.
-- 카테고리 알림과 겹치면 억제(중복 방지).
+### 3.2 설정이 없을 때 — 기본 프리셋
+- 사용자가 미니마를 안 정했으면 **VFR 프리셋(IFR 진입 시 알림)**을 기본 적용(가장 보수적). 로그인·유형 선택 시 프리셋 자동 채움.
 
 ### 3.3 3차 트리거 — 이벤트성 (임계값 아님, 발효/신규 자체가 트리거)
 - 경로상 **신규 SIGMET/AIRMET**(착빙·산악불명료 우선)·**TFR상응·활주로폐쇄 NOTAM** 발효. `hazard-section.js` 3D 매칭 + 고도필터(§2). §3.4 dedup.
@@ -68,10 +71,9 @@
 - 유효: SIGMET 4h(열대저기압·화산재 6h), ConvSIGMET 2h, AIRMET 6h. 시퀀스 0001UTC 리셋.
 - **같은 FIR + 같은 현상 + 유효기간 겹침** → 동일 갱신으로 보고 면적·강도·고도 안 바뀌면 **알림 안 함**. 면적/강도/고도 변경 = 알림. 새 유효기간/새 현상 = 신규.
 
-### 3.5 플래핑 방지 (경계 근처 진동)
-- **카테고리**: 예보에서 새 카테고리가 **≥2h 지속**해야 알림(운고가 경계 근처에서 흔들려도 억제).
-- **개인 미니마**: 크로싱 즉시 알림, 회복은 미니마+여유(운고 +200ft) & **1h 유지** 후에만.
-- **바람**: 지속 25kt↑ / 돌풍 스프레드 10kt↑에 알림, 회복은 지속<20kt & 돌풍<8kt & 1h.
+### 3.5 플래핑 방지 (선 근처 진동)
+- **미니마 선 크로싱**: 예보가 선 아래로 내려간 상태가 **≥2h 지속**해야 알림(경계에서 흔들려도 억제). 회복은 선+여유(운고 +200ft 등) & **1h 유지** 후에만.
+- **바람**: 값 초과 상태 지속 시 알림, 회복은 초과 해소 & 1h.
 
 ### 3.6 (참고) ICAO/SPECI 상세 기준
 예보관·QA 용도로만 별도 필요하면 `flight-category.js` 확장 시 참조 — **알림 경로엔 넣지 않는다.**
@@ -87,14 +89,11 @@
 function detectChanges(prev, curr, plan):
   alerts = []
   for airport in [plan.dep, plan.dest, plan.altn]:
-    // 1차: 카테고리 변화 (악화 방향만), flight-category.js — ICAO 단계크로싱 안 씀
-    if worseThan(category(curr,airport), category(prev,airport)) and heldFor(curr, 2h):
-      sev = (curr==LIFR)?CRITICAL : (curr==IFR)?HIGH : MEDIUM
-      alerts += {airport, type:'CATEGORY', from:category(prev), to:category(curr), sev}
-    // 2차: 개인 미니마 크로싱 (옵션), airport_minima_settings 재사용
-    m = plan.minima[airport]   // {ceilingFt, visibilityM, windKt, xwindKt, gustSpreadKt}
-    if m and crossedBelow(curr,airport,m):   // 회복은 +여유 & 1h (§3.5)
-      alerts += {airport, type:'PERSONAL_MINIMA', param:whichCrossed(curr,m), sev:HIGH}
+    // 핵심 트리거: "내 미니마 선" 크로싱 — 카테고리는 이 선을 고르는 프리셋일 뿐
+    line = plan.minima[airport] || presetFor(plan.pilotType)  // {ceilingFt, visibilityM, windKt, xwindKt, gustSpreadKt}
+    if crossedBelow(curr,airport,line) and heldFor(curr, 2h):   // 악화 방향, 회복은 +여유 & 1h (§3.5)
+      sev = nearApproachMinima(curr,line) ? CRITICAL : HIGH
+      alerts += {airport, type:'MINIMA', param:whichCrossed(curr,line), sev}
   // 교체 필요 플립 (1-2-3) — taf-window.js 재사용
   if alternateRequired(prev.dest) != alternateRequired(curr.dest):
     alerts += {type:'ALTERNATE_FLIP', sev:HIGH}
@@ -125,6 +124,84 @@ function detectChanges(prev, curr, plan):
 6. **라이프사이클 게이팅** — ETD 근접할수록 저severity 억제, 지난 비행 감시 중단.
 
 목표 지표: **출발 전 실질 알림 <5건/비행.**
+
+---
+
+## 5B. 감시 로직 & 서버 부하 설계 (벤치마킹 반영)
+
+> 4개 병렬 벤치마크(모니터링 시스템 Prometheus/Datadog/Nagios·CEP/Rete·소비자 알림 Robinhood/Hopper/NWS·역방향 인덱싱 자료구조)가 **한 방향으로 수렴**: 우리 규모(단일 서버·수백 활성 비행·5~15분 갱신)엔 **인덱스 + 이벤트 구동 + dirty-flag 재계산 + 표준 알림 파라미터**면 충분. Rete·CEP엔진·Materialize·R-tree·S2/H3는 전부 **과함(over-engineering)**.
+
+### 자료구조 (최소 세트, 전부 인메모리 · 수백 KB)
+- `flightIndex`: `flightId → {route, airports, etd, minima, cache, dirty, inputHash}` — O(1)
+- `airportIndex`: `ICAO → Set<flightId>` — 공항 데이터(METAR/TAF) 변경 시 후보 O(1)
+- `hazardGeoIndex`: `geohash(정밀 8~10) → Set<hazardId>` — SIGMET/NOTAM broad-phase (geohash 채택; R-tree는 5000+ 비행 전엔 과함)
+- `etdIndex`: 정렬된 `[etd, flightId]` — 시간창 겹침 이진탐색 O(log n + k)
+- 비행별 briefing 캐시 + `inputHash`(SHA-256 — **이미 store.js에 있음**)
+
+### 평가 파이프라인 (event-driven, 2-phase — CEP "역방향 매칭"의 최소판)
+```
+on 상류데이터 변경(store.js 해시 게이트):        // 내용 그대로면 여기 안 옴 = 0 계산
+  후보 = broad-phase(공항 or geohash+etd 인덱스)  // 전 비행 스캔 안 함, 쌈
+  for f in 후보 where f.inWindow(now):
+     if 공항데이터(METAR/TAF/AMOS): 값 직접 비교(A/C/D)   // composer 미호출, 초경량
+     else(경로위험 SIGMET/NOTAM/KIM/KTG):
+        if narrowPhase(f.route ∩ hazard ∩ etd): f.dirty=true
+  // 재계산(diff)은 dirty 비행만, 무거운 엔루트 단면은 그 소스 주기(하루 몇 번)에만
+```
+- **요소별 비용 분리**: 공항 지점(A·C·D)=문자·숫자 비교(거의 공짜) / 경로 기하(B)=broad→narrow 2단계. 그래서 D(뇌우·눈·안개 현상)는 부하 거의 안 늘림.
+- **배치 절충(Hopper 교훈)**: 무거운 KIM/KTG 엔루트 재계산은 연속이 아니라 소스 갱신 시(하루 몇 회)만.
+
+### 알림 파라미터 (Prometheus·Datadog·Alertmanager 차용, 그대로 이식)
+| 개념 | 출처 | 우리 값 |
+|---|---|---|
+| **dwell** (조건 지속해야 발동, `for:`) | Prometheus | 미니마/카테고리 **2h 지속** (§3.5와 동일) |
+| **회복 히스테리시스** (해제 기준 별도) | Datadog/Zabbix | 미니마+여유(운고 +100~150ft) 후 해제 — 경계 진동 방지 |
+| **keep_firing_for** (갭에 즉시 해제 안 함) | Prometheus | 데이터 1~2분 갭에 알림 유지 |
+| **dedup fingerprint** | Alertmanager | `(flightId, 조건종류, 항목ID/시퀀스)` 같으면 재발송 금지 |
+| **group_wait** (묶어 보내기) | Alertmanager | ~30s: 한 비행 여러 변화 → 푸시 1건 |
+| **repeat_interval** (미해소 리마인더) | Alertmanager | 6h 1회, 아니면 무발송 |
+| **inhibition** (상위 알림이 하위 억제) | Alertmanager | "METAR 수신실패"·"공항폐쇄" 뜨면 그 공항 하위 기상알림 억제 |
+| **quiet hours** | Alertmanager mute | 야간 억제(단 CRITICAL은 예외 검토) |
+| **idempotency key** | Stripe/Twilio | 중복 푸시 방지 |
+
+### 규모 sanity & 업그레이드 임계 (언제 무거운 구조로?)
+- **지금(수백 비행)**: 위 구조로 CPU 무시 수준(재브리핑 10~50ms, dirty만). 단일 EC2 충분.
+- **업그레이드 신호(그 전엔 만들지 말 것)**: 5,000+ 비행 → R-tree · 재브리핑 >100ms → delta query(IVM) · 다중 서버 → Redis dedup · 예측다차원 조건 폭증 → BE-tree. **현재 전부 불필요.**
+
+### 이미 가진 재료 (새로 만들 게 적다)
+SHA-256 변경감지·snapshot-meta(이벤트 트리거) · `geo-time-match`(narrow-phase) · `alert-state`(쿨다운/조용시간) · briefing 캐시. → **신규는 인덱스 3종 + dwell/히스테리시스/그룹핑 래퍼(~200줄) + Web Push**.
+
+---
+
+## 5C. 용량 산정 (실제 한국 규모, 2026-07-04 조사)
+
+> 결론 선: **전국 조종사·디스패처가 다 써도 앱서버 1대로 충분.** 스케일은 병목이 아니고, 진짜 관리 포인트는 알림 품질(노이즈).
+
+### 실제 대상 규모 (출처: MOLIT/data.go.kr, 2023~2024)
+| 대상 | 수 |
+|---|---|
+| 항공사 현직 조종사 | **~5,300명** (대한항공 2,759 + 아시아나 1,447 + 제주 321 + LCC ~600–800) |
+| 운항관리사(디스패처) 자격 | 1,883명 / **현직 ~541명** |
+| **전문 핵심층** | **~6,000명** |
+| 최대 잠재층(취미·학생·ATC 포함) | ~10,000–12,000명 |
+- PPL/CPL 누적 자격자 정확 수치는 공개표 없음(추정). 현업 실시간 사용자 ~6천, 최대 1.2만으로 규모 결론 불변. 디스패처는 현직 500여 명뿐(작고 집중).
+
+### 용량 재계산 (1인 5경로, 동시감시 = 감시창 안 경로만)
+가정: 경로가 ~7일에 분산, 감시창 6h → 동시감시 ≈ 4%(피크 ×3 = 12%).
+
+| 사용자 | 저장 경로 | 동시 감시(평균) | 동시 감시(피크) |
+|---|---|---|---|
+| 6,500 (전문 핵심) | 32,500 | ~1,300 | ~3,900 |
+| 12,000 (전국 최대) | 60,000 | ~2,400 | ~7,200 |
+
+- 최악 스파이크(광역 SIGMET, 활성 30% 재계산): 전국 최대치도 ~2,160건 × 20ms ≈ **43s/1코어 → 8코어 ~5s.** 메모리 ~120MB.
+
+### 서버 권장
+- **테스트(지금)**: 현재 개인 EC2 그대로.
+- **전국 전체(~1.2만)**: 앱서버 **1대(4 vCPU/8GB) + Postgres + Redis + 푸시 워커.** 클러스터 불필요.
+- 회사 서버 이전 시: 전국 다 받고도 자원 일부만 사용 → 성장 여유 5~10배(GA·학생·드론/UAM·해외 개방까지).
+
+→ 이 시장 크기에선 §5B의 이벤트 구동·인덱스 구조도 **과분할 정도로 여유**. 스케일보다 **알림 품질(§3·§5)**에 집중.
 
 ---
 
@@ -196,7 +273,7 @@ TriggeredAlert {
 
 **포함(실용 기준 최소):**
 - 서버 계획저장(로그인) + 활성 계획 재브리핑
-- 판정: **① 비행 카테고리 하락(악화, 2h 지속) · ② 교체필요 플립 · ③ 경로상 신규 SIGMET**(+고도필터 4000ft). ④ **개인 미니마 크로싱은 데이터가 이미 있으니(옵션) 함께 포함** 권장.
+- 판정: **① 내 미니마 선 크로싱(악화, 2h 지속 — 카테고리 프리셋으로 선 설정, 데이터 이미 있음) · ② 교체필요 플립 · ③ 경로상 신규 SIGMET**(+고도필터 4000ft).
 - 감시 시작 ETD−120분(설정), 종료 ETD / "이상없음" 확인알림 ETD−60분(옵션)
 - Web Push + 억제·dedup(§5의 1·2·4)
 
