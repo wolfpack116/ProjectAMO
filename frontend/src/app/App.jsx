@@ -7,6 +7,8 @@ import MobileTaskBar from './layout/MobileTaskBar.jsx'
 import MobileMapOverlay from './layout/MobileMapOverlay.jsx'
 import MobileMoreMenu from './layout/MobileMoreMenu.jsx'
 import SettingsModal from '../features/settings/SettingsModal.jsx'
+import AuthModal from '../features/auth/AuthModal.jsx'
+import { AuthProvider } from '../features/auth/AuthContext.jsx'
 import UpdatesModal from '../features/about/UpdatesModal.jsx'
 import SearchPalette from '../features/search/SearchPalette.jsx'
 import { buildSearchCatalog } from '../features/map/layerActions.js'
@@ -40,6 +42,7 @@ function MainAppShell() {
   const [mobileTask, setMobileTask] = useState('map')
   const [layerCounts, setLayerCounts] = useState({ aviation: 0, met: 0 })
   const [searchOpen, setSearchOpen] = useState(false)
+  const [authOpen, setAuthOpen] = useState(false)
   const mapRef = useRef(null)
   const isMobile = useIsMobile()
   const { weatherData, requestDeferredWeatherData } = useWeatherPolling()
@@ -154,6 +157,7 @@ function MainAppShell() {
         hasUpdate={hasUpdate}
         layerCounts={layerCounts}
         onSearchOpen={() => setSearchOpen(true)}
+        onProfileClick={() => setAuthOpen(true)}
       />
       <main className="map-shell">
         <MapView
@@ -203,6 +207,7 @@ function MainAppShell() {
           onSearch={() => setSearchOpen(true)}
           onSettings={() => togglePanel('settings')}
           onUpdates={() => togglePanel('updates')}
+          onAccount={() => setAuthOpen(true)}
           hasUpdate={hasUpdate}
         />
       )}
@@ -211,6 +216,7 @@ function MainAppShell() {
       )}
 
       <div className="utc-bar">{formatTimeByTz(nowMs, tz)}</div>
+      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
       {activePanel === 'settings' && (
         <SettingsModal onClose={() => togglePanel('settings')} />
       )}
@@ -234,7 +240,7 @@ function App() {
   if (window.location.pathname === '/test') {
     return <Suspense fallback={null}><DesignTestPage /></Suspense>
   }
-  return <TimeZoneProvider><MainAppShell /></TimeZoneProvider>
+  return <TimeZoneProvider><AuthProvider><MainAppShell /></AuthProvider></TimeZoneProvider>
 }
 
 export default App

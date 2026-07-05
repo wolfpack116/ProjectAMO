@@ -3,6 +3,7 @@ import {
   Menu, Monitor, HelpCircle, Bell, Search, FileWarning
 } from 'lucide-react'
 import { CURRENT_VERSION } from '../../features/about/changelog.js'
+import { useAuth, ROLE_LABEL_KO } from '../../features/auth/AuthContext.jsx'
 import './Sidebar.css'
 
 const topItems = [
@@ -49,7 +50,8 @@ const PANEL_MAP = {
   설정:            'settings',
 }
 
-function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle, hasUpdate, layerCounts, onSearchOpen }) {
+function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle, hasUpdate, layerCounts, onSearchOpen, onProfileClick }) {
+  const { user } = useAuth()
   // 켜진 레이어 수 배지(모바일과 동일 정보). ponytail: 축소 시 점만, 확장 시 숫자 — 36px 레일에 숫자 욱여넣지 않음.
   const counts = layerCounts || { aviation: 0, met: 0 }
   const badgeFor = (label) =>
@@ -124,17 +126,23 @@ function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle, hasUp
         {/* 구분선 */}
         <div className="sidebar-divider" />
         
-        {/* 프로필 영역 */}
-        <div className={`sidebar-profile ${isExpanded ? 'is-expanded' : ''}`}>
+        {/* 프로필 영역 = 계정 진입점. 로그인 전 '로그인', 후 이름·역할. */}
+        <button
+          type="button"
+          className={`sidebar-profile ${isExpanded ? 'is-expanded' : ''}`}
+          onClick={onProfileClick}
+          aria-label={user ? '계정' : '로그인'}
+        >
           <div className="profile-avatar">
             <img className="profile-avatar-image" src="/gisang-i/clear_3_avatar.png" alt="" />
           </div>
           {isExpanded && (
             <div className="profile-info">
-              <span className="profile-email">amo.kma.go.kr</span>
+              <span className="profile-name">{user ? (user.display_name || user.username) : '로그인'}</span>
+              <span className="profile-email">{user ? (ROLE_LABEL_KO[user.role] || user.role) : '게스트'}</span>
             </div>
           )}
-        </div>
+        </button>
       </div>
     </aside>
   )

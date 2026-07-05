@@ -242,7 +242,15 @@
   gap: 10px;
   width: 100%;
   padding: 4px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 10px;
+  text-align: left;
 }
+.sidebar-profile:hover { background: var(--bg-3); }
 
 .sidebar.is-expanded .sidebar-profile {
   justify-content: flex-start; /* 확장 시 왼쪽 */
