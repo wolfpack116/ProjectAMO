@@ -548,6 +548,20 @@ export function buildKimCloudPotentialFieldFromGrid(grid, { thresholdC = cloudPo
   }
 }
 
+// 격자 간격(도)→km. 위도방향은 상수 111.32, 경도방향은 위도 의존(×cos lat). #4 해상도 표기용.
+function computeKimResolution(grid) {
+  if (!grid) return null
+  const { nx, ny, latMin, latMax, dx, dy } = grid
+  const latMid = (Number(latMin) + Number(latMax)) / 2
+  const round1 = (n) => Math.round(n * 10) / 10
+  return {
+    nx: Number.isFinite(nx) ? nx : null,
+    ny: Number.isFinite(ny) ? ny : null,
+    dx_km: Number.isFinite(dx) && Number.isFinite(latMid) ? round1(dx * 111.32 * Math.cos((latMid * Math.PI) / 180)) : null,
+    dy_km: Number.isFinite(dy) ? round1(dy * 111.32) : null,
+  }
+}
+
 export function buildKimNwpIndex({ model = KIM_NWP_MODEL, tmfc, grids, pathForGrid }) {
   const levels = KIM_NWP_LEVELS
     .filter((level) => grids.some((grid) => grid.level?.id === level.id))
@@ -573,6 +587,8 @@ export function buildKimNwpIndex({ model = KIM_NWP_MODEL, tmfc, grids, pathForGr
     type: 'kim_nwp_index',
     model,
     latestRun: tmfc,
+    initial_time: addForecastHours(tmfc, 0), // tmfc(초기장) ISO 형태. #4 메타.
+    resolution: computeKimResolution(grids[0]?.grid), // {nx,ny,dx_km,dy_km} 위도보정. #4 메타.
     levels,
     times,
     availability,
