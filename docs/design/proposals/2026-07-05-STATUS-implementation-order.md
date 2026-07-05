@@ -43,8 +43,9 @@
 | ② 인증 API+세션+쿠키 | ✅ `backend/src/auth/`(session·middleware·validation·router). register(조종사만·예보관게이트·열거방지)·login(bcrypt·타이밍가드)·logout·me. 세션=SQLite스토어·HttpOnly·SameSite=Lax·Secure(운영)·절대24h/유휴1h. (개발)CORS. auth는 `NODE_ENV!=='test'` 가드(route테스트 DB잠금 회피). 통합테스트 4. `.env.example` |
 | ③ 프론트 로그인/역할 | ✅ `features/auth/`(AuthContext `useAuth` + AuthModal 모달). 진입점=사이드바 하단 프로필(로그인 전 "로그인/게스트", 후 이름·역할) + 모바일 더보기. 게스트는 그대로 열람. Playwright 왕복검증(게스트→모달→로그인→로그아웃). UI/UX 결정: 모달·사이드바·게스트열람 |
 | ④ 프리셋(미니마) 서버화 | ✅ `backend/src/me/presets.js`(GET/PUT/DELETE `/api/me/presets`, requireAuth·session.userId만·zod). SettingsModal이 로그인 시 서버 로드/저장(서버우선, 게스트=localStorage, 서버빈값이면 로컬이 첫저장으로 마이그레이션). 테스트4 + Playwright 왕복(GET/PUT 200) |
-| ⑤ 경로 서버화 · ⑥ 문의 큐(발표핵심) · ⑦ 보안 하드닝 | ⬜ 다음 |
+| ⑤ 경로 서버화 | ✅ `backend/src/me/routes.js`(GET/POST/DELETE `/api/me/routes`, session.userId만·zod·snapshot을 payload JSON으로 무손실·용량/개수 상한). routes 테이블 `payload` 컬럼 추가(기존 DB idempotent ALTER). routeStore 서버우선·게스트 localStorage 폴백(async). 테스트4 + 브라우저 왕복(POST 201·무손실·삭제) |
+| ⑥ 문의 큐(발표핵심) · ⑦ 보안 하드닝 | ⬜ 다음 |
 
 ## 다음 액션
-→ **1파 완료**: #1·#4·#5·#6. **2파 #7 — ①DB·②인증API·③프론트로그인 완료(로그인/회원가입/로그아웃 브라우저 동작). ①~④ 완료(로그인+개인 미니마 서버저장 동작). 다음 ⑤ 경로 서버화**(routeStore → /api/me/routes).
+→ **1파 완료**: #1·#4·#5·#6. **2파 #7 — ①DB·②인증API·③프론트로그인 완료(로그인/회원가입/로그아웃 브라우저 동작). ①~⑤ 완료(로그인+개인 미니마·경로 서버저장 동작). 다음 ⑥ 예보관 문의 큐**(발표 핵심): 조종사 [문의]→POST /api/me/requests, 예보관 콘솔 폴링·claim·close.
 - 잔여 꼬리: #6 브리핑 UI 라이브 육안(백엔드는 확정), #4 지도 해상도 텍스트 표시, #4 cutoff(KMA 실제값 대기), #6 백엔드가 사용자 커스텀 미니마 미반영(기본미니마만) — 필요 시 클라이언트가 미니마 전달하도록 확장.

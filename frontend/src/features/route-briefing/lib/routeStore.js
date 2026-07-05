@@ -1,6 +1,7 @@
-// Saved VFR/IFR routes in localStorage. We store only inputs (form + waypoints +
-// perf/time); routeResult is rebuilt by re-searching on load (navdata stays fresh).
+// Saved VFR/IFR routes. 로그인 시 서버(/api/me/routes, 자기 것만), 게스트는 localStorage.
+// 저장은 입력값(snapshot)만; 로드는 재검색으로 복원(navdata는 최신 유지).
 const KEY = 'projectamo.savedRoutes.v1'
+const API = '/api/me/routes'
 
 function read() {
   try {
@@ -8,17 +9,33 @@ function read() {
     return Array.isArray(arr) ? arr : []
   } catch { return [] }
 }
-
 function write(routes) {
   localStorage.setItem(KEY, JSON.stringify(routes))
 }
-
-export function listSavedRoutes() {
-  return read().sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0))
-}
+const bySavedDesc = (a, b) => (b.savedAt || 0) - (a.savedAt || 0)
 
 // snapshot: { routeForm, vfrWaypoints, cruiseAltitudeFt, alternateAirport, etd }
-export function saveRoute(name, snapshot) {
+export async function listSavedRoutes() {
+  try {
+    const res = await fetch(API, { credentials: 'include' })
+    if (res.ok) return (await res.json()).routes.sort(bySavedDesc) // 로그인 → 서버
+    // 401(게스트)·기타 → 로컬 폴백
+  } catch { /* 서버 불가 → 로컬 */ }
+  return read().sort(bySavedDesc)
+}
+
+export async function saveRoute(name, snapshot) {
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name, snapshot }),
+    })
+    if (res.ok) return await res.json() // 로그인 → 서버 저장
+    if (res.status !== 401) return null // 로그인 상태 서버 거부(용량 등) → 실패(로컬 저장 안 함)
+    // 401 → 게스트: 아래 로컬 폴백
+  } catch { /* 네트워크 오류 → 로컬 */ }
   const routes = read()
   const entry = { id: `r${Date.now()}`, name: name || '이름 없는 경로', savedAt: Date.now(), ...snapshot }
   routes.push(entry)
@@ -26,6 +43,11 @@ export function saveRoute(name, snapshot) {
   return entry
 }
 
-export function deleteSavedRoute(id) {
+export async function deleteSavedRoute(id) {
+  try {
+    const res = await fetch(`${API}/${id}`, { method: 'DELETE', credentials: 'include' })
+    if (res.ok) return // 로그인 → 서버 삭제
+    if (res.status !== 401) return // 로그인 상태 서버 응답 → 로컬 건드리지 않음
+  } catch { /* 네트워크 → 로컬 */ }
   write(read().filter((r) => r.id !== id))
 }

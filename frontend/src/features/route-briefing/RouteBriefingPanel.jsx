@@ -302,12 +302,12 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   // 경로 저장/불러오기 (localStorage). 저장은 입력값만; 로드는 재검색으로 복원.
   const [menuOpen, setMenuOpen] = useState(false)
   const [savedRoutes, setSavedRoutes] = useState([])
-  const refreshSaved = () => setSavedRoutes(listSavedRoutes())
-  function handleSaveCurrentRoute() {
+  const refreshSaved = async () => setSavedRoutes(await listSavedRoutes())
+  async function handleSaveCurrentRoute() {
     const def = `${routeForm.departureAirport || '?'} → ${routeForm.arrivalAirport || '?'}`
     const name = window.prompt('경로 이름', def)
     if (name == null) return
-    saveRoute(name.trim() || def, { routeForm, vfrWaypoints, cruiseAltitudeFt, alternateAirport, etd })
+    await saveRoute(name.trim() || def, { routeForm, vfrWaypoints, cruiseAltitudeFt, alternateAirport, etd })
     refreshSaved()
   }
   const routeMenu = (
@@ -323,7 +323,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
             <div key={r.id} className="rb-saved-row">
               <span className="rb-saved-name">{r.name}<span className="rb-saved-meta"> · {relativeTime(r.savedAt)}</span></span>
               <button type="button" className="rb-saved-load" onClick={() => { setMenuOpen(false); loadSavedRoute(r) }}>{'로드'}</button>
-              <button type="button" className="rb-saved-del" aria-label="경로 삭제" onClick={() => { deleteSavedRoute(r.id); refreshSaved() }}><X size={14} /></button>
+              <button type="button" className="rb-saved-del" aria-label="경로 삭제" onClick={async () => { await deleteSavedRoute(r.id); refreshSaved() }}><X size={14} /></button>
             </div>
           ))}
           {savedRoutes.length === 0 && <MenuItem disabled>{'저장된 경로 없음'}</MenuItem>}
