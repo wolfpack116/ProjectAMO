@@ -31,7 +31,7 @@ const catLevel = (c) => (c === 'VFR' || c === 'MVFR' ? 'green' : c === 'IFR' ? '
 const catColorOf = (c) => LEVEL_COLOR[catLevel(c)]
 const CAT_RANK = { VFR: 0, MVFR: 1, IFR: 2, LIFR: 3 }
 const SEG_RANK = { '약': 1, '중': 2, '심': 3 }
-const FIELDS = [['바람', 'wind'], ['시정', 'visibility'], ['운고', 'ceiling'], ['기온/노점', 'temp'], ['현상', 'weather'], ['QNH', 'qnh']]
+const FIELDS = [['바람', 'wind'], ['시정', 'visibility'], ['RVR', 'rvr'], ['운고', 'ceiling'], ['기온/노점', 'temp'], ['현상', 'weather'], ['QNH', 'qnh']]
 const NOTAM_CAT_LABEL = Object.fromEntries(NOTAM_CATEGORIES.map((c) => [c.id, c.label]))
 const NOTAM_GROUP_LIMIT = 6 // 공항 그룹당 기본 표시 수(나머지는 "더 보기"로 접음 — 브리핑 볼륨 통제)
 
@@ -241,7 +241,7 @@ export default function BriefingView({ briefing, verticalProfile = null, crossSe
     </section>
   )
 
-  const MATRIX_COLS =[['현상', 'weather'], ['바람', 'wind'], ['시정', 'visibility'], ['운고', 'ceiling'], ['기온/이슬점', 'temp'], ['QNH', 'qnh']]
+  const MATRIX_COLS =[['현상', 'weather'], ['바람', 'wind'], ['시정', 'visibility'], ['RVR', 'rvr'], ['운고', 'ceiling'], ['기온/이슬점', 'temp'], ['QNH', 'qnh']]
   const cellStyle = (f) => ({ fontVariantNumeric: 'tabular-nums', color: f?.flag ? 'var(--level-red)' : undefined, fontWeight: f?.flag ? 700 : undefined })
   const windCell = (f) => (
     <span style={cellStyle(f)}>{f?.text ?? '-'}{f?.gust ? <span className="bv-gust"> G{f.gust}</span> : null}</span>
