@@ -30,7 +30,9 @@ export const ROUTE_HL_NA_ICON = 'route-hl-na-icon'
 export const ROUTE_HL_NA_LABEL = 'route-hl-na-label'
 export const ROUTE_HL_AW_LINE = 'route-hl-aw-line'
 export const ROUTE_HL_AW_LABEL = 'route-hl-aw-label'
-export const ROUTE_HL_LAYER_IDS = [ROUTE_HL_WP_ICON, ROUTE_HL_WP_LABEL, ROUTE_HL_NA_ICON, ROUTE_HL_NA_LABEL, ROUTE_HL_AW_LINE, ROUTE_HL_AW_LABEL]
+export const ROUTE_HL_OVW_ICON = 'route-hl-ovw-icon'
+export const ROUTE_HL_OVW_LABEL = 'route-hl-ovw-label'
+export const ROUTE_HL_LAYER_IDS = [ROUTE_HL_WP_ICON, ROUTE_HL_WP_LABEL, ROUTE_HL_NA_ICON, ROUTE_HL_NA_LABEL, ROUTE_HL_AW_LINE, ROUTE_HL_AW_LABEL, ROUTE_HL_OVW_ICON, ROUTE_HL_OVW_LABEL]
 export const ROUTE_PREVIEW_SOURCE_IDS = [
   ROUTE_PREVIEW_SOURCE,
   PROC_PREVIEW_SOURCE,
@@ -149,6 +151,22 @@ export function applyRouteHighlight(map, navpointIds = []) {
     layout: { 'text-field': ['get', 'ident'], 'text-size': 10, 'text-font': ['Noto Sans CJK JP Bold'], 'text-anchor': 'top', 'text-offset': [0, 0.75], 'text-allow-overlap': true, 'text-ignore-placement': true },
     paint: { 'text-color': naCfg.color, 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 },
   }, ptFilter(navpointIds))
+
+  // 해외 웨이포인트: 경로 위 해외 지점(B576 등의 ATOTI/BOISO 등)에 세모 아이콘+이름 표시.
+  // 국내 waypoint/navaid 소스에는 없고 해외 소스(aviation-overseas-waypoint)에 있으므로 별도 하이라이트.
+  const ovwCfg = AVIATION_WFS_LAYERS.find((l) => l.id === 'overseas-waypoint')
+  if (ovwCfg?.iconImageByProperty && map.getSource(ovwCfg.sourceId)) {
+    addOrUpdate(ROUTE_HL_OVW_ICON, {
+      type: 'symbol', source: ovwCfg.sourceId, slot: 'top',
+      layout: { 'icon-image': buildIconExpr(ovwCfg), 'icon-size': ovwCfg.iconSize ?? 1, 'icon-allow-overlap': true, 'icon-ignore-placement': true },
+    }, ptFilter(navpointIds))
+
+    addOrUpdate(ROUTE_HL_OVW_LABEL, {
+      type: 'symbol', source: ovwCfg.sourceId, slot: 'top',
+      layout: { 'text-field': ['get', 'ident'], 'text-size': 10, 'text-font': ['Noto Sans CJK JP Bold'], 'text-anchor': 'top', 'text-offset': [0, 0.75], 'text-allow-overlap': true, 'text-ignore-placement': true },
+      paint: { 'text-color': ovwCfg.color, 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 },
+    }, ptFilter(navpointIds))
+  }
 
   const segFilter = ['==', ['get', 'role'], 'route-segment-line']
 

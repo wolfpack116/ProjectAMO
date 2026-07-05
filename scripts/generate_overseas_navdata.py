@@ -124,6 +124,36 @@ def parse_awy(path: Path, fir_rings=None):
     return segments
 
 
+def build_key_resolver(segments):
+    """짧은 항행표지 코드(JB·KK·MKG 등)는 전세계에서 재사용되어 이름만으로 노드를 만들면
+    한국 JB와 싱가포르 JB가 한 노드로 합쳐져 '순간이동' 경로가 생긴다.
+    → 같은 ident이 50nm 넘게 떨어진 여러 위치에 있으면 ident#0, ident#1로 분리한다.
+    (5글자 경계 웨이포인트는 대개 단일 위치라 bare ident 유지 → 국내 그래프와 연결됨)."""
+    from collections import defaultdict
+    clusters = defaultdict(list)  # ident -> [[lat, lon], ...]
+
+    def cluster_index(ident, coord):
+        cl = clusters[ident]
+        for i, (la, lo) in enumerate(cl):
+            if haversine_nm({"lat": la, "lon": lo}, coord) < 50:
+                return i
+        cl.append([coord["lat"], coord["lon"]])
+        return len(cl) - 1
+
+    for s in segments:
+        cluster_index(s["id1"], s["a"])
+        cluster_index(s["id2"], s["b"])
+
+    def key_of(ident, coord):
+        cl = clusters[ident]
+        if len(cl) <= 1:
+            return ident
+        return f"{ident}#{cluster_index(ident, coord)}"
+
+    multi = sum(1 for cl in clusters.values() if len(cl) > 1)
+    return key_of, multi
+
+
 def parse_fix(path: Path):
     """earth_fix.dat: lat lon ident  → 이름 표시용 좌표 사전(옵션)."""
     fixes = {}
@@ -155,7 +185,9 @@ def build(segments):
         seq = seq_counter[rid]
         dist = haversine_nm(s["a"], s["b"])
         route_segments.append({
-            "id": f"{rid}-{seq:03d}",
+            # 국내와 같은 항로명(A582 등)을 X-Plane도 가져 세그먼트 id가 겹침 → OVS- 접두어로 분리.
+            # 그래프 링크도 seg["id"]를 참조하므로 접두어가 함께 전파됨.
+            "id": f"OVS-{rid}-{seq:03d}",
             "routeId": rid,
             "routeType": rtype,
             "sequence": seq,
@@ -234,6 +266,11 @@ def write_waypoints_geojson(navpoints: dict) -> int:
 def main() -> None:
     fir_rings = load_incheon_fir(OUT.parent)  # public/data/fir.geojson
     segments = parse_awy(SRC / "earth_awy.dat", fir_rings)
+    # 이름 중복 지점 분리(웜홀 방지): 같은 ident이 여러 위치면 ident#0/#1로.
+    key_of, multi_count = build_key_resolver(segments)
+    for s in segments:
+        s["id1"] = key_of(s["id1"], s["a"])
+        s["id2"] = key_of(s["id2"], s["b"])
     build_fixes = parse_fix(SRC / "earth_fix.dat")  # 표시 보강용(현재 좌표는 awy 인라인으로 충분)
     navpoints, routes, route_segments, graph = build(segments)
 

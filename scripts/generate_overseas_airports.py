@@ -14,6 +14,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import math
 import os
 import urllib.request
 from pathlib import Path
@@ -50,6 +51,43 @@ AIRPORTS_KO = {
     "WSSS": "싱가포르 창이", "WMKK": "쿠알라룸푸르", "WBKK": "코타키나발루",
     "WIII": "자카르타 수카르노하타", "WADD": "발리 덴파사르", "VDPP": "프놈펜",
 }
+
+
+def haversine_nm(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    r = 3440.065
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    h = math.sin(dlat / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dlon / 2) ** 2
+    return round(r * 2 * math.atan2(math.sqrt(h), math.sqrt(1 - h)), 1)
+
+
+def write_airport_route_links(airports_json: dict) -> int:
+    """해외 공항→최근접 항로 지점(진입/이탈 지점 후보). SID/STAR가 없으므로 이 최근접 지점으로
+    항로망에 진입/이탈. navpoints-overseas.json(항로 지점=그래프 노드)이 있을 때만 생성."""
+    nav_path = NAVDATA / "navpoints-overseas.json"
+    if not nav_path.exists():
+        print("  [skip] navpoints-overseas.json 없음 → airport-route-links 생략(먼저 generate_overseas_navdata 실행)")
+        return 0
+    nav = json.loads(nav_path.read_text(encoding="utf-8"))
+    links = {}
+    for icao, ap in airports_json.items():
+        ac = ap["coordinates"]
+        cand = sorted(
+            (haversine_nm(ac["lat"], ac["lon"], p["coordinates"]["lat"], p["coordinates"]["lon"]), fid)
+            for fid, p in nav.items()
+        )
+        nearby = [{"fix": fid, "distanceNm": d} for d, fid in cand[:5]]
+        links[icao] = {
+            "airport": icao,
+            "method": "nearest-overseas-fix",
+            "nearestFix": nearby[0]["fix"] if nearby else None,
+            "nearbyFixes": nearby,
+        }
+    with (NAVDATA / "airport-route-links-overseas.json").open("w", encoding="utf-8") as f:
+        json.dump(links, f, ensure_ascii=False, indent=2, sort_keys=True)
+        f.write("\n")
+    return len(links)
 
 
 def fetch_csv(url: str) -> str:
@@ -113,10 +151,13 @@ def main() -> None:
         json.dump(airports_json, f, ensure_ascii=False, indent=2, sort_keys=True)
         f.write("\n")
 
+    link_count = write_airport_route_links(airports_json)
+
     print(json.dumps({
         "wanted": len(wanted),
         "found": len(features),
         "missing": len(wanted) - len(features),
+        "airportRouteLinks": link_count,
     }, indent=2, ensure_ascii=False))
 
     # 셀프체크: 주요 목적지 3개 좌표가 상식 범위인지

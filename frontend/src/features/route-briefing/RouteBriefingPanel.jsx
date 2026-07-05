@@ -1,5 +1,6 @@
 import { Fragment, useState, useRef, useMemo, useEffect, useLayoutEffect } from 'react'
 import { KNOWN_AIRPORTS } from './lib/procedureData.js'
+import { loadOverseasAirports } from './lib/routePlanner.js'
 import { calcVfrDistance } from './lib/routePreview.js'
 import {
   FIR_EXIT_AIRPORT,
@@ -28,7 +29,8 @@ const AIRPORT_KO = {
   RKSI: '인천', RKSS: '김포', RKPC: '제주', RKPK: '김해',
   RKJB: '무안', RKNY: '양양', RKJY: '여수', RKPU: '울산',
 }
-const AIRPORT_OPTIONS = KNOWN_AIRPORTS.map((icao) => ({ value: icao, ko: AIRPORT_KO[icao] ?? icao }))
+// ponytail: static for domestic only; overseas loaded dynamically via useEffect in component.
+const DOMESTIC_AIRPORT_OPTIONS = KNOWN_AIRPORTS.map((icao) => ({ value: icao, ko: AIRPORT_KO[icao] ?? icao }))
 const NONE_OPTION = { value: '', label: '-- 없음 --' }
 
 // 데스크톱 폼 레이아웃 — 커스텀 .css 대신 Fluent griffel + 토큰
@@ -186,6 +188,24 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   const isMobile = useIsMobile()
   const s = useStyles()
   const { tz } = useTimeZone()
+  const [allAirportOptions, setAllAirportOptions] = useState(DOMESTIC_AIRPORT_OPTIONS)
+
+  // Load overseas airports and merge with domestic options
+  useEffect(() => {
+    loadOverseasAirports().then((overseasAirports) => {
+      if (!overseasAirports || Object.keys(overseasAirports).length === 0) {
+        setAllAirportOptions(DOMESTIC_AIRPORT_OPTIONS)
+        return
+      }
+      const overseasOptions = Object.entries(overseasAirports)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([icao, ap]) => ({ value: icao, ko: ap?.nameKo ?? icao }))
+      setAllAirportOptions([...DOMESTIC_AIRPORT_OPTIONS, ...overseasOptions])
+    }).catch(() => {
+      setAllAirportOptions(DOMESTIC_AIRPORT_OPTIONS)
+    })
+  }, [])
+
   // The briefing stays an active task; the sheet × collapses to the peek summary
   // instead of closing (use the bottom task bar to leave 브리핑).
   const [sheetDetent, setSheetDetent] = useState('half')
@@ -675,10 +695,11 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
   // moves it to the sheet footer (progressive primary action), so pass false there.
   // ── Desktop panel ──
   function renderDesktopAirportSelect(label, value, onChange, firSentinel, firLabel) {
-    const sel = KNOWN_AIRPORTS.includes(value) ? value : value === firSentinel ? firSentinel : ''
+    const known = allAirportOptions.some((o) => o.value === value)
+    const sel = known ? value : value === firSentinel ? firSentinel : ''
     const options = [
       { value: '', label: '-- 선택 --' },
-      ...KNOWN_AIRPORTS.map((ap) => ({ value: ap, label: ap })),
+      ...allAirportOptions.map((o) => ({ value: o.value, label: o.ko && o.ko !== o.value ? `${o.value} ${o.ko}` : o.value })),
       { value: firSentinel, label: firLabel },
     ]
     return (
@@ -864,9 +885,9 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
             {importButton}
           </div>
           <div className="rb-route">
-            <AirportPickerField label="출발" value={routeForm.departureAirport} options={AIRPORT_OPTIONS} firOption={{ value: FIR_IN_AIRPORT, label: 'FIR 진입' }} onChange={handleDepartureAirportChange} disabledValue={routeForm.arrivalAirport} />
+            <AirportPickerField label="출발" value={routeForm.departureAirport} options={allAirportOptions} firOption={{ value: FIR_IN_AIRPORT, label: 'FIR 진입' }} onChange={handleDepartureAirportChange} disabledValue={routeForm.arrivalAirport} />
             <div className="rb-swap"><button type="button" className="rb-swap-btn" onClick={swapAirports} disabled={firOnEitherSide} aria-label="출발 도착 교환">⇅</button></div>
-            <AirportPickerField label="도착" value={routeForm.arrivalAirport} options={AIRPORT_OPTIONS} firOption={{ value: FIR_EXIT_AIRPORT, label: 'FIR 이탈' }} onChange={handleArrivalAirportChange} disabledValue={routeForm.departureAirport} />
+            <AirportPickerField label="도착" value={routeForm.arrivalAirport} options={allAirportOptions} firOption={{ value: FIR_EXIT_AIRPORT, label: 'FIR 이탈' }} onChange={handleArrivalAirportChange} disabledValue={routeForm.departureAirport} />
           </div>
           {(step1MoreOpen || (depChosen && arrChosen)) ? (
             <>

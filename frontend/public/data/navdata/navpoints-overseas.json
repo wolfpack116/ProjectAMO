@@ -409,13 +409,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "AKOMA": {
+  "AKOMA#0": {
     "coordinates": {
       "lat": 1.756111,
       "lon": 103.911944
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "AKOMA",
+    "id": "AKOMA#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "AKOMA#1": {
+    "coordinates": {
+      "lat": 34.693333,
+      "lon": 114.745
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "AKOMA#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -2269,13 +2279,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "BM": {
+  "BM#0": {
     "coordinates": {
       "lat": 39.64,
       "lon": 121.721667
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "BM",
+    "id": "BM#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "BM#1": {
+    "coordinates": {
+      "lat": 24.267444,
+      "lon": 97.246194
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "BM#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -3799,13 +3819,33 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "DELTA": {
+  "DELTA#0": {
     "coordinates": {
       "lat": 16.0,
       "lon": 105.75
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "DELTA",
+    "id": "DELTA#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "DELTA#1": {
+    "coordinates": {
+      "lat": 27.870561,
+      "lon": 130.51445
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "DELTA#1",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "DELTA#2": {
+    "coordinates": {
+      "lat": 17.343056,
+      "lon": 100.934944
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "DELTA#2",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -6519,13 +6559,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "HOTEL": {
+  "HOTEL#0": {
     "coordinates": {
       "lat": 13.0,
       "lon": 100.333333
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "HOTEL",
+    "id": "HOTEL#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "HOTEL#1": {
+    "coordinates": {
+      "lat": 23.683639,
+      "lon": 119.502106
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "HOTEL#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -7399,13 +7449,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "JB": {
+  "JB#0": {
     "coordinates": {
       "lat": 1.499936,
       "lon": 103.711617
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "JB",
+    "id": "JB#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "JB#1": {
+    "coordinates": {
+      "lat": 37.59,
+      "lon": 118.785
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "JB#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -7529,13 +7589,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "JR": {
+  "JR#0": {
     "coordinates": {
       "lat": 1.674944,
       "lon": 103.659972
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "JR",
+    "id": "JR#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "JR#1": {
+    "coordinates": {
+      "lat": 39.723333,
+      "lon": 116.098333
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "JR#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -8489,13 +8559,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "KK": {
+  "KK#0": {
     "coordinates": {
       "lat": 1.521639,
       "lon": 103.989917
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "KK",
+    "id": "KK#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "KK#1": {
+    "coordinates": {
+      "lat": 11.616861,
+      "lon": 102.996444
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "KK#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -8699,13 +8779,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "KP": {
+  "KP#0": {
     "coordinates": {
       "lat": 19.426083,
       "lon": 93.535083
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "KP",
+    "id": "KP#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "KP#1": {
+    "coordinates": {
+      "lat": 39.605833,
+      "lon": 125.672778
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "KP#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -10509,13 +10599,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "MIA": {
+  "MIA#0": {
     "coordinates": {
       "lat": 14.507972,
       "lon": 121.021736
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "MIA",
+    "id": "MIA#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "MIA#1": {
+    "coordinates": {
+      "lat": 21.710944,
+      "lon": 95.97475
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "MIA#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -12779,13 +12879,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "OSUKA": {
+  "OSUKA#0": {
     "coordinates": {
       "lat": -1.291667,
       "lon": 110.411667
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OSUKA",
+    "id": "OSUKA#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "OSUKA#1": {
+    "coordinates": {
+      "lat": 14.714912,
+      "lon": 99.713471
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OSUKA#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -12889,13 +12999,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "PA": {
+  "PA#0": {
     "coordinates": {
       "lat": 16.893,
       "lon": 97.674667
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "PA",
+    "id": "PA#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "PA#1": {
+    "coordinates": {
+      "lat": 25.405,
+      "lon": 110.06
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "PA#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -13069,13 +13189,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "PANDA": {
+  "PANDA#0": {
     "coordinates": {
       "lat": 10.443458,
       "lon": 122.784008
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "PANDA",
+    "id": "PANDA#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "PANDA#1": {
+    "coordinates": {
+      "lat": 34.792172,
+      "lon": 140.29575
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "PANDA#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -13489,13 +13619,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "PK": {
+  "PK#0": {
     "coordinates": {
       "lat": 3.383056,
       "lon": 103.423333
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "PK",
+    "id": "PK#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "PK#1": {
+    "coordinates": {
+      "lat": 14.006667,
+      "lon": 108.008889
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "PK#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -13749,13 +13889,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "PQ": {
+  "PQ#0": {
     "coordinates": {
       "lat": 10.223611,
       "lon": 103.961944
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "PQ",
+    "id": "PQ#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "PQ#1": {
+    "coordinates": {
+      "lat": 34.993933,
+      "lon": 139.8751
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "PQ#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -13799,13 +13949,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "PT": {
+  "PT#0": {
     "coordinates": {
       "lat": 6.788458,
       "lon": 101.147919
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "PT",
+    "id": "PT#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "PT#1": {
+    "coordinates": {
+      "lat": 27.320556,
+      "lon": 97.43775
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "PT#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -13819,13 +13979,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "PU": {
+  "PU#0": {
     "coordinates": {
       "lat": 41.506667,
       "lon": 123.293333
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "PU",
+    "id": "PU#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "PU#1": {
+    "coordinates": {
+      "lat": 1.423331,
+      "lon": 103.933261
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "PU#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -14319,13 +14489,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "RG": {
+  "RG#0": {
     "coordinates": {
       "lat": 9.949722,
       "lon": 105.133611
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "RG",
+    "id": "RG#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "RG#1": {
+    "coordinates": {
+      "lat": 31.151667,
+      "lon": 97.176667
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "RG#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -14779,13 +14959,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "SAGRA": {
+  "SAGRA#0": {
     "coordinates": {
       "lat": 12.369906,
       "lon": 122.548756
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "SAGRA",
+    "id": "SAGRA#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "SAGRA#1": {
+    "coordinates": {
+      "lat": 34.732475,
+      "lon": 138.430761
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "SAGRA#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -14959,13 +15149,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "SAMBO": {
+  "SAMBO#0": {
     "coordinates": {
       "lat": 16.280278,
       "lon": 108.707778
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "SAMBO",
+    "id": "SAMBO#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "SAMBO#1": {
+    "coordinates": {
+      "lat": 40.187756,
+      "lon": 140.950381
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "SAMBO#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -16769,13 +16969,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "TD": {
+  "TD#0": {
     "coordinates": {
       "lat": 45.883333,
       "lon": 134.883333
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "TD",
+    "id": "TD#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "TD#1": {
+    "coordinates": {
+      "lat": 18.457833,
+      "lon": 94.298361
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "TD#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -17079,13 +17289,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "TIKAL": {
+  "TIKAL#0": {
     "coordinates": {
       "lat": 8.005708,
       "lon": 124.694169
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "TIKAL",
+    "id": "TIKAL#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "TIKAL#1": {
+    "coordinates": {
+      "lat": 8.03875,
+      "lon": 101.746639
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "TIKAL#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -17179,13 +17399,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "TL": {
+  "TL#0": {
     "coordinates": {
       "lat": 15.269139,
       "lon": 100.297514
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "TL",
+    "id": "TL#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "TL#1": {
+    "coordinates": {
+      "lat": 20.470417,
+      "lon": 99.930639
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "TL#1",
     "kind": "waypoint",
     "source": "xplane"
   },
@@ -17359,13 +17589,23 @@
     "kind": "waypoint",
     "source": "xplane"
   },
-  "TONIK": {
+  "TONIK#0": {
     "coordinates": {
       "lat": 10.025317,
       "lon": 101.921153
     },
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "TONIK",
+    "id": "TONIK#0",
+    "kind": "waypoint",
+    "source": "xplane"
+  },
+  "TONIK#1": {
+    "coordinates": {
+      "lat": 32.003811,
+      "lon": 145.996411
+    },
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "TONIK#1",
     "kind": "waypoint",
     "source": "xplane"
   },

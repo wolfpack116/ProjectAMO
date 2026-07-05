@@ -526,7 +526,7 @@
       "KIHOH",
       "SAKIT",
       "BKK",
-      "OSUKA",
+      "OSUKA#1",
       "SELKA",
       "BULAN",
       "BUNTA",
@@ -878,7 +878,7 @@
       "CR",
       "GASAN",
       "GOLOT",
-      "KP",
+      "KP#1",
       "IKITI",
       "WK"
     ],
@@ -945,7 +945,7 @@
     "id": "A461",
     "segmentCount": 33,
     "sequence": [
-      "AKOMA",
+      "AKOMA#1",
       "WXI",
       "ZHO",
       "AMN",
@@ -969,7 +969,7 @@
       "VYK",
       "SHL",
       "ZF",
-      "MIA",
+      "MIA#0",
       "TAALA",
       "TANAL",
       "OBLIK",
@@ -1064,7 +1064,7 @@
       "JONJU",
       "DHN",
       "DDG",
-      "PU",
+      "PU#0",
       "INTIK",
       "ERE",
       "MANSA",
@@ -1250,7 +1250,7 @@
       "ATVIM",
       "KYU",
       "LJB",
-      "BM",
+      "BM#0",
       "DLC",
       "MUPAM",
       "HRB",
@@ -1471,7 +1471,7 @@
     "sequence": [
       "BOMPA",
       "PAK",
-      "PK",
+      "PK#1",
       "UBL"
     ],
     "sources": [
@@ -1516,7 +1516,7 @@
       "MIKOS",
       "KAMAX",
       "PEXUN",
-      "RG",
+      "RG#1",
       "TAPUN"
     ],
     "sources": [
@@ -1801,7 +1801,7 @@
       "TELMO",
       "TOKON",
       "HCN",
-      "MIA",
+      "MIA#0",
       "TOMAN",
       "OSANU",
       "PR"
@@ -1818,7 +1818,7 @@
     "sequence": [
       "BALET",
       "BG01",
-      "TD",
+      "TD#0",
       "DAGES",
       "UHWW",
       "GAMOV",
@@ -1839,7 +1839,7 @@
       "DOLMA",
       "LUBOK",
       "UHWW",
-      "TD"
+      "TD#0"
     ],
     "sources": [
       "xplane"
@@ -1894,7 +1894,7 @@
       "ATIGO",
       "NITOT",
       "UPDOB",
-      "TONIK"
+      "TONIK#1"
     ],
     "sources": [
       "xplane"
@@ -1929,7 +1929,7 @@
       "BIK",
       "CAB",
       "DIPID",
-      "MIA",
+      "MIA#0",
       "CAMBA",
       "KABAN",
       "PAYAS",
@@ -2053,16 +2053,16 @@
     "id": "B469",
     "segmentCount": 10,
     "sequence": [
-      "AKOMA",
+      "AKOMA#0",
       "PU010",
       "PU030",
       "BAVAL",
       "NE020",
       "SJ",
       "PADLI",
-      "PK",
+      "PK#0",
       "PU090",
-      "PU",
+      "PU#1",
       "VMR"
     ],
     "sources": [
@@ -2231,7 +2231,7 @@
       "CADDY",
       "OGASA",
       "UKATA",
-      "PQ",
+      "PQ#1",
       "ERVIN",
       "HUTEL",
       "NUTTI",
@@ -2491,11 +2491,11 @@
       "ADKAK",
       "BEGAD",
       "MERED",
-      "TONIK",
+      "TONIK#1",
       "KAKNI",
       "SEGRO",
-      "PANDA",
-      "PQ"
+      "PANDA#1",
+      "PQ#1"
     ],
     "sources": [
       "xplane"
@@ -2718,7 +2718,7 @@
       "MENEX",
       "STN",
       "BKK",
-      "HOTEL",
+      "HOTEL#0",
       "UKERA",
       "PUT"
     ],
@@ -2879,7 +2879,7 @@
     "segmentCount": 7,
     "sequence": [
       "ANINA",
-      "PK",
+      "PK#1",
       "SOURN",
       "BATOK",
       "BKK",
@@ -2928,7 +2928,7 @@
     "id": "G579",
     "segmentCount": 5,
     "sequence": [
-      "JB",
+      "JB#0",
       "SJ",
       "VJR",
       "REMES",
@@ -3003,7 +3003,7 @@
     "sequence": [
       "ADNUT",
       "PIBOS",
-      "PK",
+      "PK#0",
       "BILIK",
       "GOBAS",
       "VBA",
@@ -3034,7 +3034,7 @@
     "segmentCount": 2,
     "sequence": [
       "ISTAN",
-      "PK",
+      "PK#0",
       "VKL"
     ],
     "sources": [
@@ -3239,7 +3239,7 @@
       "DAMEL",
       "VEPAM",
       "DILAN",
-      "MIA",
+      "MIA#0",
       "MINDA",
       "DOSUS",
       "IBOBI",
@@ -3259,7 +3259,7 @@
     "segmentCount": 4,
     "sequence": [
       "BUVAL",
-      "PK",
+      "PK#0",
       "VEPLI",
       "DOLOX",
       "NOPAT"
@@ -3275,7 +3275,7 @@
     "segmentCount": 5,
     "sequence": [
       "DOVOL",
-      "PK",
+      "PK#0",
       "UGPEK",
       "DUBSA",
       "SUSAR",
@@ -3435,7 +3435,7 @@
       "ALUMO",
       "PETRA",
       "RYN",
-      "TONIK"
+      "TONIK#0"
     ],
     "sources": [
       "xplane"
@@ -3486,11 +3486,11 @@
       "IDAGA",
       "KUMTO",
       "GOLUD",
-      "TIKAL",
+      "TIKAL#1",
       "VKB",
       "REGOS",
       "MUBAN",
-      "PK"
+      "PK#0"
     ],
     "sources": [
       "xplane"
@@ -3507,7 +3507,7 @@
       "TANAM",
       "CAMPU",
       "PNH",
-      "PQ",
+      "PQ#0",
       "ENREP"
     ],
     "sources": [
@@ -3563,7 +3563,7 @@
       "LUSMO",
       "MABAL",
       "IDSEL",
-      "PK",
+      "PK#0",
       "URIGO",
       "TERIX",
       "VISAT",
@@ -3599,7 +3599,7 @@
       "LIPRO",
       "KETOD",
       "OTLON",
-      "PK",
+      "PK#0",
       "KILOT"
     ],
     "sources": [
@@ -3614,7 +3614,7 @@
     "sequence": [
       "ENREP",
       "TAXUL",
-      "PK"
+      "PK#0"
     ],
     "sources": [
       "xplane"
@@ -3636,7 +3636,7 @@
       "CS",
       "IGARI",
       "BORGA",
-      "MIA",
+      "MIA#0",
       "DAGAG",
       "REKEL",
       "VENLI",
@@ -3748,7 +3748,7 @@
       "BOMPO",
       "DARMU",
       "ANIPU",
-      "OSUKA",
+      "OSUKA#0",
       "VSI",
       "ANIRU",
       "ASISU",
@@ -3872,7 +3872,7 @@
       "ABLBG",
       "DOHER",
       "LEGED",
-      "MIA",
+      "MIA#0",
       "LAGOT",
       "LAXOR",
       "LUSMO",
@@ -3904,7 +3904,7 @@
       "IGARI",
       "SAMOG",
       "MANIM",
-      "PU",
+      "PU#1",
       "URIGO"
     ],
     "sources": [
@@ -4430,7 +4430,7 @@
       "CH",
       "IDOSI",
       "DAN",
-      "SAMBO",
+      "SAMBO#0",
       "IKELA",
       "IGNIS",
       "IPROP",
@@ -4679,7 +4679,7 @@
     "id": "R334",
     "segmentCount": 2,
     "sequence": [
-      "KK",
+      "KK#1",
       "PNH",
       "RYN"
     ],
@@ -4800,7 +4800,7 @@
       "SESUR",
       "TEKUK",
       "SIBIR",
-      "TD"
+      "TD#0"
     ],
     "sources": [
       "xplane"
@@ -4965,7 +4965,7 @@
       "ALUMO",
       "ANOBO",
       "EMELA",
-      "KK",
+      "KK#1",
       "UPNEP",
       "LAVAN",
       "PAPRA",
@@ -5054,9 +5054,9 @@
     "sequence": [
       "ATVUT",
       "KAKET",
-      "TONIK",
+      "TONIK#0",
       "GONLY",
-      "PK",
+      "PK#1",
       "PNH",
       "SAPOL",
       "MUBAN",
@@ -5308,9 +5308,9 @@
       "GTC",
       "WAPPA",
       "LSO",
-      "MIA",
+      "MIA#1",
       "MIS",
-      "SAMBO"
+      "SAMBO#1"
     ],
     "sources": [
       "xplane"
@@ -5325,14 +5325,14 @@
       "CHE",
       "NAVER",
       "HANKA",
-      "SAMBO",
+      "SAMBO#1",
       "YTE",
       "IBURI",
       "MWE",
       "IZUMI",
       "NZE",
       "YHUKI",
-      "MIA",
+      "MIA#1",
       "MK",
       "MIKRA",
       "YONEX",
@@ -5350,7 +5350,7 @@
     "sequence": [
       "HHO",
       "KG",
-      "MIA"
+      "MIA#1"
     ],
     "sources": [
       "xplane"
@@ -5373,7 +5373,7 @@
       "OHMAR",
       "YACHI",
       "WAPPA",
-      "TL",
+      "TL#1",
       "SIRAO",
       "YTE"
     ],
@@ -5392,8 +5392,8 @@
       "SYE",
       "GTC",
       "KG",
-      "MIA",
-      "TL"
+      "MIA#1",
+      "TL#1"
     ],
     "sources": [
       "xplane"
@@ -5429,7 +5429,7 @@
       "SKE",
       "XMC",
       "LHE",
-      "SAGRA",
+      "SAGRA#1",
       "PROOF",
       "OJC",
       "XAC"
@@ -5452,7 +5452,7 @@
       "PERRY",
       "KOALA",
       "OTAKI",
-      "PANDA",
+      "PANDA#1",
       "OJC"
     ],
     "sources": [
@@ -5835,7 +5835,7 @@
     "segmentCount": 5,
     "sequence": [
       "BGO",
-      "PA",
+      "PA#0",
       "BISEI",
       "CHE",
       "IKEDA",
@@ -6061,7 +6061,7 @@
     "id": "V73",
     "segmentCount": 4,
     "sequence": [
-      "DELTA",
+      "DELTA#1",
       "HIDEK",
       "TAMAK",
       "DOVAG",
@@ -6150,8 +6150,8 @@
       "BU",
       "TSN",
       "BGO",
-      "MIA",
-      "PK",
+      "MIA#1",
+      "PK#1",
       "CAB",
       "CUY",
       "TUG",
@@ -6199,7 +6199,7 @@
       "ZAM",
       "PB",
       "KL",
-      "MIA"
+      "MIA#1"
     ],
     "sources": [
       "xplane"
@@ -6228,20 +6228,21 @@
       "BAC",
       "DUAMO",
       "BANOS",
-      "MIA",
+      "MIA#0",
       "PABLO",
       "CONDE",
-      "SAGRA",
+      "SAGRA#0",
       "MDN",
       "JAMIS",
       "MKB",
       "KI",
+      "MIA#1",
       "MANOK",
       "MCT",
       "MOLOC",
       "PINOT",
       "PUD",
-      "PK",
+      "PK#1",
       "QNGAI"
     ],
     "sources": [
@@ -6261,8 +6262,8 @@
       "MIKIN",
       "BAC",
       "JILAT",
-      "BM",
-      "MIA",
+      "BM#1",
+      "MIA#1",
       "BU",
       "PCA",
       "LAO",
@@ -6297,7 +6298,7 @@
       "MENAM",
       "SRE",
       "MK",
-      "PT"
+      "PT#1"
     ],
     "sources": [
       "xplane"
@@ -6318,7 +6319,7 @@
       "HSN",
       "RUXIL",
       "HTY",
-      "PT",
+      "PT#0",
       "TRN",
       "JD",
       "KOGAR",
@@ -6350,7 +6351,7 @@
       "CMA",
       "PAE",
       "SHY",
-      "DELTA",
+      "DELTA#2",
       "LOY",
       "NG",
       "HC",
@@ -6361,9 +6362,10 @@
       "TIMON",
       "UDN",
       "LP",
-      "MIA",
+      "MIA#0",
       "TALIM",
-      "TD",
+      "MIA#1",
+      "TD#1",
       "XA",
       "MWB",
       "PNH",
@@ -6406,13 +6408,13 @@
       "KKN",
       "CT",
       "KANTA",
-      "RG",
+      "RG#0",
       "HHO",
-      "TD",
+      "TD#1",
       "HSH",
       "UDOXI",
       "TSN",
-      "MIA",
+      "MIA#0",
       "VOTAS",
       "ODULO"
     ],
@@ -6459,7 +6461,7 @@
       "LULBU",
       "PANDI",
       "NOYAN",
-      "MIA",
+      "MIA#1",
       "OCORO",
       "RAN"
     ],
@@ -6494,7 +6496,7 @@
       "MONWR",
       "MADON",
       "TRK",
-      "MIA",
+      "MIA#0",
       "NAKTU",
       "SENJO",
       "NLG",
@@ -6528,7 +6530,7 @@
       "FQ",
       "KCC",
       "KOW",
-      "MIA",
+      "MIA#1",
       "SW",
       "MKB",
       "POU"
@@ -6563,7 +6565,7 @@
       "NK",
       "JW",
       "MOTOM",
-      "PA",
+      "PA#1",
       "KARAN",
       "NG",
       "PCA",
@@ -6669,7 +6671,7 @@
       "NATIB",
       "NLG",
       "ZUH",
-      "PQ",
+      "PQ#1",
       "XA"
     ],
     "sources": [
@@ -6812,7 +6814,7 @@
       "IOO",
       "SAJ",
       "BGO",
-      "TD",
+      "TD#1",
       "BURCO",
       "PALAY",
       "ZAM",
@@ -6858,7 +6860,7 @@
       "YIH",
       "TEBUN",
       "HHN",
-      "HOTEL",
+      "HOTEL#0",
       "UKERA",
       "HZ",
       "WHA",
@@ -7028,7 +7030,7 @@
       "HCN",
       "TNN",
       "BGO",
-      "KP",
+      "KP#0",
       "BQ",
       "DB",
       "CIA",
@@ -7041,7 +7043,7 @@
       "WXI",
       "YQG",
       "REPOL",
-      "JB",
+      "JB#1",
       "SAN"
     ],
     "sources": [
@@ -7073,8 +7075,8 @@
     "segmentCount": 5,
     "sequence": [
       "ALFA",
-      "JB",
-      "KK",
+      "JB#0",
+      "KK#0",
       "HOSBA",
       "LELIB",
       "PIMOK"
@@ -7089,8 +7091,8 @@
     "id": "W404",
     "segmentCount": 1,
     "sequence": [
-      "JR",
-      "KK"
+      "JR#0",
+      "KK#0"
     ],
     "sources": [
       "xplane"
@@ -7474,7 +7476,7 @@
     "sequence": [
       "BGN",
       "BGO",
-      "MIA",
+      "MIA#1",
       "BK",
       "NAH",
       "DLC",
@@ -7622,7 +7624,7 @@
     "id": "W540",
     "segmentCount": 2,
     "sequence": [
-      "PK",
+      "PK#0",
       "VKB36",
       "VKB"
     ],
@@ -7718,12 +7720,12 @@
       "ROX",
       "CGO",
       "OPOLO",
-      "TIKAL",
+      "TIKAL#0",
       "DIMLO",
       "MABID",
       "GSA",
       "PAKAN",
-      "HOTEL",
+      "HOTEL#1",
       "MKG",
       "KKN",
       "KRT",
@@ -7779,7 +7781,7 @@
     "id": "W62",
     "segmentCount": 1,
     "sequence": [
-      "JR",
+      "JR#1",
       "RENOB"
     ],
     "sources": [
@@ -7873,7 +7875,7 @@
       "CMA",
       "MST",
       "IOO",
-      "PANDA",
+      "PANDA#0",
       "POU",
       "SAREX",
       "ZUH"
@@ -7892,7 +7894,7 @@
       "KADIN",
       "VTN",
       "ASAV",
-      "DELTA",
+      "DELTA#0",
       "TANGO",
       "PAK"
     ],
@@ -7906,7 +7908,7 @@
     "id": "W76A",
     "segmentCount": 3,
     "sequence": [
-      "DELTA",
+      "DELTA#0",
       "SAV",
       "SAV10",
       "TANGO"
@@ -7932,8 +7934,8 @@
       "MBT",
       "TUBUR",
       "BAVEN",
-      "PQ",
-      "RG",
+      "PQ#0",
+      "RG#0",
       "BGO",
       "MW",
       "DAHOY",
@@ -7947,7 +7949,7 @@
       "HAPPY",
       "NK",
       "KRT",
-      "TL",
+      "TL#0",
       "TSN"
     ],
     "sources": [
@@ -7966,7 +7968,7 @@
       "BN",
       "TAC",
       "BKK",
-      "TL",
+      "TL#0",
       "NIBAT",
       "CMA",
       "MHS",
