@@ -1,0 +1,60 @@
+import { Router } from 'express'
+
+import { getDb } from '../db/index.js'
+import { createUser, verifyLogin } from '../db/users.js'
+import { registerSchema, loginSchema } from './validation.js'
+import { requireAuth } from './middleware.js'
+import { ABSOLUTE_TTL_MS } from './session.js'
+
+// db 주입 가능(테스트). 기본은 앱 공용 싱글턴.
+export function createAuthRouter({ db = null } = {}) {
+  const router = Router()
+  const database = () => db || getDb()
+
+  // 회원가입: 조종사만 공개 등록. 예보관은 관리자가 create-user CLI로만 생성.
+  router.post('/register', (req, res) => {
+    const parsed = registerSchema.safeParse(req.body)
+    if (!parsed.success) return res.status(400).json({ error: 'invalid_input' })
+    if (parsed.data.role === 'forecaster') {
+      return res.status(400).json({ error: 'forecaster_approval_required' })
+    }
+    try {
+      createUser(database(), { username: parsed.data.username, password: parsed.data.password, role: 'pilot' })
+    } catch (err) {
+      // 계정 열거 방지: 중복 아이디도 동일 성공응답(내부만 무시). 그 외 검증오류는 400.
+      if (err.message !== 'username_taken') return res.status(400).json({ error: 'invalid_input' })
+    }
+    return res.status(201).json({ ok: true })
+  })
+
+  // 로그인: 성공 시 세션·쿠키. 실패는 존재여부 안 흘리고 동일 401.
+  router.post('/login', (req, res) => {
+    const parsed = loginSchema.safeParse(req.body)
+    if (!parsed.success) return res.status(401).json({ error: 'invalid_credentials' })
+    const user = verifyLogin(database(), parsed.data.username, parsed.data.password)
+    if (!user) return res.status(401).json({ error: 'invalid_credentials' })
+    req.session.userId = user.id
+    req.session.role = user.role
+    req.session.absoluteExpiry = Date.now() + ABSOLUTE_TTL_MS
+    return res.json({ id: user.id, username: user.username, role: user.role, display_name: user.display_name })
+  })
+
+  router.post('/logout', requireAuth, (req, res) => {
+    req.session.destroy(() => {
+      res.clearCookie('amo.sid')
+      res.json({ ok: true })
+    })
+  })
+
+  router.get('/me', requireAuth, (req, res) => {
+    const u = database()
+      .prepare('SELECT id, username, role, display_name FROM users WHERE id = ?')
+      .get(req.session.userId)
+    if (!u) return res.status(401).json({ error: 'unauthenticated' })
+    return res.json(u)
+  })
+
+  return router
+}
+
+export default createAuthRouter

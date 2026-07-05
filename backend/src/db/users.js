@@ -23,4 +23,20 @@ export function createUser(db, { username, password, role = 'pilot', displayName
   }
 }
 
-export default { createUser, ROLES }
+// 더미 해시 — 유저 없을 때도 compare를 돌려 타이밍으로 존재여부가 새지 않게.
+const DUMMY_HASH = bcrypt.hashSync('dummy-timing-guard', BCRYPT_COST)
+
+// 로그인 검증. 실패(없는 유저·비번 불일치) 모두 null → 라우터가 동일 401.
+export function verifyLogin(db, username, password) {
+  const row = db
+    .prepare('SELECT id, username, password_hash, role, display_name FROM users WHERE username = ?')
+    .get(username)
+  if (!row) {
+    bcrypt.compareSync(String(password ?? ''), DUMMY_HASH) // 타이밍 평준화
+    return null
+  }
+  if (!bcrypt.compareSync(String(password ?? ''), row.password_hash)) return null
+  return { id: row.id, username: row.username, role: row.role, display_name: row.display_name }
+}
+
+export default { createUser, verifyLogin, ROLES }

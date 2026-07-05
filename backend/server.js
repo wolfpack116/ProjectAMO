@@ -8,6 +8,9 @@ import store from './src/store.js'
 import stats from './src/stats.js'
 import config from './src/config.js'
 import { main as startScheduler } from './src/index.js'
+import cors from 'cors'
+import { sessionMiddleware } from './src/auth/session.js'
+import { createAuthRouter } from './src/auth/router.js'
 import adsbProcessor from './src/processors/adsb-processor.js'
 import warningTypes from '../shared/warning-types.js'
 import alertDefaults from '../shared/alert-defaults.js'
@@ -48,6 +51,15 @@ app.disable('x-powered-by')
 app.set('trust proxy', true)
 app.use(express.json({ limit: '1mb' }))
 app.use(compression())
+
+// #7 인증: (개발) CORS credentials + 세션. 공개 API는 saveUninitialized:false라 세션쿠키 안 생김.
+// NODE_ENV==='test'는 제외 — route 단위 테스트가 server.js를 import만 하므로 세션스토어 DB open(파일잠금) 회피.
+if (process.env.NODE_ENV !== 'test') {
+  if (process.env.NODE_ENV !== 'production') {
+    app.use(cors({ origin: process.env.FRONTEND_ORIGIN || 'http://127.0.0.1:5173', credentials: true }))
+  }
+  app.use(sessionMiddleware())
+}
 
 function readJsonFileSafe(filePath) {
   try {
@@ -112,6 +124,11 @@ app.use('/api', (req, res, next) => {
   }
   next()
 })
+
+// #7 인증 라우터 (공개 날씨 API와 분리). register/login/logout/me. 세션과 동일하게 실서버에서만.
+if (process.env.NODE_ENV !== 'test') {
+  app.use('/api/auth', createAuthRouter())
+}
 
 function readLatest(type) {
   const cached = store.getCached(type)
