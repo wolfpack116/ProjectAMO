@@ -122,7 +122,7 @@ export function buildCompactMetarModel({ metar, amosData, icao, airportMeta }) {
         label: '기온/이슬점',
         value: temperatureValue,
       },
-      rvr: rvrText ? { id: 'rvr', label: 'RVR', value: rvrText } : null,
+      rvr: { id: 'rvr', label: 'RVR', value: rvrText || '2000+' },
     },
   }
 }
