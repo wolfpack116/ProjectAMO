@@ -38,6 +38,27 @@
       "routeType": "ATS",
       "segmentId": "OVS-R591-001",
       "to": "ADNIP"
+    },
+    {
+      "distanceNm": 199.35,
+      "routeId": "OTR9",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR9-001",
+      "to": "CELIN"
+    },
+    {
+      "distanceNm": 99.66,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-001",
+      "to": "COMFE"
+    },
+    {
+      "distanceNm": 21.82,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-002",
+      "to": "SCORE"
     }
   ],
   "ABILO": [
@@ -194,6 +215,43 @@
       "to": "TSN"
     }
   ],
+  "ACQUA": [
+    {
+      "distanceNm": 74.84,
+      "routeId": "OTR15",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR15-001",
+      "to": "CVC"
+    },
+    {
+      "distanceNm": 78.98,
+      "routeId": "OTR21",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR21-001",
+      "to": "FORDO"
+    },
+    {
+      "distanceNm": 36.2,
+      "routeId": "OTR14",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR14-001",
+      "to": "PETAL"
+    },
+    {
+      "distanceNm": 75.25,
+      "routeId": "OTR15",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR15-002",
+      "to": "SMOLT"
+    },
+    {
+      "distanceNm": 80.97,
+      "routeId": "OTR14",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR14-002",
+      "to": "VACKY"
+    }
+  ],
   "AD": [
     {
       "distanceNm": 68.03,
@@ -295,6 +353,13 @@
       "routeType": "ATS",
       "segmentId": "OVS-A337-001",
       "to": "NOGAK"
+    },
+    {
+      "distanceNm": 36.35,
+      "routeId": "OTR20",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR20-001",
+      "to": "RENAU"
     }
   ],
   "ADNEP": [
@@ -343,6 +408,20 @@
       "routeType": "ATS",
       "segmentId": "OVS-R591-002",
       "to": "ADGOR"
+    },
+    {
+      "distanceNm": 185.61,
+      "routeId": "OTR5",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR5-001",
+      "to": "CALMA"
+    },
+    {
+      "distanceNm": 157.86,
+      "routeId": "OTR5",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR5-002",
+      "to": "PABBA"
     }
   ],
   "ADNUT": [
@@ -2502,6 +2581,22 @@
       "to": "TYN"
     }
   ],
+  "APPLE": [
+    {
+      "distanceNm": 48.9,
+      "routeId": "OTR24",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR24-001",
+      "to": "MERED"
+    },
+    {
+      "distanceNm": 23.72,
+      "routeId": "OTR24",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR24-002",
+      "to": "PAPAS"
+    }
+  ],
   "APRIL": [
     {
       "distanceNm": 8.84,
@@ -2707,6 +2802,22 @@
       "routeType": "ATS",
       "segmentId": "OVS-G212-002",
       "to": "UHHH"
+    }
+  ],
+  "ARIES": [
+    {
+      "distanceNm": 18.01,
+      "routeId": "OTR10",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR10-001",
+      "to": "CVC"
+    },
+    {
+      "distanceNm": 22.84,
+      "routeId": "OTR10",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR10-002",
+      "to": "MELON"
     }
   ],
   "ARIKA": [
@@ -7243,6 +7354,13 @@
   ],
   "CALMA": [
     {
+      "distanceNm": 185.61,
+      "routeId": "OTR5",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR5-001",
+      "to": "ADNIP"
+    },
+    {
       "distanceNm": 169.09,
       "routeId": "G344",
       "routeType": "ATS",
@@ -7287,6 +7405,22 @@
       "routeType": "ATS",
       "segmentId": "OVS-M753-004",
       "to": "PQ#0"
+    }
+  ],
+  "CANDY": [
+    {
+      "distanceNm": 15.28,
+      "routeId": "OTR26",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR26-001",
+      "to": "EDDIE"
+    },
+    {
+      "distanceNm": 16.76,
+      "routeId": "OTR26",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR26-002",
+      "to": "EVERT"
     }
   ],
   "CANNA": [
@@ -7500,6 +7634,13 @@
   ],
   "CELIN": [
     {
+      "distanceNm": 199.35,
+      "routeId": "OTR9",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR9-001",
+      "to": "ABETS"
+    },
+    {
       "distanceNm": 169.09,
       "routeId": "G344",
       "routeType": "ATS",
@@ -7512,6 +7653,20 @@
       "routeType": "ATS",
       "segmentId": "OVS-G344-003",
       "to": "COMFE"
+    },
+    {
+      "distanceNm": 69.59,
+      "routeId": "OTR7",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR7-001",
+      "to": "DORCH"
+    },
+    {
+      "distanceNm": 189.62,
+      "routeId": "OTR7",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR7-002",
+      "to": "PABBA"
     }
   ],
   "CELLO": [
@@ -8342,11 +8497,25 @@
   ],
   "COMFE": [
     {
+      "distanceNm": 99.66,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-001",
+      "to": "ABETS"
+    },
+    {
       "distanceNm": 107.62,
       "routeId": "G344",
       "routeType": "ATS",
       "segmentId": "OVS-G344-003",
       "to": "CELIN"
+    },
+    {
+      "distanceNm": 108.97,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-003",
+      "to": "DRIVR"
     }
   ],
   "CON": [
@@ -8754,11 +8923,60 @@
   ],
   "CVC": [
     {
+      "distanceNm": 74.84,
+      "routeId": "OTR15",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR15-001",
+      "to": "ACQUA"
+    },
+    {
+      "distanceNm": 18.01,
+      "routeId": "OTR10",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR10-001",
+      "to": "ARIES"
+    },
+    {
       "distanceNm": 272.47,
       "routeId": "Y51",
       "routeType": "RNAV",
       "segmentId": "OVS-Y51-001",
       "to": "CHILY"
+    },
+    {
+      "distanceNm": 150.18,
+      "routeId": "OTR17",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR17-001",
+      "to": "FORDO"
+    },
+    {
+      "distanceNm": 45.82,
+      "routeId": "OTR13",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR13-001",
+      "to": "GUPPY"
+    },
+    {
+      "distanceNm": 86.11,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-004",
+      "to": "KAGIS"
+    },
+    {
+      "distanceNm": 28.55,
+      "routeId": "OTR20",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR20-002",
+      "to": "LIBRA"
+    },
+    {
+      "distanceNm": 22.16,
+      "routeId": "OTR24",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR24-003",
+      "to": "PAPAS"
     }
   ],
   "CYRUS": [
@@ -9674,6 +9892,13 @@
     }
   ],
   "DEMPA": [
+    {
+      "distanceNm": 60.3,
+      "routeId": "OTR28",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR28-001",
+      "to": "GBE48"
+    },
     {
       "distanceNm": 84.46,
       "routeId": "G581",
@@ -10639,6 +10864,22 @@
       "to": "SURAK"
     }
   ],
+  "DORCH": [
+    {
+      "distanceNm": 69.59,
+      "routeId": "OTR7",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR7-001",
+      "to": "CELIN"
+    },
+    {
+      "distanceNm": 62.4,
+      "routeId": "OTR7",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR7-003",
+      "to": "ETRON"
+    }
+  ],
   "DOREX": [
     {
       "distanceNm": 16.53,
@@ -10933,6 +11174,29 @@
       "routeType": "ATS",
       "segmentId": "OVS-V40-004",
       "to": "SHONO"
+    }
+  ],
+  "DRIVR": [
+    {
+      "distanceNm": 108.97,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-003",
+      "to": "COMFE"
+    },
+    {
+      "distanceNm": 133.58,
+      "routeId": "OTR22",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR22-001",
+      "to": "ETRON"
+    },
+    {
+      "distanceNm": 75.23,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-005",
+      "to": "RIPKI"
     }
   ],
   "DS": [
@@ -11277,6 +11541,15 @@
       "routeType": "ATS",
       "segmentId": "OVS-W35-004",
       "to": "PNK"
+    }
+  ],
+  "EDDIE": [
+    {
+      "distanceNm": 15.28,
+      "routeId": "OTR26",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR26-001",
+      "to": "CANDY"
     }
   ],
   "EDLOR": [
@@ -12251,6 +12524,20 @@
   ],
   "ESBIS": [
     {
+      "distanceNm": 112.68,
+      "routeId": "OTR30",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR30-001",
+      "to": "FU"
+    },
+    {
+      "distanceNm": 131.0,
+      "routeId": "OTR30",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR30-002",
+      "to": "MIKES"
+    },
+    {
       "distanceNm": 64.05,
       "routeId": "A586",
       "routeType": "ATS",
@@ -12325,6 +12612,45 @@
       "routeType": "RNAV",
       "segmentId": "OVS-L642-011",
       "to": "ENREP"
+    }
+  ],
+  "ETRON": [
+    {
+      "distanceNm": 62.4,
+      "routeId": "OTR7",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR7-003",
+      "to": "DORCH"
+    },
+    {
+      "distanceNm": 133.58,
+      "routeId": "OTR22",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR22-001",
+      "to": "DRIVR"
+    }
+  ],
+  "EVERT": [
+    {
+      "distanceNm": 16.76,
+      "routeId": "OTR26",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR26-002",
+      "to": "CANDY"
+    },
+    {
+      "distanceNm": 32.87,
+      "routeId": "OTR28",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR28-002",
+      "to": "GBE48"
+    },
+    {
+      "distanceNm": 15.0,
+      "routeId": "OTR26",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR26-003",
+      "to": "KISEI"
     }
   ],
   "EXORA": [
@@ -12515,6 +12841,15 @@
       "to": "SUC"
     }
   ],
+  "FERAR": [
+    {
+      "distanceNm": 152.37,
+      "routeId": "OTR17",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR17-002",
+      "to": "FORDO"
+    }
+  ],
   "FERET": [
     {
       "distanceNm": 13.98,
@@ -12696,6 +13031,36 @@
       "to": "RAYAT"
     }
   ],
+  "FORDO": [
+    {
+      "distanceNm": 78.98,
+      "routeId": "OTR21",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR21-001",
+      "to": "ACQUA"
+    },
+    {
+      "distanceNm": 150.18,
+      "routeId": "OTR17",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR17-001",
+      "to": "CVC"
+    },
+    {
+      "distanceNm": 152.37,
+      "routeId": "OTR17",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR17-002",
+      "to": "FERAR"
+    },
+    {
+      "distanceNm": 64.92,
+      "routeId": "OTR18",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR18-001",
+      "to": "RENAU"
+    }
+  ],
   "FORMY": [
     {
       "distanceNm": 48.56,
@@ -12768,6 +13133,13 @@
     }
   ],
   "FU": [
+    {
+      "distanceNm": 112.68,
+      "routeId": "OTR30",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR30-001",
+      "to": "ESBIS"
+    },
     {
       "distanceNm": 80.6,
       "routeId": "W12",
@@ -13035,6 +13407,15 @@
       "to": "TEBUN"
     }
   ],
+  "GARRY": [
+    {
+      "distanceNm": 26.02,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-006",
+      "to": "RIPKI"
+    }
+  ],
   "GARUT": [
     {
       "distanceNm": 59.83,
@@ -13104,6 +13485,22 @@
       "routeType": "ATS",
       "segmentId": "OVS-A597-005",
       "to": "KEC"
+    }
+  ],
+  "GBE48": [
+    {
+      "distanceNm": 60.3,
+      "routeId": "OTR28",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR28-001",
+      "to": "DEMPA"
+    },
+    {
+      "distanceNm": 32.87,
+      "routeId": "OTR28",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR28-002",
+      "to": "EVERT"
     }
   ],
   "GEMAS": [
@@ -13516,11 +13913,25 @@
       "to": "MILKY"
     },
     {
+      "distanceNm": 100.06,
+      "routeId": "OTR3",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR3-001",
+      "to": "SNAIL"
+    },
+    {
       "distanceNm": 43.98,
       "routeId": "V22",
       "routeType": "ATS",
       "segmentId": "OVS-V22-005",
       "to": "TLE"
+    },
+    {
+      "distanceNm": 102.92,
+      "routeId": "OTR4",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR4-001",
+      "to": "TOPOS"
     },
     {
       "distanceNm": 98.72,
@@ -14331,11 +14742,25 @@
       "to": "FAIRY"
     },
     {
+      "distanceNm": 82.88,
+      "routeId": "OTR25",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR25-001",
+      "to": "HCE"
+    },
+    {
       "distanceNm": 100.06,
       "routeId": "A590",
       "routeType": "ATS",
       "segmentId": "OVS-A590-008",
       "to": "MJE"
+    },
+    {
+      "distanceNm": 103.49,
+      "routeId": "OTR25",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR25-002",
+      "to": "TAPOP"
     }
   ],
   "GULEK": [
@@ -14469,6 +14894,36 @@
       "routeType": "ATS",
       "segmentId": "OVS-G212-015",
       "to": "YIJ"
+    }
+  ],
+  "GUPPY": [
+    {
+      "distanceNm": 45.82,
+      "routeId": "OTR13",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR13-001",
+      "to": "CVC"
+    },
+    {
+      "distanceNm": 43.47,
+      "routeId": "OTR8",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR8-001",
+      "to": "KAGIS"
+    },
+    {
+      "distanceNm": 70.32,
+      "routeId": "OTR8",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR8-002",
+      "to": "OJC"
+    },
+    {
+      "distanceNm": 104.3,
+      "routeId": "OTR13",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR13-002",
+      "to": "VACKY"
     }
   ],
   "GUPTA": [
@@ -14978,6 +15433,22 @@
       "routeType": "ATS",
       "segmentId": "OVS-W15-014",
       "to": "MOE"
+    }
+  ],
+  "HCE": [
+    {
+      "distanceNm": 82.88,
+      "routeId": "OTR25",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR25-001",
+      "to": "GULEG"
+    },
+    {
+      "distanceNm": 65.02,
+      "routeId": "OTR27",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR27-001",
+      "to": "MAPDO"
     }
   ],
   "HCH": [
@@ -18724,6 +19195,20 @@
   ],
   "KAGIS": [
     {
+      "distanceNm": 86.11,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-004",
+      "to": "CVC"
+    },
+    {
+      "distanceNm": 43.47,
+      "routeId": "OTR8",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR8-001",
+      "to": "GUPPY"
+    },
+    {
       "distanceNm": 182.12,
       "routeId": "A590",
       "routeType": "ATS",
@@ -18736,6 +19221,13 @@
       "routeType": "ATS",
       "segmentId": "OVS-A590-013",
       "to": "PABBA"
+    },
+    {
+      "distanceNm": 63.8,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-007",
+      "to": "SCORE"
     }
   ],
   "KAIFU": [
@@ -19796,6 +20288,43 @@
       "to": "UHWW"
     }
   ],
+  "KETAR": [
+    {
+      "distanceNm": 28.44,
+      "routeId": "OTR10",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR10-003",
+      "to": "MELON"
+    },
+    {
+      "distanceNm": 125.14,
+      "routeId": "OTR2",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR2-001",
+      "to": "OATIS"
+    },
+    {
+      "distanceNm": 105.33,
+      "routeId": "OTR6",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR6-001",
+      "to": "PABBA"
+    },
+    {
+      "distanceNm": 66.63,
+      "routeId": "OTR2",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR2-002",
+      "to": "PETAL"
+    },
+    {
+      "distanceNm": 54.18,
+      "routeId": "OTR10",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR10-004",
+      "to": "TOPOS"
+    }
+  ],
   "KETIV": [
     {
       "distanceNm": 184.75,
@@ -20342,6 +20871,13 @@
   ],
   "KISEI": [
     {
+      "distanceNm": 15.0,
+      "routeId": "OTR26",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR26-003",
+      "to": "EVERT"
+    },
+    {
       "distanceNm": 23.35,
       "routeId": "V37",
       "routeType": "ATS",
@@ -20354,6 +20890,13 @@
       "routeType": "ATS",
       "segmentId": "OVS-V37-005",
       "to": "PADOC"
+    },
+    {
+      "distanceNm": 62.83,
+      "routeId": "OTR26",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR26-004",
+      "to": "TAPOP"
     }
   ],
   "KJ": [
@@ -22930,6 +23473,22 @@
       "to": "MCT"
     }
   ],
+  "LIBRA": [
+    {
+      "distanceNm": 28.55,
+      "routeId": "OTR20",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR20-002",
+      "to": "CVC"
+    },
+    {
+      "distanceNm": 19.6,
+      "routeId": "OTR20",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR20-003",
+      "to": "PETAL"
+    }
+  ],
   "LIG": [
     {
       "distanceNm": 99.86,
@@ -24595,6 +25154,13 @@
   ],
   "MAPDO": [
     {
+      "distanceNm": 65.02,
+      "routeId": "OTR27",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR27-001",
+      "to": "HCE"
+    },
+    {
       "distanceNm": 172.5,
       "routeId": "A339",
       "routeType": "ATS",
@@ -25332,6 +25898,22 @@
       "to": "MADOG"
     }
   ],
+  "MELON": [
+    {
+      "distanceNm": 22.84,
+      "routeId": "OTR10",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR10-002",
+      "to": "ARIES"
+    },
+    {
+      "distanceNm": 28.44,
+      "routeId": "OTR10",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR10-003",
+      "to": "KETAR"
+    }
+  ],
   "MEMAK": [
     {
       "distanceNm": 362.89,
@@ -25472,6 +26054,13 @@
       "routeType": "ATS",
       "segmentId": "OVS-G223-002",
       "to": "ADKAK"
+    },
+    {
+      "distanceNm": 48.9,
+      "routeId": "OTR24",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR24-001",
+      "to": "APPLE"
     },
     {
       "distanceNm": 65.72,
@@ -25744,6 +26333,15 @@
       "routeType": "ATS",
       "segmentId": "OVS-N892-016",
       "to": "MONBO"
+    }
+  ],
+  "MIKES": [
+    {
+      "distanceNm": 131.0,
+      "routeId": "OTR30",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR30-002",
+      "to": "ESBIS"
     }
   ],
   "MIKIN": [
@@ -26570,6 +27168,15 @@
       "routeType": "ATS",
       "segmentId": "OVS-A597-010",
       "to": "RICHH"
+    }
+  ],
+  "MORAY": [
+    {
+      "distanceNm": 123.96,
+      "routeId": "OTR15",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR15-003",
+      "to": "SMOLT"
     }
   ],
   "MORIO": [
@@ -27669,6 +28276,13 @@
       "routeType": "ATS",
       "segmentId": "OVS-R220-004",
       "to": "NODAN"
+    },
+    {
+      "distanceNm": 124.97,
+      "routeId": "OTR10",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR10-005",
+      "to": "TOPOS"
     }
   ],
   "NANAS": [
@@ -27694,6 +28308,13 @@
       "routeType": "ATS",
       "segmentId": "OVS-R220-005",
       "to": "NODAN"
+    },
+    {
+      "distanceNm": 62.87,
+      "routeId": "OTR1",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR1-001",
+      "to": "NOSLY"
     },
     {
       "distanceNm": 39.58,
@@ -29142,6 +29763,22 @@
       "to": "IGEBO"
     }
   ],
+  "NOSLY": [
+    {
+      "distanceNm": 62.87,
+      "routeId": "OTR1",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR1-001",
+      "to": "NANNO"
+    },
+    {
+      "distanceNm": 105.93,
+      "routeId": "OTR1",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR1-002",
+      "to": "OBE"
+    }
+  ],
   "NOTAK": [
     {
       "distanceNm": 21.38,
@@ -29472,11 +30109,32 @@
   ],
   "OATIS": [
     {
+      "distanceNm": 125.14,
+      "routeId": "OTR2",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR2-001",
+      "to": "KETAR"
+    },
+    {
       "distanceNm": 319.38,
       "routeId": "R580",
       "routeType": "ATS",
       "segmentId": "OVS-R580-001",
       "to": "ONEMU"
+    },
+    {
+      "distanceNm": 150.66,
+      "routeId": "OTR3",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR3-002",
+      "to": "SABES"
+    },
+    {
+      "distanceNm": 65.36,
+      "routeId": "OTR3",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR3-003",
+      "to": "SNAIL"
     }
   ],
   "OBAKO": [
@@ -29550,6 +30208,13 @@
       "routeType": "ATS",
       "segmentId": "OVS-V4-005",
       "to": "IKEDA"
+    },
+    {
+      "distanceNm": 105.93,
+      "routeId": "OTR1",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR1-002",
+      "to": "NOSLY"
     },
     {
       "distanceNm": 40.03,
@@ -30070,6 +30735,13 @@
     }
   ],
   "OJC": [
+    {
+      "distanceNm": 70.32,
+      "routeId": "OTR8",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR8-002",
+      "to": "GUPPY"
+    },
     {
       "distanceNm": 9.45,
       "routeId": "V18",
@@ -31548,6 +32220,20 @@
   ],
   "PABBA": [
     {
+      "distanceNm": 157.86,
+      "routeId": "OTR5",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR5-002",
+      "to": "ADNIP"
+    },
+    {
+      "distanceNm": 189.62,
+      "routeId": "OTR7",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR7-002",
+      "to": "CELIN"
+    },
+    {
       "distanceNm": 99.19,
       "routeId": "A590",
       "routeType": "ATS",
@@ -31555,11 +32241,32 @@
       "to": "KAGIS"
     },
     {
+      "distanceNm": 105.33,
+      "routeId": "OTR6",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR6-001",
+      "to": "KETAR"
+    },
+    {
       "distanceNm": 107.71,
       "routeId": "A590",
       "routeType": "ATS",
       "segmentId": "OVS-A590-016",
       "to": "PUTER"
+    },
+    {
+      "distanceNm": 72.9,
+      "routeId": "OTR4",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR4-002",
+      "to": "TOPOS"
+    },
+    {
+      "distanceNm": 194.71,
+      "routeId": "OTR5",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR5-003",
+      "to": "TYE"
     }
   ],
   "PABIO": [
@@ -32117,6 +32824,22 @@
       "routeType": "RNAV",
       "segmentId": "OVS-Y10-004",
       "to": "LARCH"
+    }
+  ],
+  "PAPAS": [
+    {
+      "distanceNm": 23.72,
+      "routeId": "OTR24",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR24-002",
+      "to": "APPLE"
+    },
+    {
+      "distanceNm": 22.16,
+      "routeId": "OTR24",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR24-003",
+      "to": "CVC"
     }
   ],
   "PAPDA": [
@@ -32699,6 +33422,50 @@
       "routeType": "RNAV",
       "segmentId": "OVS-Y23-006",
       "to": "VIOLA"
+    }
+  ],
+  "PETAL": [
+    {
+      "distanceNm": 36.2,
+      "routeId": "OTR14",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR14-001",
+      "to": "ACQUA"
+    },
+    {
+      "distanceNm": 66.63,
+      "routeId": "OTR2",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR2-002",
+      "to": "KETAR"
+    },
+    {
+      "distanceNm": 19.6,
+      "routeId": "OTR20",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR20-003",
+      "to": "LIBRA"
+    },
+    {
+      "distanceNm": 76.05,
+      "routeId": "OTR14",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR14-003",
+      "to": "PQE"
+    },
+    {
+      "distanceNm": 128.27,
+      "routeId": "OTR12",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR12-001",
+      "to": "SCORE"
+    },
+    {
+      "distanceNm": 23.85,
+      "routeId": "OTR20",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR20-004",
+      "to": "SUNNS"
     }
   ],
   "PETRA": [
@@ -34228,6 +34995,22 @@
       "to": "XA"
     }
   ],
+  "PQE": [
+    {
+      "distanceNm": 76.05,
+      "routeId": "OTR14",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR14-003",
+      "to": "PETAL"
+    },
+    {
+      "distanceNm": 91.15,
+      "routeId": "OTR16",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR16-001",
+      "to": "SUNNS"
+    }
+  ],
   "PR": [
     {
       "distanceNm": 19.98,
@@ -35603,6 +36386,29 @@
       "to": "SJ"
     }
   ],
+  "RENAU": [
+    {
+      "distanceNm": 36.35,
+      "routeId": "OTR20",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR20-001",
+      "to": "ADKAK"
+    },
+    {
+      "distanceNm": 64.92,
+      "routeId": "OTR18",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR18-001",
+      "to": "FORDO"
+    },
+    {
+      "distanceNm": 21.7,
+      "routeId": "OTR20",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR20-005",
+      "to": "SUNNS"
+    }
+  ],
   "RENDA": [
     {
       "distanceNm": 62.3,
@@ -35910,6 +36716,22 @@
       "routeType": "ATS",
       "segmentId": "OVS-W37-006",
       "to": "MKS"
+    }
+  ],
+  "RIPKI": [
+    {
+      "distanceNm": 75.23,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-005",
+      "to": "DRIVR"
+    },
+    {
+      "distanceNm": 26.02,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-006",
+      "to": "GARRY"
     }
   ],
   "RISBA": [
@@ -36734,6 +37556,13 @@
     }
   ],
   "SABES": [
+    {
+      "distanceNm": 150.66,
+      "routeId": "OTR3",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR3-002",
+      "to": "OATIS"
+    },
     {
       "distanceNm": 171.76,
       "routeId": "A590",
@@ -38243,6 +39072,29 @@
       "to": "TARUN"
     }
   ],
+  "SCORE": [
+    {
+      "distanceNm": 21.82,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-002",
+      "to": "ABETS"
+    },
+    {
+      "distanceNm": 63.8,
+      "routeId": "OTR11",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR11-007",
+      "to": "KAGIS"
+    },
+    {
+      "distanceNm": 128.27,
+      "routeId": "OTR12",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR12-001",
+      "to": "PETAL"
+    }
+  ],
   "SDE": [
     {
       "distanceNm": 100.04,
@@ -38317,6 +39169,15 @@
       "routeType": "RNAV",
       "segmentId": "OVS-Y15-007",
       "to": "OWLET"
+    }
+  ],
+  "SEALS": [
+    {
+      "distanceNm": 107.19,
+      "routeId": "OTR13",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR13-003",
+      "to": "VACKY"
     }
   ],
   "SEBUL": [
@@ -39354,6 +40215,29 @@
       "to": "MEBNA"
     }
   ],
+  "SMOLT": [
+    {
+      "distanceNm": 75.25,
+      "routeId": "OTR15",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR15-002",
+      "to": "ACQUA"
+    },
+    {
+      "distanceNm": 123.96,
+      "routeId": "OTR15",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR15-003",
+      "to": "MORAY"
+    },
+    {
+      "distanceNm": 88.83,
+      "routeId": "OTR16",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR16-002",
+      "to": "SUNNS"
+    }
+  ],
   "SMU": [
     {
       "distanceNm": 68.06,
@@ -39382,6 +40266,22 @@
       "routeType": "ATS",
       "segmentId": "OVS-R575-013",
       "to": "UPNEP"
+    }
+  ],
+  "SNAIL": [
+    {
+      "distanceNm": 100.06,
+      "routeId": "OTR3",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR3-001",
+      "to": "GOC"
+    },
+    {
+      "distanceNm": 65.36,
+      "routeId": "OTR3",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR3-003",
+      "to": "OATIS"
     }
   ],
   "SNE": [
@@ -40204,6 +41104,36 @@
       "routeType": "ATS",
       "segmentId": "OVS-M754-007",
       "to": "VINIK"
+    }
+  ],
+  "SUNNS": [
+    {
+      "distanceNm": 23.85,
+      "routeId": "OTR20",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR20-004",
+      "to": "PETAL"
+    },
+    {
+      "distanceNm": 91.15,
+      "routeId": "OTR16",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR16-001",
+      "to": "PQE"
+    },
+    {
+      "distanceNm": 21.7,
+      "routeId": "OTR20",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR20-005",
+      "to": "RENAU"
+    },
+    {
+      "distanceNm": 88.83,
+      "routeId": "OTR16",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR16-002",
+      "to": "SMOLT"
     }
   ],
   "SUPAR": [
@@ -41207,11 +42137,25 @@
       "to": "DEMPA"
     },
     {
+      "distanceNm": 103.49,
+      "routeId": "OTR25",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR25-002",
+      "to": "GULEG"
+    },
+    {
       "distanceNm": 13.0,
       "routeId": "A597",
       "routeType": "ATS",
       "segmentId": "OVS-A597-006",
       "to": "JERID"
+    },
+    {
+      "distanceNm": 62.83,
+      "routeId": "OTR26",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR26-004",
+      "to": "KISEI"
     },
     {
       "distanceNm": 13.0,
@@ -43415,6 +44359,36 @@
       "to": "VJR"
     }
   ],
+  "TOPOS": [
+    {
+      "distanceNm": 102.92,
+      "routeId": "OTR4",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR4-001",
+      "to": "GOC"
+    },
+    {
+      "distanceNm": 54.18,
+      "routeId": "OTR10",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR10-004",
+      "to": "KETAR"
+    },
+    {
+      "distanceNm": 124.97,
+      "routeId": "OTR10",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR10-005",
+      "to": "NANAC"
+    },
+    {
+      "distanceNm": 72.9,
+      "routeId": "OTR4",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR4-002",
+      "to": "PABBA"
+    }
+  ],
   "TOREG": [
     {
       "distanceNm": 62.41,
@@ -44236,6 +45210,15 @@
       "routeType": "ATS",
       "segmentId": "OVS-B337-006",
       "to": "UNELA"
+    }
+  ],
+  "TYE": [
+    {
+      "distanceNm": 194.71,
+      "routeId": "OTR5",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR5-003",
+      "to": "PABBA"
     }
   ],
   "TYN": [
@@ -45366,6 +46349,29 @@
       "routeType": "ATS",
       "segmentId": "OVS-A327-009",
       "to": "RUSET"
+    }
+  ],
+  "VACKY": [
+    {
+      "distanceNm": 80.97,
+      "routeId": "OTR14",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR14-002",
+      "to": "ACQUA"
+    },
+    {
+      "distanceNm": 104.3,
+      "routeId": "OTR13",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR13-002",
+      "to": "GUPPY"
+    },
+    {
+      "distanceNm": 107.19,
+      "routeId": "OTR13",
+      "routeType": "ATS",
+      "segmentId": "OVS-OTR13-003",
+      "to": "SEALS"
     }
   ],
   "VALAM": [

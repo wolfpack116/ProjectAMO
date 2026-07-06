@@ -85,6 +85,10 @@
     "method": "nearest-overseas-fix",
     "nearbyFixes": [
       {
+        "distanceNm": 6.2,
+        "fix": "TYE"
+      },
+      {
         "distanceNm": 17.6,
         "fix": "TLE"
       },
@@ -99,13 +103,9 @@
       {
         "distanceNm": 22.7,
         "fix": "KASMI"
-      },
-      {
-        "distanceNm": 27.9,
-        "fix": "COMET"
       }
     ],
-    "nearestFix": "TLE"
+    "nearestFix": "TYE"
   },
   "RJBB": {
     "airport": "RJBB",

@@ -121,6 +121,78 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 199.35,
+    "from": "ABETS",
+    "geometry": {
+      "coordinates": [
+        [
+          144.304711,
+          35.988333
+        ],
+        [
+          147.877956,
+          37.675764
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR9-001",
+    "routeId": "OTR9",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "CELIN"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 99.66,
+    "from": "ABETS",
+    "geometry": {
+      "coordinates": [
+        [
+          144.304711,
+          35.988333
+        ],
+        [
+          146.2962,
+          36.40335
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR11-001",
+    "routeId": "OTR11",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "COMFE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 21.82,
+    "from": "ABETS",
+    "geometry": {
+      "coordinates": [
+        [
+          144.304711,
+          35.988333
+        ],
+        [
+          143.871417,
+          35.893333
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR11-002",
+    "routeId": "OTR11",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "SCORE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 71.74,
     "from": "ABILO",
     "geometry": {
@@ -601,6 +673,126 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 74.84,
+    "from": "ACQUA",
+    "geometry": {
+      "coordinates": [
+        [
+          142.163833,
+          35.162489
+        ],
+        [
+          140.799428,
+          35.726469
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR15-001",
+    "routeId": "OTR15",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "CVC"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 78.98,
+    "from": "ACQUA",
+    "geometry": {
+      "coordinates": [
+        [
+          142.163833,
+          35.162489
+        ],
+        [
+          143.136553,
+          34.118503
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR21-001",
+    "routeId": "OTR21",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "FORDO"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 36.2,
+    "from": "ACQUA",
+    "geometry": {
+      "coordinates": [
+        [
+          142.163833,
+          35.162489
+        ],
+        [
+          141.429356,
+          35.110764
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR14-001",
+    "routeId": "OTR14",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "PETAL"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 75.25,
+    "from": "ACQUA",
+    "geometry": {
+      "coordinates": [
+        [
+          142.163833,
+          35.162489
+        ],
+        [
+          143.516503,
+          34.580131
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR15-002",
+    "routeId": "OTR15",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "SMOLT"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 80.97,
+    "from": "ACQUA",
+    "geometry": {
+      "coordinates": [
+        [
+          142.163833,
+          35.162489
+        ],
+        [
+          143.81145,
+          35.240069
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR14-002",
+    "routeId": "OTR14",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "VACKY"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 68.03,
     "from": "AD",
     "geometry": {
@@ -913,6 +1105,30 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 36.35,
+    "from": "ADKAK",
+    "geometry": {
+      "coordinates": [
+        [
+          142.163306,
+          33.9035
+        ],
+        [
+          141.898033,
+          34.467831
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR20-001",
+    "routeId": "OTR20",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "RENAU"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 100.9,
     "from": "ADNEP",
     "geometry": {
@@ -1006,6 +1222,54 @@
     "sequence": 4,
     "source": "xplane earth_awy.dat",
     "to": "RODAT"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 185.61,
+    "from": "ADNIP",
+    "geometry": {
+      "coordinates": [
+        [
+          146.91605,
+          38.254839
+        ],
+        [
+          150.477358,
+          39.628147
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR5-001",
+    "routeId": "OTR5",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "CALMA"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 157.86,
+    "from": "ADNIP",
+    "geometry": {
+      "coordinates": [
+        [
+          146.91605,
+          38.254839
+        ],
+        [
+          143.996356,
+          37.003214
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR5-002",
+    "routeId": "OTR5",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "PABBA"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -7321,6 +7585,54 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 48.9,
+    "from": "APPLE",
+    "geometry": {
+      "coordinates": [
+        [
+          141.107586,
+          35.004819
+        ],
+        [
+          141.441406,
+          34.238167
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR24-001",
+    "routeId": "OTR24",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "MERED"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 23.72,
+    "from": "APPLE",
+    "geometry": {
+      "coordinates": [
+        [
+          141.107586,
+          35.004819
+        ],
+        [
+          140.949614,
+          35.378194
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR24-002",
+    "routeId": "OTR24",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "PAPAS"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 8.84,
     "from": "APRIL",
     "geometry": {
@@ -7846,6 +8158,54 @@
     "sequence": 2,
     "source": "xplane earth_awy.dat",
     "to": "UHHH"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 18.01,
+    "from": "ARIES",
+    "geometry": {
+      "coordinates": [
+        [
+          141.154792,
+          35.809164
+        ],
+        [
+          140.799428,
+          35.726469
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR10-001",
+    "routeId": "OTR10",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "CVC"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 22.84,
+    "from": "ARIES",
+    "geometry": {
+      "coordinates": [
+        [
+          141.154792,
+          35.809164
+        ],
+        [
+          141.606117,
+          35.913875
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR10-002",
+    "routeId": "OTR10",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "MELON"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -20113,6 +20473,54 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 15.28,
+    "from": "CANDY",
+    "geometry": {
+      "coordinates": [
+        [
+          134.921689,
+          33.873883
+        ],
+        [
+          134.725331,
+          34.069428
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR26-001",
+    "routeId": "OTR26",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "EDDIE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 16.76,
+    "from": "CANDY",
+    "geometry": {
+      "coordinates": [
+        [
+          134.921689,
+          33.873883
+        ],
+        [
+          135.133067,
+          33.656969
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR26-002",
+    "routeId": "OTR26",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "EVERT"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 72.81,
     "from": "CANNA",
     "geometry": {
@@ -20710,6 +21118,54 @@
     "sequence": 3,
     "source": "xplane earth_awy.dat",
     "to": "COMFE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 69.59,
+    "from": "CELIN",
+    "geometry": {
+      "coordinates": [
+        [
+          147.877956,
+          37.675764
+        ],
+        [
+          149.251717,
+          38.085211
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR7-001",
+    "routeId": "OTR7",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "DORCH"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 189.62,
+    "from": "CELIN",
+    "geometry": {
+      "coordinates": [
+        [
+          147.877956,
+          37.675764
+        ],
+        [
+          143.996356,
+          37.003214
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR7-002",
+    "routeId": "OTR7",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "PABBA"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -23017,6 +23473,30 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 108.97,
+    "from": "COMFE",
+    "geometry": {
+      "coordinates": [
+        [
+          146.2962,
+          36.40335
+        ],
+        [
+          148.475589,
+          36.889525
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR11-003",
+    "routeId": "OTR11",
+    "routeType": "ATS",
+    "sequence": 3,
+    "source": "xplane earth_awy.dat",
+    "to": "DRIVR"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 34.81,
     "from": "CON",
     "geometry": {
@@ -24094,6 +24574,126 @@
     "sequence": 5,
     "source": "xplane earth_awy.dat",
     "to": "TUG"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 150.18,
+    "from": "CVC",
+    "geometry": {
+      "coordinates": [
+        [
+          140.799428,
+          35.726469
+        ],
+        [
+          143.136553,
+          34.118503
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR17-001",
+    "routeId": "OTR17",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "FORDO"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 45.82,
+    "from": "CVC",
+    "geometry": {
+      "coordinates": [
+        [
+          140.799428,
+          35.726469
+        ],
+        [
+          141.721672,
+          35.581744
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR13-001",
+    "routeId": "OTR13",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "GUPPY"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 86.11,
+    "from": "CVC",
+    "geometry": {
+      "coordinates": [
+        [
+          140.799428,
+          35.726469
+        ],
+        [
+          142.563472,
+          35.820247
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR11-004",
+    "routeId": "OTR11",
+    "routeType": "ATS",
+    "sequence": 4,
+    "source": "xplane earth_awy.dat",
+    "to": "KAGIS"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 28.55,
+    "from": "CVC",
+    "geometry": {
+      "coordinates": [
+        [
+          140.799428,
+          35.726469
+        ],
+        [
+          141.184739,
+          35.369033
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR20-002",
+    "routeId": "OTR20",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "LIBRA"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 22.16,
+    "from": "CVC",
+    "geometry": {
+      "coordinates": [
+        [
+          140.799428,
+          35.726469
+        ],
+        [
+          140.949614,
+          35.378194
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR24-003",
+    "routeId": "OTR24",
+    "routeType": "ATS",
+    "sequence": 3,
+    "source": "xplane earth_awy.dat",
+    "to": "PAPAS"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -26377,6 +26977,30 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 60.3,
+    "from": "DEMPA",
+    "geometry": {
+      "coordinates": [
+        [
+          135.292267,
+          32.111311
+        ],
+        [
+          135.172613,
+          33.110543
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR28-001",
+    "routeId": "OTR28",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "GBE48"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 84.46,
     "from": "DEMPA",
     "geometry": {
@@ -28537,6 +29161,30 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 62.4,
+    "from": "DORCH",
+    "geometry": {
+      "coordinates": [
+        [
+          149.251717,
+          38.085211
+        ],
+        [
+          150.498547,
+          38.434106
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR7-003",
+    "routeId": "OTR7",
+    "routeType": "ATS",
+    "sequence": 3,
+    "source": "xplane earth_awy.dat",
+    "to": "ETRON"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 16.53,
     "from": "DOREX",
     "geometry": {
@@ -29230,6 +29878,54 @@
     "sequence": 4,
     "source": "xplane earth_awy.dat",
     "to": "SHONO"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 133.58,
+    "from": "DRIVR",
+    "geometry": {
+      "coordinates": [
+        [
+          148.475589,
+          36.889525
+        ],
+        [
+          150.498547,
+          38.434106
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR22-001",
+    "routeId": "OTR22",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "ETRON"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 75.23,
+    "from": "DRIVR",
+    "geometry": {
+      "coordinates": [
+        [
+          148.475589,
+          36.889525
+        ],
+        [
+          149.995875,
+          37.201722
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR11-005",
+    "routeId": "OTR11",
+    "routeType": "ATS",
+    "sequence": 5,
+    "source": "xplane earth_awy.dat",
+    "to": "RIPKI"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -31993,6 +32689,54 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 112.68,
+    "from": "ESBIS",
+    "geometry": {
+      "coordinates": [
+        [
+          127.381317,
+          31.253481
+        ],
+        [
+          128.831439,
+          32.670772
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR30-001",
+    "routeId": "OTR30",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "FU"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 131.0,
+    "from": "ESBIS",
+    "geometry": {
+      "coordinates": [
+        [
+          127.381317,
+          31.253481
+        ],
+        [
+          125.748164,
+          29.586978
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR30-002",
+    "routeId": "OTR30",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "MIKES"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 64.05,
     "from": "ESBIS",
     "geometry": {
@@ -32134,6 +32878,54 @@
     "sequence": 16,
     "source": "xplane earth_awy.dat",
     "to": "SABIP"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 32.87,
+    "from": "EVERT",
+    "geometry": {
+      "coordinates": [
+        [
+          135.133067,
+          33.656969
+        ],
+        [
+          135.172613,
+          33.110543
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR28-002",
+    "routeId": "OTR28",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "GBE48"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 15.0,
+    "from": "EVERT",
+    "geometry": {
+      "coordinates": [
+        [
+          135.133067,
+          33.656969
+        ],
+        [
+          135.328892,
+          33.467822
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR26-003",
+    "routeId": "OTR26",
+    "routeType": "ATS",
+    "sequence": 3,
+    "source": "xplane earth_awy.dat",
+    "to": "KISEI"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -32518,6 +33310,30 @@
     "sequence": 29,
     "source": "xplane earth_awy.dat",
     "to": "SUC"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 152.37,
+    "from": "FERAR",
+    "geometry": {
+      "coordinates": [
+        [
+          145.996367,
+          33.237014
+        ],
+        [
+          143.136553,
+          34.118503
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR17-002",
+    "routeId": "OTR17",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "FORDO"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -32950,6 +33766,30 @@
     "sequence": 3,
     "source": "xplane earth_awy.dat",
     "to": "RAYAT"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 64.92,
+    "from": "FORDO",
+    "geometry": {
+      "coordinates": [
+        [
+          143.136553,
+          34.118503
+        ],
+        [
+          141.898033,
+          34.467831
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR18-001",
+    "routeId": "OTR18",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "RENAU"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -33790,6 +34630,30 @@
     "sequence": 8,
     "source": "xplane earth_awy.dat",
     "to": "TEBUN"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 26.02,
+    "from": "GARRY",
+    "geometry": {
+      "coordinates": [
+        [
+          150.519164,
+          37.321728
+        ],
+        [
+          149.995875,
+          37.201722
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR11-006",
+    "routeId": "OTR11",
+    "routeType": "ATS",
+    "sequence": 6,
+    "source": "xplane earth_awy.dat",
+    "to": "RIPKI"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -34945,6 +35809,30 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 100.06,
+    "from": "GOC",
+    "geometry": {
+      "coordinates": [
+        [
+          140.34985,
+          36.744367
+        ],
+        [
+          142.265369,
+          37.408947
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR3-001",
+    "routeId": "OTR3",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "SNAIL"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 43.98,
     "from": "GOC",
     "geometry": {
@@ -34966,6 +35854,30 @@
     "sequence": 5,
     "source": "xplane earth_awy.dat",
     "to": "TLE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 102.92,
+    "from": "GOC",
+    "geometry": {
+      "coordinates": [
+        [
+          140.34985,
+          36.744367
+        ],
+        [
+          142.481486,
+          36.909844
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR4-001",
+    "routeId": "OTR4",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "TOPOS"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -36577,6 +37489,30 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 82.88,
+    "from": "GULEG",
+    "geometry": {
+      "coordinates": [
+        [
+          138.167281,
+          32.876008
+        ],
+        [
+          139.788483,
+          33.11435
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR25-001",
+    "routeId": "OTR25",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "HCE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 100.06,
     "from": "GULEG",
     "geometry": {
@@ -36598,6 +37534,30 @@
     "sequence": 8,
     "source": "xplane earth_awy.dat",
     "to": "MJE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 103.49,
+    "from": "GULEG",
+    "geometry": {
+      "coordinates": [
+        [
+          138.167281,
+          32.876008
+        ],
+        [
+          136.132461,
+          32.666819
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR25-002",
+    "routeId": "OTR25",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "TAPOP"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -36958,6 +37918,78 @@
     "sequence": 15,
     "source": "xplane earth_awy.dat",
     "to": "YIJ"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 43.47,
+    "from": "GUPPY",
+    "geometry": {
+      "coordinates": [
+        [
+          141.721672,
+          35.581744
+        ],
+        [
+          142.563472,
+          35.820247
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR8-001",
+    "routeId": "OTR8",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "KAGIS"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 70.32,
+    "from": "GUPPY",
+    "geometry": {
+      "coordinates": [
+        [
+          141.721672,
+          35.581744
+        ],
+        [
+          140.37075,
+          35.183544
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR8-002",
+    "routeId": "OTR8",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "OJC"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 104.3,
+    "from": "GUPPY",
+    "geometry": {
+      "coordinates": [
+        [
+          141.721672,
+          35.581744
+        ],
+        [
+          143.81145,
+          35.240069
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR13-002",
+    "routeId": "OTR13",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "VACKY"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -37990,6 +39022,30 @@
     "sequence": 14,
     "source": "xplane earth_awy.dat",
     "to": "MOE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 65.02,
+    "from": "HCE",
+    "geometry": {
+      "coordinates": [
+        [
+          139.788483,
+          33.11435
+        ],
+        [
+          138.645306,
+          32.61355
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR27-001",
+    "routeId": "OTR27",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "MAPDO"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -45769,6 +46825,30 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 63.8,
+    "from": "KAGIS",
+    "geometry": {
+      "coordinates": [
+        [
+          142.563472,
+          35.820247
+        ],
+        [
+          143.871417,
+          35.893333
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR11-007",
+    "routeId": "OTR11",
+    "routeType": "ATS",
+    "sequence": 7,
+    "source": "xplane earth_awy.dat",
+    "to": "SCORE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 9.98,
     "from": "KAIFU",
     "geometry": {
@@ -47713,6 +48793,126 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 28.44,
+    "from": "KETAR",
+    "geometry": {
+      "coordinates": [
+        [
+          142.169264,
+          36.043156
+        ],
+        [
+          141.606117,
+          35.913875
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR10-003",
+    "routeId": "OTR10",
+    "routeType": "ATS",
+    "sequence": 3,
+    "source": "xplane earth_awy.dat",
+    "to": "MELON"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 125.14,
+    "from": "KETAR",
+    "geometry": {
+      "coordinates": [
+        [
+          142.169264,
+          36.043156
+        ],
+        [
+          143.539686,
+          37.816442
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR2-001",
+    "routeId": "OTR2",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "OATIS"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 105.33,
+    "from": "KETAR",
+    "geometry": {
+      "coordinates": [
+        [
+          142.169264,
+          36.043156
+        ],
+        [
+          143.996356,
+          37.003214
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR6-001",
+    "routeId": "OTR6",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "PABBA"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 66.63,
+    "from": "KETAR",
+    "geometry": {
+      "coordinates": [
+        [
+          142.169264,
+          36.043156
+        ],
+        [
+          141.429356,
+          35.110764
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR2-002",
+    "routeId": "OTR2",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "PETAL"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 54.18,
+    "from": "KETAR",
+    "geometry": {
+      "coordinates": [
+        [
+          142.169264,
+          36.043156
+        ],
+        [
+          142.481486,
+          36.909844
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR10-004",
+    "routeId": "OTR10",
+    "routeType": "ATS",
+    "sequence": 4,
+    "source": "xplane earth_awy.dat",
+    "to": "TOPOS"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 187.49,
     "from": "KETIV",
     "geometry": {
@@ -48646,6 +49846,30 @@
     "sequence": 5,
     "source": "xplane earth_awy.dat",
     "to": "PADOC"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 62.83,
+    "from": "KISEI",
+    "geometry": {
+      "coordinates": [
+        [
+          135.328892,
+          33.467822
+        ],
+        [
+          136.132461,
+          32.666819
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR26-004",
+    "routeId": "OTR26",
+    "routeType": "ATS",
+    "sequence": 4,
+    "source": "xplane earth_awy.dat",
+    "to": "TAPOP"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -53350,6 +54574,30 @@
     "sequence": 14,
     "source": "xplane earth_awy.dat",
     "to": "MCT"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 19.6,
+    "from": "LIBRA",
+    "geometry": {
+      "coordinates": [
+        [
+          141.184739,
+          35.369033
+        ],
+        [
+          141.429356,
+          35.110764
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR20-003",
+    "routeId": "OTR20",
+    "routeType": "ATS",
+    "sequence": 3,
+    "source": "xplane earth_awy.dat",
+    "to": "PETAL"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -58609,6 +59857,30 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 123.96,
+    "from": "MORAY",
+    "geometry": {
+      "coordinates": [
+        [
+          145.996319,
+          34.296903
+        ],
+        [
+          143.516503,
+          34.580131
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR15-003",
+    "routeId": "OTR15",
+    "routeType": "ATS",
+    "sequence": 3,
+    "source": "xplane earth_awy.dat",
+    "to": "SMOLT"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 26.84,
     "from": "MORIO",
     "geometry": {
@@ -60097,6 +61369,30 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 124.97,
+    "from": "NANAC",
+    "geometry": {
+      "coordinates": [
+        [
+          143.227992,
+          38.906308
+        ],
+        [
+          142.481486,
+          36.909844
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR10-005",
+    "routeId": "OTR10",
+    "routeType": "ATS",
+    "sequence": 5,
+    "source": "xplane earth_awy.dat",
+    "to": "TOPOS"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 123.14,
     "from": "NANNO",
     "geometry": {
@@ -60118,6 +61414,30 @@
     "sequence": 5,
     "source": "xplane earth_awy.dat",
     "to": "NODAN"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 62.87,
+    "from": "NANNO",
+    "geometry": {
+      "coordinates": [
+        [
+          146.859172,
+          41.916086
+        ],
+        [
+          145.5151,
+          42.234333
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR1-001",
+    "routeId": "OTR1",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "NOSLY"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -62065,6 +63385,30 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 105.93,
+    "from": "NOSLY",
+    "geometry": {
+      "coordinates": [
+        [
+          145.5151,
+          42.234333
+        ],
+        [
+          143.220453,
+          42.733964
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR1-002",
+    "routeId": "OTR1",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "OBE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 42.71,
     "from": "NOTAK",
     "geometry": {
@@ -62446,6 +63790,54 @@
     "sequence": 1,
     "source": "xplane earth_awy.dat",
     "to": "ONEMU"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 150.66,
+    "from": "OATIS",
+    "geometry": {
+      "coordinates": [
+        [
+          143.539686,
+          37.816442
+        ],
+        [
+          146.345592,
+          39.026647
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR3-002",
+    "routeId": "OTR3",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "SABES"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 65.36,
+    "from": "OATIS",
+    "geometry": {
+      "coordinates": [
+        [
+          143.539686,
+          37.816442
+        ],
+        [
+          142.265369,
+          37.408947
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR3-003",
+    "routeId": "OTR3",
+    "routeType": "ATS",
+    "sequence": 3,
+    "source": "xplane earth_awy.dat",
+    "to": "SNAIL"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -65209,6 +66601,54 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 72.9,
+    "from": "PABBA",
+    "geometry": {
+      "coordinates": [
+        [
+          143.996356,
+          37.003214
+        ],
+        [
+          142.481486,
+          36.909844
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR4-002",
+    "routeId": "OTR4",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "TOPOS"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 194.71,
+    "from": "PABBA",
+    "geometry": {
+      "coordinates": [
+        [
+          143.996356,
+          37.003214
+        ],
+        [
+          140.262986,
+          35.783586
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR5-003",
+    "routeId": "OTR5",
+    "routeType": "ATS",
+    "sequence": 3,
+    "source": "xplane earth_awy.dat",
+    "to": "TYE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 156.89,
     "from": "PABIO",
     "geometry": {
@@ -66502,6 +67942,78 @@
     "sequence": 6,
     "source": "xplane earth_awy.dat",
     "to": "VIOLA"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 76.05,
+    "from": "PETAL",
+    "geometry": {
+      "coordinates": [
+        [
+          141.429356,
+          35.110764
+        ],
+        [
+          139.895528,
+          34.946394
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR14-003",
+    "routeId": "OTR14",
+    "routeType": "ATS",
+    "sequence": 3,
+    "source": "xplane earth_awy.dat",
+    "to": "PQE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 128.27,
+    "from": "PETAL",
+    "geometry": {
+      "coordinates": [
+        [
+          141.429356,
+          35.110764
+        ],
+        [
+          143.871417,
+          35.893333
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR12-001",
+    "routeId": "OTR12",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "SCORE"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 23.85,
+    "from": "PETAL",
+    "geometry": {
+      "coordinates": [
+        [
+          141.429356,
+          35.110764
+        ],
+        [
+          141.737928,
+          34.804464
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR20-004",
+    "routeId": "OTR20",
+    "routeType": "ATS",
+    "sequence": 4,
+    "source": "xplane earth_awy.dat",
+    "to": "SUNNS"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -67993,6 +69505,30 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 91.15,
+    "from": "PQE",
+    "geometry": {
+      "coordinates": [
+        [
+          139.895528,
+          34.946394
+        ],
+        [
+          141.737928,
+          34.804464
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR16-001",
+    "routeId": "OTR16",
+    "routeType": "ATS",
+    "sequence": 1,
+    "source": "xplane earth_awy.dat",
+    "to": "SUNNS"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 15.06,
     "from": "PR",
     "geometry": {
@@ -69454,6 +70990,30 @@
     "sequence": 6,
     "source": "xplane earth_awy.dat",
     "to": "SJ"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 21.7,
+    "from": "RENAU",
+    "geometry": {
+      "coordinates": [
+        [
+          141.898033,
+          34.467831
+        ],
+        [
+          141.737928,
+          34.804464
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR20-005",
+    "routeId": "OTR20",
+    "routeType": "ATS",
+    "sequence": 5,
+    "source": "xplane earth_awy.dat",
+    "to": "SUNNS"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
@@ -71497,6 +73057,30 @@
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 107.19,
+    "from": "SEALS",
+    "geometry": {
+      "coordinates": [
+        [
+          145.996275,
+          35.321792
+        ],
+        [
+          143.81145,
+          35.240069
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR13-003",
+    "routeId": "OTR13",
+    "routeType": "ATS",
+    "sequence": 3,
+    "source": "xplane earth_awy.dat",
+    "to": "VACKY"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "distanceNm": 233.91,
     "from": "SEGUN",
     "geometry": {
@@ -72286,6 +73870,30 @@
     "sequence": 27,
     "source": "xplane earth_awy.dat",
     "to": "UDN"
+  },
+  {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "distanceNm": 88.83,
+    "from": "SMOLT",
+    "geometry": {
+      "coordinates": [
+        [
+          143.516503,
+          34.580131
+        ],
+        [
+          141.737928,
+          34.804464
+        ]
+      ],
+      "type": "LineString"
+    },
+    "id": "OVS-OTR16-002",
+    "routeId": "OTR16",
+    "routeType": "ATS",
+    "sequence": 2,
+    "source": "xplane earth_awy.dat",
+    "to": "SUNNS"
   },
   {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",

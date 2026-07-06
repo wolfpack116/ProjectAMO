@@ -12,7 +12,7 @@ const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 16)
 const outDir = process.env.PROJECTAMO_CAPTURE_DIR || path.join(__dirname, `../../artifacts/overseas-airway-clip/${stamp}`)
 
 const VIEWS = [
-  { label: 'waypoints-kunming-tibet', center: [95, 30], zoom: 5.6 },
+  { label: 'rjjj-pacific-otr', center: [144, 34], zoom: 6.0 },
 ]
 const LAYERS = ['aviation-overseas-route-line', 'aviation-overseas-waypoint-point', 'aviation-overseas-navaid-point']
 

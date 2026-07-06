@@ -4349,6 +4349,397 @@
     ],
     "type": "ATS"
   },
+  "OTR1": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR1",
+    "segmentCount": 2,
+    "sequence": [
+      "NANNO",
+      "NOSLY",
+      "OBE"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR10": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR10",
+    "segmentCount": 5,
+    "sequence": [
+      "ARIES",
+      "CVC",
+      "MELON",
+      "KETAR",
+      "TOPOS",
+      "NANAC"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR11": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR11",
+    "segmentCount": 7,
+    "sequence": [
+      "ABETS",
+      "COMFE",
+      "SCORE",
+      "DRIVR",
+      "CVC",
+      "KAGIS",
+      "RIPKI",
+      "GARRY"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR12": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR12",
+    "segmentCount": 1,
+    "sequence": [
+      "PETAL",
+      "SCORE"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR13": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR13",
+    "segmentCount": 3,
+    "sequence": [
+      "CVC",
+      "GUPPY",
+      "VACKY",
+      "SEALS"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR14": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR14",
+    "segmentCount": 3,
+    "sequence": [
+      "ACQUA",
+      "PETAL",
+      "VACKY",
+      "PQE"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR15": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR15",
+    "segmentCount": 3,
+    "sequence": [
+      "ACQUA",
+      "CVC",
+      "SMOLT",
+      "MORAY"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR16": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR16",
+    "segmentCount": 2,
+    "sequence": [
+      "PQE",
+      "SUNNS",
+      "SMOLT"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR17": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR17",
+    "segmentCount": 2,
+    "sequence": [
+      "CVC",
+      "FORDO",
+      "FERAR"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR18": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR18",
+    "segmentCount": 1,
+    "sequence": [
+      "FORDO",
+      "RENAU"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR2": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR2",
+    "segmentCount": 2,
+    "sequence": [
+      "KETAR",
+      "OATIS",
+      "PETAL"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR20": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR20",
+    "segmentCount": 5,
+    "sequence": [
+      "ADKAK",
+      "RENAU",
+      "CVC",
+      "LIBRA",
+      "PETAL",
+      "SUNNS"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR21": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR21",
+    "segmentCount": 1,
+    "sequence": [
+      "ACQUA",
+      "FORDO"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR22": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR22",
+    "segmentCount": 1,
+    "sequence": [
+      "DRIVR",
+      "ETRON"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR24": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR24",
+    "segmentCount": 3,
+    "sequence": [
+      "APPLE",
+      "MERED",
+      "PAPAS",
+      "CVC"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR25": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR25",
+    "segmentCount": 2,
+    "sequence": [
+      "GULEG",
+      "HCE",
+      "TAPOP"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR26": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR26",
+    "segmentCount": 4,
+    "sequence": [
+      "CANDY",
+      "EDDIE",
+      "EVERT",
+      "KISEI",
+      "TAPOP"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR27": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR27",
+    "segmentCount": 1,
+    "sequence": [
+      "HCE",
+      "MAPDO"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR28": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR28",
+    "segmentCount": 2,
+    "sequence": [
+      "DEMPA",
+      "GBE48",
+      "EVERT"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR3": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR3",
+    "segmentCount": 3,
+    "sequence": [
+      "GOC",
+      "SNAIL",
+      "OATIS",
+      "SABES"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR30": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR30",
+    "segmentCount": 2,
+    "sequence": [
+      "ESBIS",
+      "FU",
+      "MIKES"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR4": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR4",
+    "segmentCount": 2,
+    "sequence": [
+      "GOC",
+      "TOPOS",
+      "PABBA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR5": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR5",
+    "segmentCount": 3,
+    "sequence": [
+      "ADNIP",
+      "CALMA",
+      "PABBA",
+      "TYE"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR6": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR6",
+    "segmentCount": 1,
+    "sequence": [
+      "KETAR",
+      "PABBA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR7": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR7",
+    "segmentCount": 3,
+    "sequence": [
+      "CELIN",
+      "DORCH",
+      "PABBA",
+      "ETRON"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR8": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR8",
+    "segmentCount": 2,
+    "sequence": [
+      "GUPPY",
+      "KAGIS",
+      "OJC"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "OTR9": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "OTR9",
+    "segmentCount": 1,
+    "sequence": [
+      "ABETS",
+      "CELIN"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "P501": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "P501",

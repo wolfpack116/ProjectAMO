@@ -25,8 +25,9 @@ from shapely.geometry import LineString, Point, shape
 from shapely.ops import unary_union
 from shapely.prepared import prep
 
-# 정식 ICAO 항로명 = 1~2글자 + 숫자(A582·UL888·Y51 …). 군사/비표준(3MIL20·3E102·25A 등, 숫자 시작)은 제외.
-STD_AIRWAY = re.compile(r"^[A-Z]{1,2}\d")
+# 정식 항로명 = 1~3글자 + 숫자(A582·UL888·Y51·OTR11 …). OTR=일본 태평양 오션 전이경로(3글자 접두).
+# 군사/비표준(3MIL20·3E102·25A 등 숫자 시작)은 여전히 제외(^[A-Z]로 시작 안 하므로).
+STD_AIRWAY = re.compile(r"^[A-Z]{1,3}\d")
 # 정식 en-route 웨이포인트 = 5글자 순수 알파벳(ICAO 5LNC: LEDIM·ABASA …).
 # 숫자 섞인 건 접근/절차용 픽스(NZ556·ARC01·AP38A·APU32 등) → 지도 표시에서 제외.
 EN_ROUTE_WAYPOINT = re.compile(r"^[A-Z]{5}$")
@@ -288,7 +289,7 @@ def write_navaids_geojson(navaids) -> int:
 
 
 def parse_fix(path: Path, mask: FirMask):
-    """earth_fix.dat: lat lon ident. 해외 FIR 안의 모든 픽스를 표시용 웨이포인트로(밖은 제외, 안은 전부).
+    """earth_fix.dat: lat lon ident. 해외 FIR 안의 모든 en-route 픽스를 표시용 웨이포인트로.
     같은 ident이 여러 위치에 있을 수 있어(전세계 재사용) 좌표까지 묶어 중복만 제거."""
     if not path.exists():
         return []
@@ -317,7 +318,7 @@ def parse_fix(path: Path, mask: FirMask):
 
 def write_waypoints_geojson(fixes) -> int:
     """지도 표시용 해외 웨이포인트 Point GeoJSON. `ident`+circle 표시(라벨은 밀집이라 기본 비활성).
-    소스 = FIR 안의 모든 earth_fix.dat 픽스(항로 끝점만이 아니라 영역 전체)."""
+    소스 = FIR 안의 en-route 픽스(earth_fix.dat 5글자)."""
     features = [
         {
             "type": "Feature",
