@@ -44,6 +44,8 @@ export default function AdminPage() {
   const [denied, setDenied] = useState(false)
   const [showDialog, setShowDialog] = useState(false)
 
+  const isAdmin = user?.role === 'admin' // 실제 차단은 서버(requireRole). 여기선 UI 노출만 관리자로 제한.
+
   const load = useCallback(async () => {
     try {
       const [m, t, u, p] = await Promise.all([getMetrics(range), getTraffic(), getUsers(), getPending()])
@@ -54,13 +56,15 @@ export default function AdminPage() {
   }, [range])
 
   useEffect(() => {
+    if (!isAdmin) return undefined // 관리자 아니면 데이터 요청·폴링 자체를 하지 않음
     load()
     const t = setInterval(load, 5000)
     return () => clearInterval(t)
-  }, [load])
+  }, [load, isAdmin])
 
   if (loading) return null
-  if (denied || (user && user.role !== 'admin')) {
+  // 로그인 안 함·비관리자·세션만료(서버 401/403) 모두 즉시 차단 — 서버 응답 종류와 무관.
+  if (!isAdmin || denied) {
     return (
       <div className="admin-denied">
         <p>관리자 전용 페이지입니다.</p>

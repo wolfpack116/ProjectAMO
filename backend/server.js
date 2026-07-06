@@ -9,6 +9,7 @@ import stats from './src/stats.js'
 import config from './src/config.js'
 import { main as startScheduler } from './src/index.js'
 import cors from 'cors'
+import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
 import { sessionMiddleware } from './src/auth/session.js'
 import { createAuthRouter } from './src/auth/router.js'
@@ -58,6 +59,8 @@ const snapshotMetaCache = { key: null, value: null, expiresAt: 0 }
 
 app.disable('x-powered-by')
 app.set('trust proxy', true)
+// 보안 헤더. CSP·CORP·COEP는 끔 — 지도 타일/`/data` 이미지의 교차출처 로딩을 깨지 않기 위함(그건 nginx/프론트가 담당).
+app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: false, crossOriginEmbedderPolicy: false }))
 app.use(express.json({ limit: '1mb' }))
 app.use(compression())
 

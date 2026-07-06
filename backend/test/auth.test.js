@@ -79,6 +79,21 @@ test('register creates pending user and login is blocked until approved', async 
   }
 })
 
+test('login is rate-limited after too many attempts (429)', async () => {
+  const { db, app } = makeServer()
+  const server = await listen(app)
+  try {
+    let last = 0
+    for (let i = 0; i < 11; i++) {
+      const r = await fetch(at(server, '/api/auth/login'), jsonPost({ username: 'nouser', password: 'whatever1' }))
+      last = r.status
+    }
+    assert.equal(last, 429, '11th attempt blocked by rate limiter')
+  } finally {
+    server.close(); db.close()
+  }
+})
+
 test('login wrong password → 401 (no enumeration)', async () => {
   const { db, app } = makeServer()
   const server = await listen(app)
