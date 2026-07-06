@@ -14,6 +14,7 @@
     "better-sqlite3": "^12.11.1",
     "better-sqlite3-session-store": "^0.1.0",
     "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "d3-contour": "^4.0.2",
     "dotenv": "^16.4.0",

@@ -9,8 +9,13 @@ import stats from './src/stats.js'
 import config from './src/config.js'
 import { main as startScheduler } from './src/index.js'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import { sessionMiddleware } from './src/auth/session.js'
 import { createAuthRouter } from './src/auth/router.js'
+import { createAdminRouter } from './src/admin/router.js'
+import { visitTracker } from './src/admin/visits.js'
+import { startSampler } from './src/admin/metrics.js'
+import { getDb } from './src/db/index.js'
 import { createMeRouter } from './src/me/presets.js'
 import { createRoutesRouter } from './src/me/routes.js'
 import { createMeRequestsRouter } from './src/me/requests.js'
@@ -62,7 +67,9 @@ if (process.env.NODE_ENV !== 'test') {
   if (process.env.NODE_ENV !== 'production') {
     app.use(cors({ origin: process.env.FRONTEND_ORIGIN || 'http://127.0.0.1:5173', credentials: true }))
   }
+  app.use(cookieParser()) // 익명 방문자 쿠키(amo.vid) 파싱 — sessionMiddleware 앞. 관리자 콘솔
   app.use(sessionMiddleware())
+  app.use(visitTracker(getDb)) // 방문 추적(비로그인 포함). /api·/data 제외.
 }
 
 function readJsonFileSafe(filePath) {
@@ -137,6 +144,7 @@ if (process.env.NODE_ENV !== 'test') {
   app.use('/api/me', createRoutesRouter()) // 내 저장 경로
   app.use('/api/me', createMeRequestsRouter()) // 조종사 문의 생성/상태
   app.use('/api/forecaster', createForecasterRouter()) // 예보관 문의 대기열(담당공항만)
+  app.use('/api/admin', createAdminRouter()) // 관리자 콘솔(requireRole admin)
 }
 
 function readLatest(type) {
@@ -864,6 +872,8 @@ export { app, getCachedSnapshotMeta, readSelectedKimCloudField, readSelectedKimI
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, HOST, () => console.log(`[server] Backend running on ${HOST}:${PORT}`))
+
+  startSampler(getDb()) // 관리자 콘솔: 60초 리소스 샘플링 시작
 
   startScheduler().catch((err) => {
     console.error('[server] Scheduler startup error:', err.message)
