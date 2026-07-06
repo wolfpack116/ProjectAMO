@@ -305,8 +305,10 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       if (isOverseasDeparture) {
         const links = await loadOverseasLinks()
         const link = links[routeForm.departureAirport]
-        if (!link?.nearestFix) return []
-        return [{ sid: null, entryFix: link.nearestFix }]
+        // 최근접 1개만 쓰면 목적지 반대편 fix로 진입해 되돌아가는 경로가 될 수 있음.
+        // 근접 후보 전부를 넘겨 아래 총거리 순위가 방향까지 고려해 진입 fix를 고르게 한다.
+        if (!link?.nearbyFixes?.length) return []
+        return link.nearbyFixes.map((nf) => ({ sid: null, entryFix: nf.fix }))
       }
       return filterProceduresByRunway(
         sidOptions,
@@ -325,8 +327,9 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       if (isOverseasArrival) {
         const links = await loadOverseasLinks()
         const link = links[routeForm.arrivalAirport]
-        if (!link?.nearestFix) return []
-        return [{ star: null, iapKey: null, exitFix: link.nearestFix }]
+        // 이탈도 마찬가지 — 근접 후보 전부를 넘겨 총거리 최소인 이탈 fix를 고르게 한다.
+        if (!link?.nearbyFixes?.length) return []
+        return link.nearbyFixes.map((nf) => ({ star: null, iapKey: null, exitFix: nf.fix }))
       }
       // Domestic arrival
       const arrivalRunwayGroup = pickBestRunwayGroup(

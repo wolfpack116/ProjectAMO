@@ -6,13 +6,18 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { union } from '@turf/union'
 
 const SRC = 'https://raw.githubusercontent.com/vatsimnetwork/vatspy-data-project/master/Boundaries.geojson'
 const OUT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../frontend/public/data/fir-overseas.geojson')
 
 // 대상 FIR(국내 RKRR 제외 — fir.geojson이 이미 인천 FIR을 그림). id → 표시명.
-// ⚠️ 프놈펜 FIR 코드는 VDPF(공항코드 VDPP 아님). 일본은 도쿄 FIR 없음 — 전체가 후쿠오카(RJJJ) 하나.
+// ⚠️ 프놈펜 FIR 코드는 VDPF(공항코드 VDPP 아님).
+// ⚠️ 일본: VAT-Spy가 후쿠오카를 오션(RJJJ)과 본토 ACC(RJDG/RJTG/RJBG…)로 쪼개 실어서
+//    id 정확매칭이면 오션만 잡혀 본토가 통째로 빠진다 → division=VATJPN 폴리곤을 전부 dissolve해
+//    내부선 없는 단일 후쿠오카 FIR(RJJJ)로 만든다(아래 JAPAN_DIVISION).
 // ZKKP=평양(북한), UHHH=하바롭스크(러시아 극동, 블라디보스토크 지역 포함) — 한반도 북측 인접 FIR.
+const JAPAN_DIVISION = 'VATJPN'  // 후쿠오카 FIR = 이 division 폴리곤들의 합집합(일본 전역 = 후쿠오카 하나)
 const FIR_NAME = {
   RJJJ: 'FUKUOKA', RCAA: 'TAIPEI', VHHK: 'HONG KONG', ZMUB: 'ULAANBAATAR',
   ZBPE: 'BEIJING', ZSHA: 'SHANGHAI', ZGZU: 'GUANGZHOU', ZYSH: 'SHENYANG',
@@ -36,25 +41,34 @@ const src = await res.json()
 const NO_LABEL = new Set(['RJJJ', 'ZKKP', 'ZSHA'])
 
 const targets = new Set(Object.keys(FIR_NAME))
-const features = src.features
-  .filter((f) => targets.has(f.properties?.id))
-  .flatMap((f) => {
-    const id = f.properties.id
-    const name = FIR_NAME[id]
-    const out = [{
-      type: 'Feature',
-      properties: { id, role: 'overseas-fir', fir_lbl_1: `${name} FIR` },
-      geometry: f.geometry,
-    }]
-    if (!NO_LABEL.has(id)) {
-      out.push({
-        type: 'Feature',
-        properties: { role: 'external-label', code: id, label: `${name} FIR` },
-        geometry: { type: 'Point', coordinates: [Number(f.properties.label_lon), Number(f.properties.label_lat)] },
-      })
-    }
-    return out
+const isPoly = (g) => g?.type === 'Polygon' || g?.type === 'MultiPolygon'
+
+// 일본(RJJJ)은 division=VATJPN 폴리곤 전부를 하나로 합쳐(내부 섹터선 제거) 단일 후쿠오카 FIR로.
+const jpParts = src.features.filter((f) => f.properties?.division === JAPAN_DIVISION && isPoly(f.geometry))
+const jpMerged = union({ type: 'FeatureCollection', features: jpParts })
+if (!jpMerged) throw new Error(`Japan(${JAPAN_DIVISION}) 폴리곤 합집합 실패 — ${jpParts.length}개`)
+
+const features = [
+  { type: 'Feature', properties: { id: 'RJJJ', role: 'overseas-fir', fir_lbl_1: 'FUKUOKA FIR' }, geometry: jpMerged.geometry },
+]
+// 나머지 FIR: id 정확매칭(RJJJ은 위에서 합쳐 넣었으므로 제외).
+for (const f of src.features) {
+  const id = f.properties?.id
+  if (!targets.has(id) || id === 'RJJJ') continue
+  const name = FIR_NAME[id]
+  features.push({
+    type: 'Feature',
+    properties: { id, role: 'overseas-fir', fir_lbl_1: `${name} FIR` },
+    geometry: f.geometry,
   })
+  if (!NO_LABEL.has(id)) {
+    features.push({
+      type: 'Feature',
+      properties: { role: 'external-label', code: id, label: `${name} FIR` },
+      geometry: { type: 'Point', coordinates: [Number(f.properties.label_lon), Number(f.properties.label_lat)] },
+    })
+  }
+}
 
 const found = new Set(features.map((f) => f.properties.id))
 const missing = [...targets].filter((id) => !found.has(id))

@@ -1,508 +1,4 @@
 {
-  "25A": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "25A",
-    "segmentCount": 1,
-    "sequence": [
-      "CAB",
-      "ROSER"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E001": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E001",
-    "segmentCount": 1,
-    "sequence": [
-      "PAYEE",
-      "SN"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E003": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E003",
-    "segmentCount": 4,
-    "sequence": [
-      "ABASA",
-      "GKE30",
-      "YNE",
-      "GKE",
-      "KOHAM"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E102": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E102",
-    "segmentCount": 1,
-    "sequence": [
-      "PKNB",
-      "VMB"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E11": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E11",
-    "segmentCount": 3,
-    "sequence": [
-      "AKVAS",
-      "MIKES",
-      "APITO",
-      "BOLOD"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E12": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E12",
-    "segmentCount": 3,
-    "sequence": [
-      "HKC",
-      "HONDO",
-      "OLE20",
-      "OLE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E13": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E13",
-    "segmentCount": 1,
-    "sequence": [
-      "IKE",
-      "OLE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E14": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E14",
-    "segmentCount": 3,
-    "sequence": [
-      "DGC",
-      "OHGIE",
-      "TAKEO",
-      "OLE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E17": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E17",
-    "segmentCount": 3,
-    "sequence": [
-      "GBE",
-      "HANWA",
-      "IWADE",
-      "SKE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E18": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E18",
-    "segmentCount": 1,
-    "sequence": [
-      "GULEG",
-      "YZ"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E22": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E22",
-    "segmentCount": 1,
-    "sequence": [
-      "KZE",
-      "PQE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E23": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E23",
-    "segmentCount": 1,
-    "sequence": [
-      "PQE",
-      "TYE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E249": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E249",
-    "segmentCount": 2,
-    "sequence": [
-      "ANNIE",
-      "DIANA",
-      "SJE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E25": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E25",
-    "segmentCount": 2,
-    "sequence": [
-      "HC",
-      "SUNPU",
-      "YZ"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E250": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E250",
-    "segmentCount": 2,
-    "sequence": [
-      "MANTA",
-      "MIJUN",
-      "MYC"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E252": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E252",
-    "segmentCount": 1,
-    "sequence": [
-      "BETTY",
-      "SJE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E26": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E26",
-    "segmentCount": 1,
-    "sequence": [
-      "HC",
-      "TEMAR"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E31": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E31",
-    "segmentCount": 1,
-    "sequence": [
-      "IXE",
-      "SDE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E32": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E32",
-    "segmentCount": 1,
-    "sequence": [
-      "HPE",
-      "WAPPA"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E33": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E33",
-    "segmentCount": 2,
-    "sequence": [
-      "HWE",
-      "OHMAR",
-      "MWE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E37": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E37",
-    "segmentCount": 2,
-    "sequence": [
-      "RUMOI",
-      "SPE08",
-      "SPE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E38": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E38",
-    "segmentCount": 2,
-    "sequence": [
-      "AWE",
-      "KAGRA",
-      "RUMOI"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E39": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E39",
-    "segmentCount": 1,
-    "sequence": [
-      "KSE",
-      "OBE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E40": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E40",
-    "segmentCount": 2,
-    "sequence": [
-      "NSE",
-      "TBE10",
-      "TBE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E41": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E41",
-    "segmentCount": 2,
-    "sequence": [
-      "HCE",
-      "SANGO",
-      "PQE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3E44": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3E44",
-    "segmentCount": 1,
-    "sequence": [
-      "JACKY",
-      "MZE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "3MIL20": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "3MIL20",
-    "segmentCount": 1,
-    "sequence": [
-      "251PQ",
-      "993PQ"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "6AW1": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "6AW1",
-    "segmentCount": 2,
-    "sequence": [
-      "GM",
-      "HUR",
-      "VYK"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "6AW10": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "6AW10",
-    "segmentCount": 1,
-    "sequence": [
-      "KMG",
-      "SBNB"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "6AW2": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "6AW2",
-    "segmentCount": 2,
-    "sequence": [
-      "VYK",
-      "WFNB",
-      "YV"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "6AW3": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "6AW3",
-    "segmentCount": 3,
-    "sequence": [
-      "EPGAM",
-      "OKTON",
-      "HUR",
-      "VM"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "6AW4": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "6AW4",
-    "segmentCount": 1,
-    "sequence": [
-      "BTO",
-      "VM"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "6AW5": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "6AW5",
-    "segmentCount": 1,
-    "sequence": [
-      "CG",
-      "OKTON"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "6AW6": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "6AW6",
-    "segmentCount": 1,
-    "sequence": [
-      "LR",
-      "YV"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "6AW7": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "6AW7",
-    "segmentCount": 1,
-    "sequence": [
-      "LR",
-      "WFNB"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "6AW8": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "6AW8",
-    "segmentCount": 1,
-    "sequence": [
-      "BTO",
-      "OKTON"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "6AW9": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "6AW9",
-    "segmentCount": 1,
-    "sequence": [
-      "HUR",
-      "KMNB"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
   "A1": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A1",
@@ -558,19 +54,6 @@
     ],
     "type": "ATS"
   },
-  "A201": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "A201",
-    "segmentCount": 1,
-    "sequence": [
-      "ANSOS",
-      "LSO"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
   "A202": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A202",
@@ -596,9 +79,18 @@
   "A204": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A204",
-    "segmentCount": 1,
+    "segmentCount": 10,
     "sequence": [
+      "AKSUN",
       "RBE",
+      "TEMRA",
+      "DASKO",
+      "LALET",
+      "LEPRO",
+      "DIDOV",
+      "VASIN",
+      "UHKK",
+      "OLDAN",
       "TESIO"
     ],
     "sources": [
@@ -645,64 +137,45 @@
   "A214": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A214",
-    "segmentCount": 2,
+    "segmentCount": 4,
     "sequence": [
       "BALAB",
       "ODIRU",
-      "PKU"
+      "PKU",
+      "BASEV",
+      "KETIV"
     ],
     "sources": [
       "xplane"
     ],
     "type": "ATS"
   },
-  "A216": {
+  "A215": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "A216",
-    "segmentCount": 8,
+    "id": "A215",
+    "segmentCount": 6,
     "sequence": [
-      "FACED",
-      "GALEE",
-      "KIK",
-      "FLASH",
-      "KLARA",
-      "RICHH",
-      "HOOVR",
-      "IEGOR",
-      "JUICY"
+      "DAU",
+      "OSERO",
+      "EMONA",
+      "LEBON",
+      "MKS",
+      "KEVOK",
+      "MKE"
     ],
     "sources": [
       "xplane"
     ],
     "type": "ATS"
   },
-  "A221": {
+  "A218": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "A221",
-    "segmentCount": 4,
+    "id": "A218",
+    "segmentCount": 2,
     "sequence": [
-      "CULPS",
-      "ERTTS",
-      "UNZ",
-      "MONIE",
-      "WILLE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "A222": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "A222",
-    "segmentCount": 5,
-    "sequence": [
-      "FEZSS",
-      "KLOUT",
-      "KRONK",
-      "HICKS",
-      "TWAYN",
-      "UNZ"
+      "ABAGO",
+      "GINOL",
+      "UHNN"
     ],
     "sources": [
       "xplane"
@@ -716,6 +189,19 @@
     "sequence": [
       "VJR",
       "VMR"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "A310": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "A310",
+    "segmentCount": 1,
+    "sequence": [
+      "DOBOS",
+      "SERNA"
     ],
     "sources": [
       "xplane"
@@ -749,15 +235,36 @@
   "A327": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A327",
-    "segmentCount": 6,
+    "segmentCount": 9,
     "sequence": [
+      "BEDAX",
+      "NIXUL",
+      "POVUS",
       "DOVUM",
       "SANOB",
       "UXARA",
+      "GUTOX",
       "IGEBO",
-      "POVUS",
       "PUT",
       "RUSET"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "A333": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "A333",
+    "segmentCount": 6,
+    "sequence": [
+      "GONID",
+      "JQ",
+      "IVADA",
+      "LITVA",
+      "UHHH",
+      "MILSA",
+      "NIMEN"
     ],
     "sources": [
       "xplane"
@@ -794,17 +301,13 @@
   "A337": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A337",
-    "segmentCount": 8,
+    "segmentCount": 4,
     "sequence": [
       "ADKAK",
       "NOGAK",
-      "JUNIE",
-      "TWAYN",
       "SAGOP",
       "TEGOD",
-      "SNAPP",
-      "TEEDE",
-      "TUPAY"
+      "TEEDE"
     ],
     "sources": [
       "xplane"
@@ -814,12 +317,14 @@
   "A339": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A339",
-    "segmentCount": 13,
+    "segmentCount": 14,
     "sequence": [
       "BOLUG",
       "DOTIR",
       "POXEL",
       "SOG95",
+      "ELBIS",
+      "OSUVI",
       "KEITH",
       "SABGU",
       "TILLY",
@@ -828,8 +333,8 @@
       "MAPDO",
       "YOSHI",
       "MJE",
-      "SHREE",
-      "WRNNR"
+      "SADEP",
+      "SHREE"
     ],
     "sources": [
       "xplane"
@@ -867,10 +372,25 @@
     ],
     "type": "ATS"
   },
+  "A344": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "A344",
+    "segmentCount": 3,
+    "sequence": [
+      "HOSTY",
+      "IKAPI",
+      "NQ",
+      "PKN"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "A345": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A345",
-    "segmentCount": 8,
+    "segmentCount": 13,
     "sequence": [
       "ANSUK",
       "DDG",
@@ -878,9 +398,14 @@
       "CR",
       "GASAN",
       "GOLOT",
-      "KP#1",
+      "ELPUN",
+      "HLD",
       "IKITI",
-      "WK"
+      "KP",
+      "KAGAK",
+      "MANLI",
+      "WK#0",
+      "TELOK"
     ],
     "sources": [
       "xplane"
@@ -890,23 +415,16 @@
   "A450": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A450",
-    "segmentCount": 17,
+    "segmentCount": 10,
     "sequence": [
-      "ADABE",
-      "IDAAS",
-      "YP",
-      "BAGBE",
-      "HOPPY",
-      "UNZ",
       "BAHAR",
       "MOROT",
       "ROR",
-      "CORRS",
-      "JUICY",
-      "DEWSS",
-      "KERRY",
-      "STINE",
-      "TUPAY",
+      "BLI",
+      "LIPOT",
+      "KENDO",
+      "MKS",
+      "TALIA",
       "MAHER",
       "SAMGE",
       "TELES"
@@ -940,16 +458,30 @@
     ],
     "type": "ATS"
   },
+  "A458": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "A458",
+    "segmentCount": 1,
+    "sequence": [
+      "ALEGO",
+      "KPG"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "A461": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A461",
-    "segmentCount": 33,
+    "segmentCount": 34,
     "sequence": [
       "AKOMA#1",
       "WXI",
       "ZHO",
       "AMN",
       "BONDA",
+      "BUTPA",
       "AVMUP",
       "MUMOT",
       "SAN",
@@ -969,7 +501,7 @@
       "VYK",
       "SHL",
       "ZF",
-      "MIA#0",
+      "MIA",
       "TAALA",
       "TANAL",
       "OBLIK",
@@ -989,7 +521,7 @@
   "A464": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A464",
-    "segmentCount": 25,
+    "segmentCount": 33,
     "sequence": [
       "ARAMA",
       "SJ035",
@@ -1004,6 +536,9 @@
       "BKK",
       "CMA",
       "POLAK",
+      "BOLSA",
+      "BOMAX",
+      "KIBON",
       "DAKUS",
       "VBA",
       "VIH",
@@ -1014,6 +549,11 @@
       "HTY",
       "KARMI",
       "RELIP",
+      "KEONG",
+      "KEVOK",
+      "KIKEM",
+      "KOBAS",
+      "PKN",
       "LELIB",
       "MASNI",
       "SJ"
@@ -1052,17 +592,22 @@
   "A575": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A575",
-    "segmentCount": 14,
+    "segmentCount": 19,
     "sequence": [
       "ANDIN",
       "CHG",
       "LR",
       "ANIKU",
       "DN",
+      "UDA",
       "BODOK",
       "GK",
       "JONJU",
+      "BU#1",
+      "MU",
       "DHN",
+      "DARNO",
+      "KZL",
       "DDG",
       "PU#0",
       "INTIK",
@@ -1079,15 +624,41 @@
   "A576": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A576",
-    "segmentCount": 5,
+    "segmentCount": 16,
     "sequence": [
       "AKTOD",
+      "SANOS",
       "TI",
+      "AKULA",
+      "APAGA",
+      "SABIL",
+      "APARI",
+      "ATMAP",
+      "CIN",
+      "ILDAM",
+      "BLI",
+      "SIPUT",
       "BONSU",
       "PIMOK",
       "SJ",
       "REKOP",
-      "SALAX"
+      "SALAX",
+      "SUMBU"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "A576S": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "A576S",
+    "segmentCount": 3,
+    "sequence": [
+      "ANY",
+      "MADIN",
+      "SPIKO",
+      "SABIL"
     ],
     "sources": [
       "xplane"
@@ -1113,14 +684,11 @@
   "A581": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A581",
-    "segmentCount": 17,
+    "segmentCount": 15,
     "sequence": [
-      "BGO",
-      "BINOV",
       "BIDRU",
       "ELASU",
       "SAGAG",
-      "PUKOK",
       "CMA",
       "CTR",
       "OSADI",
@@ -1132,7 +700,8 @@
       "QNX",
       "KIBES",
       "SL",
-      "TONAD"
+      "TONAD",
+      "PUKOK"
     ],
     "sources": [
       "xplane"
@@ -1211,10 +780,19 @@
   "A585": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A585",
-    "segmentCount": 3,
+    "segmentCount": 12,
     "sequence": [
       "ANSAX",
       "MDN",
+      "CKG",
+      "DOLTA",
+      "HLM",
+      "DOMIL",
+      "PLB",
+      "DOMOM",
+      "SAPDA",
+      "IMABA",
+      "IPKON",
       "JATAM",
       "PKU"
     ],
@@ -1242,21 +820,38 @@
     ],
     "type": "ATS"
   },
+  "A587": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "A587",
+    "segmentCount": 3,
+    "sequence": [
+      "KETUT",
+      "NQ",
+      "ONOXA",
+      "NIKOM"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "A588": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A588",
-    "segmentCount": 9,
+    "segmentCount": 11,
     "sequence": [
       "ATVIM",
       "KYU",
       "LJB",
-      "BM#0",
+      "BM",
       "DLC",
       "MUPAM",
       "HRB",
       "ISBOP",
+      "QD",
       "KY",
-      "LCH"
+      "LCH",
+      "SIMLI"
     ],
     "sources": [
       "xplane"
@@ -1266,7 +861,7 @@
   "A590": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A590",
-    "segmentCount": 19,
+    "segmentCount": 20,
     "sequence": [
       "AVLAS",
       "MD",
@@ -1285,8 +880,9 @@
       "PABBA",
       "SKATE",
       "PUTER",
-      "POXED",
+      "PASRO",
       "PUGAL",
+      "POXED",
       "SABES"
     ],
     "sources": [
@@ -1312,7 +908,7 @@
   "A593": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A593",
-    "segmentCount": 15,
+    "segmentCount": 16,
     "sequence": [
       "AKARA",
       "DUMET",
@@ -1328,6 +924,7 @@
       "POTET",
       "JTN",
       "VMB",
+      "SADLI",
       "ONIKU",
       "PIMOL",
       "PIX"
@@ -1373,27 +970,19 @@
   "A597": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A597",
-    "segmentCount": 18,
+    "segmentCount": 10,
     "sequence": [
       "ASEDA",
       "MONPI",
       "TAXON",
       "BUBDO",
       "JERID",
-      "GALSS",
-      "JUNIE",
-      "OKOLE",
       "GBE",
       "KEC",
-      "GUMGE",
-      "OPLAR",
-      "UNZ",
       "TAPOP",
       "OTOWA",
       "MAYON",
-      "RICHH",
-      "REEDE",
-      "WUVEN"
+      "RICHH"
     ],
     "sources": [
       "xplane"
@@ -1403,15 +992,13 @@
   "A599": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "A599",
-    "segmentCount": 25,
+    "segmentCount": 22,
     "sequence": [
       "BIPOP",
       "GYA",
       "LBN",
       "BSE",
       "MEPAN",
-      "CHILA",
-      "LSO97",
       "CON",
       "NOLON",
       "POU",
@@ -1429,7 +1016,6 @@
       "KOW",
       "NF",
       "NNX",
-      "LSO",
       "WYN"
     ],
     "sources": [
@@ -1437,13 +1023,42 @@
     ],
     "type": "ATS"
   },
-  "ATS": {
+  "A801": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "ATS",
+    "id": "A801",
     "segmentCount": 1,
     "sequence": [
-      "GASAN",
-      "SOKGE"
+      "NK01",
+      "UHNN"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "A815": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "A815",
+    "segmentCount": 1,
+    "sequence": [
+      "KELES",
+      "SERNA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "A91": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "A91",
+    "segmentCount": 3,
+    "sequence": [
+      "KENTA",
+      "UDA",
+      "SERNA",
+      "TELOK",
+      "ZBK"
     ],
     "sources": [
       "xplane"
@@ -1458,6 +1073,97 @@
       "TERNI",
       "VATIS",
       "UHWW"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B148": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B148",
+    "segmentCount": 4,
+    "sequence": [
+      "BALGA",
+      "QA",
+      "UHKK",
+      "BURUK",
+      "SELDA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B149": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B149",
+    "segmentCount": 4,
+    "sequence": [
+      "BANIR",
+      "BLG",
+      "REPSA",
+      "SIMLI",
+      "NINON"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B150": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B150",
+    "segmentCount": 13,
+    "sequence": [
+      "AMERA",
+      "BLG",
+      "VALUT",
+      "BIRBO",
+      "RANOL",
+      "REVGA",
+      "LEPRO",
+      "LISOL",
+      "MOGIS",
+      "PW#1",
+      "OTKAT",
+      "MR01",
+      "UHHH",
+      "NABUK"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B152": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B152",
+    "segmentCount": 4,
+    "sequence": [
+      "ARELI",
+      "RIDLO",
+      "DOMON",
+      "URIMA",
+      "IVADA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B153": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B153",
+    "segmentCount": 6,
+    "sequence": [
+      "LEGBI",
+      "NATOM",
+      "SOLNI",
+      "OBERI",
+      "ROGUL",
+      "URETA",
+      "UHKK"
     ],
     "sources": [
       "xplane"
@@ -1508,7 +1214,7 @@
   "B213": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B213",
-    "segmentCount": 7,
+    "segmentCount": 8,
     "sequence": [
       "CTU",
       "CZH",
@@ -1516,8 +1222,9 @@
       "MIKOS",
       "KAMAX",
       "PEXUN",
-      "RG#1",
-      "TAPUN"
+      "LXA",
+      "TAPUN",
+      "RG#2"
     ],
     "sources": [
       "xplane"
@@ -1591,6 +1298,63 @@
     ],
     "type": "ATS"
   },
+  "B223": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B223",
+    "segmentCount": 8,
+    "sequence": [
+      "AGEMO",
+      "IGODA",
+      "AKSUN",
+      "MAMUN",
+      "ANAGO",
+      "UHSH",
+      "DABUR",
+      "UHSK",
+      "LIKON"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B233": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B233",
+    "segmentCount": 9,
+    "sequence": [
+      "ABOMA",
+      "BIKUN",
+      "ODORA",
+      "AKOLA",
+      "NALAM",
+      "OLDAN",
+      "NIBRA",
+      "DE",
+      "LANRI",
+      "UHSK"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B325": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B325",
+    "segmentCount": 4,
+    "sequence": [
+      "AKUKO",
+      "EPGUP",
+      "MUPAP",
+      "ENSIB",
+      "HLM"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "B329": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B329",
@@ -1609,7 +1373,7 @@
   "B330": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B330",
-    "segmentCount": 21,
+    "segmentCount": 25,
     "sequence": [
       "CH",
       "TAMOT",
@@ -1628,12 +1392,31 @@
       "JTA",
       "YBL",
       "WFX",
+      "LIKAR",
+      "NIGOR",
       "MAMSI",
       "QP",
       "MORIT",
       "TEKOR",
+      "URGAM",
       "POU",
+      "SILUS",
       "ZYG"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B331": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B331",
+    "segmentCount": 3,
+    "sequence": [
+      "BLG",
+      "WZ01",
+      "NINON",
+      "ROKUS"
     ],
     "sources": [
       "xplane"
@@ -1681,11 +1464,13 @@
   "B335": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B335",
-    "segmentCount": 4,
+    "segmentCount": 6,
     "sequence": [
+      "OBMAT",
+      "POSOD",
+      "TAPIN",
       "PKU",
       "SALAX",
-      "TAPIN",
       "RUMID",
       "VKL"
     ],
@@ -1697,10 +1482,15 @@
   "B337": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B337",
-    "segmentCount": 1,
+    "segmentCount": 6,
     "sequence": [
       "ANIMO",
-      "AWE"
+      "AWE",
+      "PAKLI",
+      "ODORA",
+      "ROMEM",
+      "UNELA",
+      "TUNUN"
     ],
     "sources": [
       "xplane"
@@ -1710,11 +1500,12 @@
   "B338": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B338",
-    "segmentCount": 4,
+    "segmentCount": 5,
     "sequence": [
+      "ANITO",
+      "VTK96",
       "IDMAS",
       "VTK",
-      "VTK96",
       "PU020",
       "VMR"
     ],
@@ -1726,9 +1517,11 @@
   "B339": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B339",
-    "segmentCount": 4,
+    "segmentCount": 6,
     "sequence": [
+      "ARGAT",
       "DEGIR",
+      "UDA",
       "POLHO",
       "DOXAS",
       "HUR",
@@ -1743,11 +1536,27 @@
   "B344": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B344",
-    "segmentCount": 2,
+    "segmentCount": 4,
     "sequence": [
+      "ELATI",
+      "KETIV",
       "ISBIX",
       "MERIM",
       "MDN"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B345": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B345",
+    "segmentCount": 2,
+    "sequence": [
+      "LXA",
+      "PIMIN",
+      "NONIM"
     ],
     "sources": [
       "xplane"
@@ -1801,7 +1610,7 @@
       "TELMO",
       "TOKON",
       "HCN",
-      "MIA#0",
+      "MIA",
       "TOMAN",
       "OSANU",
       "PR"
@@ -1811,14 +1620,30 @@
     ],
     "type": "ATS"
   },
+  "B349": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B349",
+    "segmentCount": 2,
+    "sequence": [
+      "BLI",
+      "KALIV",
+      "TARUN"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "B355": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B355",
-    "segmentCount": 7,
+    "segmentCount": 9,
     "sequence": [
+      "ARDEL",
+      "TD",
+      "UHHH",
       "BALET",
       "BG01",
-      "TD#0",
       "DAGES",
       "UHWW",
       "GAMOV",
@@ -1839,7 +1664,7 @@
       "DOLMA",
       "LUBOK",
       "UHWW",
-      "TD#0"
+      "TD"
     ],
     "sources": [
       "xplane"
@@ -1863,7 +1688,7 @@
   "B451": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B451",
-    "segmentCount": 14,
+    "segmentCount": 17,
     "sequence": [
       "ATODO",
       "LEPNI",
@@ -1873,10 +1698,13 @@
       "DELOK",
       "LAMKA",
       "TEKUK",
+      "HLD",
+      "TEPOD",
       "HOKKE",
       "IGROD",
       "KADBO",
       "HRB",
+      "NDG",
       "SEGUL",
       "PERAS",
       "UHWW"
@@ -1889,12 +1717,27 @@
   "B452": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B452",
-    "segmentCount": 3,
+    "segmentCount": 4,
     "sequence": [
       "ATIGO",
+      "KERRY",
       "NITOT",
       "UPDOB",
       "TONIK#1"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B456": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B456",
+    "segmentCount": 2,
+    "sequence": [
+      "JPA",
+      "VANKA",
+      "WK#1"
     ],
     "sources": [
       "xplane"
@@ -1921,20 +1764,23 @@
   "B462": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B462",
-    "segmentCount": 21,
+    "segmentCount": 24,
     "sequence": [
       "BIDOR",
       "MIMIK",
       "POXEL",
       "BIK",
+      "OSMON",
       "CAB",
       "DIPID",
-      "MIA#0",
+      "MIA",
       "CAMBA",
       "KABAN",
       "PAYAS",
       "IPATA",
       "MBT",
+      "KADAB",
+      "KAPPU",
       "LAO",
       "TADAO",
       "MASAG",
@@ -1954,21 +1800,13 @@
   "B463": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B463",
-    "segmentCount": 14,
+    "segmentCount": 6,
     "sequence": [
-      "ASUMO",
-      "IKUGI",
-      "MDY",
-      "BGO",
-      "DOMAP",
-      "POXEM",
-      "DWI",
       "EKAVO",
       "MENEX",
       "KADAX",
       "SUWAN",
       "VKB",
-      "LSO",
       "UPNEP",
       "SUPIN"
     ],
@@ -1980,12 +1818,10 @@
   "B465": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B465",
-    "segmentCount": 6,
+    "segmentCount": 4,
     "sequence": [
       "AKSAG",
       "LPB",
-      "MDY",
-      "APAGO",
       "LAPON",
       "MC",
       "NOB"
@@ -2019,8 +1855,10 @@
   "B467": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B467",
-    "segmentCount": 5,
+    "segmentCount": 7,
     "sequence": [
+      "DE",
+      "KERET",
       "IKADA",
       "TEKUK",
       "VELTA",
@@ -2051,7 +1889,7 @@
   "B469": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B469",
-    "segmentCount": 10,
+    "segmentCount": 19,
     "sequence": [
       "AKOMA#0",
       "PU010",
@@ -2059,6 +1897,15 @@
       "BAVAL",
       "NE020",
       "SJ",
+      "BIDAK",
+      "BIKAL",
+      "TODAK",
+      "HLM",
+      "RENDA",
+      "IDOKU",
+      "LAMOB",
+      "TOPAR",
+      "NE",
       "PADLI",
       "PK#0",
       "PU090",
@@ -2073,11 +1920,16 @@
   "B470": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B470",
-    "segmentCount": 2,
+    "segmentCount": 7,
     "sequence": [
+      "ANITO",
+      "PKP",
+      "SJ091",
+      "BOSLO",
+      "BUNIK",
+      "DKI",
       "SJ",
-      "UDONI",
-      "SJ091"
+      "UDONI"
     ],
     "sources": [
       "xplane"
@@ -2087,7 +1939,7 @@
   "B472": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B472",
-    "segmentCount": 14,
+    "segmentCount": 16,
     "sequence": [
       "ALDIN",
       "COT",
@@ -2101,6 +1953,8 @@
       "IBAGO",
       "LIP",
       "TAPER",
+      "IDELU",
+      "TOREX",
       "LAMBO",
       "TEMON",
       "TIRAM"
@@ -2113,14 +1967,14 @@
   "B473": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B473",
-    "segmentCount": 18,
+    "segmentCount": 20,
     "sequence": [
       "CARLO",
       "DELOR",
       "RASEC",
       "CGO",
       "DIAMO",
-      "KATAN",
+      "KATAN#1",
       "DAO",
       "EDLOR",
       "RABIV",
@@ -2133,7 +1987,9 @@
       "MINOR",
       "LAMOK",
       "OLENG",
-      "SAMGE"
+      "OPABA",
+      "SAMGE",
+      "PEBTA"
     ],
     "sources": [
       "xplane"
@@ -2143,10 +1999,28 @@
   "B480": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B480",
-    "segmentCount": 1,
+    "segmentCount": 4,
     "sequence": [
+      "BU#1",
       "KENTA",
-      "MORIT"
+      "LETBI",
+      "MORIT",
+      "MABIL"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B484": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B484",
+    "segmentCount": 3,
+    "sequence": [
+      "ISANA",
+      "LIKES",
+      "MUROL",
+      "PAKLI"
     ],
     "sources": [
       "xplane"
@@ -2189,13 +2063,14 @@
   "B583": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B583",
-    "segmentCount": 4,
+    "segmentCount": 5,
     "sequence": [
       "BRU",
       "BRU50",
       "MAMOK",
-      "LADOP",
-      "PORAK"
+      "ELBIS",
+      "PORAK",
+      "LADOP"
     ],
     "sources": [
       "xplane"
@@ -2205,9 +2080,12 @@
   "B584": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B584",
-    "segmentCount": 2,
+    "segmentCount": 5,
     "sequence": [
+      "BLI",
+      "GALKO",
       "ELANG",
+      "KEVOK",
       "MAMOK",
       "VJN"
     ],
@@ -2219,11 +2097,8 @@
   "B586": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B586",
-    "segmentCount": 20,
+    "segmentCount": 11,
     "sequence": [
-      "ASADE",
-      "KAPOK",
-      "UNZ",
       "BAFFY",
       "BOSOH",
       "TALES",
@@ -2232,16 +2107,23 @@
       "OGASA",
       "UKATA",
       "PQ#1",
-      "ERVIN",
-      "HUTEL",
-      "NUTTI",
-      "PIKOK",
-      "NZ",
       "TEMAR",
       "OMLET",
       "PAYEE",
-      "VASKO",
-      "SECEL"
+      "VASKO"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B587": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B587",
+    "segmentCount": 1,
+    "sequence": [
+      "OPABA",
+      "ROOKI"
     ],
     "sources": [
       "xplane"
@@ -2281,13 +2163,19 @@
   "B592": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B592",
-    "segmentCount": 6,
+    "segmentCount": 12,
     "sequence": [
+      "AKULA",
+      "AMBOY",
+      "KIBON",
       "ALEMO",
       "OKADA",
       "UDERO",
+      "ATOSO",
+      "DKI",
       "BUTAX",
       "VJN80",
+      "OSUKA#0",
       "OMEGA",
       "VJN"
     ],
@@ -2313,6 +2201,68 @@
       "TGE",
       "ONC",
       "SUC"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B913": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B913",
+    "segmentCount": 3,
+    "sequence": [
+      "ABOMA",
+      "NASAN",
+      "SONID",
+      "TERBO"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B914": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B914",
+    "segmentCount": 3,
+    "sequence": [
+      "LANRI",
+      "SOMUR",
+      "TADIV",
+      "TERBO"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B915": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B915",
+    "segmentCount": 6,
+    "sequence": [
+      "ADITO",
+      "LANRI",
+      "REPIK",
+      "UNELA",
+      "QI",
+      "SEGUN",
+      "UB"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B916": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B916",
+    "segmentCount": 2,
+    "sequence": [
+      "AKOLA",
+      "VALAM",
+      "LANRI"
     ],
     "sources": [
       "xplane"
@@ -2347,13 +2297,117 @@
     ],
     "type": "ATS"
   },
+  "B919": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B919",
+    "segmentCount": 2,
+    "sequence": [
+      "BULAT",
+      "LUGOM",
+      "UHSS"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B920": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B920",
+    "segmentCount": 2,
+    "sequence": [
+      "GUBIS",
+      "UHKM",
+      "UHSK"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "B932": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "B932",
-    "segmentCount": 1,
+    "segmentCount": 2,
     "sequence": [
       "OKATU",
+      "PEKUT",
       "TOKVI"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B933": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B933",
+    "segmentCount": 7,
+    "sequence": [
+      "KOMEG",
+      "OMAVI",
+      "LEKMA",
+      "MOLUT",
+      "PEROD",
+      "OMARU",
+      "UHSH",
+      "UHOO"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B936": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B936",
+    "segmentCount": 2,
+    "sequence": [
+      "ABORI",
+      "LALET",
+      "RELPI"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "B951": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "B951",
+    "segmentCount": 1,
+    "sequence": [
+      "GOBON",
+      "NIGOR"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G103": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G103",
+    "segmentCount": 4,
+    "sequence": [
+      "LATAK",
+      "PAKLI",
+      "ODEKO",
+      "PW#1",
+      "RESDA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G200": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G200",
+    "segmentCount": 1,
+    "sequence": [
+      "TATOD",
+      "XMX"
     ],
     "sources": [
       "xplane"
@@ -2390,16 +2444,15 @@
     ],
     "type": "ATS"
   },
-  "G205": {
+  "G209": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "G205",
-    "segmentCount": 4,
+    "id": "G209",
+    "segmentCount": 3,
     "sequence": [
-      "GOOFI",
-      "JUNIE",
-      "KISME",
-      "RUTUS",
-      "VEVEK"
+      "ISRAN",
+      "XMX",
+      "PLB",
+      "TKG"
     ],
     "sources": [
       "xplane"
@@ -2409,31 +2462,46 @@
   "G212": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G212",
-    "segmentCount": 22,
+    "segmentCount": 37,
     "sequence": [
+      "ARGUK",
+      "IJ",
+      "UHHH",
       "BEDOG",
       "LR",
       "TGO",
       "CDNB",
       "RENOB",
+      "ERMAN",
+      "TERBO",
+      "UHNN",
       "FJC",
       "JTG",
       "OMLIP",
       "FYU",
       "HRB",
       "OTABO",
+      "GRUMA",
+      "IGODA",
       "GUPAD",
       "TYN",
       "YIJ",
+      "JMU",
       "HX",
       "MEBNA",
+      "OMARU",
       "SUBUL",
       "KR",
       "NONIT",
+      "KUVAL",
+      "LALET",
+      "QI",
+      "XR",
       "SL",
       "NSH",
       "ZS",
-      "OD"
+      "OD",
+      "TOMSU"
     ],
     "sources": [
       "xplane"
@@ -2443,9 +2511,11 @@
   "G218": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G218",
-    "segmentCount": 2,
+    "segmentCount": 4,
     "sequence": [
+      "DORUT",
       "MENOR",
+      "SULOK",
       "POLHO",
       "TMR"
     ],
@@ -2483,10 +2553,23 @@
     ],
     "type": "ATS"
   },
+  "G222": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G222",
+    "segmentCount": 1,
+    "sequence": [
+      "METUM",
+      "SAPDA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "G223": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G223",
-    "segmentCount": 7,
+    "segmentCount": 8,
     "sequence": [
       "ADKAK",
       "BEGAD",
@@ -2495,7 +2578,23 @@
       "KAKNI",
       "SEGRO",
       "PANDA#1",
-      "PQ#1"
+      "PQ#1",
+      "RISBA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G326": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G326",
+    "segmentCount": 3,
+    "sequence": [
+      "BLI",
+      "NYOMA",
+      "GUNAM",
+      "ONOXA"
     ],
     "sources": [
       "xplane"
@@ -2539,9 +2638,8 @@
   "G331": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G331",
-    "segmentCount": 2,
+    "segmentCount": 1,
     "sequence": [
-      "DWI",
       "PADET",
       "PUT"
     ],
@@ -2587,10 +2685,12 @@
   "G337": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G337",
-    "segmentCount": 1,
+    "segmentCount": 3,
     "sequence": [
       "BIBUL",
-      "PKU"
+      "BKL",
+      "PKU",
+      "XMX"
     ],
     "sources": [
       "xplane"
@@ -2600,7 +2700,7 @@
   "G339": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G339",
-    "segmentCount": 24,
+    "segmentCount": 20,
     "sequence": [
       "AGIKA",
       "MIMOD",
@@ -2610,11 +2710,7 @@
       "INVOK",
       "BIXAK",
       "SABGU",
-      "BUYER",
-      "FLASH",
-      "UNZ",
       "OGORI",
-      "MIXSS",
       "FUGEN",
       "HINAG",
       "TAIME",
@@ -2652,11 +2748,13 @@
   "G344": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G344",
-    "segmentCount": 2,
+    "segmentCount": 4,
     "sequence": [
       "CALMA",
       "CELIN",
-      "COMFE"
+      "COLIC",
+      "COMFE",
+      "CUTEE"
     ],
     "sources": [
       "xplane"
@@ -2686,6 +2784,51 @@
       "NULAR",
       "KICHA",
       "RASON"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G363": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G363",
+    "segmentCount": 1,
+    "sequence": [
+      "LATAS",
+      "TH01"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G369": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G369",
+    "segmentCount": 5,
+    "sequence": [
+      "ITVIS",
+      "LAKIN",
+      "UHNN",
+      "NILOT#0",
+      "UBOKA",
+      "UHOO"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G370": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G370",
+    "segmentCount": 3,
+    "sequence": [
+      "BA#1",
+      "INLIR",
+      "BAGUN",
+      "OMAVI"
     ],
     "sources": [
       "xplane"
@@ -2727,6 +2870,23 @@
     ],
     "type": "ATS"
   },
+  "G459": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G459",
+    "segmentCount": 5,
+    "sequence": [
+      "AGIGU",
+      "BUNBO",
+      "UBLAT",
+      "ATERA",
+      "BEGMI",
+      "BIK"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "G460": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G460",
@@ -2743,17 +2903,84 @@
     ],
     "type": "ATS"
   },
+  "G461": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G461",
+    "segmentCount": 10,
+    "sequence": [
+      "ANY",
+      "BA#0",
+      "PIALA",
+      "SBR",
+      "BIDAK",
+      "BORAS",
+      "PLB",
+      "CA",
+      "KASAL",
+      "HLM",
+      "PABIO",
+      "PAGAI"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G462": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G462",
+    "segmentCount": 20,
+    "sequence": [
+      "BKL",
+      "PAGAI",
+      "TOLIT",
+      "BLI",
+      "GABIT",
+      "SBR",
+      "CUCUT",
+      "LASEM",
+      "MADIN",
+      "DKI",
+      "IMU",
+      "TULIP",
+      "SOTRA",
+      "GUTOX",
+      "SELSU",
+      "KIDET",
+      "ISBIX",
+      "ODIRU",
+      "OBMAT",
+      "SATNA",
+      "TKG"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "G463": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G463",
-    "segmentCount": 5,
+    "segmentCount": 1,
     "sequence": [
-      "AVLED",
-      "NIVOG",
       "BETNO",
-      "BKK",
-      "PUMEK",
-      "BGO"
+      "BKK"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G464": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G464",
+    "segmentCount": 4,
+    "sequence": [
+      "BLI",
+      "KOLTA",
+      "PKN",
+      "OSUKA#0",
+      "PNK"
     ],
     "sources": [
       "xplane"
@@ -2778,19 +3005,12 @@
   "G467": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G467",
-    "segmentCount": 10,
+    "segmentCount": 3,
     "sequence": [
-      "ACRON",
-      "KLARA",
-      "PULEE",
       "DILIS",
       "ENDAX",
       "JOM",
-      "YELLO",
-      "GUSTO",
-      "KITSS",
-      "TRITO",
-      "UNZ"
+      "YELLO"
     ],
     "sources": [
       "xplane"
@@ -2843,26 +3063,11 @@
     ],
     "type": "ATS"
   },
-  "G472": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "G472",
-    "segmentCount": 1,
-    "sequence": [
-      "BGO",
-      "PTN"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
   "G473": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G473",
-    "segmentCount": 5,
+    "segmentCount": 3,
     "sequence": [
-      "BGO",
-      "LATAD",
       "CMP",
       "PSL",
       "UBL",
@@ -2892,10 +3097,78 @@
     ],
     "type": "ATS"
   },
+  "G490": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G490",
+    "segmentCount": 1,
+    "sequence": [
+      "LIRTA",
+      "SERNA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G492": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G492",
+    "segmentCount": 1,
+    "sequence": [
+      "DIBOR",
+      "TELOK"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G493": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G493",
+    "segmentCount": 2,
+    "sequence": [
+      "GU",
+      "MADAN",
+      "OMOSA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G494": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G494",
+    "segmentCount": 3,
+    "sequence": [
+      "LALIR",
+      "NALEB",
+      "SOVIK",
+      "NINON"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G495": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G495",
+    "segmentCount": 1,
+    "sequence": [
+      "PENOL",
+      "TELOK"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "G578": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G578",
-    "segmentCount": 19,
+    "segmentCount": 24,
     "sequence": [
       "ALDIN",
       "AROLA",
@@ -2904,12 +3177,17 @@
       "BALOD",
       "PONSO",
       "TAC",
+      "BLI",
+      "DOKET",
+      "LIPRA",
       "DILIS",
       "TAGPI",
       "YEVRA",
+      "GURNI",
+      "EGATU",
+      "ONALA",
       "GABUS",
       "GORAI",
-      "GURNI",
       "TABUL",
       "GURAG",
       "KAWIT",
@@ -2926,14 +3204,16 @@
   "G579": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G579",
-    "segmentCount": 5,
+    "segmentCount": 7,
     "sequence": [
       "JB#0",
       "SJ",
       "VJR",
+      "PARDI",
+      "PLB",
+      "SJ090",
       "REMES",
-      "REPOV",
-      "SJ090"
+      "REPOV"
     ],
     "sources": [
       "xplane"
@@ -3017,11 +3297,13 @@
   "G583": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G583",
-    "segmentCount": 2,
+    "segmentCount": 4,
     "sequence": [
       "BISIV",
       "LATAK",
-      "MVE"
+      "MVE",
+      "BUMEN",
+      "SENOR"
     ],
     "sources": [
       "xplane"
@@ -3086,13 +3368,30 @@
     ],
     "type": "ATS"
   },
+  "G588": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G588",
+    "segmentCount": 4,
+    "sequence": [
+      "JA",
+      "TEBUS",
+      "URGAM",
+      "MU",
+      "TOMES"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "G597": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G597",
-    "segmentCount": 15,
+    "segmentCount": 16,
     "sequence": [
       "AGAVO",
       "DONVO",
+      "GONAV",
       "ANGEL",
       "MAMAS",
       "VENUS",
@@ -3145,6 +3444,38 @@
     ],
     "type": "ATS"
   },
+  "G73": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G73",
+    "segmentCount": 7,
+    "sequence": [
+      "ABOMA",
+      "PIKOD",
+      "ROMEM",
+      "BIGET",
+      "DIVIL",
+      "MAKIS",
+      "UHNN",
+      "UHSH"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "G808": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "G808",
+    "segmentCount": 1,
+    "sequence": [
+      "BALIV",
+      "NIGOR"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "G86": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "G86",
@@ -3161,29 +3492,56 @@
     ],
     "type": "ATS"
   },
-  "L301": {
+  "J199": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "L301",
+    "id": "J199",
     "segmentCount": 1,
     "sequence": [
-      "DWI",
-      "SADUS"
+      "KPG",
+      "SPRIG"
     ],
     "sources": [
       "xplane"
     ],
-    "type": "RNAV"
+    "type": "ATS"
   },
-  "L507": {
+  "J55": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "L507",
-    "segmentCount": 4,
+    "id": "J55",
+    "segmentCount": 1,
     "sequence": [
-      "ARATO",
-      "BGO",
-      "LIMLA",
-      "OTADA",
-      "TEBOV"
+      "SADUD",
+      "XMX"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "J901": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "J901",
+    "segmentCount": 1,
+    "sequence": [
+      "SAPDA",
+      "SOPAT"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "L511": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "L511",
+    "segmentCount": 5,
+    "sequence": [
+      "BRM#1",
+      "TARUN",
+      "MIMIX",
+      "PKP",
+      "RUPKA",
+      "SBR"
     ],
     "sources": [
       "xplane"
@@ -3193,10 +3551,9 @@
   "L515": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "L515",
-    "segmentCount": 2,
+    "segmentCount": 1,
     "sequence": [
       "IKULA",
-      "OBMOG",
       "PUT"
     ],
     "sources": [
@@ -3239,7 +3596,7 @@
       "DAMEL",
       "VEPAM",
       "DILAN",
-      "MIA#0",
+      "MIA",
       "MINDA",
       "DOSUS",
       "IBOBI",
@@ -3346,8 +3703,11 @@
   "L644": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "L644",
-    "segmentCount": 12,
+    "segmentCount": 15,
     "sequence": [
+      "ABASA",
+      "DKI",
+      "TPN",
       "AC",
       "LOSON",
       "CS",
@@ -3370,10 +3730,11 @@
   "L645": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "L645",
-    "segmentCount": 3,
+    "segmentCount": 4,
     "sequence": [
-      "OLSEL",
+      "DUBTA",
       "SAMAK",
+      "OLSEL",
       "SAPAM",
       "PUT"
     ],
@@ -3396,15 +3757,45 @@
     ],
     "type": "RNAV"
   },
+  "L764": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "L764",
+    "segmentCount": 3,
+    "sequence": [
+      "IKIBU",
+      "LEMUS",
+      "PKP",
+      "LAMOB"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "RNAV"
+  },
+  "L895": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "L895",
+    "segmentCount": 1,
+    "sequence": [
+      "MIMIX",
+      "SAPDA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "RNAV"
+  },
   "M300": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "M300",
-    "segmentCount": 3,
+    "segmentCount": 5,
     "sequence": [
       "BULVA",
       "OKABU",
+      "TOPIN",
       "PEKDO",
-      "SALAX"
+      "SALAX",
+      "RULKA"
     ],
     "sources": [
       "xplane"
@@ -3636,7 +4027,7 @@
       "CS",
       "IGARI",
       "BORGA",
-      "MIA#0",
+      "MIA",
       "DAGAG",
       "REKEL",
       "VENLI",
@@ -3697,11 +4088,8 @@
   "M770": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "M770",
-    "segmentCount": 4,
+    "segmentCount": 1,
     "sequence": [
-      "LALAT",
-      "OBMOG",
-      "SADUS",
       "PADET",
       "RAN"
     ],
@@ -3816,12 +4204,13 @@
   "N571": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "N571",
-    "segmentCount": 3,
+    "segmentCount": 4,
     "sequence": [
       "DOVUM",
       "IGOGU",
       "VAMPI",
-      "GUNIP"
+      "GUNIP",
+      "LAGOG"
     ],
     "sources": [
       "xplane"
@@ -3831,10 +4220,28 @@
   "N646": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "N646",
-    "segmentCount": 1,
+    "segmentCount": 3,
     "sequence": [
+      "ATMAL",
+      "GUVIL",
       "IBALA",
       "PKU"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "N752": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "N752",
+    "segmentCount": 4,
+    "sequence": [
+      "ATMAL",
+      "BOLAK",
+      "UPNOT",
+      "DUNAM",
+      "PLB"
     ],
     "sources": [
       "xplane"
@@ -3872,7 +4279,7 @@
       "ABLBG",
       "DOHER",
       "LEGED",
-      "MIA#0",
+      "MIA",
       "LAGOT",
       "LAXOR",
       "LUSMO",
@@ -3942,410 +4349,6 @@
     ],
     "type": "ATS"
   },
-  "N895": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "N895",
-    "segmentCount": 1,
-    "sequence": [
-      "BETNO",
-      "PTN"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR1": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR1",
-    "segmentCount": 2,
-    "sequence": [
-      "NANNO",
-      "NOSLY",
-      "OBE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR10": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR10",
-    "segmentCount": 5,
-    "sequence": [
-      "ARIES",
-      "CVC",
-      "MELON",
-      "KETAR",
-      "TOPOS",
-      "NANAC"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR11": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR11",
-    "segmentCount": 7,
-    "sequence": [
-      "ABETS",
-      "COMFE",
-      "SCORE",
-      "DRIVR",
-      "CVC",
-      "KAGIS",
-      "RIPKI",
-      "GARRY"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR12": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR12",
-    "segmentCount": 1,
-    "sequence": [
-      "PETAL",
-      "SCORE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR13": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR13",
-    "segmentCount": 3,
-    "sequence": [
-      "CVC",
-      "GUPPY",
-      "VACKY",
-      "SEALS"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR14": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR14",
-    "segmentCount": 3,
-    "sequence": [
-      "ACQUA",
-      "PETAL",
-      "VACKY",
-      "PQE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR15": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR15",
-    "segmentCount": 3,
-    "sequence": [
-      "ACQUA",
-      "CVC",
-      "SMOLT",
-      "MORAY"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR16": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR16",
-    "segmentCount": 2,
-    "sequence": [
-      "PQE",
-      "SUNNS",
-      "SMOLT"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR17": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR17",
-    "segmentCount": 2,
-    "sequence": [
-      "CVC",
-      "FORDO",
-      "FERAR"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR18": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR18",
-    "segmentCount": 1,
-    "sequence": [
-      "FORDO",
-      "RENAU"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR2": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR2",
-    "segmentCount": 2,
-    "sequence": [
-      "KETAR",
-      "OATIS",
-      "PETAL"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR20": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR20",
-    "segmentCount": 5,
-    "sequence": [
-      "ADKAK",
-      "RENAU",
-      "CVC",
-      "LIBRA",
-      "PETAL",
-      "SUNNS"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR21": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR21",
-    "segmentCount": 1,
-    "sequence": [
-      "ACQUA",
-      "FORDO"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR22": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR22",
-    "segmentCount": 1,
-    "sequence": [
-      "DRIVR",
-      "ETRON"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR24": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR24",
-    "segmentCount": 3,
-    "sequence": [
-      "APPLE",
-      "MERED",
-      "PAPAS",
-      "CVC"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR25": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR25",
-    "segmentCount": 2,
-    "sequence": [
-      "GULEG",
-      "HCE",
-      "TAPOP"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR26": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR26",
-    "segmentCount": 4,
-    "sequence": [
-      "CANDY",
-      "EDDIE",
-      "EVERT",
-      "KISEI",
-      "TAPOP"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR27": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR27",
-    "segmentCount": 1,
-    "sequence": [
-      "HCE",
-      "MAPDO"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR28": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR28",
-    "segmentCount": 2,
-    "sequence": [
-      "DEMPA",
-      "GBE48",
-      "EVERT"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR3": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR3",
-    "segmentCount": 3,
-    "sequence": [
-      "GOC",
-      "SNAIL",
-      "OATIS",
-      "SABES"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR30": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR30",
-    "segmentCount": 2,
-    "sequence": [
-      "ESBIS",
-      "FU",
-      "MIKES"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR4": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR4",
-    "segmentCount": 2,
-    "sequence": [
-      "GOC",
-      "TOPOS",
-      "PABBA"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR5": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR5",
-    "segmentCount": 3,
-    "sequence": [
-      "ADNIP",
-      "CALMA",
-      "PABBA",
-      "TYE"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR6": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR6",
-    "segmentCount": 1,
-    "sequence": [
-      "KETAR",
-      "PABBA"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR7": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR7",
-    "segmentCount": 3,
-    "sequence": [
-      "CELIN",
-      "DORCH",
-      "PABBA",
-      "ETRON"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR8": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR8",
-    "segmentCount": 2,
-    "sequence": [
-      "GUPPY",
-      "KAGIS",
-      "OJC"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "OTR9": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "OTR9",
-    "segmentCount": 1,
-    "sequence": [
-      "ABETS",
-      "CELIN"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
   "P501": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "P501",
@@ -4364,13 +4367,15 @@
   "P570": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "P570",
-    "segmentCount": 4,
+    "segmentCount": 6,
     "sequence": [
       "BIRAS",
       "KAGAS",
       "PKU",
       "DOLEM",
-      "MABIX"
+      "MABIX",
+      "NIXUL",
+      "POPAK"
     ],
     "sources": [
       "xplane"
@@ -4380,11 +4385,12 @@
   "P574": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "P574",
-    "segmentCount": 3,
+    "segmentCount": 4,
     "sequence": [
       "ANSAX",
       "IGEBO",
       "PUGER",
+      "DUBTA",
       "NOPEK"
     ],
     "sources": [
@@ -4395,27 +4401,14 @@
   "P628": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "P628",
-    "segmentCount": 4,
+    "segmentCount": 5,
     "sequence": [
       "GIVAL",
       "UXARA",
       "VPL",
       "IGREX",
-      "OLSEL"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "P762": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "P762",
-    "segmentCount": 2,
-    "sequence": [
-      "DWI",
-      "LALIT",
-      "LULDA"
+      "OLSEL",
+      "PPB"
     ],
     "sources": [
       "xplane"
@@ -4473,14 +4466,26 @@
   "R204": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R204",
-    "segmentCount": 5,
+    "segmentCount": 1,
     "sequence": [
-      "KALIN",
-      "KAPPU",
-      "KEONE",
       "KEITH",
-      "KYWEE",
-      "KERNE"
+      "KYWEE"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "R206": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "R206",
+    "segmentCount": 4,
+    "sequence": [
+      "ATMAL",
+      "LATOX",
+      "XMX",
+      "HLM",
+      "LADIR"
     ],
     "sources": [
       "xplane"
@@ -4525,8 +4530,11 @@
   "R211": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R211",
-    "segmentCount": 13,
+    "segmentCount": 27,
     "sequence": [
+      "AMBAR",
+      "LEDIS",
+      "TH01",
       "AVGOK",
       "NISIN",
       "PELON",
@@ -4536,11 +4544,22 @@
       "COMET",
       "KASMI",
       "SWAMP",
+      "DIDEK",
+      "FE01",
+      "UHHH",
+      "TORMA",
       "GOC",
       "MIKRA",
       "MILKY",
       "LAPIS",
-      "KADBO"
+      "KADBO",
+      "GU",
+      "SOVIK",
+      "LANEP",
+      "SORUS",
+      "VELTA",
+      "PARIS",
+      "RITLA"
     ],
     "sources": [
       "xplane"
@@ -4597,10 +4616,20 @@
   "R22": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R22",
-    "segmentCount": 1,
+    "segmentCount": 11,
     "sequence": [
       "ADIBO",
-      "AVGOK"
+      "AVGOK",
+      "DE",
+      "OTKAT",
+      "JQ",
+      "OGMUS",
+      "RIDLO",
+      "NANUD",
+      "QI",
+      "QA",
+      "TIRAK",
+      "RELPI"
     ],
     "sources": [
       "xplane"
@@ -4610,7 +4639,7 @@
   "R220": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R220",
-    "segmentCount": 7,
+    "segmentCount": 8,
     "sequence": [
       "GOC",
       "IXE",
@@ -4619,6 +4648,7 @@
       "NODAN",
       "NANNO",
       "NUBDA",
+      "NIPPI",
       "NOGAL"
     ],
     "sources": [
@@ -4648,6 +4678,35 @@
       "BUTAX",
       "ELANG",
       "BRU"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "R229": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "R229",
+    "segmentCount": 1,
+    "sequence": [
+      "NILGA",
+      "VAMOL"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "R30": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "R30",
+    "segmentCount": 4,
+    "sequence": [
+      "ARELI",
+      "QA",
+      "IVADA",
+      "MOSOL#1",
+      "ROSIK"
     ],
     "sources": [
       "xplane"
@@ -4719,6 +4778,19 @@
     ],
     "type": "ATS"
   },
+  "R340": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "R340",
+    "segmentCount": 1,
+    "sequence": [
+      "AMN",
+      "GUTEV"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "R342": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R342",
@@ -4770,13 +4842,48 @@
   "R347": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R347",
-    "segmentCount": 4,
+    "segmentCount": 5,
     "sequence": [
       "EKVIK",
       "IGROD",
       "NI",
       "GTC",
-      "RATUN"
+      "RATUN",
+      "VELTA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "R372": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "R372",
+    "segmentCount": 1,
+    "sequence": [
+      "EROKI",
+      "VAMOL"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "R446": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "R446",
+    "segmentCount": 9,
+    "sequence": [
+      "AKOLA",
+      "BIKUR",
+      "DASKO",
+      "ANIMO",
+      "ARGOV",
+      "ODEKO",
+      "LIKON",
+      "QI",
+      "PW#1",
+      "UHSS"
     ],
     "sources": [
       "xplane"
@@ -4800,7 +4907,7 @@
       "SESUR",
       "TEKUK",
       "SIBIR",
-      "TD#0"
+      "TD"
     ],
     "sources": [
       "xplane"
@@ -4824,10 +4931,12 @@
   "R456": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R456",
-    "segmentCount": 1,
+    "segmentCount": 3,
     "sequence": [
       "MABIX",
-      "MDN"
+      "MDN",
+      "NISOK",
+      "OBDAL"
     ],
     "sources": [
       "xplane"
@@ -4866,14 +4975,13 @@
   "R468": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R468",
-    "segmentCount": 8,
+    "segmentCount": 7,
     "sequence": [
       "BKK",
       "GOMES",
       "TANEK",
       "BOKAK",
       "PNH",
-      "DWI",
       "POPET",
       "SAPEN",
       "TSN"
@@ -4954,6 +5062,33 @@
     ],
     "type": "ATS"
   },
+  "R478": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "R478",
+    "segmentCount": 1,
+    "sequence": [
+      "UBANA",
+      "VAMOL"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "R490": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "R490",
+    "segmentCount": 2,
+    "sequence": [
+      "AKSUN",
+      "NEVAL",
+      "ODEKO"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "R575": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R575",
@@ -4995,10 +5130,11 @@
   "R580": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R580",
-    "segmentCount": 2,
+    "segmentCount": 3,
     "sequence": [
       "OATIS",
       "ONEMU",
+      "OMOTO",
       "OPULO"
     ],
     "sources": [
@@ -5029,16 +5165,11 @@
   "R584": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R584",
-    "segmentCount": 8,
+    "segmentCount": 4,
     "sequence": [
       "AVLAS",
       "KALOK",
       "OK",
-      "FLASH",
-      "LEOLA",
-      "GUNSS",
-      "JUNIE",
-      "TKK",
       "KEITH",
       "LUCKI"
     ],
@@ -5104,12 +5235,28 @@
   "R591": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R591",
-    "segmentCount": 3,
+    "segmentCount": 4,
     "sequence": [
       "ABETS",
       "ADNIP",
       "ADGOR",
-      "AGEDI"
+      "AGEDI",
+      "AKISU"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "R592": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "R592",
+    "segmentCount": 3,
+    "sequence": [
+      "BLI",
+      "GIWOT",
+      "PUPIT",
+      "METUM"
     ],
     "sources": [
       "xplane"
@@ -5139,7 +5286,7 @@
   "R596": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R596",
-    "segmentCount": 8,
+    "segmentCount": 7,
     "sequence": [
       "BONEY",
       "HCN",
@@ -5148,8 +5295,7 @@
       "LAMOL",
       "YEVRA",
       "TIDEL",
-      "TILLY",
-      "TRITO"
+      "TILLY"
     ],
     "sources": [
       "xplane"
@@ -5171,13 +5317,49 @@
     ],
     "type": "ATS"
   },
+  "R810": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "R810",
+    "segmentCount": 8,
+    "sequence": [
+      "BULAT",
+      "DE",
+      "DIDOV",
+      "RETLI",
+      "SELTI",
+      "ODONA",
+      "PELEK",
+      "PW#1",
+      "TD"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "R818": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "R818",
-    "segmentCount": 1,
+    "segmentCount": 4,
     "sequence": [
       "AKRON",
-      "AVGOK"
+      "ALODI",
+      "AVGOK",
+      "VATAN",
+      "DE"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "R829": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "R829",
+    "segmentCount": 1,
+    "sequence": [
+      "GU",
+      "PITON"
     ],
     "sources": [
       "xplane"
@@ -5282,17 +5464,17 @@
   "V1": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V1",
-    "segmentCount": 7,
+    "segmentCount": 8,
     "sequence": [
       "BEEBA",
       "KURIS",
       "SUIKA",
-      "BGO",
-      "HHO",
       "CHE",
+      "KABTO",
+      "WKE",
+      "YOROI",
       "RUMOI",
-      "TESIO",
-      "YOROI"
+      "TESIO"
     ],
     "sources": [
       "xplane"
@@ -5302,13 +5484,11 @@
   "V10": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V10",
-    "segmentCount": 5,
+    "segmentCount": 4,
     "sequence": [
       "CHOKA",
       "GTC",
       "WAPPA",
-      "LSO",
-      "MIA#1",
       "MIS",
       "SAMBO#1"
     ],
@@ -5320,7 +5500,7 @@
   "V11": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V11",
-    "segmentCount": 13,
+    "segmentCount": 12,
     "sequence": [
       "CHE",
       "NAVER",
@@ -5332,8 +5512,6 @@
       "IZUMI",
       "NZE",
       "YHUKI",
-      "MIA#1",
-      "MK",
       "MIKRA",
       "YONEX",
       "SNE"
@@ -5343,29 +5521,13 @@
     ],
     "type": "ATS"
   },
-  "V12": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "V12",
-    "segmentCount": 2,
-    "sequence": [
-      "HHO",
-      "KG",
-      "MIA#1"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
   "V13": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V13",
-    "segmentCount": 12,
+    "segmentCount": 10,
     "sequence": [
       "CHE",
       "NASEL",
-      "HHO",
-      "MS",
       "HINAI",
       "MRE25",
       "MRE37",
@@ -5373,7 +5535,6 @@
       "OHMAR",
       "YACHI",
       "WAPPA",
-      "TL#1",
       "SIRAO",
       "YTE"
     ],
@@ -5385,28 +5546,12 @@
   "V15": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V15",
-    "segmentCount": 5,
+    "segmentCount": 3,
     "sequence": [
       "AKAGI",
       "GTC15",
       "SYE",
-      "GTC",
-      "KG",
-      "MIA#1",
-      "TL#1"
-    ],
-    "sources": [
-      "xplane"
-    ],
-    "type": "ATS"
-  },
-  "V16": {
-    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
-    "id": "V16",
-    "segmentCount": 1,
-    "sequence": [
-      "KG",
-      "MS"
+      "GTC"
     ],
     "sources": [
       "xplane"
@@ -5479,10 +5624,8 @@
   "V2": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V2",
-    "segmentCount": 14,
+    "segmentCount": 13,
     "sequence": [
-      "BGO",
-      "LSO",
       "EATAK",
       "NOTAK",
       "NUPRI",
@@ -5587,17 +5730,15 @@
   "V3": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V3",
-    "segmentCount": 8,
+    "segmentCount": 7,
     "sequence": [
-      "BGO",
-      "LK",
-      "KG",
       "KSE",
       "SHARO",
       "QURIO",
       "TBE",
       "TBE03",
       "SAKIN",
+      "WKE",
       "TBE02"
     ],
     "sources": [
@@ -5786,10 +5927,8 @@
   "V4": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V4",
-    "segmentCount": 6,
+    "segmentCount": 5,
     "sequence": [
-      "BGO",
-      "PP",
       "EATAK",
       "IKEDA",
       "TBE01",
@@ -5832,10 +5971,8 @@
   "V5": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V5",
-    "segmentCount": 5,
+    "segmentCount": 4,
     "sequence": [
-      "BGO",
-      "PA#0",
       "BISEI",
       "CHE",
       "IKEDA",
@@ -6004,16 +6141,10 @@
   "V6": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V6",
-    "segmentCount": 7,
+    "segmentCount": 2,
     "sequence": [
-      "BGO",
-      "MM",
-      "BOKPY",
-      "KT",
-      "ME",
       "CHE",
       "OBE",
-      "DWI",
       "TROUT"
     ],
     "sources": [
@@ -6024,14 +6155,12 @@
   "V7": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V7",
-    "segmentCount": 7,
+    "segmentCount": 6,
     "sequence": [
       "ASIBE",
       "AWE",
       "TOMAM",
       "TBE20",
-      "BGO",
-      "DWI",
       "CHE",
       "TBE",
       "TSUKA"
@@ -6075,14 +6204,12 @@
   "V8": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V8",
-    "segmentCount": 6,
+    "segmentCount": 5,
     "sequence": [
       "AWE",
       "BEEBA",
       "LUBEK",
       "SPE",
-      "BGO",
-      "ME",
       "SAROM",
       "MVE"
     ],
@@ -6094,10 +6221,8 @@
   "V9": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "V9",
-    "segmentCount": 4,
+    "segmentCount": 3,
     "sequence": [
-      "BGO",
-      "KT",
       "ESASI",
       "HWE",
       "MAIKA",
@@ -6144,13 +6269,11 @@
   "W1": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W1",
-    "segmentCount": 21,
+    "segmentCount": 20,
     "sequence": [
       "AC",
-      "BU",
+      "BU#0",
       "TSN",
-      "BGO",
-      "MIA#1",
       "PK#1",
       "CAB",
       "CUY",
@@ -6182,7 +6305,7 @@
   "W10": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W10",
-    "segmentCount": 12,
+    "segmentCount": 11,
     "sequence": [
       "BALOV",
       "BK",
@@ -6197,9 +6320,7 @@
       "DO",
       "WF",
       "ZAM",
-      "PB",
-      "KL",
-      "MIA#1"
+      "PB"
     ],
     "sources": [
       "xplane"
@@ -6223,27 +6344,30 @@
   "W11": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W11",
-    "segmentCount": 14,
+    "segmentCount": 17,
     "sequence": [
       "BAC",
       "DUAMO",
       "BANOS",
-      "MIA#0",
+      "MIA",
       "PABLO",
+      "CKG",
+      "TULIP",
       "CONDE",
       "SAGRA#0",
       "MDN",
       "JAMIS",
       "MKB",
-      "KI",
-      "MIA#1",
       "MANOK",
       "MCT",
       "MOLOC",
+      "TALAM",
       "PINOT",
       "PUD",
       "PK#1",
-      "QNGAI"
+      "QNGAI",
+      "TUNDA",
+      "TKG"
     ],
     "sources": [
       "xplane"
@@ -6253,18 +6377,17 @@
   "W12": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W12",
-    "segmentCount": 14,
+    "segmentCount": 16,
     "sequence": [
       "AD",
+      "KUALA",
       "PKU",
       "ALDIS",
       "DEMSA",
       "MIKIN",
       "BAC",
       "JILAT",
-      "BM#1",
-      "MIA#1",
-      "BU",
+      "BU#0",
       "PCA",
       "LAO",
       "FU",
@@ -6272,6 +6395,8 @@
       "GM",
       "LUX",
       "MDN",
+      "JMB",
+      "PLB",
       "PAMDA",
       "MEDIA",
       "NOMAN"
@@ -6281,24 +6406,40 @@
     ],
     "type": "ATS"
   },
+  "W12E": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W12E",
+    "segmentCount": 1,
+    "sequence": [
+      "BIKAL",
+      "DKI"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "W13": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W13",
-    "segmentCount": 9,
+    "segmentCount": 11,
     "sequence": [
       "BEGMO",
       "KN",
       "TOGUG",
+      "CUCUT",
+      "SIPUT",
+      "DKI",
+      "KIMON",
       "HSN",
       "PONAB",
+      "IMU",
       "LASAN",
       "PINOT",
       "LPN",
       "PAE",
       "MENAM",
-      "SRE",
-      "MK",
-      "PT#1"
+      "SRE"
     ],
     "sources": [
       "xplane"
@@ -6308,18 +6449,23 @@
   "W14": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W14",
-    "segmentCount": 16,
+    "segmentCount": 20,
     "sequence": [
+      "ABASA",
+      "ALTAR",
+      "TPN",
       "BACON",
       "BN",
       "LIBON",
+      "BOLSA",
+      "PNK",
       "HATSU",
       "XA",
       "YU",
       "HSN",
       "RUXIL",
       "HTY",
-      "PT#0",
+      "PT",
       "TRN",
       "JD",
       "KOGAR",
@@ -6340,32 +6486,37 @@
   "W15": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W15",
-    "segmentCount": 22,
+    "segmentCount": 28,
     "sequence": [
       "AC",
       "DL",
+      "ALAMO",
+      "LEPAS",
+      "SABIL",
       "AND",
       "DADAT",
       "BPN",
+      "HAMOL",
       "LADOP",
       "CMA",
       "PAE",
       "SHY",
       "DELTA#2",
       "LOY",
+      "DKI",
       "NG",
+      "PKY",
       "HC",
       "MOE",
+      "KOBAS",
       "TOSTY",
       "LOPEZ",
       "RAGAY",
       "TIMON",
       "UDN",
       "LP",
-      "MIA#0",
+      "MIA",
       "TALIM",
-      "MIA#1",
-      "TD#1",
       "XA",
       "MWB",
       "PNH",
@@ -6391,10 +6542,24 @@
     ],
     "type": "ATS"
   },
+  "W15N": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W15N",
+    "segmentCount": 2,
+    "sequence": [
+      "PKN",
+      "PKY",
+      "SABIL"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "W16": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W16",
-    "segmentCount": 16,
+    "segmentCount": 15,
     "sequence": [
       "AVMUP",
       "TAREM",
@@ -6409,12 +6574,10 @@
       "CT",
       "KANTA",
       "RG#0",
-      "HHO",
-      "TD#1",
       "HSH",
       "UDOXI",
       "TSN",
-      "MIA#0",
+      "MIA",
       "VOTAS",
       "ODULO"
     ],
@@ -6438,20 +6601,38 @@
     ],
     "type": "ATS"
   },
+  "W16S": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W16S",
+    "segmentCount": 2,
+    "sequence": [
+      "BND",
+      "CA",
+      "KIDET"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "W17": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W17",
-    "segmentCount": 17,
+    "segmentCount": 20,
     "sequence": [
       "AMRON",
       "CABRE",
       "PR",
+      "BND",
+      "CLP",
+      "PW#0",
       "BUNVA",
       "ODULO",
       "PKNB",
       "MARAN",
-      "HL",
-      "MONWR",
+      "GEPAK",
+      "JOG",
+      "HLM",
       "HTY",
       "STN",
       "IOO",
@@ -6461,9 +6642,38 @@
       "LULBU",
       "PANDI",
       "NOYAN",
-      "MIA#1",
       "OCORO",
       "RAN"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "W17N": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W17N",
+    "segmentCount": 4,
+    "sequence": [
+      "ANY",
+      "KIDET",
+      "PURWO",
+      "JOG",
+      "SO"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "W17S": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W17S",
+    "segmentCount": 2,
+    "sequence": [
+      "CA",
+      "CLP",
+      "IMU"
     ],
     "sources": [
       "xplane"
@@ -6473,8 +6683,11 @@
   "W18": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W18",
-    "segmentCount": 24,
+    "segmentCount": 32,
     "sequence": [
+      "ABILO",
+      "SPADA",
+      "SPIKO",
       "ADNIM",
       "NODAB",
       "RODAT",
@@ -6482,21 +6695,25 @@
       "AY",
       "JD",
       "CHINO",
+      "BDM",
+      "BISOM",
+      "REBOL",
       "BPN",
       "LOLOT",
       "TENRU",
       "CT",
       "QL",
+      "DKI",
+      "DUNIA",
+      "SUMBU",
       "ELMAS",
       "GO",
       "IZUMI",
       "KC",
       "SWING",
-      "KL",
-      "MONWR",
       "MADON",
       "TRK",
-      "MIA#0",
+      "MIA",
       "NAKTU",
       "SENJO",
       "NLG",
@@ -6514,25 +6731,29 @@
   "W19": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W19",
-    "segmentCount": 12,
+    "segmentCount": 16,
     "sequence": [
       "ADNEP",
       "NTW",
       "UPNEP",
       "BAC",
-      "MOSOL",
+      "MOSOL#0",
       "BANGA",
       "COT",
       "GSA",
       "BILAT",
       "MABAG",
       "NOMAR",
+      "BKL",
+      "KATAN#0",
+      "CARLI",
+      "NOKTA",
+      "TKG",
+      "DKI",
       "FQ",
       "KCC",
-      "KOW",
-      "MIA#1",
-      "SW",
       "MKB",
+      "KOW",
       "POU"
     ],
     "sources": [
@@ -6543,14 +6764,12 @@
   "W2": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W2",
-    "segmentCount": 25,
+    "segmentCount": 24,
     "sequence": [
       "AC",
       "PHT",
       "APU",
       "CAROL",
-      "BGO",
-      "SW",
       "GENIE",
       "CUY",
       "PAMKI",
@@ -6565,7 +6784,7 @@
       "NK",
       "JW",
       "MOTOM",
-      "PA#1",
+      "PA",
       "KARAN",
       "NG",
       "PCA",
@@ -6603,7 +6822,7 @@
   "W21": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W21",
-    "segmentCount": 11,
+    "segmentCount": 12,
     "sequence": [
       "CMP",
       "NOBER",
@@ -6615,11 +6834,12 @@
       "SAREX",
       "COT",
       "SIKIN",
-      "HIRCH",
-      "SANDO",
-      "SNAPP",
+      "KALAM",
+      "KATAN#0",
+      "PLB",
       "MCT",
-      "UNZ"
+      "TERKA",
+      "TKG"
     ],
     "sources": [
       "xplane"
@@ -6629,7 +6849,7 @@
   "W22": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W22",
-    "segmentCount": 11,
+    "segmentCount": 12,
     "sequence": [
       "CGO",
       "LUNDO",
@@ -6638,13 +6858,13 @@
       "PAE",
       "GT",
       "NI",
-      "HICKS",
-      "KLOUT",
+      "MKB",
+      "PDG25",
       "PSL",
+      "PKU30",
       "PIDON",
       "PKU",
       "TPG",
-      "PKU30",
       "SHL",
       "TEPID",
       "YIN"
@@ -6657,20 +6877,27 @@
   "W23": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W23",
-    "segmentCount": 10,
+    "segmentCount": 16,
     "sequence": [
       "ABMBS",
       "CIA",
       "RINAL",
+      "BKL",
+      "PLB",
+      "BOMAX",
+      "LIANA",
+      "PNK",
       "CALDO",
       "SOMAR",
       "ZULUR",
       "GUKUM",
+      "PKP",
       "LPN",
       "PSL",
       "NATIB",
       "NLG",
       "ZUH",
+      "TODAK",
       "PQ#1",
       "XA"
     ],
@@ -6682,11 +6909,14 @@
   "W24": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W24",
-    "segmentCount": 4,
+    "segmentCount": 6,
     "sequence": [
       "DONLA",
       "HX",
       "YBN",
+      "NE",
+      "TIAMA",
+      "PLB",
       "STN",
       "TRN",
       "ZYG"
@@ -6712,13 +6942,16 @@
   "W25": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W25",
-    "segmentCount": 6,
+    "segmentCount": 9,
     "sequence": [
-      "BOONY",
-      "MAKEO",
-      "UNZ",
+      "FERET",
+      "LEPAR",
+      "PLB",
       "FJC",
       "YBN",
+      "TPN",
+      "MKB",
+      "PASOL",
       "NAN",
       "PAE",
       "THS",
@@ -6745,6 +6978,20 @@
       "MST",
       "TK",
       "PSL"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "W26E": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W26E",
+    "segmentCount": 2,
+    "sequence": [
+      "ALTAR",
+      "DKI",
+      "PKP"
     ],
     "sources": [
       "xplane"
@@ -6806,15 +7053,13 @@
   "W3": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W3",
-    "segmentCount": 15,
+    "segmentCount": 14,
     "sequence": [
       "AKOTA",
       "DOSUS",
       "BARBA",
       "IOO",
       "SAJ",
-      "BGO",
-      "TD#1",
       "BURCO",
       "PALAY",
       "ZAM",
@@ -6850,11 +7095,14 @@
   "W31": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W31",
-    "segmentCount": 12,
+    "segmentCount": 16,
     "sequence": [
       "ANSAR",
       "DS",
       "GAO",
+      "BDM",
+      "IKAPI",
+      "PKY",
       "FLG",
       "ENH",
       "YIH",
@@ -6864,8 +7112,25 @@
       "UKERA",
       "HZ",
       "WHA",
+      "RAMPY",
+      "SBR",
       "SUPOJ",
       "WFX"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "W31W": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W31W",
+    "segmentCount": 3,
+    "sequence": [
+      "IKAPI",
+      "KOLOT",
+      "ROPIA",
+      "SBR"
     ],
     "sources": [
       "xplane"
@@ -6875,8 +7140,17 @@
   "W32": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W32",
-    "segmentCount": 8,
+    "segmentCount": 16,
     "sequence": [
+      "DASTY",
+      "ENDOG",
+      "KASOL",
+      "DIOLA",
+      "KANIP",
+      "TAPIR",
+      "MKS",
+      "FANDO",
+      "SBR",
       "KBI",
       "STN",
       "TRN",
@@ -6884,7 +7158,6 @@
       "SZ",
       "LUANG",
       "MWB",
-      "TAPIR",
       "REGOS",
       "SUPOJ",
       "SMU"
@@ -6894,13 +7167,38 @@
     ],
     "type": "ATS"
   },
+  "W32N": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W32N",
+    "segmentCount": 3,
+    "sequence": [
+      "KASOL",
+      "KOLTA",
+      "ROBIT",
+      "SBR"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "W33": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W33",
-    "segmentCount": 1,
+    "segmentCount": 10,
     "sequence": [
+      "BACAU",
+      "DIL",
+      "ELBIS",
+      "BLI",
+      "GOMAT#0",
+      "RABOL",
+      "OTORA",
+      "NR",
+      "KPG",
       "LEPNI",
-      "ONB"
+      "ONB",
+      "SBR"
     ],
     "sources": [
       "xplane"
@@ -6910,11 +7208,15 @@
   "W34": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W34",
-    "segmentCount": 7,
+    "segmentCount": 10,
     "sequence": [
+      "AGUNG",
+      "ENTAS",
+      "MTM",
       "CPN",
       "MENEX",
       "RAN",
+      "SBR",
       "KN",
       "RUPOX",
       "SHZ",
@@ -6930,11 +7232,20 @@
   "W35": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W35",
-    "segmentCount": 6,
+    "segmentCount": 14,
     "sequence": [
+      "BDM",
+      "GURNI",
+      "NOMAD",
+      "EBONY",
+      "PNK",
+      "MKS",
       "KAASI",
       "LPB",
       "VTG",
+      "KPG",
+      "NO",
+      "NETTO",
       "NKS",
       "TRN",
       "UPNEP",
@@ -6950,18 +7261,31 @@
   "W36": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W36",
-    "segmentCount": 7,
+    "segmentCount": 20,
     "sequence": [
       "AND",
       "ELAGO",
       "SUPAR",
+      "BPN",
+      "DALOT",
+      "ELANG",
       "CMA",
       "MACHI",
+      "DORIA",
+      "DILAM",
+      "PAL",
+      "TAPIR",
       "NINAS",
+      "ROTAN",
+      "GOBAL",
+      "GUGUS",
+      "SOG",
       "GOBIK",
       "PNK",
       "TPG",
-      "MHS"
+      "TELES",
+      "MHS",
+      "OMEGA"
     ],
     "sources": [
       "xplane"
@@ -6971,10 +7295,16 @@
   "W37": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W37",
-    "segmentCount": 4,
+    "segmentCount": 9,
     "sequence": [
+      "BPN",
+      "GAMAL",
+      "MKS",
+      "KO",
+      "LUSIA",
       "KRT",
       "ROT",
+      "RINTO",
       "NGB",
       "NINAS",
       "SUPAR",
@@ -6988,13 +7318,31 @@
   "W38": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W38",
-    "segmentCount": 3,
+    "segmentCount": 7,
     "sequence": [
-      "BRM",
+      "AMBOY",
+      "APAGA",
+      "DENDY",
+      "PNK",
+      "BRM#0",
       "RAMEI",
       "ROT",
+      "DKI",
       "HSH",
       "PINOT"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "W38W": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W38W",
+    "segmentCount": 1,
+    "sequence": [
+      "AMBOY",
+      "TPN"
     ],
     "sources": [
       "xplane"
@@ -7019,7 +7367,7 @@
   "W4": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W4",
-    "segmentCount": 19,
+    "segmentCount": 18,
     "sequence": [
       "AM",
       "MC",
@@ -7029,8 +7377,6 @@
       "ARLEN",
       "HCN",
       "TNN",
-      "BGO",
-      "KP#0",
       "BQ",
       "DB",
       "CIA",
@@ -7115,13 +7461,30 @@
   "W41": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W41",
-    "segmentCount": 3,
+    "segmentCount": 18,
     "sequence": [
+      "ALOBA",
+      "APASI",
+      "LABAT",
+      "SOG",
+      "BIK",
+      "IBAMA",
+      "JODRA",
+      "BLI",
+      "LEMBU",
       "CMP",
       "LOY",
+      "ZQ",
+      "KUBIA",
+      "JPA",
+      "KDI",
+      "LAMIN",
+      "MILAT",
+      "LIPOT",
       "VTN",
       "LR",
-      "VYK"
+      "VYK",
+      "MKS"
     ],
     "sources": [
       "xplane"
@@ -7131,10 +7494,19 @@
   "W42": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W42",
-    "segmentCount": 5,
+    "segmentCount": 13,
     "sequence": [
+      "BACAU",
+      "KO",
+      "BAGIL",
+      "NO",
+      "BLI",
+      "MTM",
       "MENEX",
       "REGOS",
+      "NQ",
+      "RG#1",
+      "PO",
       "RAMEI",
       "TOPER",
       "RYN",
@@ -7216,13 +7588,18 @@
   "W43": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W43",
-    "segmentCount": 3,
+    "segmentCount": 6,
     "sequence": [
+      "AGUNG",
+      "NQ",
       "ATAGA",
       "BEMAG",
       "CON",
+      "BACAU",
+      "KPG",
       "CMP",
-      "OKENA"
+      "OKENA",
+      "NR"
     ],
     "sources": [
       "xplane"
@@ -7232,13 +7609,24 @@
   "W44": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W44",
-    "segmentCount": 3,
+    "segmentCount": 13,
     "sequence": [
+      "AMN",
+      "FALAM",
+      "HUMUS",
+      "BLI",
+      "ELBAM",
       "CON",
       "IGONO",
       "DUGON",
       "VKB",
-      "MABAG"
+      "KEONG",
+      "EMONA",
+      "KUMAN",
+      "POSAT",
+      "MABAG",
+      "PENNY",
+      "SOG"
     ],
     "sources": [
       "xplane"
@@ -7345,8 +7733,10 @@
   "W45": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W45",
-    "segmentCount": 4,
+    "segmentCount": 5,
     "sequence": [
+      "BLI",
+      "ENTAS",
       "KOW",
       "OSONO",
       "NCH",
@@ -7457,8 +7847,13 @@
   "W46": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W46",
-    "segmentCount": 3,
+    "segmentCount": 7,
     "sequence": [
+      "BLI",
+      "HOSTY",
+      "BPN",
+      "OLDEN",
+      "HULAT",
       "LLC",
       "ZK",
       "OVTAN",
@@ -7469,14 +7864,25 @@
     ],
     "type": "ATS"
   },
+  "W47": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W47",
+    "segmentCount": 2,
+    "sequence": [
+      "DM",
+      "LXA",
+      "TAPUN"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "W5": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W5",
-    "segmentCount": 6,
+    "segmentCount": 4,
     "sequence": [
-      "BGN",
-      "BGO",
-      "MIA#1",
       "BK",
       "NAH",
       "DLC",
@@ -7493,14 +7899,32 @@
   "W51": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W51",
-    "segmentCount": 4,
+    "segmentCount": 5,
     "sequence": [
-      "DRG",
-      "NOMAG",
       "GONTA",
       "GTL",
       "MWB",
-      "PAL"
+      "PAL",
+      "MKS",
+      "RUDAL"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "W52": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W52",
+    "segmentCount": 6,
+    "sequence": [
+      "ANY",
+      "LASEM",
+      "GUANO",
+      "OVINA",
+      "SOLOM",
+      "SIPUT",
+      "MKS"
     ],
     "sources": [
       "xplane"
@@ -7512,9 +7936,31 @@
     "id": "W525",
     "segmentCount": 2,
     "sequence": [
-      "GOMAT",
+      "GOMAT#1",
       "VPG",
       "VPL"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "W53": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W53",
+    "segmentCount": 10,
+    "sequence": [
+      "AMN",
+      "ATOMY",
+      "HOLBA",
+      "TOMBA",
+      "BIK",
+      "ONTAL",
+      "HELIT",
+      "JOLAM",
+      "HIPNO",
+      "NABAT",
+      "MKS"
     ],
     "sources": [
       "xplane"
@@ -7619,6 +8065,28 @@
     ],
     "type": "ATS"
   },
+  "W54": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W54",
+    "segmentCount": 10,
+    "sequence": [
+      "AMN",
+      "GOMBY",
+      "SULIS",
+      "EMPIL",
+      "EROSY",
+      "LEBON",
+      "JOLIA",
+      "FOLOT",
+      "MKE",
+      "KDI",
+      "RALTO"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "W540": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W540",
@@ -7636,13 +8104,18 @@
   "W55": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W55",
-    "segmentCount": 3,
+    "segmentCount": 8,
     "sequence": [
+      "AMN",
+      "BELBA",
+      "BENTO",
+      "BACAU",
+      "IDAMI",
       "DADOL",
       "HX",
       "KMG",
-      "MWB",
-      "RUMBO"
+      "RUMBO",
+      "MWB"
     ],
     "sources": [
       "xplane"
@@ -7707,13 +8180,11 @@
   "W6": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W6",
-    "segmentCount": 23,
+    "segmentCount": 22,
     "sequence": [
       "ASTUR",
       "MCT",
       "PARAO",
-      "BGO",
-      "KL",
       "BS",
       "INDIA",
       "CADIZ",
@@ -7760,8 +8231,10 @@
   "W61": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W61",
-    "segmentCount": 6,
+    "segmentCount": 8,
     "sequence": [
+      "BIK",
+      "FILMO",
       "FASAL",
       "FATOL",
       "FORMY",
@@ -7779,10 +8252,14 @@
   "W62": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W62",
-    "segmentCount": 1,
+    "segmentCount": 4,
     "sequence": [
+      "BIK",
+      "OBASA",
       "JR#1",
-      "RENOB"
+      "RENOB",
+      "MKE",
+      "ZW"
     ],
     "sources": [
       "xplane"
@@ -7792,10 +8269,15 @@
   "W63": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W63",
-    "segmentCount": 1,
+    "segmentCount": 5,
     "sequence": [
+      "BIK",
+      "NUPIA",
       "CDNB",
-      "TZH"
+      "TZH",
+      "MKE",
+      "PUSAT",
+      "TMK"
     ],
     "sources": [
       "xplane"
@@ -7805,10 +8287,14 @@
   "W64": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W64",
-    "segmentCount": 1,
+    "segmentCount": 4,
     "sequence": [
+      "BIK",
+      "NOBBY",
+      "ZR",
       "PAMDA",
-      "TONIL"
+      "TONIL",
+      "TMK"
     ],
     "sources": [
       "xplane"
@@ -7818,11 +8304,17 @@
   "W65": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W65",
-    "segmentCount": 2,
+    "segmentCount": 7,
     "sequence": [
+      "AMN",
+      "SOBIA",
+      "BIK",
+      "LATOS",
       "CG",
       "EPGAM",
-      "TONIL"
+      "TONIL",
+      "ZV",
+      "NILOT#1"
     ],
     "sources": [
       "xplane"
@@ -7844,14 +8336,70 @@
     ],
     "type": "ATS"
   },
+  "W66": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W66",
+    "segmentCount": 4,
+    "sequence": [
+      "JPA",
+      "MELAM",
+      "ZX",
+      "MKE",
+      "ZH"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
   "W67": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W67",
-    "segmentCount": 2,
+    "segmentCount": 9,
     "sequence": [
       "FIMBA",
+      "SOG",
       "SOSOK",
-      "MWB"
+      "JOLAM",
+      "ZV",
+      "JPA",
+      "MALIO",
+      "ZW",
+      "MWB",
+      "TMK"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "W68": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W68",
+    "segmentCount": 6,
+    "sequence": [
+      "AMN",
+      "HANTA",
+      "MITOS",
+      "JPA",
+      "TISTO",
+      "TMK",
+      "ODIUM"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "ATS"
+  },
+  "W69": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "W69",
+    "segmentCount": 3,
+    "sequence": [
+      "FOLOT",
+      "TMK",
+      "UNSEP",
+      "NMA"
     ],
     "sources": [
       "xplane"
@@ -7861,14 +8409,12 @@
   "W7": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W7",
-    "segmentCount": 11,
+    "segmentCount": 10,
     "sequence": [
       "AROLA",
       "SABEL",
       "SIKIN",
-      "BGO",
-      "MKT",
-      "BU",
+      "BU#0",
       "DL",
       "CGO",
       "GITAG",
@@ -7921,7 +8467,7 @@
   "W8": {
     "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
     "id": "W8",
-    "segmentCount": 22,
+    "segmentCount": 21,
     "sequence": [
       "AL",
       "LOPEZ",
@@ -7936,8 +8482,6 @@
       "BAVEN",
       "PQ#0",
       "RG#0",
-      "BGO",
-      "MW",
       "DAHOY",
       "DABOX",
       "DLC",
@@ -7949,7 +8493,7 @@
       "HAPPY",
       "NK",
       "KRT",
-      "TL#0",
+      "TL",
       "TSN"
     ],
     "sources": [
@@ -7968,7 +8512,7 @@
       "BN",
       "TAC",
       "BKK",
-      "TL#0",
+      "TL",
       "NIBAT",
       "CMA",
       "MHS",
@@ -8809,6 +9353,46 @@
     "sequence": [
       "FAIRY",
       "YOSHI"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "RNAV"
+  },
+  "Z10": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "Z10",
+    "segmentCount": 2,
+    "sequence": [
+      "ALEXA",
+      "LIZZA",
+      "DIL"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "RNAV"
+  },
+  "Z69": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "Z69",
+    "segmentCount": 1,
+    "sequence": [
+      "DIL",
+      "SELVA"
+    ],
+    "sources": [
+      "xplane"
+    ],
+    "type": "RNAV"
+  },
+  "Z86": {
+    "cycle": "X-Plane 2012.08 (test placeholder \u2014 replace with company AIRAC)",
+    "id": "Z86",
+    "segmentCount": 1,
+    "sequence": [
+      "DIL",
+      "MAMAL"
     ],
     "sources": [
       "xplane"

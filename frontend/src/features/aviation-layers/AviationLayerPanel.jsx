@@ -5,9 +5,14 @@ import MobileSheet from '../../shared/ui/MobileSheet.jsx'
 
 const GROUPS = [
   { title: '항공로', ids: ['ats-route', 'rnav-route', 'overseas-route'] },
-  { title: '항행시설', ids: ['waypoint', 'overseas-waypoint', 'navaid', 'overseas-navaid', 'airport', 'overseas-airport'] },
-  { title: '공역', ids: ['fir', 'overseas-fir', 'sector', 'ctr', 'tma', 'restricted', 'prohibited', 'danger'] },
+  { title: '항행시설', ids: ['waypoint', 'overseas-waypoint', 'navaid', 'overseas-navaid', 'airport'] },
+  { title: '공역', ids: ['fir', 'sector', 'ctr', 'tma', 'restricted', 'prohibited', 'danger'] },
 ]
+// 국내/해외 타일을 하나로 합쳐 보여줌 — 클릭 한 번으로 둘 다 같은 상태로 맞춘다.
+const MERGE_GROUPS = {
+  airport: ['airport', 'overseas-airport'],
+  fir: ['fir', 'overseas-fir'],
+}
 const LAYER_LABELS = {
   fir: '비행정보구역',
   sector: '관제섹터',
@@ -57,6 +62,13 @@ function AviationLayerPanel({ visibility, onToggle, onClose, onClearAll }) {
   const layerById = new Map(AVIATION_WFS_LAYERS.map((layer) => [layer.id, layer]))
   const activeCount = AVIATION_WFS_LAYERS.filter((layer) => visibility[layer.id]).length
 
+  function handleToggle(id) {
+    const group = MERGE_GROUPS[id]
+    if (!group) { onToggle(id); return }
+    const next = !group.some((gid) => visibility[gid])
+    group.forEach((gid) => { if (!!visibility[gid] !== next) onToggle(gid) })
+  }
+
   // 데스크톱·모바일 공통 타일 그리드 (버튼식 토글).
   const tileGroups = (
     <div className="layer-tile-groups">
@@ -66,13 +78,14 @@ function AviationLayerPanel({ visibility, onToggle, onClose, onClearAll }) {
           <div className="layer-tile-grid">
             {group.ids.map((id) => {
               if (!layerById.has(id)) return null
-              const active = !!visibility[id]
+              const mergeIds = MERGE_GROUPS[id]
+              const active = mergeIds ? mergeIds.some((gid) => visibility[gid]) : !!visibility[id]
               return (
                 <button
                   key={id}
                   type="button"
                   className={`layer-tile${active ? ' is-active' : ''}`}
-                  onClick={() => onToggle(id)}
+                  onClick={() => handleToggle(id)}
                   aria-pressed={active}
                 >
                   <span className="layer-tile-visual"><AviationTileVisual id={id} /></span>

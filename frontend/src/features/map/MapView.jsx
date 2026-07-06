@@ -551,7 +551,7 @@ const MapView = forwardRef(function MapView({
   } = weatherOverlayModel
   const advisoryPanelItems = useMemo(() => {
     if (openAdvisoryPanel === 'sigwxLow') return sigwxGroups
-    if (openAdvisoryPanel === 'sigmet') return sigmetItems
+    if (openAdvisoryPanel === 'sigmet') return sigmetItems.filter((i) => i.source !== 'NOAA')
     if (openAdvisoryPanel === 'airmet') return airmetItems
     return []
   }, [openAdvisoryPanel, sigwxGroups, sigmetItems, airmetItems])

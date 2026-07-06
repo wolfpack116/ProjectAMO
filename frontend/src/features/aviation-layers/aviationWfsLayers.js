@@ -392,7 +392,7 @@ export const AVIATION_WFS_LAYERS = [
     pointLayerId: 'aviation-overseas-airport-point',
     dataUrl: '/data/airports-overseas.geojson',
     color: '#be123c',
-    defaultVisible: false,
+    defaultVisible: true,
     iconSize: 0.9,
     iconImageByProperty: {
       property: 'airportUse',
@@ -416,7 +416,7 @@ export const AVIATION_WFS_LAYERS = [
     externalLabelLayerId: 'aviation-overseas-fir-labels',
     dataUrl: '/data/fir-overseas.geojson',
     color: '#1485d4',
-    defaultVisible: false,
+    defaultVisible: true,
     fillOpacity: 0,
     lineOpacity: 0.9,
     lineWidth: 2,
