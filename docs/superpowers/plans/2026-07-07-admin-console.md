@@ -12,6 +12,30 @@
 
 ---
 
+## 리뷰 반영 & 실행 지침 (필독 — 코드리뷰 결과 2026-07-07)
+
+**검증·TDD는 최소로.** 태스크마다 test-first를 강제하지 않는다. 아래만 지킨다:
+- 백엔드: **Task 5·6·7만** 통합 스모크 1개씩. 나머지는 구현 후 `npm --prefix backend test` 한 번 통과면 OK.
+- 프론트: 파일마다 `npx esbuild ... --bundle=false` 빌드 스모크 + 마지막에 브라우저로 **한 번** 수동 확인(관리자 로그인→진입). Playwright 생략.
+
+**정정 사항(계획 본문의 예시 코드보다 이게 우선):**
+
+1. **테스트 패턴** — 이 레포는 `supertest`/`makeApp()` 안 씀. 실제는 `backend/test/auth.test.js`의 **`makeServer()`(→`{db, app}`) + 노드 `http` 리슨 + `fetch(at(server, path))`** 패턴이다. 아래 태스크의 `agent.post().expect()` 예시는 **무시**하고, auth.test.js 상단 헬퍼를 복붙해 최소 스모크만 작성한다.
+2. **cookie-parser 필수 설치** — 현재 미설치. express-session은 일반 쿠키를 파싱하지 않으므로 `visits.js`의 `req.cookies`가 안 됨. → `npm --prefix backend install cookie-parser` 후 `server.js`에서 `import cookieParser from 'cookie-parser'; app.use(cookieParser())`(sessionMiddleware 앞). **backend 의존성 추가이므로 배포는 full deploy.**
+3. **프론트 라우팅은 React Router가 아님** — `frontend/src/app/App.jsx`의 `App()`이 `window.location.pathname === '/monitoring'`이면 그 페이지를 통째로 렌더하는 방식. `/admin`도 동일하게:
+   ```jsx
+   const AdminPage = lazy(() => import('../features/admin/AdminPage.jsx'))
+   // App() 안, 다른 pathname 분기 옆에:
+   if (window.location.pathname === '/admin') {
+     return <Suspense fallback={null}><AuthProvider><AdminPage /></AuthProvider></Suspense>
+   }
+   ```
+   AuthProvider로 감싸 role을 알 수 있게 한다. AdminPage는 `/api/admin/*` 401·403이면 "관리자 전용" 안내만. 진입 링크는 Sidebar에 role이 admin일 때만 `href: '/admin'`(다른 항목처럼 `window.location.assign`). SPA fallback이라 서버 라우트 변경 불필요.
+4. **SQLite CHECK 주의** — `ALTER TABLE ADD COLUMN ... CHECK`는 SQLite가 무시한다. `status` CHECK는 **fresh DB(CREATE TABLE)에서만** 강제되고, 기존 운영 DB는 앱 레벨 검증(`setUserStatus`의 화이트리스트)으로 보장 — 이게 정상, 추가 조치 불필요.
+5. **verifyLogin이 status 반환**(Task 3 Step 4)에 로그인 차단(Task 4)이 의존 — 순서 지킬 것. 승인 후 사용자는 재로그인해야 세션 획득(정상 UX).
+
+---
+
 ## 파일 구조
 
 **Backend**
