@@ -52,9 +52,16 @@ test('admin endpoints require admin and return data', async () => {
 
     assert.equal((await fetch(at(server, `/api/admin/users/${pending[0].id}/approve`), postWith(cookie))).status, 200)
 
+    // 잘못된 id → 400, 존재하지 않는 id → 404(조용한 200 금지)
+    assert.equal((await fetch(at(server, '/api/admin/users/abc/approve'), postWith(cookie))).status, 400)
+    assert.equal((await fetch(at(server, '/api/admin/users/99999/reject'), postWith(cookie))).status, 404)
+
     r = await fetch(at(server, '/api/admin/forecasters'), jsonPost({ username: 'fc1', password: 'password1', displayName: '인천', airports: ['RKSI'] }, cookie))
     assert.equal(r.status, 201)
     assert.equal((await r.json()).role, 'forecaster')
+
+    // 잘못된 타입 airports → 400 invalid_input(내부오류 비노출)
+    assert.equal((await fetch(at(server, '/api/admin/forecasters'), jsonPost({ username: 'fc2', password: 'password1', airports: 'RKSI' }, cookie))).status, 400)
   } finally {
     server.close(); db.close()
   }

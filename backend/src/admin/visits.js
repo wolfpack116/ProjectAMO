@@ -3,11 +3,14 @@ import { randomUUID } from 'node:crypto'
 // 관리자 콘솔: 익명 포함 방문 추적. 식별정보 없이 uuid 쿠키만.
 const COOKIE = 'amo.vid'
 const ONLINE_MS = 5 * 60 * 1000
+const RETAIN_MS = 90 * 24 * 60 * 60 * 1000 // 90일 후 오래된 방문자 정리(무한 증가 방지)
 
 export function recordVisit(db, visitorId) {
   const now = new Date().toISOString()
   db.prepare('INSERT INTO visits (visitor_id,first_seen,last_seen) VALUES (?,?,?) ON CONFLICT(visitor_id) DO UPDATE SET last_seen=?')
     .run(visitorId, now, now, now)
+  // ponytail: 방문마다 인덱스(idx_visits_last) 기반 prune — 이 규모(운영도구)엔 무해. 쓰기량 급증 시 타이머로 이동.
+  db.prepare('DELETE FROM visits WHERE last_seen < ?').run(new Date(Date.now() - RETAIN_MS).toISOString())
 }
 
 export function trafficStats(db) {
