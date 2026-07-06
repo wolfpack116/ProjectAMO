@@ -5,14 +5,23 @@ function gridStep(min, max, count, fallback) {
   return fallback
 }
 
-export function sampleGridAt(grid, values, lon, lat) {
-  if (!grid || !Array.isArray(values)) return null
+// lon/lat → 격자 flat index. sampleGridAt과 사전 계산(enroute-cross-section) 양쪽이
+// 반드시 같은 칸을 가리켜야 하므로 이 함수 하나로 통일한다.
+export function gridIndexFor(grid, lon, lat) {
+  if (!grid) return null
   const dx = gridStep(grid.lonMin, grid.lonMax, grid.nx, grid.dx)
   const dy = gridStep(grid.latMin, grid.latMax, grid.ny, grid.dy)
   const x = Math.round((lon - grid.lonMin) / dx)
   const y = Math.round((lat - grid.latMin) / dy)
   if (x < 0 || y < 0 || x >= grid.nx || y >= grid.ny) return null
-  const v = values[y * grid.nx + x]
+  return y * grid.nx + x
+}
+
+export function sampleGridAt(grid, values, lon, lat) {
+  if (!grid || !Array.isArray(values)) return null
+  const index = gridIndexFor(grid, lon, lat)
+  if (index == null) return null
+  const v = values[index]
   return Number.isFinite(v) ? v : null
 }
 

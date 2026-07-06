@@ -26,7 +26,7 @@ export const KIM_NWP_LEVELS = [
   { id: '200hPa', label: '200', kind: 'pressure', value: 200, unit: 'hPa', level: 200, uName: 'u', vName: 'v' },
   { id: '150hPa', label: '150', kind: 'pressure', value: 150, unit: 'hPa', level: 150, uName: 'u', vName: 'v' },
 ]
-export const KIM_NWP_MOISTURE_LEVEL_IDS = ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa']
+export const KIM_NWP_MOISTURE_LEVEL_IDS = ['1000hPa', '975hPa', '950hPa', '925hPa', '900hPa', '875hPa', '850hPa', '800hPa', '750hPa', '700hPa', '650hPa', '600hPa', '550hPa', '500hPa', '450hPa', '400hPa', '350hPa', '300hPa', '250hPa', '200hPa', '150hPa']
 export const KIM_NWP_MOISTURE_LEVELS = KIM_NWP_LEVELS.filter((level) => KIM_NWP_MOISTURE_LEVEL_IDS.includes(level.id))
 export const KIM_NWP_ICING_LEVEL_IDS = ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa']
 export const KIM_NWP_ICING_LEVELS = KIM_NWP_LEVELS.filter((level) => KIM_NWP_ICING_LEVEL_IDS.includes(level.id))
@@ -68,7 +68,7 @@ function encodeComponent(values, scale = DEFAULT_SCALE) {
   })
 }
 
-function decodeComponent(values, variable = {}) {
+export function decodeComponent(values, variable = {}) {
   if (variable.encoding === 'int16-scaled-json-v1') {
     return values.map((value) => (
       value === MISSING_ENCODED || !Number.isFinite(value)
@@ -158,7 +158,7 @@ function statsForTemperature(values) {
     : { minT: null, maxT: null, meanT: null }
 }
 
-function dewpointCFromTempRh(tempK, rhPct) {
+export function dewpointCFromTempRh(tempK, rhPct) {
   if (!Number.isFinite(tempK) || !Number.isFinite(rhPct)) return Number.NaN
   const tempC = tempK - 273.15
   const rh = Math.max(1e-6, Math.min(100, rhPct))
@@ -180,7 +180,7 @@ export function cloudPotentialThresholdForLevel(level) {
   return level?.id === '500hPa' ? 6 : 4
 }
 
-function cloudPotentialScoreForSpread(spreadC, thresholdC) {
+export function cloudPotentialScoreForSpread(spreadC, thresholdC) {
   if (!Number.isFinite(spreadC)) return Number.NaN
   if (spreadC > thresholdC) return 0
   return Math.max(0, Math.min(100, ((thresholdC - Math.max(0, spreadC)) / thresholdC) * 100))
@@ -644,7 +644,10 @@ export default {
   calcLiquidRatio,
   calcPhasePenalty,
   calcSfipBaseScore,
+  cloudPotentialScoreForSpread,
   cloudPotentialThresholdForLevel,
+  decodeComponent,
+  dewpointCFromTempRh,
   filterKimNwpIndexForVariables,
   icingGradeFor,
   icingHardGate,

@@ -2,29 +2,72 @@
 // /api/briefing/cross-section 라우트와 route-briefing enroute 모델 요약이 공유한다.
 // (이전에 server.js에 두 벌로 중복돼 있던 로딩 로직을 통합한 것.)
 import config from '../config.js'
-import { buildCrossSection, buildKtgCrossSection } from './cross-section-sampler.js'
+import { buildCrossSection, buildKtgCrossSection, gridIndexFor } from './cross-section-sampler.js'
 import { buildRouteAxis } from './route-axis.js'
 import { selectNearestForecastHour } from '../processors/kim-forecast-hour.js'
 import {
-  buildKimCloudPotentialFieldFromGrid,
-  buildKimIcingFieldFromGrid,
   KIM_NWP_LEVELS,
+  calcKFipLiteScore,
+  decodeComponent,
+  dewpointCFromTempRh,
   filterKimNwpIndexForVariables,
+  icingGradeFor,
 } from '../processors/kim-nwp-model.js'
 import { readKimNwpGrid, readKimNwpIndex, readKimNwpLatest } from '../processors/kim-nwp-store.js'
 import { readKtgLatest, readKtgIndex, readKtgCoords, readKtgGridSafe } from '../processors/ktg-store.js'
 
 const KIM_ICING_REQUIRED_VARIABLES = ['T', 'rh_liq', 'w', 'tqc', 'tqi', 'tqr', 'tqs', 'cld']
 
-function decodeVar(variable) {
-  const { values = [], scale = 1, offset = 0, encoding } = variable || {}
-  if (encoding === 'int16-scaled-json-v1') {
-    return values.map((v) => (v === -32768 || !Number.isFinite(v) ? Number.NaN : v * scale + offset))
+// 경로 샘플(최대 2500개)이 실제로 짚는 격자칸만 계산한다. 전국 격자(수만 칸) 전체를
+// 계산했다가 샘플만 뽑아 쓰는 이전 방식은 계산량의 대부분을 버리는 구조였다.
+function routeGridIndices(gridMeta, samples) {
+  const indices = new Set()
+  for (const s of samples) {
+    const idx = gridIndexFor(gridMeta, s.lon, s.lat)
+    if (idx != null) indices.add(idx)
   }
-  return values
+  return indices
 }
-function decodeArr(values, field) {
-  return decodeVar({ values, scale: field.scale, offset: field.offset, encoding: field.encoding })
+
+function decodeAt(variable, idx) {
+  return decodeComponent([variable.values[idx]], variable)[0]
+}
+
+function sparseDecode(size, indices, variable) {
+  const out = new Array(size).fill(Number.NaN)
+  for (const idx of indices) out[idx] = decodeAt(variable, idx)
+  return out
+}
+
+// f.spread(온도-이슬점차, °C)만 필요하므로 cloudPotential(%) 점수 계산은 생략한다.
+function sparseSpread(size, indices, tempVar, rhVar) {
+  const out = new Array(size).fill(Number.NaN)
+  for (const idx of indices) {
+    const tempK = decodeAt(tempVar, idx)
+    const tdC = dewpointCFromTempRh(tempK, decodeAt(rhVar, idx))
+    out[idx] = Number.isFinite(tdC) ? tempK - 273.15 - tdC : Number.NaN
+  }
+  return out
+}
+
+function sparseIcingGrade(size, indices, variables) {
+  const out = new Array(size).fill(null)
+  for (const idx of indices) {
+    const values = {
+      tempC: decodeAt(variables.T, idx) - 273.15,
+      rhLiq: decodeAt(variables.rh_liq, idx),
+      w: decodeAt(variables.w, idx),
+      tqc: decodeAt(variables.tqc, idx),
+      tqi: decodeAt(variables.tqi, idx),
+      tqr: decodeAt(variables.tqr, idx),
+      tqs: decodeAt(variables.tqs, idx),
+      cld: decodeAt(variables.cld, idx),
+    }
+    if (!Object.values(values).every(Number.isFinite)) continue
+    const { score, mCl, bFrz } = calcKFipLiteScore(values)
+    out[idx] = icingGradeFor(score, { mCl, bFrz })
+  }
+  return out
 }
 
 // 경로의 KIM/KTG 단면 필드를 로드한다. KIM run이 없으면 { available: false }.
@@ -53,19 +96,19 @@ export function loadRouteCrossSection({ root, routeGeometry, body = {} }) {
     } catch { return null }
     if (!grid) return null
     const out = { pressure: level.value, grid: grid.grid }
-    if (grid.variables?.hgt) out.hgt = decodeVar(grid.variables.hgt)
-    if (grid.variables?.T) out.T = decodeVar(grid.variables.T)
+    const size = (grid.grid?.nx || 0) * (grid.grid?.ny || 0)
+    const indices = routeGridIndices(grid.grid, axis.samples)
+    if (grid.variables?.hgt) out.hgt = sparseDecode(size, indices, grid.variables.hgt)
+    if (grid.variables?.T) out.T = sparseDecode(size, indices, grid.variables.T)
     if (grid.variables?.u && grid.variables?.v) {
-      out.u = decodeVar(grid.variables.u)
-      out.v = decodeVar(grid.variables.v)
+      out.u = sparseDecode(size, indices, grid.variables.u)
+      out.v = sparseDecode(size, indices, grid.variables.v)
     }
     if (grid.variables?.T && grid.variables?.rh) {
-      const f = buildKimCloudPotentialFieldFromGrid(grid)
-      out.spread = decodeArr(f.spread, f)
+      out.spread = sparseSpread(size, indices, grid.variables.T, grid.variables.rh)
     }
     if (KIM_ICING_REQUIRED_VARIABLES.every((n) => grid.variables?.[n])) {
-      const f = buildKimIcingFieldFromGrid(grid)
-      out.icingGrade = f.icingGrade.map((v) => (v === -32768 ? null : v))
+      out.icingGrade = sparseIcingGrade(size, indices, grid.variables)
     }
     return out
   }
