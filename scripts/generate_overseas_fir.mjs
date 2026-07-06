@@ -20,6 +20,8 @@ const FIR_NAME = {
   VVHM: 'HO CHI MINH', VDPF: 'PHNOM PENH', VTBB: 'BANGKOK', WMFC: 'KUALA LUMPUR',
   WSJC: 'SINGAPORE', WIIF: 'JAKARTA', WAAF: 'UJUNG PANDANG', RPHI: 'MANILA',
   ZKKP: 'PYONGYANG', UHHH: 'KHABAROVSK',
+  VLVT: 'VIENTIANE', WBFC: 'KOTA KINABALU', // 라오스, 코타키나발루(사바·브루나이)
+  ZPKM: 'KUNMING', // 쿤밍(쓰촨·윈난·충칭 서남부) — 청두·쿤밍·충칭 취항지 커버
 }
 
 const res = await fetch(SRC)
@@ -27,28 +29,31 @@ if (!res.ok) throw new Error(`VAT-Spy fetch failed: ${res.status}`)
 const src = await res.json()
 
 // FIR별 대표 폴리곤(정확 매칭)만 경계선으로 그린다 — 하위 섹터 조각은 넣지 않음(본토 내부 선 방지).
-// ⚠️ 일본 후쿠오카 FIR(RJJJ)은 VAT-Spy 폴리곤이 태평양까지 뻗어 중심 라벨이 먼바다로 감 → 라벨은 여기서
-//    안 붙이고 fir.geojson이 본토 위에 "RJJJ FUKUOKA FIR"로 표시(중복 방지).
-const NO_LABEL = new Set(['RJJJ'])
+// 라벨은 인천 FIR과 동일 방식: 지정 좌표(label_lon/lat)에 point 라벨을 놓고 addFirLabelLayer가
+// code(크게)/이름(작게) 포맷으로 렌더한다(폴리곤 중심 라벨 X — 타일마다 반복돼 지저분해짐).
+// ⚠️ 아래 3개는 도메스틱 fir.geojson이 이미 라벨하므로 여기선 point 라벨을 안 만든다(중복 방지):
+//    RJJJ(후쿠오카; VAT-Spy 폴리곤이 태평양까지 뻗어 중심이 먼바다), ZKKP(평양), ZSHA(상하이).
+const NO_LABEL = new Set(['RJJJ', 'ZKKP', 'ZSHA'])
 
 const targets = new Set(Object.keys(FIR_NAME))
 const features = src.features
   .filter((f) => targets.has(f.properties?.id))
-  .map((f) => {
+  .flatMap((f) => {
     const id = f.properties.id
     const name = FIR_NAME[id]
-    return {
+    const out = [{
       type: 'Feature',
-      properties: {
-        id,
-        role: 'overseas-fir',
-        label: NO_LABEL.has(id) ? '' : `${id}\n${name} FIR`,
-        fir_lbl_1: `${name} FIR`,
-        label_lon: Number(f.properties.label_lon),
-        label_lat: Number(f.properties.label_lat),
-      },
+      properties: { id, role: 'overseas-fir', fir_lbl_1: `${name} FIR` },
       geometry: f.geometry,
+    }]
+    if (!NO_LABEL.has(id)) {
+      out.push({
+        type: 'Feature',
+        properties: { role: 'external-label', code: id, label: `${name} FIR` },
+        geometry: { type: 'Point', coordinates: [Number(f.properties.label_lon), Number(f.properties.label_lat)] },
+      })
     }
+    return out
   })
 
 const found = new Set(features.map((f) => f.properties.id))

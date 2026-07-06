@@ -67,24 +67,10 @@ export const AVIATION_WFS_LAYERS = [
     fillOpacity: 0,
     lineOpacity: 0.9,
     lineWidth: 2,
-    tickIconId: 'fir-boundary-tick',
-    innerTickIconId: 'fir-boundary-inner-tick',
+    // 틱은 useFirTickOverlay가 지오메트리로 렌더(wfs-fir-ticks). 간격은 화면 픽셀.
+    tickLayerId: 'wfs-fir-ticks',
     tickSpacing: 42,
     innerTickSpacing: 67,
-    neighborBoundaries: [
-      {
-        id: 'pyongyang',
-        tickLayerId: 'wfs-fir-pyongyang-ticks',
-      },
-      {
-        id: 'shanghai',
-        tickLayerId: 'wfs-fir-shanghai-ticks',
-      },
-      {
-        id: 'fukuoka',
-        tickLayerId: 'wfs-fir-fukuoka-ticks',
-      },
-    ],
   },
   {
     id: 'sector',
@@ -418,7 +404,7 @@ export const AVIATION_WFS_LAYERS = [
   },
   {
     // 해외 FIR 경계 — VATSIM VAT-Spy Boundaries(scripts/generate_overseas_fir.mjs, CC-BY-SA-4.0).
-    // 인천 FIR처럼 경계선+라벨로 표시. 인천 전용(마스크·틱)은 제외한 단순 경계. 점선으로 국내와 구분.
+    // 인천 FIR과 동일하게 실선 경계선+라벨로 표시(선 스타일 동일). 인천 전용(마스크·틱)은 제외.
     id: 'overseas-fir',
     nameKo: '해외 FIR',
     nameEn: 'Overseas FIR',
@@ -426,15 +412,13 @@ export const AVIATION_WFS_LAYERS = [
     sourceId: 'aviation-overseas-fir',
     fillLayerId: 'aviation-overseas-fir-fill',
     lineLayerId: 'aviation-overseas-fir-line',
-    labelLayerId: 'aviation-overseas-fir-labels',
-    labelTextField: ['get', 'label'], // "RJJJ\nFUKUOKA FIR"
-    labelMinzoom: 4,
+    // 라벨은 인천 FIR과 동일: 지정 좌표의 point(role external-label)를 addFirLabelLayer가 code/이름 포맷으로 렌더.
+    externalLabelLayerId: 'aviation-overseas-fir-labels',
     dataUrl: '/data/fir-overseas.geojson',
     color: '#1485d4',
     defaultVisible: false,
     fillOpacity: 0,
-    lineOpacity: 0.6,
-    lineWidth: 1.2,
-    lineDasharray: [3, 2],
+    lineOpacity: 0.9,
+    lineWidth: 2,
   },
 ]

@@ -16,27 +16,7 @@ function combineFilter(baseFilter, extraFilter) {
   return extraFilter ? ['all', baseFilter, extraFilter] : baseFilter
 }
 
-function ensureFirTickIcon(map, imageId, color, direction = 'outer') {
-  if (map.hasImage(imageId)) {
-    return
-  }
-
-  const size = 18
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-
-  const context = canvas.getContext('2d')
-  context.strokeStyle = color
-  context.lineWidth = 2
-  context.lineCap = 'butt'
-  context.beginPath()
-  context.moveTo(size / 2, size / 2)
-  context.lineTo(size / 2, direction === 'inner' ? size - 2 : 2)
-  context.stroke()
-
-  map.addImage(imageId, context.getImageData(0, 0, size, size))
-}
+// FIR 경계 틱은 symbol이 아니라 지오메트리로 렌더한다(스크롤 후 틱 이탈 방지). useFirTickOverlay 참조.
 
 function ensureIconImages(map, layer) {
   if (!layer.iconImageByProperty) {
@@ -377,14 +357,6 @@ function movePointLayersToTop(map) {
 
 export function addAviationWfsLayers(map) {
   AVIATION_WFS_LAYERS.forEach((layer) => {
-    if (layer.tickIconId) {
-      ensureFirTickIcon(map, layer.tickIconId, layer.color)
-    }
-
-    if (layer.innerTickIconId) {
-      ensureFirTickIcon(map, layer.innerTickIconId, layer.color, 'inner')
-    }
-
     ensureIconImages(map, layer)
 
     if (!map.getSource(layer.sourceId)) {
@@ -461,55 +433,7 @@ export function addAviationWfsLayers(map) {
 
     addRouteLabelLayer(map, layer, visibility)
 
-    if (layer.tickLayerId && !map.getLayer(layer.tickLayerId)) {
-      map.addLayer({
-        id: layer.tickLayerId,
-        type: 'symbol',
-        source: layer.sourceId,
-        slot: 'top',
-        filter: roleFilter('incheon-fir-boundary', LINE_FILTER),
-        layout: {
-          visibility,
-          'symbol-placement': 'line',
-          'symbol-spacing': layer.tickSpacing,
-          'icon-image': layer.tickIconId,
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
-          'icon-keep-upright': false,
-          'icon-rotation-alignment': 'map',
-        },
-        paint: {
-          'icon-opacity': layer.lineOpacity,
-        },
-      })
-    }
-
-    layer.neighborBoundaries?.forEach((boundary) => {
-      if (map.getLayer(boundary.tickLayerId)) {
-        return
-      }
-
-      map.addLayer({
-        id: boundary.tickLayerId,
-        type: 'symbol',
-        source: layer.sourceId,
-        slot: 'top',
-        filter: ['all', ['==', ['get', 'role'], 'inner-boundary'], ['==', ['get', 'neighbor'], boundary.id], LINE_FILTER],
-        layout: {
-          visibility,
-          'symbol-placement': 'line',
-          'symbol-spacing': layer.innerTickSpacing,
-          'icon-image': layer.innerTickIconId,
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
-          'icon-keep-upright': false,
-          'icon-rotation-alignment': 'map',
-        },
-        paint: {
-          'icon-opacity': layer.lineOpacity,
-        },
-      })
-    })
+    // FIR 경계 틱은 useFirTickOverlay가 지오메트리(wfs-fir-ticks line 레이어)로 렌더한다.
 
     if (layer.externalLabelLayerId) {
       addFirLabelLayer(map, layer, layer.externalLabelLayerId, 'external-label', [0, 0], visibility)

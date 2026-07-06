@@ -6,6 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAP_CONFIG, BASEMAP_OPTIONS } from './mapConfig.js'
 import { addAviationWfsLayers } from '../aviation-layers/addAviationWfsLayers.js'
 import { AVIATION_WFS_LAYERS } from '../aviation-layers/aviationWfsLayers.js'
+import { useFirTickOverlay } from '../aviation-layers/useFirTickOverlay.js'
 import {
   ADVISORY_LAYER_DEFS,
 } from '../weather-overlays/lib/advisoryLayers.js'
@@ -863,6 +864,8 @@ const MapView = forwardRef(function MapView({
     })
 
     mapRef.current = map
+    // ponytail: DEV 전용 디버그 훅 — Playwright/콘솔에서 카메라 정밀 제어용. 프로덕션 빌드엔 미포함.
+    if (import.meta.env.DEV) window.__map = map
     return () => {
       resizeObserver.disconnect()
       window.removeEventListener('resize', resizeMap)
@@ -1013,6 +1016,9 @@ const MapView = forwardRef(function MapView({
   useStyleSyncedEffect(mapRef, isStyleReady, styleRevision, (map) => {
     syncLightningLayers(map, lightningLayerModel)
   }, [lightningLayerModel])
+
+  // FIR 경계 틱(지오메트리 렌더 + moveend 재생성) — 스크롤 후 틱 이탈 방지.
+  useFirTickOverlay(mapRef, isStyleReady, styleRevision)
 
   useWeatherFieldOverlay(mapRef, isStyleReady, styleRevision, (map) => {
     if (!enableWindOverlay) return
