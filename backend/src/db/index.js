@@ -15,6 +15,7 @@ function ensureColumns(database) {
 
   const userCols = database.prepare('PRAGMA table_info(users)').all().map((c) => c.name)
   if (!userCols.includes('airports')) database.exec('ALTER TABLE users ADD COLUMN airports TEXT') // 예보관 담당공항(JSON 배열), #6
+  if (!userCols.includes('status')) database.exec("ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT 'active'") // 가입 승인(기존=active)
 }
 
 // 스키마 적용된 연결 생성. dbPath=':memory:'면 테스트용 인메모리.

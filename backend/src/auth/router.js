@@ -19,7 +19,7 @@ export function createAuthRouter({ db = null } = {}) {
       return res.status(400).json({ error: 'forecaster_approval_required' })
     }
     try {
-      createUser(database(), { username: parsed.data.username, password: parsed.data.password, role: 'pilot' })
+      createUser(database(), { username: parsed.data.username, password: parsed.data.password, role: 'pilot', status: 'pending' })
     } catch (err) {
       // 계정 열거 방지: 중복 아이디도 동일 성공응답(내부만 무시). 그 외 검증오류는 400.
       if (err.message !== 'username_taken') return res.status(400).json({ error: 'invalid_input' })
@@ -33,6 +33,9 @@ export function createAuthRouter({ db = null } = {}) {
     if (!parsed.success) return res.status(401).json({ error: 'invalid_credentials' })
     const user = verifyLogin(database(), parsed.data.username, parsed.data.password)
     if (!user) return res.status(401).json({ error: 'invalid_credentials' })
+    if (user.status !== 'active') {
+      return res.status(403).json({ error: user.status === 'rejected' ? 'account_rejected' : 'pending_approval' })
+    }
     req.session.userId = user.id
     req.session.role = user.role
     req.session.absoluteExpiry = Date.now() + ABSOLUTE_TTL_MS

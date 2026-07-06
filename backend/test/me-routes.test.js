@@ -21,8 +21,9 @@ const at = (s, p) => `http://127.0.0.1:${s.address().port}${p}`
 const CLOSE = { connection: 'close' }
 const JSONH = { 'content-type': 'application/json', ...CLOSE }
 
-async function login(s, username) {
+async function login(s, db, username) {
   await fetch(at(s, '/api/auth/register'), { method: 'POST', headers: JSONH, body: JSON.stringify({ username, password: 'password1' }) })
+  db.prepare("UPDATE users SET status='active' WHERE username=?").run(username) // 가입=대기 → 승인
   const r = await fetch(at(s, '/api/auth/login'), { method: 'POST', headers: JSONH, body: JSON.stringify({ username, password: 'password1' }) })
   return r.headers.get('set-cookie').split(';')[0]
 }
@@ -33,7 +34,7 @@ test('routes: POST → GET round-trips snapshot; DELETE removes', async () => {
   const { db, app } = makeServer()
   const s = await listen(app)
   try {
-    const cookie = await login(s, 'pilotr')
+    const cookie = await login(s, db, 'pilotr')
     let r = await fetch(at(s, '/api/me/routes'), { method: 'POST', headers: { ...JSONH, cookie }, body: JSON.stringify({ name: '서울-제주', snapshot: SNAP }) })
     assert.equal(r.status, 201)
     const created = await r.json()
@@ -67,9 +68,9 @@ test('routes: only own (session-scoped, not client id)', async () => {
   const { db, app } = makeServer()
   const s = await listen(app)
   try {
-    const cookieA = await login(s, 'ownerA')
+    const cookieA = await login(s, db, 'ownerA')
     await fetch(at(s, '/api/me/routes'), { method: 'POST', headers: { ...JSONH, cookie: cookieA }, body: JSON.stringify({ name: 'A route', snapshot: SNAP }) })
-    const cookieB = await login(s, 'ownerB')
+    const cookieB = await login(s, db, 'ownerB')
     const r = await fetch(at(s, '/api/me/routes'), { headers: { ...CLOSE, cookie: cookieB } })
     assert.deepEqual((await r.json()).routes, [], 'B sees none of A')
   } finally { s.close(); db.close() }
@@ -79,7 +80,7 @@ test('routes: oversized payload → 400', async () => {
   const { db, app } = makeServer()
   const s = await listen(app)
   try {
-    const cookie = await login(s, 'pilotbig')
+    const cookie = await login(s, db, 'pilotbig')
     const huge = { routeForm: {}, blob: 'x'.repeat(21000) }
     const r = await fetch(at(s, '/api/me/routes'), { method: 'POST', headers: { ...JSONH, cookie }, body: JSON.stringify({ name: 'big', snapshot: huge }) })
     assert.equal(r.status, 400)

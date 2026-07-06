@@ -33,6 +33,7 @@ test('요청 흐름: 조종사 문의 → RKSI 예보관 큐·claim·상세·clo
   try {
     // 계정: 조종사(register), RKSI 예보관, RKSS 예보관(직접 생성)
     await fetch(at(s, '/api/auth/register'), { method: 'POST', headers: JSONH, body: JSON.stringify({ username: 'pilot1', password: 'password1' }) })
+    db.prepare("UPDATE users SET status='active' WHERE username='pilot1'").run() // 가입=대기 → 승인
     createUser(db, { username: 'wx_rksi', password: 'password1', role: 'forecaster', airports: ['RKSI'] })
     createUser(db, { username: 'wx_rkss', password: 'password1', role: 'forecaster', airports: ['RKSS'] })
 
@@ -82,6 +83,7 @@ test('문의 생성: 예보관 없는 공항 → 400, 남의 경로 → 404', as
   const s = await listen(app)
   try {
     await fetch(at(s, '/api/auth/register'), { method: 'POST', headers: JSONH, body: JSON.stringify({ username: 'pilotA', password: 'password1' }) })
+    db.prepare("UPDATE users SET status='active' WHERE username='pilotA'").run() // 가입=대기 → 승인
     const pilot = await login(s, 'pilotA')
     const route = await (await fetch(at(s, '/api/me/routes'), { method: 'POST', headers: { ...JSONH, cookie: pilot }, body: JSON.stringify({ name: 'r', snapshot: {} }) })).json()
 

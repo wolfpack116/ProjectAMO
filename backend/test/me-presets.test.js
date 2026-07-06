@@ -21,8 +21,9 @@ const at = (s, p) => `http://127.0.0.1:${s.address().port}${p}`
 const CLOSE = { connection: 'close' }
 const JSONH = { 'content-type': 'application/json', ...CLOSE }
 
-async function registerAndLogin(s, username) {
+async function registerAndLogin(s, db, username) {
   await fetch(at(s, '/api/auth/register'), { method: 'POST', headers: JSONH, body: JSON.stringify({ username, password: 'password1' }) })
+  db.prepare("UPDATE users SET status='active' WHERE username=?").run(username) // 가입=대기 → 승인
   const r = await fetch(at(s, '/api/auth/login'), { method: 'POST', headers: JSONH, body: JSON.stringify({ username, password: 'password1' }) })
   return r.headers.get('set-cookie').split(';')[0]
 }
@@ -31,7 +32,7 @@ test('presets: PUT saves, GET returns own presets', async () => {
   const { db, app } = makeServer()
   const s = await listen(app)
   try {
-    const cookie = await registerAndLogin(s, 'pilotp')
+    const cookie = await registerAndLogin(s, db, 'pilotp')
     let r = await fetch(at(s, '/api/me/presets'), { method: 'PUT', headers: { ...JSONH, cookie }, body: JSON.stringify({ presets: { RKSI: { visibilityM: 800, ceilingFt: 200 } } }) })
     assert.equal(r.status, 200)
     r = await fetch(at(s, '/api/me/presets'), { headers: { ...CLOSE, cookie } })
@@ -53,9 +54,9 @@ test('presets: users only see their own (ownership by session, not client id)', 
   const { db, app } = makeServer()
   const s = await listen(app)
   try {
-    const cookieA = await registerAndLogin(s, 'userA')
+    const cookieA = await registerAndLogin(s, db, 'userA')
     await fetch(at(s, '/api/me/presets'), { method: 'PUT', headers: { ...JSONH, cookie: cookieA }, body: JSON.stringify({ presets: { RKSS: { visibilityM: 175, ceilingFt: null } } }) })
-    const cookieB = await registerAndLogin(s, 'userB')
+    const cookieB = await registerAndLogin(s, db, 'userB')
     const r = await fetch(at(s, '/api/me/presets'), { headers: { ...CLOSE, cookie: cookieB } })
     assert.deepEqual((await r.json()).presets, {}, 'userB sees nothing of userA')
   } finally { s.close(); db.close() }
@@ -65,7 +66,7 @@ test('presets: invalid body → 400', async () => {
   const { db, app } = makeServer()
   const s = await listen(app)
   try {
-    const cookie = await registerAndLogin(s, 'pilotq')
+    const cookie = await registerAndLogin(s, db, 'pilotq')
     const r = await fetch(at(s, '/api/me/presets'), { method: 'PUT', headers: { ...JSONH, cookie }, body: JSON.stringify({ presets: { RKSI: { visibilityM: 99999 } } }) })
     assert.equal(r.status, 400)
   } finally { s.close(); db.close() }

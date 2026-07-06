@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   role          TEXT NOT NULL DEFAULT 'pilot' CHECK (role IN ('pilot','forecaster','admin')),
   display_name  TEXT,
   airports      TEXT,                         -- 예보관 담당공항(JSON 배열, 7개 부분집합). #6
+  status        TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('pending','active','rejected')),  -- 가입 승인
   created_at    TEXT NOT NULL
 );
 
@@ -54,6 +55,17 @@ CREATE TABLE IF NOT EXISTS requests (       -- 조종사→예보관 문의
   updated_at          TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS metrics (        -- 리소스 시계열(60초 샘플, 7일 보관). 관리자 콘솔
+  ts         TEXT NOT NULL,
+  cpu_pct    REAL, mem_used INTEGER, mem_total INTEGER, disk_used INTEGER, disk_total INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS visits (         -- 익명 포함 방문 추적. 관리자 콘솔
+  visitor_id TEXT PRIMARY KEY, first_seen TEXT NOT NULL, last_seen TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_presets_user ON presets(user_id);
 CREATE INDEX IF NOT EXISTS idx_routes_user ON routes(user_id);
 CREATE INDEX IF NOT EXISTS idx_requests_status ON requests(status, target_airport);
+CREATE INDEX IF NOT EXISTS idx_metrics_ts ON metrics(ts);
+CREATE INDEX IF NOT EXISTS idx_visits_last ON visits(last_seen);

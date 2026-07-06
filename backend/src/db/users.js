@@ -11,7 +11,7 @@ function parseAirports(json) {
 
 // 유저 생성 + bcrypt 해시. 스크립트(관리자 생성)와 step2 register가 공유.
 // 검증 실패/중복은 코드형 Error(username_taken 등) throw — 호출자가 매핑.
-export function createUser(db, { username, password, role = 'pilot', displayName = null, airports = null }) {
+export function createUser(db, { username, password, role = 'pilot', displayName = null, airports = null, status = 'active' }) {
   if (!/^[A-Za-z0-9_]{3,32}$/.test(String(username || ''))) throw new Error('invalid_username')
   if (typeof password !== 'string' || password.length < 8 || password.length > 128) throw new Error('invalid_password')
   if (!ROLES.includes(role)) throw new Error('invalid_role')
@@ -23,8 +23,8 @@ export function createUser(db, { username, password, role = 'pilot', displayName
   const now = new Date().toISOString()
   try {
     const info = db
-      .prepare('INSERT INTO users (username, password_hash, role, display_name, airports, created_at) VALUES (?,?,?,?,?,?)')
-      .run(username, hash, role, displayName ?? username, airportsJson, now)
+      .prepare('INSERT INTO users (username, password_hash, role, display_name, airports, status, created_at) VALUES (?,?,?,?,?,?,?)')
+      .run(username, hash, role, displayName ?? username, airportsJson, status, now)
     return { id: info.lastInsertRowid, username, role, display_name: displayName ?? username, airports: parseAirports(airportsJson) }
   } catch (err) {
     if (String(err?.message || '').includes('UNIQUE')) throw new Error('username_taken')
@@ -38,14 +38,14 @@ const DUMMY_HASH = bcrypt.hashSync('dummy-timing-guard', BCRYPT_COST)
 // 로그인 검증. 실패(없는 유저·비번 불일치) 모두 null → 라우터가 동일 401.
 export function verifyLogin(db, username, password) {
   const row = db
-    .prepare('SELECT id, username, password_hash, role, display_name, airports FROM users WHERE username = ?')
+    .prepare('SELECT id, username, password_hash, role, display_name, airports, status FROM users WHERE username = ?')
     .get(username)
   if (!row) {
     bcrypt.compareSync(String(password ?? ''), DUMMY_HASH) // 타이밍 평준화
     return null
   }
   if (!bcrypt.compareSync(String(password ?? ''), row.password_hash)) return null
-  return { id: row.id, username: row.username, role: row.role, display_name: row.display_name, airports: parseAirports(row.airports) }
+  return { id: row.id, username: row.username, role: row.role, display_name: row.display_name, airports: parseAirports(row.airports), status: row.status }
 }
 
 // 공개 유저 형태(비번 제외, 담당공항 파싱). /me·예보관 라우터 공용.
@@ -55,4 +55,16 @@ export function getUserById(db, id) {
   return { id: row.id, username: row.username, role: row.role, display_name: row.display_name, airports: parseAirports(row.airports) }
 }
 
-export default { createUser, verifyLogin, getUserById, ROLES }
+// 관리자 콘솔: 전체 사용자·승인 대기·상태 변경.
+export function listUsers(db) {
+  return db.prepare('SELECT id, username, role, status, created_at FROM users ORDER BY created_at DESC').all()
+}
+export function listPending(db) {
+  return db.prepare("SELECT id, username, role, created_at FROM users WHERE status='pending' ORDER BY created_at").all()
+}
+export function setUserStatus(db, id, status) {
+  if (!['pending', 'active', 'rejected'].includes(status)) throw new Error('invalid_status')
+  return db.prepare('UPDATE users SET status=? WHERE id=?').run(status, id).changes
+}
+
+export default { createUser, verifyLogin, getUserById, listUsers, listPending, setUserStatus, ROLES }

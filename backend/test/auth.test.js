@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import express from 'express'
 
 import { createDb } from '../src/db/index.js'
-import { createUser } from '../src/db/users.js'
+import { createUser, listPending, setUserStatus } from '../src/db/users.js'
 import { sessionMiddleware } from '../src/auth/session.js'
 import { createAuthRouter } from '../src/auth/router.js'
 
@@ -33,6 +33,9 @@ test('auth flow: register → login → me(cookie) → logout', async () => {
     let r = await fetch(at(server, '/api/auth/register'), jsonPost({ username: 'pilotx', password: 'password1' }))
     assert.equal(r.status, 201, 'register pilot 201')
 
+    // 가입=승인대기 → 로그인 전 관리자 승인 필요.
+    setUserStatus(db, listPending(db)[0].id, 'active')
+
     r = await fetch(at(server, '/api/auth/login'), jsonPost({ username: 'pilotx', password: 'password1' }))
     assert.equal(r.status, 200, 'login 200')
     assert.equal((await r.json()).role, 'pilot')
@@ -54,6 +57,23 @@ test('auth flow: register → login → me(cookie) → logout', async () => {
 
     r = await fetch(at(server, '/api/auth/me'), getWith(cookie))
     assert.equal(r.status, 401, 'me after logout 401')
+  } finally {
+    server.close(); db.close()
+  }
+})
+
+test('register creates pending user and login is blocked until approved', async () => {
+  const { db, app } = makeServer()
+  const server = await listen(app)
+  try {
+    await fetch(at(server, '/api/auth/register'), jsonPost({ username: 'newpilot', password: 'password1' }))
+    let r = await fetch(at(server, '/api/auth/login'), jsonPost({ username: 'newpilot', password: 'password1' }))
+    assert.equal(r.status, 403, 'login blocked while pending')
+    assert.equal((await r.json()).error, 'pending_approval')
+
+    setUserStatus(db, listPending(db)[0].id, 'active')
+    r = await fetch(at(server, '/api/auth/login'), jsonPost({ username: 'newpilot', password: 'password1' }))
+    assert.equal(r.status, 200, 'login after approval')
   } finally {
     server.close(); db.close()
   }

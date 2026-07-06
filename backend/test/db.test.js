@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createDb } from '../src/db/index.js'
-import { createUser } from '../src/db/users.js'
+import { createUser, verifyLogin, listUsers, listPending, setUserStatus } from '../src/db/users.js'
 
 function freshDb() {
   return createDb(':memory:')
@@ -58,4 +58,31 @@ test('schema: icao length CHECK (must be 4)', () => {
   const db = freshDb()
   const u = createUser(db, { username: 'icao_user', password: 'password1' })
   assert.throws(() => db.prepare("INSERT INTO presets (user_id, icao, updated_at) VALUES (?,?,?)").run(u.id, 'RK', 't'), /CHECK/)
+})
+
+// --- 관리자 콘솔 ---
+
+test('users has status column defaulting to active', () => {
+  const db = freshDb()
+  const cols = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name)
+  assert.ok(cols.includes('status'))
+  db.prepare("INSERT INTO users (username,password_hash,role,created_at) VALUES ('u','h','pilot','t')").run()
+  assert.equal(db.prepare("SELECT status FROM users WHERE username='u'").get().status, 'active')
+})
+
+test('metrics and visits tables exist', () => {
+  const db = freshDb()
+  const t = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map((r) => r.name)
+  assert.ok(t.includes('metrics'))
+  assert.ok(t.includes('visits'))
+})
+
+test('createUser status + verifyLogin returns status + admin queries', () => {
+  const db = freshDb()
+  createUser(db, { username: 'pilotA', password: 'password1', status: 'pending' })
+  assert.equal(verifyLogin(db, 'pilotA', 'password1').status, 'pending')
+  assert.equal(listPending(db).length, 1)
+  setUserStatus(db, listPending(db)[0].id, 'active')
+  assert.equal(verifyLogin(db, 'pilotA', 'password1').status, 'active')
+  assert.equal(listUsers(db)[0].username, 'pilotA')
 })
