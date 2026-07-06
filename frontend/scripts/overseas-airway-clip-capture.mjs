@@ -12,9 +12,9 @@ const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 16)
 const outDir = process.env.PROJECTAMO_CAPTURE_DIR || path.join(__dirname, `../../artifacts/overseas-airway-clip/${stamp}`)
 
 const VIEWS = [
-  { label: 'rjjj-pacific-otr', center: [144, 34], zoom: 6.0 },
+  { label: 'fir-overlap-china-vietnam', center: [110, 20], zoom: 3.9 },
 ]
-const LAYERS = ['aviation-overseas-route-line', 'aviation-overseas-waypoint-point', 'aviation-overseas-navaid-point']
+const LAYERS = []  // FIR 라인은 기본 표시 — 아무것도 강제로 켜지 않아 경계선만 깔끔히 본다
 
 async function shoot(browser, view) {
   const page = await browser.newContext({ viewport: { width: 1900, height: 1000 }, deviceScaleFactor: 1.5 }).then((c) => c.newPage())

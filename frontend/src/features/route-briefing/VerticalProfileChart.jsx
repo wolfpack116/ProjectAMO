@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { msToKt, windBarbFeathers, windDirectionFromUV, isothermSegments, pressureToFallbackFt } from './lib/crossSectionGrid.js'
 import { advisorySymbolUrl } from '../weather-overlays/lib/advisoryLayers.js'
 
@@ -185,6 +186,19 @@ function WindBarb({ cx, cy, u, v }) {
 }
 
 export default function VerticalProfileChart({ profile, crossSection = null, layers = {}, advisories = [] }) {
+  // 차트가 놓인 컨테이너(하단 바/패널) 실제 폭을 측정해 그 폭을 채운다.
+  const containerRef = useRef(null)
+  const [containerWidth, setContainerWidth] = useState(0)
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return undefined
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect?.width
+      if (w) setContainerWidth(w)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
   const samples = profile?.axis?.samples ?? []
   const terrainValues = profile?.terrain?.values ?? []
   const cruiseAltitudeFt = profile?.flightPlan?.plannedCruiseAltitudeFt
@@ -215,12 +229,18 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
     )
   }
 
-  const width = 960
   const height = 380
   const padding = { top: 26, right: 26, bottom: 96, left: 58 }
+  const maxDistance = Math.max(profile.axis.totalDistanceNm || 0, samples[samples.length - 1].distanceNm || 0.1)
+  // 컨테이너(하단 바) 폭을 채운다. 측정 전엔 960 폴백. 항로가 길면 그 이상으로 넓혀 가로 스크롤(고정축),
+  // 단 상한(≈컨테이너 3폭)에서 멈춰 스크롤이 과하지 않게 한다. 단거리는 컨테이너에 꽉 참(스크롤 없음).
+  const availWidth = Math.max(320, Math.round(containerWidth) || 960)
+  const MAX_WIDTH = availWidth * 3
+  const PX_PER_NM = 1.2
+  const width = Math.min(MAX_WIDTH, Math.max(availWidth, Math.round(padding.left + padding.right + maxDistance * PX_PER_NM)))
+  const scrollable = width > availWidth + 1
   const plotWidth = width - padding.left - padding.right
   const plotHeight = height - padding.top - padding.bottom
-  const maxDistance = Math.max(profile.axis.totalDistanceNm || 0, samples[samples.length - 1].distanceNm || 0.1)
   const terrainMaxFt = Math.max(...terrainPoints.map((point) => point.elevationFt), 0)
   const procedurePoints = (flightProfile?.points ?? [])
     .filter((point) => Number.isFinite(point.distanceNm) && Number.isFinite(point.altitudeFt))
@@ -447,7 +467,17 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
           </details>
         )}
       </div>
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Vertical profile">
+      <div className="vertical-profile-chart-body" ref={containerRef}>
+      <div className="vertical-profile-plot-scroll">
+      <svg
+        className="vertical-profile-plot-svg"
+        viewBox={`0 0 ${width} ${height}`}
+        width={width}
+        height={height}
+        style={{ width: `${width}px`, height: `${height}px`, maxWidth: 'none' }}
+        role="img"
+        aria-label="Vertical profile"
+      >
         <defs>
           <clipPath id="cs-clip">
             <rect x={padding.left} y={padding.top} width={plotWidth} height={plotHeight} />
@@ -568,6 +598,24 @@ export default function VerticalProfileChart({ profile, crossSection = null, lay
           )
         })}
       </svg>
+      </div>
+      {scrollable && (
+        <svg
+          className="vertical-profile-axis-overlay"
+          viewBox={`0 0 ${padding.left} ${height}`}
+          style={{ width: `${padding.left}px`, height: `${height}px` }}
+          aria-hidden="true"
+        >
+          <rect className="vertical-profile-axis-overlay-bg" x="0" y="0" width={padding.left} height={height} />
+          {yTicks.map((tick) => (
+            <text key={`oy-${tick}`} className="vertical-profile-axis-label" x={padding.left - 8} y={yFor(tick) + 4} textAnchor="end">{Math.round(tick)}</text>
+          ))}
+          {cruiseTick != null && (
+            <text className="vertical-profile-cruise-axis-label" x={padding.left - 8} y={yFor(cruiseTick) + 4} textAnchor="end">{formatFt(cruiseTick)}</text>
+          )}
+        </svg>
+      )}
+      </div>
     </div>
   )
 }

@@ -7,7 +7,7 @@ export default function VerticalProfileWindow({ profile, crossSection, isOpen, o
 
   return (
     <div className="vertical-profile-window-backdrop" role="presentation">
-      <section className="vertical-profile-window" role="dialog" aria-modal="true" aria-label={'연직단면도'}>
+      <section className="vertical-profile-window" role="dialog" aria-modal="false" aria-label={'연직단면도'}>
         <div className="vertical-profile-window-header">
           <div>
             <div className="vertical-profile-window-eyebrow">Vertical Profile</div>
