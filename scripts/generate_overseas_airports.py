@@ -38,6 +38,9 @@ AIRPORTS_KO = {
     "ZBAA": "베이징 수도", "ZBAD": "베이징 다싱", "ZSPD": "상하이 푸둥", "ZSSS": "상하이 훙차오",
     "ZSQD": "칭다오", "ZYTL": "다롄", "ZYTX": "선양", "ZGGG": "광저우",
     "ZGSZ": "선전", "ZSHC": "항저우",
+    "ZSWH": "웨이하이", "ZSYT": "옌타이", "ZSJN": "지난", "ZYYJ": "옌지",
+    "ZUTF": "청두 톈푸", "ZLXY": "시안", "ZSNJ": "난징", "ZYHB": "하얼빈",
+    "ZBTJ": "톈진", "ZPPP": "쿤밍", "ZUCK": "충칭", "ZGDY": "장자제",
     # 대만·홍콩·마카오·몽골 (RCSS 쑹산=국적사 미취항으로 제외)
     "RCTP": "타이베이 타오위안", "RCKH": "가오슝", "RCMQ": "타이중",
     "VHHH": "홍콩", "VMMC": "마카오", "ZMCK": "울란바토르",
@@ -55,7 +58,8 @@ AIRPORTS_KO = {
 # 공항 피커 대분류(국가/지역). 값은 표시 순서대로.
 REGIONS = {
     "일본": ["RJAA", "RJTT", "RJBB", "RJFF", "RJCC", "RJGG", "ROAH", "RJSS", "RJOA", "RJOT", "RJOM", "RJFR", "RJFT", "RJFK", "RJOH", "ROMY"],
-    "중국": ["ZBAA", "ZBAD", "ZSPD", "ZSSS", "ZSQD", "ZYTL", "ZYTX", "ZGGG", "ZGSZ", "ZSHC"],
+    "중국": ["ZBAA", "ZBAD", "ZSPD", "ZSSS", "ZSQD", "ZYTL", "ZYTX", "ZGGG", "ZGSZ", "ZSHC",
+             "ZSWH", "ZSYT", "ZSJN", "ZYYJ", "ZUTF", "ZLXY", "ZSNJ", "ZYHB", "ZBTJ", "ZPPP", "ZUCK", "ZGDY"],
     "대만·홍콩·마카오·몽골": ["RCTP", "RCKH", "RCMQ", "VHHH", "VMMC", "ZMCK"],
     "베트남": ["VVNB", "VVTS", "VVDN", "VVCR", "VVPQ"],
     "필리핀": ["RPLL", "RPVM", "RPLC"],

@@ -242,6 +242,7 @@ export const noaa = {
   asia_firs: [
     'RJJJ', 'RCAA', 'VHHK', 'ZMUB', 'ZBPE', 'ZSHA', 'ZGZU', 'ZYSH', 'ZHWH', 'ZJSA',
     'ZLHW', 'VVHN', 'VVHM', 'VDPF', 'VTBB', 'WMFC', 'WSJC', 'WIIF', 'WAAF', 'RPHI',
+    'ZPKM', 'VLVT', 'WBFC', // 쿤밍(서남부 청두·쿤밍·충칭), 비엔티안(라오스), 코타키나발루
   ],
 }
 

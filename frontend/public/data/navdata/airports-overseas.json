@@ -526,5 +526,137 @@
     "nameKo": "선양",
     "region": "중국",
     "source": "OurAirports"
+  },
+  "ZSWH": {
+    "coordinates": {
+      "lat": 37.187099,
+      "lon": 122.228996
+    },
+    "id": "ZSWH",
+    "name": "Weihai Dashuibo Airport",
+    "nameKo": "웨이하이",
+    "region": "중국",
+    "source": "OurAirports"
+  },
+  "ZSYT": {
+    "coordinates": {
+      "lat": 37.659724,
+      "lon": 120.978124
+    },
+    "id": "ZSYT",
+    "name": "Yantai Penglai International Airport",
+    "nameKo": "옌타이",
+    "region": "중국",
+    "source": "OurAirports"
+  },
+  "ZSJN": {
+    "coordinates": {
+      "lat": 36.857201,
+      "lon": 117.216003
+    },
+    "id": "ZSJN",
+    "name": "Jinan Yaoqiang International Airport",
+    "nameKo": "지난",
+    "region": "중국",
+    "source": "OurAirports"
+  },
+  "ZYYJ": {
+    "coordinates": {
+      "lat": 42.8828010559,
+      "lon": 129.451004028
+    },
+    "id": "ZYYJ",
+    "name": "Yanji Chaoyangchuan Airport",
+    "nameKo": "옌지",
+    "region": "중국",
+    "source": "OurAirports"
+  },
+  "ZUTF": {
+    "coordinates": {
+      "lat": 30.31252,
+      "lon": 104.441284
+    },
+    "id": "ZUTF",
+    "name": "Chengdu Tianfu International Airport",
+    "nameKo": "청두 톈푸",
+    "region": "중국",
+    "source": "OurAirports"
+  },
+  "ZLXY": {
+    "coordinates": {
+      "lat": 34.442207,
+      "lon": 108.762385
+    },
+    "id": "ZLXY",
+    "name": "Xi'an Xianyang International Airport",
+    "nameKo": "시안",
+    "region": "중국",
+    "source": "OurAirports"
+  },
+  "ZSNJ": {
+    "coordinates": {
+      "lat": 31.735032,
+      "lon": 118.865949
+    },
+    "id": "ZSNJ",
+    "name": "Nanjing Lukou International Airport",
+    "nameKo": "난징",
+    "region": "중국",
+    "source": "OurAirports"
+  },
+  "ZYHB": {
+    "coordinates": {
+      "lat": 45.623402,
+      "lon": 126.25
+    },
+    "id": "ZYHB",
+    "name": "Harbin Taiping International Airport",
+    "nameKo": "하얼빈",
+    "region": "중국",
+    "source": "OurAirports"
+  },
+  "ZBTJ": {
+    "coordinates": {
+      "lat": 39.124401092499994,
+      "lon": 117.346000671
+    },
+    "id": "ZBTJ",
+    "name": "Tianjin Binhai International Airport",
+    "nameKo": "톈진",
+    "region": "중국",
+    "source": "OurAirports"
+  },
+  "ZPPP": {
+    "coordinates": {
+      "lat": 25.110313,
+      "lon": 102.936743
+    },
+    "id": "ZPPP",
+    "name": "Kunming Changshui International Airport",
+    "nameKo": "쿤밍",
+    "region": "중국",
+    "source": "OurAirports"
+  },
+  "ZUCK": {
+    "coordinates": {
+      "lat": 29.712254,
+      "lon": 106.651895
+    },
+    "id": "ZUCK",
+    "name": "Chongqing Jiangbei International Airport",
+    "nameKo": "충칭",
+    "region": "중국",
+    "source": "OurAirports"
+  },
+  "ZGDY": {
+    "coordinates": {
+      "lat": 29.104749,
+      "lon": 110.442786
+    },
+    "id": "ZGDY",
+    "name": "Zhangjiajie Hehua International Airport",
+    "nameKo": "장자제",
+    "region": "중국",
+    "source": "OurAirports"
   }
 }
