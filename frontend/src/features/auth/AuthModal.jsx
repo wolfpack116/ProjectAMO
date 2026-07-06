@@ -9,6 +9,8 @@ const ERROR_KO = {
   register_failed: '가입에 실패했습니다. 잠시 후 다시 시도해 주세요.',
   invalid_input: '아이디는 3~32자 영문·숫자·_, 비밀번호는 8자 이상이어야 합니다.',
   forecaster_approval_required: '예보관 계정은 관리자에게 문의해 주세요.',
+  pending_approval: '가입 승인 대기 중입니다. 관리자 승인 후 로그인할 수 있습니다.',
+  account_rejected: '가입이 거절되었습니다. 관리자에게 문의해 주세요.',
   network: '서버에 연결할 수 없습니다.',
 }
 

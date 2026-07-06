@@ -19,6 +19,7 @@ import { TimeZoneProvider, useTimeZone } from '../shared/timezone/TimeZoneContex
 
 const MonitoringPage = lazy(() => import('../features/monitoring/MonitoringPage.jsx'))
 const DesignTestPage = lazy(() => import('../features/design-test/DesignTestPage.jsx'))
+const AdminPage = lazy(() => import('../features/admin/AdminPage.jsx'))
 
 function formatTimeByTz(ms, tz) {
   const d = tz === 'KST' ? new Date(ms + 9 * 3600 * 1000) : new Date(ms)
@@ -249,6 +250,9 @@ function App() {
   }
   if (window.location.pathname === '/test') {
     return <Suspense fallback={null}><DesignTestPage /></Suspense>
+  }
+  if (window.location.pathname === '/admin') {
+    return <Suspense fallback={null}><AuthProvider><AdminPage /></AuthProvider></Suspense>
   }
   return <TimeZoneProvider><AuthProvider><MainAppShell /></AuthProvider></TimeZoneProvider>
 }

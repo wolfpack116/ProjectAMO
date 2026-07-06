@@ -1,0 +1,21 @@
+// 관리자 콘솔 API. 모든 요청 세션쿠키 동반. 401/403이면 상태코드를 Error에 담아 던짐.
+const base = '/api/admin'
+const j = async (r) => {
+  if (!r.ok) {
+    const e = new Error(String(r.status))
+    e.status = r.status
+    try { e.body = await r.json() } catch { /* 빈 응답 */ }
+    throw e
+  }
+  return r.json()
+}
+
+export const getMetrics = (range) => fetch(`${base}/metrics?range=${range}`, { credentials: 'include' }).then(j)
+export const getTraffic = () => fetch(`${base}/traffic`, { credentials: 'include' }).then(j)
+export const getUsers = () => fetch(`${base}/users`, { credentials: 'include' }).then(j)
+export const getPending = () => fetch(`${base}/pending`, { credentials: 'include' }).then(j)
+export const approve = (id) => fetch(`${base}/users/${id}/approve`, { method: 'POST', credentials: 'include' }).then(j)
+export const reject = (id) => fetch(`${base}/users/${id}/reject`, { method: 'POST', credentials: 'include' }).then(j)
+export const createForecaster = (body) => fetch(`${base}/forecasters`, {
+  method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+}).then(j)

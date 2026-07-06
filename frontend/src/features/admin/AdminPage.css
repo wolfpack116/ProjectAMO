@@ -1,0 +1,298 @@
+/* 관리자 콘솔. 토큰은 design-language §5(:root 변수) 사용. accent #334155, level green/amber/red. */
+.admin-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: var(--space-l);
+  font-family: var(--font-base);
+  color: var(--text-1);
+  background: var(--bg-2);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  margin-bottom: var(--space-l);
+}
+.admin-header h1 {
+  font-size: var(--fs-500);
+  line-height: var(--lh-500);
+  font-weight: var(--fw-semibold);
+  margin: 0;
+}
+.admin-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  color: var(--text-2);
+  border: 1px solid var(--stroke-1);
+  background: var(--bg-1);
+  text-decoration: none;
+}
+.admin-back:hover { background: var(--bg-3); }
+
+/* 카드 */
+.admin-card {
+  background: var(--bg-1);
+  border: 1px solid var(--stroke-2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-l);
+  margin-bottom: var(--space-l);
+}
+.admin-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-m);
+  margin-bottom: var(--space-m);
+}
+.admin-card-head h2 {
+  font-size: var(--fs-400);
+  line-height: var(--lh-400);
+  font-weight: var(--fw-semibold);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+.admin-count, .admin-badge {
+  font-size: var(--fs-200);
+  font-weight: var(--fw-medium);
+  color: var(--text-3);
+}
+.admin-badge {
+  background: var(--level-amber-bg);
+  color: var(--level-amber);
+  border-radius: var(--radius-circular);
+  padding: 1px 8px;
+}
+
+/* 기간 토글 */
+.admin-range-toggle { display: flex; gap: var(--space-xxs); }
+.admin-range-btn {
+  font-family: var(--font-base);
+  font-size: var(--fs-200);
+  padding: var(--space-xs) var(--space-mnudge);
+  border: 1px solid var(--stroke-1);
+  background: var(--bg-1);
+  color: var(--text-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.admin-range-btn.is-active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* 리소스 게이지 */
+.admin-gauges {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-l);
+  margin-bottom: var(--space-l);
+}
+.admin-gauge-label { font-size: var(--fs-200); color: var(--text-3); }
+.admin-gauge-value { font-size: var(--fs-600); line-height: var(--lh-600); font-weight: var(--fw-semibold); }
+.admin-gauge-bar {
+  height: 6px;
+  background: var(--bg-4);
+  border-radius: var(--radius-circular);
+  overflow: hidden;
+  margin: var(--space-xs) 0;
+}
+.admin-gauge-bar span { display: block; height: 100%; border-radius: var(--radius-circular); }
+.admin-gauge-sub { font-size: var(--fs-100); color: var(--text-3); }
+
+/* SVG 차트 */
+.admin-chart-svg { width: 100%; height: auto; display: block; }
+.admin-chart-tick { font-size: 9px; fill: var(--text-3); }
+.admin-chart-peak { font-size: 11px; fill: var(--level-red); font-weight: var(--fw-medium); }
+.admin-chart-empty {
+  padding: var(--space-xxl);
+  text-align: center;
+  color: var(--text-3);
+  font-size: var(--fs-200);
+}
+.admin-chart-legend { display: flex; gap: var(--space-l); margin-top: var(--space-s); }
+.admin-chart-legend-item { display: inline-flex; align-items: center; gap: var(--space-xs); font-size: var(--fs-200); color: var(--text-2); }
+.admin-chart-swatch { width: 12px; height: 3px; border-radius: 2px; }
+
+/* 2열 */
+.admin-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-l);
+}
+.admin-two-col .admin-card { margin-bottom: 0; }
+
+/* 트래픽 */
+.admin-traffic-stats { display: flex; gap: var(--space-xxl); }
+.admin-traffic-stats > div { display: flex; flex-direction: column; }
+.admin-stat-num { font-size: var(--fs-700); line-height: var(--lh-700); font-weight: var(--fw-bold); color: var(--accent); }
+.admin-stat-label { font-size: var(--fs-200); color: var(--text-3); }
+
+/* 승인 대기 */
+.admin-empty { color: var(--text-3); font-size: var(--fs-200); margin: var(--space-s) 0 0; }
+.admin-pending-list { list-style: none; margin: 0; padding: 0; }
+.admin-pending-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding: var(--space-s) 0;
+  border-bottom: 1px solid var(--stroke-2);
+}
+.admin-pending-name { font-weight: var(--fw-medium); font-size: var(--fs-300); }
+.admin-pending-date { font-size: var(--fs-100); color: var(--text-3); margin-left: auto; }
+.admin-pending-actions { display: flex; gap: var(--space-xs); }
+.admin-btn-approve, .admin-btn-reject {
+  font-family: var(--font-base);
+  font-size: var(--fs-200);
+  padding: var(--space-xs) var(--space-mnudge);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 1px solid transparent;
+  min-height: 28px;
+}
+.admin-btn-approve { background: var(--level-green-bg); color: var(--level-green); }
+.admin-btn-reject { background: var(--level-red-bg); color: var(--level-red); }
+
+/* 사용자 표 */
+.admin-add-btn {
+  font-family: var(--font-base);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-medium);
+  padding: var(--space-xs) var(--space-m);
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: 32px;
+}
+.admin-table-wrap { overflow-x: auto; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: var(--fs-300); }
+.admin-table th {
+  text-align: left;
+  font-weight: var(--fw-medium);
+  color: var(--text-3);
+  font-size: var(--fs-200);
+  padding: var(--space-s);
+  border-bottom: 1px solid var(--stroke-1);
+}
+.admin-table td { padding: var(--space-s); border-bottom: 1px solid var(--stroke-2); }
+.admin-role-badge, .admin-status-badge {
+  display: inline-block;
+  font-size: var(--fs-100);
+  font-weight: var(--fw-medium);
+  padding: 2px 8px;
+  border-radius: var(--radius-circular);
+  background: var(--level-gray-bg);
+  color: var(--level-gray);
+}
+.admin-status-badge[data-status='active'] { background: var(--level-green-bg); color: var(--level-green); }
+.admin-status-badge[data-status='pending'] { background: var(--level-amber-bg); color: var(--level-amber); }
+.admin-status-badge[data-status='rejected'] { background: var(--level-red-bg); color: var(--level-red); }
+
+/* 접근 거부 */
+.admin-denied {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-m);
+  min-height: 60vh;
+  font-family: var(--font-base);
+  color: var(--text-2);
+}
+.admin-denied a { color: var(--accent); text-decoration: none; }
+
+/* 다이얼로그 */
+.admin-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.admin-dialog {
+  position: relative;
+  background: var(--bg-1);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xxl);
+  width: 420px;
+  max-width: calc(100vw - var(--space-xxl));
+  font-family: var(--font-base);
+}
+.admin-dialog-close {
+  position: absolute;
+  top: var(--space-m);
+  right: var(--space-m);
+  background: none;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+}
+.admin-dialog-title { font-size: var(--fs-500); font-weight: var(--fw-semibold); margin-bottom: var(--space-l); }
+.admin-dialog-form { display: flex; flex-direction: column; gap: var(--space-m); }
+.admin-field { display: flex; flex-direction: column; gap: var(--space-xs); }
+.admin-field > span { font-size: var(--fs-200); color: var(--text-2); font-weight: var(--fw-medium); }
+.admin-field input {
+  font-family: var(--font-base);
+  font-size: var(--fs-300);
+  padding: var(--space-s);
+  border: 1px solid var(--stroke-1);
+  border-radius: var(--radius-md);
+  background: var(--bg-1);
+  color: var(--text-1);
+}
+.admin-field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.admin-airport-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-xs); }
+.admin-airport-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-family: var(--font-base);
+  font-size: var(--fs-200);
+  padding: var(--space-xs);
+  border: 1px solid var(--stroke-1);
+  border-radius: var(--radius-md);
+  background: var(--bg-1);
+  color: var(--text-2);
+  cursor: pointer;
+  min-height: 44px;
+}
+.admin-airport-chip small { font-size: 9px; color: var(--text-3); }
+.admin-airport-chip.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.admin-airport-chip.is-on small { color: rgba(255, 255, 255, 0.8); }
+.admin-dialog-error { color: var(--level-red); font-size: var(--fs-200); }
+.admin-dialog-submit {
+  font-family: var(--font-base);
+  font-size: var(--fs-300);
+  font-weight: var(--fw-medium);
+  padding: var(--space-s);
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: 40px;
+}
+.admin-dialog-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 719px) {
+  .admin-two-col { grid-template-columns: 1fr; }
+  .admin-gauges { grid-template-columns: 1fr; gap: var(--space-m); }
+}
