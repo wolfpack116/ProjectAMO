@@ -110,9 +110,13 @@
 .admin-gauge-sub { font-size: var(--fs-100); color: var(--text-3); }
 
 /* SVG 차트 */
-.admin-chart-svg { width: 100%; height: auto; display: block; }
+.admin-chart-svg { width: 100%; height: auto; display: block; cursor: crosshair; }
 .admin-chart-tick { font-size: 9px; fill: var(--text-3); }
+.admin-chart-xtick { font-size: 9px; fill: var(--text-3); }
+.admin-chart-xdate { font-size: 8px; fill: var(--text-disabled); }
 .admin-chart-peak { font-size: 11px; fill: var(--level-red); font-weight: var(--fw-medium); }
+.admin-chart-tip-time { font-size: 10px; fill: var(--text-1); font-weight: var(--fw-semibold); }
+.admin-chart-tip-row { font-size: 10px; }
 .admin-chart-empty {
   padding: var(--space-xxl);
   text-align: center;
