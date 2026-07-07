@@ -2,6 +2,11 @@
 
 > **작업자용:** 스펙 = [2026-07-07-route-forecast-alert-design.md](../specs/2026-07-07-route-forecast-alert-design.md). 태스크는 체크박스로 추적. superpowers:executing-plans 또는 subagent-driven-development로 태스크 단위 실행.
 
+## 진행 현황 (2026-07-07)
+- ✅ **Task 1·2·3 완료·푸시** (`26a2bb6`·`c32f072`·`9dea79c`): DB 스키마, 단일 미니마 API + 스냅샷 cruiseSpeedKt, 알림 등록 API(pickActiveFlight 유닛 4/4).
+- ▶ **다음 = Task 4·5** (스케줄러 + diff 엔진 — 핵심 두뇌). 착수 전 `flight-category.js`·`taf-window.js`·`hazard-section.js`·`enroute-model.js` 리턴 구조 정독 필요.
+- ⚠️ **테스트 실행 주의:** bcrypt(cost 12)·서버 통합 테스트는 이 환경에서 느려 실행 보류 중 — 파일만 작성하고 CI/수동에 맡김. **순수 함수 유닛 테스트는 즉시 실행 OK.**
+
 **목표(Phase 1, 시연):** 서버가 저장된 비행을 감시 → 예보가 v1 7종 기준 나빠지면 **인앱 알림센터 + 텔레그램**으로 알림 + 탭하면 그 비행 브리핑으로 딥링크. **서비스워커 없이 end-to-end 시연.** (Web Push=Phase 2, 카카오·이메일=v2.)
 
 ## 실행 지침 (TDD 최소 — 필독)
