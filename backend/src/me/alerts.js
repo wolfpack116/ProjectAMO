@@ -104,7 +104,43 @@ export function createAlertsRouter({ db = null } = {}) {
     res.json({ ok: true })
   })
 
+  // ── #13 알림센터 피드(triggered_alerts) — 위 예정비행 등록과 별개 리소스 ──
+  // 경로: /notifications. 스펙의 /alerts는 예정비행 목록이 이미 점유 → 발생 알림 피드는 notifications로 분리.
+  router.get('/notifications', (req, res) => {
+    res.json(listNotifications(database(), req.session.userId))
+  })
+  router.patch('/notifications/:id/read', (req, res) => {
+    const id = Number(req.params.id)
+    if (!Number.isInteger(id)) return res.status(400).json({ error: 'invalid_input' })
+    markNotificationRead(database(), req.session.userId, id, new Date().toISOString())
+    res.json({ ok: true })
+  })
+  router.post('/notifications/read-all', (req, res) => {
+    const updated = markAllNotificationsRead(database(), req.session.userId, new Date().toISOString())
+    res.json({ ok: true, updated })
+  })
+
   return router
+}
+
+// 알림센터 피드: 내 발생 알림 최신순(경로명 조인) + 안 읽음 수. 순수 DB 함수(서버 없이 테스트).
+export function listNotifications(db, userId) {
+  const notifications = db.prepare(`
+    SELECT t.id, t.route_id AS routeId, t.type, t.severity, t.target, t.from_val AS fromVal, t.to_val AS toVal,
+           t.detected_at AS detectedAt, t.pushed_at AS pushedAt, t.read_at AS readAt, r.name AS routeName
+    FROM triggered_alerts t LEFT JOIN routes r ON r.id = t.route_id
+    WHERE t.user_id = ? ORDER BY t.detected_at DESC, t.id DESC LIMIT 200
+  `).all(userId)
+  const unreadCount = db.prepare('SELECT COUNT(*) n FROM triggered_alerts WHERE user_id=? AND read_at IS NULL').get(userId).n
+  return { notifications, unreadCount }
+}
+
+export function markNotificationRead(db, userId, id, nowIso) {
+  return db.prepare('UPDATE triggered_alerts SET read_at=? WHERE id=? AND user_id=? AND read_at IS NULL').run(nowIso, id, userId).changes > 0
+}
+
+export function markAllNotificationsRead(db, userId, nowIso) {
+  return db.prepare('UPDATE triggered_alerts SET read_at=? WHERE user_id=? AND read_at IS NULL').run(nowIso, userId).changes
 }
 
 export default createAlertsRouter
