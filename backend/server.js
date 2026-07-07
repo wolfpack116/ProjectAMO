@@ -11,6 +11,7 @@ import { main as startScheduler } from './src/index.js'
 import { startAlertScheduler } from './src/alerts/scheduler.js'
 import cors from 'cors'
 import helmet from 'helmet'
+import sharp from 'sharp'
 import cookieParser from 'cookie-parser'
 import { sessionMiddleware } from './src/auth/session.js'
 import { createAuthRouter } from './src/auth/router.js'
@@ -52,6 +53,8 @@ import { readKtgLatest, readKtgIndex, readKtgCoords, readKtgGridSafe } from './s
 import { loadRouteCrossSection } from './src/briefing/enroute-cross-section.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+// libvips(sharp) 연산 캐시 끔 — 레이더/위성/오버레이 PNG 생성 시 네이티브 메모리가 안 줄고 쌓이는 것 방지. #메모리
+sharp.cache(false)
 const app = express()
 const PORT = process.env.BACKEND_PORT || 3001
 const HOST = process.env.BACKEND_HOST || '127.0.0.1'
