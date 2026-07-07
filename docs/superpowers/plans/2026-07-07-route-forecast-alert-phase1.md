@@ -15,7 +15,9 @@
 - ✅ **공항별 미니마 리팩터 완료** (`f20f673`, Task 9 사전 정리): 공항 미니마 = **코드 상수(`DEFAULT_AIRPORT_MINIMA_RULES`) 확정**, 사용자 편집 UI 전면 제거(SettingsModal 공항미니마 탭 · 레거시 monitoring LIFR 탭 · presets API · 죽은 헬퍼). 조사로 monitoring이 상수 폴백만 함을 확인 → 분류 불변. vite 빌드 그린, 백엔드 25/25.
   - ⚠️ **이전 fence 해제**: "SettingsModal 공항미니마 탭 건드리지 마"(§37·§45)는 폴백 때문에 실제 load-bearing 아니었음 → 사용자 승인으로 제거함. presets 테이블은 물리 방치.
   - → **Task 9 [기상 미니마] 탭 = 개인 단일값(`/api/me/minima`)만** 깔끔.
-- ▶ **다음 = Task 9(개인설정 패널 2탭)**. 이후 10(딥링크 `?flight=`)·11(통합·텔레그램 e2e·Playwright). **백엔드(1~7)+알림센터(8)+미니마 정리 완료.**
+- ✅ **Task 9 완료** (`997667b`): 개인설정 패널 `frontend/src/features/personal/`(벨 아래 UserCog 입구, 로그인 게이트). [기상 미니마] 단일값+VFR/IFR 프리셋(`/api/me/minima`) · [비행 알림] 템플릿·ETD·ETA(haversine+etaCalc pre-fill)·등록/목록/삭제(`/api/me/alerts`)·상태칩·Z+KST. Fluent Dialog+TabList. vite 빌드 그린.
+  - ⏸ **범위 밖(별도)**: 경로창 [이 비행 알림 등록] 지름길 · PATCH ETD 조정 · 딥링크(Task 10).
+- ▶ **다음 = Task 10(딥링크 `?flight=`)** → 11(통합·텔레그램 e2e·Playwright). **백엔드+프론트(알림센터·개인설정) 완료, 남은 건 딥링크·통합.**
 - ⚠️ **테스트 실행 주의:** bcrypt(cost 12)·서버 통합 테스트는 이 환경에서 느려 실행 보류 중 — 파일만 작성하고 CI/수동에 맡김. **순수 함수 유닛 테스트는 즉시 실행 OK.**
 
 **목표(Phase 1, 시연):** 서버가 저장된 비행을 감시 → 예보가 v1 7종 기준 나빠지면 **인앱 알림센터 + 텔레그램**으로 알림 + 탭하면 그 비행 브리핑으로 딥링크. **서비스워커 없이 end-to-end 시연.** (Web Push=Phase 2, 카카오·이메일=v2.)
@@ -84,11 +86,12 @@
 - [x] 각 항목 탭 → `markRead` + `?flight=<routeId>` 이동(Task 10에서 착지 처리).
 - [x] esbuild 4/4. Commit (`19c71f3`). ⚠️ 피드 경로 `/api/me/notifications`. 시각 Playwright는 Task 11.
 
-## Task 9: 프론트 — 개인설정 패널 [기상 미니마]+[비행 알림] 탭
-- [ ] **[기상 미니마] 탭**: 단일 운고·시정 + VFR/IFR 프리셋. 로드=`GET /api/me/minima`, 저장=`PUT`. (기존 SettingsModal 공항 미니마와 별개.)
-- [ ] **[비행 알림] 탭**: 등록 폼(템플릿 select·ETD·ETA[etaCalc pre-fill·수정]·고급 접힘[감시시작 2h 2~6·이상없음 off]) + 등록 목록(상태칩 대기/감시중/순번, ETD 조정·삭제). 목업 기준.
-- [ ] 경로 창 [이 비행 알림 등록] 지름길 → 템플릿 자동저장 + 패널 등록.
-- [ ] 시간 Z+KST 병기. esbuild 빌드. Commit.
+## Task 9: 프론트 — 개인설정 패널 [기상 미니마]+[비행 알림] 탭 ✅
+- [x] `features/personal/`: 벨 아래 UserCog 입구(로그인 게이트) + Fluent Dialog+TabList 2탭.
+- [x] **[기상 미니마]**: 단일 운고·시정 + VFR/IFR 프리셋. `GET/PUT /api/me/minima`. 미설정 힌트.
+- [x] **[비행 알림]**: 템플릿 select(`/api/me/routes`)·ETD·ETA(haversine 거리+`computeEtaIso` pre-fill, 사용자편집 미덮음)·고급 접힘·등록/목록/삭제(`/api/me/alerts`)·상태칩(감시중/대기).
+- [x] 시간 Z+KST 병기(`timeFormat.js`). vite 빌드 그린. Commit (`997667b`).
+- ⏸ 경로 창 지름길·PATCH ETD 조정은 **미착수(별도)**.
 
 ## Task 10: 딥링크 `?flight=`
 - [ ] `App.jsx`: `?flight=<routeId>` 읽어(기존 `?airport=` 패턴) 그 예정 비행 로드 → 브리핑 + 변경점 하이라이트 화면. 세션 만료 시 로그인 후 착지.
