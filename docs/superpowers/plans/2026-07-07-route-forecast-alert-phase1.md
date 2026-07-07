@@ -11,7 +11,8 @@
   - **dwell 2h·rate-limit·group_wait은 미구현**(§5B) — diff는 prev→curr 전이 + route+dedup_key 중복억제까지만. 데모엔 충분, 알림피로 강화는 후속.
 - ✅ **Task 6 완료** (`e876c25`): 발송 seam `backend/src/alerts/sender.js`(`formatAlert`/`dispatchAlert`) + 텔레그램(env 게이트·딥링크 버튼) + 채널 차등(HIGH/CRITICAL만 푸시). scheduler runTick 배선. 유닛 6/6.
 - ✅ **Task 7 완료** (`649eb7a`): 알림센터 피드. **경로 충돌 정정** — 스펙의 `GET /api/me/alerts`는 Task 3 예정비행 목록이 점유 → **피드는 `/api/me/notifications`**(GET·PATCH /:id/read·POST /read-all). `listNotifications`/`markNotificationRead`/`markAllNotificationsRead` 순수 DB 함수. 유닛 3/3.
-- ▶ **다음 = Task 8·9(프론트)**. ⚠️ UI 작업 → 착수 전 `docs/design/design-language.md` 정독 필수. 이후 10(딥링크 `?flight=`)·11(통합·텔레그램 e2e·Playwright). **백엔드(1~7) Phase 1 완료.**
+- ✅ **Task 8 완료** (`19c71f3`): 인앱 알림센터 `frontend/src/features/notifications/`(useNotifications 60s 폴링·NotificationCenter Fluent Popover·notificationFormat). Sidebar 하단 벨(로그인 게이트, `BellRing`—Bell은 업데이트 점유). 피드는 `/api/me/notifications`. esbuild 4/4. **시각 Playwright는 Task 11로 미룸.**
+- ▶ **다음 = Task 9(개인설정 패널 2탭)**. 이후 10(딥링크 `?flight=`)·11(통합·텔레그램 e2e·Playwright). **백엔드(1~7)+알림센터(8) 완료.**
 - ⚠️ **테스트 실행 주의:** bcrypt(cost 12)·서버 통합 테스트는 이 환경에서 느려 실행 보류 중 — 파일만 작성하고 CI/수동에 맡김. **순수 함수 유닛 테스트는 즉시 실행 OK.**
 
 **목표(Phase 1, 시연):** 서버가 저장된 비행을 감시 → 예보가 v1 7종 기준 나빠지면 **인앱 알림센터 + 텔레그램**으로 알림 + 탭하면 그 비행 브리핑으로 딥링크. **서비스워커 없이 end-to-end 시연.** (Web Push=Phase 2, 카카오·이메일=v2.)
@@ -75,10 +76,10 @@
 - [x] **경로 = `/api/me/notifications`**(스펙 `/alerts`는 예정비행 목록 점유). GET(userId·최신순·경로명 조인·unreadCount) + `PATCH /:id/read` + `POST /read-all`. 순수 DB 함수로 분리. 유닛 3/3.
 - [x] Commit (`649eb7a`). ⚠️ 프론트(Task 8)는 피드를 `/api/me/notifications`에서 읽을 것.
 
-## Task 8: 프론트 — 인앱 알림센터 (신규)
-- [ ] 앱 셸(App.jsx/Sidebar)에 벨 버튼 + 안 읽음 배지 + 패널(누적 알림 리스트). **legacy 알림 UI 재사용 안 함, 신규 제작.** 디자인 헌법 토큰.
-- [ ] 각 항목 탭 → `?flight=<id>` 딥링크(Task 10).
-- [ ] esbuild 빌드. Commit.
+## Task 8: 프론트 — 인앱 알림센터 (신규) ✅
+- [x] `features/notifications/`: `NotificationCenter`(BellRing 벨 + CounterBadge 안읽음 + Fluent Popover 리스트) + `useNotifications`(60s 폴링·markRead/markAllRead) + `notificationFormat`. Sidebar 하단, 로그인 게이트. 디자인 헌법 토큰.
+- [x] 각 항목 탭 → `markRead` + `?flight=<routeId>` 이동(Task 10에서 착지 처리).
+- [x] esbuild 4/4. Commit (`19c71f3`). ⚠️ 피드 경로 `/api/me/notifications`. 시각 Playwright는 Task 11.
 
 ## Task 9: 프론트 — 개인설정 패널 [기상 미니마]+[비행 알림] 탭
 - [ ] **[기상 미니마] 탭**: 단일 운고·시정 + VFR/IFR 프리셋. 로드=`GET /api/me/minima`, 저장=`PUT`. (기존 SettingsModal 공항 미니마와 별개.)
