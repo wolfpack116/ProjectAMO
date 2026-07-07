@@ -12,7 +12,10 @@
 - ✅ **Task 6 완료** (`e876c25`): 발송 seam `backend/src/alerts/sender.js`(`formatAlert`/`dispatchAlert`) + 텔레그램(env 게이트·딥링크 버튼) + 채널 차등(HIGH/CRITICAL만 푸시). scheduler runTick 배선. 유닛 6/6.
 - ✅ **Task 7 완료** (`649eb7a`): 알림센터 피드. **경로 충돌 정정** — 스펙의 `GET /api/me/alerts`는 Task 3 예정비행 목록이 점유 → **피드는 `/api/me/notifications`**(GET·PATCH /:id/read·POST /read-all). `listNotifications`/`markNotificationRead`/`markAllNotificationsRead` 순수 DB 함수. 유닛 3/3.
 - ✅ **Task 8 완료** (`19c71f3`): 인앱 알림센터 `frontend/src/features/notifications/`(useNotifications 60s 폴링·NotificationCenter Fluent Popover·notificationFormat). Sidebar 하단 벨(로그인 게이트, `BellRing`—Bell은 업데이트 점유). 피드는 `/api/me/notifications`. esbuild 4/4. **시각 Playwright는 Task 11로 미룸.**
-- ▶ **다음 = Task 9(개인설정 패널 2탭)**. 이후 10(딥링크 `?flight=`)·11(통합·텔레그램 e2e·Playwright). **백엔드(1~7)+알림센터(8) 완료.**
+- ✅ **공항별 미니마 리팩터 완료** (`f20f673`, Task 9 사전 정리): 공항 미니마 = **코드 상수(`DEFAULT_AIRPORT_MINIMA_RULES`) 확정**, 사용자 편집 UI 전면 제거(SettingsModal 공항미니마 탭 · 레거시 monitoring LIFR 탭 · presets API · 죽은 헬퍼). 조사로 monitoring이 상수 폴백만 함을 확인 → 분류 불변. vite 빌드 그린, 백엔드 25/25.
+  - ⚠️ **이전 fence 해제**: "SettingsModal 공항미니마 탭 건드리지 마"(§37·§45)는 폴백 때문에 실제 load-bearing 아니었음 → 사용자 승인으로 제거함. presets 테이블은 물리 방치.
+  - → **Task 9 [기상 미니마] 탭 = 개인 단일값(`/api/me/minima`)만** 깔끔.
+- ▶ **다음 = Task 9(개인설정 패널 2탭)**. 이후 10(딥링크 `?flight=`)·11(통합·텔레그램 e2e·Playwright). **백엔드(1~7)+알림센터(8)+미니마 정리 완료.**
 - ⚠️ **테스트 실행 주의:** bcrypt(cost 12)·서버 통합 테스트는 이 환경에서 느려 실행 보류 중 — 파일만 작성하고 CI/수동에 맡김. **순수 함수 유닛 테스트는 즉시 실행 OK.**
 
 **목표(Phase 1, 시연):** 서버가 저장된 비행을 감시 → 예보가 v1 7종 기준 나빠지면 **인앱 알림센터 + 텔레그램**으로 알림 + 탭하면 그 비행 브리핑으로 딥링크. **서비스워커 없이 end-to-end 시연.** (Web Push=Phase 2, 카카오·이메일=v2.)
