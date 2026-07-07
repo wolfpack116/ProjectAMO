@@ -4,6 +4,7 @@ import {
 } from 'lucide-react'
 import { CURRENT_VERSION } from '../../features/about/changelog.js'
 import { useAuth, ROLE_LABEL_KO } from '../../features/auth/AuthContext.jsx'
+import NotificationCenter from '../../features/notifications/NotificationCenter.jsx'
 import './Sidebar.css'
 
 const topItems = [
@@ -105,6 +106,8 @@ function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle, hasUp
 
       {/* 하단 섹션 */}
       <div className="sidebar-section">
+        {/* #13 알림센터 — 로그인 사용자만(컴포넌트 자체 게이트). 벨 + 안읽음 배지 + Popover 피드. */}
+        <NotificationCenter isExpanded={isExpanded} />
         {bottomItems.map((item) => {
           const panelId = PANEL_MAP[item.label]
           return (
