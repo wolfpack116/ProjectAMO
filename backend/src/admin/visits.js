@@ -22,10 +22,14 @@ export function trafficStats(db) {
   return { online, total, byHour }
 }
 
-// 봇/헬스체크/정적·API 제외. 모든 방문자에 익명 쿠키 부여 후 기록. req.cookies 필요(cookie-parser).
+// 방문 집계. 운영에선 nginx가 페이지(HTML)를 직접 서빙해 백엔드에 안 오므로, 프론트가 로드 때
+// 항상 부르는 GET /api/auth/me를 방문 신호로 쓴다. (그 외 페이지 경로도 백엔드에 오면 집계 — dev/직접접속)
+// 익명 쿠키 부여 후 upsert. req.cookies 필요(cookie-parser).
 export function visitTracker(getDb) {
   return (req, res, next) => {
-    if (req.method !== 'GET' || req.path.startsWith('/api/') || req.path.startsWith('/data/')) return next()
+    const isPageLoad = req.path === '/api/auth/me'
+      || (!req.path.startsWith('/api/') && !req.path.startsWith('/data/'))
+    if (req.method !== 'GET' || !isPageLoad) return next()
     let vid = req.cookies?.[COOKIE]
     if (!vid) { vid = randomUUID(); res.cookie(COOKIE, vid, { httpOnly: true, sameSite: 'lax', maxAge: 31536000000 }) }
     try { recordVisit(getDb(), vid) } catch { /* noop */ }
