@@ -9,7 +9,8 @@
   - ⚠️ **발견(계획 공백 해소):** 서버 재브리핑에 필요한 `routeGeometry`가 저장 스냅샷에 없었음. IFR은 프론트 플래너(`getCurrentRouteLineString`) 산출물이라 서버 재구성 불가 → **`RouteBriefingPanel.saveRoute`에 `routeGeometry` 저장 추가**(cruiseSpeedKt 선례). 등록은 payload 복제라 자동 전파. **기존 저장경로는 기하 없어 스케줄러가 skip**(재저장 시 활성). `me/routes.js` snapshot=z.record라 백엔드 스키마 변경 불필요.
   - 스냅샷 prev는 **인메모리 캐시**(§5B) + `last_briefing_snapshot_id`=해시 마커. 재시작 생존 필요 시 routes에 JSON 컬럼(ponytail 주석).
   - **dwell 2h·rate-limit·group_wait은 미구현**(§5B) — diff는 prev→curr 전이 + route+dedup_key 중복억제까지만. 데모엔 충분, 알림피로 강화는 후속.
-- ▶ **다음 = Task 6** (발송 seam + 텔레그램). 이후 7(피드 API)·8·9(프론트)·10(딥링크)·11(통합).
+- ✅ **Task 6 완료** (`e876c25`): 발송 seam `backend/src/alerts/sender.js`(`formatAlert`/`dispatchAlert`) + 텔레그램(env 게이트·딥링크 버튼) + 채널 차등(HIGH/CRITICAL만 푸시). scheduler runTick 배선. 유닛 6/6.
+- ▶ **다음 = Task 7** (알림센터 피드 API `GET /api/me/alerts` + 읽음 표시). 이후 8·9(프론트)·10(딥링크)·11(통합).
 - ⚠️ **테스트 실행 주의:** bcrypt(cost 12)·서버 통합 테스트는 이 환경에서 느려 실행 보류 중 — 파일만 작성하고 CI/수동에 맡김. **순수 함수 유닛 테스트는 즉시 실행 OK.**
 
 **목표(Phase 1, 시연):** 서버가 저장된 비행을 감시 → 예보가 v1 7종 기준 나빠지면 **인앱 알림센터 + 텔레그램**으로 알림 + 탭하면 그 비행 브리핑으로 딥링크. **서비스워커 없이 end-to-end 시연.** (Web Push=Phase 2, 카카오·이메일=v2.)
@@ -63,11 +64,11 @@
 - [x] severity(CRITICAL=IFR 프리셋 아래) + dedup(route+dedup_key, 스케줄러). **dwell 2h·rate-limit은 미구현**(전이만) — 후속.
 - [x] Run·Commit (`e642acd`).
 
-## Task 6: 발송 seam + 텔레그램
-- [ ] `backend/src/alerts/sender.js`: `formatAlert(alert)` → 글랜서블 문구(`RKPC 목적지 IFR 하락 · ETA…`). 채널 분기 seam.
-- [ ] 텔레그램: `fetch('https://api.telegram.org/bot<token>/sendMessage', POST {chat_id,text,reply_markup:딥링크 inline 버튼})`. env `TELEGRAM_BOT_TOKEN`,`TELEGRAM_CHAT_ID`. 인앱=행 저장만.
-- [ ] 스모크: formatAlert 단위 1개(발송은 env 없으면 skip).
-- [ ] Commit.
+## Task 6: 발송 seam + 텔레그램 ✅
+- [x] `backend/src/alerts/sender.js`: `formatAlert`(ko 글랜서블, 타입별 분기) + `dispatchAlert` 한 곳 채널 분기.
+- [x] 텔레그램 `sendMessage`(env 없으면 skip, 딥링크 inline 버튼 `FRONTEND_ORIGIN/?flight=<id>`). 채널 차등: HIGH/CRITICAL만 푸시, MEDIUM 이하 인앱. `pushed_at`/`channel_status` 기록.
+- [x] scheduler `runTick` 배선(insertAlert→id, dispatchAlert). `.env.example` 키. 유닛 6/6.
+- [x] Commit (`e876c25`).
 
 ## Task 7: 알림센터 피드 API
 - [ ] `GET /api/me/alerts`(triggered_alerts, userId 필터, 최신순) + 읽음 표시(`PATCH .../read` or `read_at`).
