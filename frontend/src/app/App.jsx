@@ -22,6 +22,7 @@ import { TimeZoneProvider, useTimeZone } from '../shared/timezone/TimeZoneContex
 const MonitoringPage = lazy(() => import('../features/monitoring/MonitoringPage.jsx'))
 const DesignTestPage = lazy(() => import('../features/design-test/DesignTestPage.jsx'))
 const AdminPage = lazy(() => import('../features/admin/AdminPage.jsx'))
+const DeveloperPage = lazy(() => import('../features/developer/DeveloperPage.jsx'))
 
 function formatTimeByTz(ms, tz) {
   const d = tz === 'KST' ? new Date(ms + 9 * 3600 * 1000) : new Date(ms)
@@ -277,6 +278,10 @@ function App() {
   }
   if (window.location.pathname === '/admin') {
     return <Suspense fallback={null}><AuthProvider><AdminPage /></AuthProvider></Suspense>
+  }
+  if (window.location.pathname === '/dev' && import.meta.env.DEV) {
+    // 개발자 콘솔 — 개발 빌드에서만. 운영 빌드(npm run build)에선 이 코드가 제거되어 접근 불가.
+    return <Suspense fallback={null}><TimeZoneProvider><AuthProvider><DeveloperPage /></AuthProvider></TimeZoneProvider></Suspense>
   }
   return <TimeZoneProvider><AuthProvider><MainAppShell /></AuthProvider></TimeZoneProvider>
 }

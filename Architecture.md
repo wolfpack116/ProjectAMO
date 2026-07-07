@@ -25,6 +25,7 @@ ProjectAMO/
         route-briefing/        -> route search and procedure/navpoint lookup
         airport-panel/         -> airport detail drawer, tabs, and view models
         search/                -> 공항+기능 통합 검색 팔레트 + 공유 레이어 액션 레지스트리
+        developer/             -> `/dev` 개발자 콘솔(조작+관찰), 테스트 인스턴스(dev:test) 전용 — EntryPoints §11
       shared/
         ui/                    -> frontend-only reusable UI
         weather/               -> frontend-only weather display helpers

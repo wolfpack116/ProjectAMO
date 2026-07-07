@@ -22,6 +22,7 @@ import { createMeRouter } from './src/me/presets.js'
 import { createRoutesRouter } from './src/me/routes.js'
 import { createAlertsRouter } from './src/me/alerts.js'
 import { createDevRouter } from './src/dev/scenario.js'
+import { recordRequest, bumpCache } from './src/dev/instrument.js'
 import { createMeRequestsRouter } from './src/me/requests.js'
 import { createForecasterRouter } from './src/forecaster/router.js'
 import adsbProcessor from './src/processors/adsb-processor.js'
@@ -134,6 +135,24 @@ function isRevalidatedApiRequest(req) {
     || /^\/sigwx-low-(?:fronts|clouds)$/i.test(req.path)
     || /^\/kim\/(?:wind|temp|cloud|icing)\/index$/i.test(req.path)
   )
+}
+
+// Phase 2 계측: 테스트 인스턴스에서만 /api 요청 지연·응답크기를 링버퍼에 적재(/dev 관찰 탭 소스).
+if (process.env.DISABLE_COLLECTION) {
+  app.use('/api', (req, res, next) => {
+    const t0 = Date.now()
+    res.on('finish', () => {
+      recordRequest({
+        t: new Date().toISOString(),
+        path: req.originalUrl.split('?')[0],
+        method: req.method,
+        status: res.statusCode,
+        ms: Date.now() - t0,
+        bytes: Number(res.getHeader('content-length')) || 0,
+      })
+    })
+    next()
+  })
 }
 
 app.use('/api', (req, res, next) => {
@@ -388,8 +407,10 @@ function buildSnapshotMetaCacheKey() {
 function getCachedSnapshotMeta(nowMs = Date.now()) {
   const key = buildSnapshotMetaCacheKey()
   if (snapshotMetaCache.value && snapshotMetaCache.key === key && snapshotMetaCache.expiresAt > nowMs) {
+    if (process.env.DISABLE_COLLECTION) bumpCache(true) // Phase 2: 헛fetch 계측(5s TTL 적중)
     return snapshotMetaCache.value
   }
+  if (process.env.DISABLE_COLLECTION) bumpCache(false)
   const value = buildSnapshotMeta()
   snapshotMetaCache.key = key
   snapshotMetaCache.value = value

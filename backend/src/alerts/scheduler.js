@@ -205,18 +205,23 @@ export function recompute(route) {
   return { briefing, tafByIcao }
 }
 
-async function runTick(db, now = Date.now()) {
+// export: 개발용 즉시 발화(dev/scenario.js /tick)가 15분 대기 없이 1회 평가할 때 재사용. { evaluated, fired } 반환.
+export async function runTick(db, now = Date.now()) {
   cleanupExpired(db, now)
+  let evaluated = 0
+  let fired = 0
   for (const route of activeFlights(db, now)) {
     try {
       const res = recompute(route)
       if (!res) continue
+      evaluated++
       const { changes } = evaluateFlight({ db, route, briefing: res.briefing, tafByIcao: res.tafByIcao, now })
-      for (const alert of (changes ?? [])) await dispatchAlert(db, alert, route, { now })
+      for (const alert of (changes ?? [])) { await dispatchAlert(db, alert, route, { now }); fired++ }
     } catch (err) {
       console.error(`[alert-scheduler] route ${route.id} 평가 실패:`, err.message)
     }
   }
+  return { evaluated, fired }
 }
 
 // 등록 직후 baseline 1회(diff 기준 확보). 이후 인터벌.

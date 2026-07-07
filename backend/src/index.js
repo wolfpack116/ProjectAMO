@@ -31,17 +31,19 @@ const AIRPORT_INFO_CRON_OPTIONS = { timezone: 'Asia/Seoul' }
 async function runWithLock(type, job) {
   if (locks[type]) {
     console.warn(`${type}: skipped (already running)`);
+    stats.recordSkip(type); // 수집 주기 < 처리시간 신호(관찰 탭)
     return;
   }
 
   locks[type] = true;
+  const t0 = Date.now();
   try {
     const result = await job();
     console.log(`[${new Date().toISOString()}] ${type}:`, result);
-    stats.recordSuccess(type, result);
+    stats.recordSuccess(type, result, Date.now() - t0);
   } catch (error) {
     console.error(`[${new Date().toISOString()}] ${type} failed:`, error.message);
-    stats.recordFailure(type, error.message);
+    stats.recordFailure(type, error.message, Date.now() - t0);
   } finally {
     locks[type] = false;
   }

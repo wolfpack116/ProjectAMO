@@ -6,6 +6,7 @@ import { CURRENT_VERSION } from '../../features/about/changelog.js'
 import { useAuth, ROLE_LABEL_KO } from '../../features/auth/AuthContext.jsx'
 import NotificationCenter from '../../features/notifications/NotificationCenter.jsx'
 import PersonalSettingsButton from '../../features/personal/PersonalSettingsButton.jsx'
+import DeveloperConsoleButton from '../../features/developer/DeveloperConsoleButton.jsx'
 import './Sidebar.css'
 
 const topItems = [
@@ -111,6 +112,8 @@ function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle, hasUp
         <NotificationCenter isExpanded={isExpanded} />
         {/* #13 개인설정 — 로그인 사용자만(컴포넌트 자체 게이트). 미니마·비행알림 2탭 패널. */}
         <PersonalSettingsButton isExpanded={isExpanded} />
+        {/* 개발자 콘솔 — 테스트 인스턴스(dev:test)에서만 렌더(컴포넌트 자체 게이트). 운영 빌드엔 코드 없음. */}
+        <DeveloperConsoleButton isExpanded={isExpanded} />
         {bottomItems.map((item) => {
           const panelId = PANEL_MAP[item.label]
           return (

@@ -7,15 +7,32 @@ import { Router } from 'express'
 
 import { getDb } from '../db/index.js'
 import { requireAuth } from '../auth/middleware.js'
-import { buildBriefingRequest, buildSnapshot } from '../alerts/scheduler.js'
+import { buildBriefingRequest, buildSnapshot, runTick } from '../alerts/scheduler.js'
 import { composeBriefing } from '../briefing/briefing-composer.js'
 import { detectChanges } from '../alerts/diff.js'
 import { dispatchAlert } from '../alerts/sender.js'
 import { getCached, updateCache, canonicalHash, loadLatest } from '../store.js'
+import { getStats } from '../stats.js'
+import { getRequests, aggregateByPath, getCacheStats } from './instrument.js'
 import config from '../config.js'
 import path from 'node:path'
 
-const INJECT_TYPES = ['metar', 'taf', 'sigmet']
+// store-stats 대상 타입(주요 데이터셋). getCached는 국내/해외/기타 캐시를 반환.
+const STORE_TYPES = ['metar', 'metar_overseas', 'taf', 'taf_overseas', 'sigmet', 'sigmet_overseas', 'airmet', 'warning', 'amos', 'takeoff_fcst', 'notam', 'adsb']
+function storeItemCount(data) {
+  if (!data) return 0
+  if (Array.isArray(data.items)) return data.items.length
+  if (data.airports && typeof data.airports === 'object') return Object.keys(data.airports).length
+  return null // 형태 불명 — 개수 미측정
+}
+
+const INJECT_TYPES = ['metar', 'taf', 'sigmet', 'notam'] // reset가 파일에서 다시 읽어 복구할 store 타입
+const DEV_ROLES = ['pilot', 'forecaster', 'admin']
+// 경로 SIGMET 프리셋 — 모두 hazard-section이 인식하는 phenomenon_code(iwxxm-advisory-parser).
+const SIG_PHENOM = {
+  ts: { code: 'EMBD_TS', label: 'Embedded Thunderstorm', upperFl: 400 },
+  ice: { code: 'SEV_ICE', label: 'Severe Icing', upperFl: 240 },
+}
 const LIFR = { vis: 800, clouds: [{ amount: 'OVC', base: 100, raw: 'OVC001' }], wx: [{ raw: 'TSRA', intensity: 'HEAVY', descriptor: 'TS', phenomena: ['RA'], icon_key: 'TSRA' }] }
 const IFR = { vis: 3000, clouds: [{ amount: 'OVC', base: 600, raw: 'OVC006' }], wx: null }
 const mergeAirports = (a, b) => ({ ...(a?.airports || {}), ...(b?.airports || {}) })
@@ -52,7 +69,7 @@ function injectAirport(icao, c) {
   if (taf?.airports?.[icao]) { const t = overlayTaf(taf, icao, c); updateCache('taf', t, canonicalHash(t)) }
   if (tafO?.airports?.[icao]) { const t = overlayTaf(tafO, icao, c); updateCache('taf_overseas', t, canonicalHash(t)) }
 }
-function injectRouteSigmet(geometry) {
+function injectRouteSigmet(geometry, phenom = SIG_PHENOM.ts) {
   const coords = geometry?.coordinates
   if (!coords?.length) return
   const [lon, lat] = coords[Math.floor(coords.length / 2)]; const d = 1.2
@@ -60,13 +77,30 @@ function injectRouteSigmet(geometry) {
   const now = Date.now()
   const sig = structuredClone(getCached('sigmet') ?? { type: 'sigmet', items: [] })
   sig.items = [...(sig.items ?? []), {
-    id: `DEV-TS-${now}`, sequence_number: 'D01', report_status: 'NORMAL', cancelled: false,
-    phenomenon_code: 'EMBD_TS', phenomenon_label: 'Embedded Thunderstorm', time_indicator: 'FORECAST',
+    id: `DEV-${phenom.code}-${now}`, sequence_number: 'D01', report_status: 'NORMAL', cancelled: false,
+    phenomenon_code: phenom.code, phenomenon_label: phenom.label, time_indicator: 'FORECAST',
     valid_from: new Date(now - 3600e3).toISOString(), valid_to: new Date(now + 6 * 3600e3).toISOString(),
-    fir: 'RKRR', altitude: { lower_fl: null, upper_fl: 400, lower_ref: null, upper_ref: 'STD' },
+    fir: 'RKRR', altitude: { lower_fl: null, upper_fl: phenom.upperFl, lower_ref: null, upper_ref: 'STD' },
     motion: { direction_deg: 90, speed_kt: 15 }, geometry: { type: 'Polygon', coordinates: [box] },
   }]
   updateCache('sigmet', sig, canonicalHash(sig))
+}
+
+// 목적지(또는 경로) NOTAM 주입 — location=ICAO 스코프면 좌표 없이도 브리핑 NOTAM 섹션에 매칭(notam-briefing).
+function injectNotam(icao, geometry) {
+  const now = Date.now()
+  const notam = structuredClone(getCached('notam') ?? { type: 'notam', items: [] })
+  const coords = geometry?.coordinates
+  const near = coords?.length ? coords[coords.length - 1] : null
+  const box = near ? (() => { const [lon, lat] = near; const d = 0.3; return [[lon - d, lat - d], [lon + d, lat - d], [lon + d, lat + d], [lon - d, lat + d], [lon - d, lat - d]] })() : null
+  notam.items = [...(notam.items ?? []), {
+    id: `DEV-NOTAM-${now}`, category: 'danger', scope: 'airport', location: icao,
+    summary: `TEST DANGER AREA ACTIVE (${icao})`, rawText: `DEV INJECTED NOTAM — ${icao} danger area SFC-FL999`,
+    valid_from: new Date(now - 3600e3).toISOString(), valid_to: new Date(now + 12 * 3600e3).toISOString(),
+    altitude: { lower: 0, upper: 999, unit: 'FL', ref: null },
+    geometry: box ? { type: 'Polygon', coordinates: [box] } : null,
+  }]
+  updateCache('notam', notam, canonicalHash(notam))
 }
 function cleanBaseline(curr) {
   const clean = (a) => (a ? { ...a, ceilingFt: 9999, visibilityM: 9999, ts: false, alternateRequired: false } : a)
@@ -98,8 +132,10 @@ export function createDevRouter({ db = null } = {}) {
     if (!request) return res.status(400).json({ error: 'no_geometry', hint: '이 경로에 항로 좌표가 없습니다.' })
 
     if (scenario.depLifr) injectAirport(request.departureAirport, LIFR)
-    if (scenario.destIfr) injectAirport(request.arrivalAirport, IFR)
-    if (scenario.routeTs) injectRouteSigmet(request.routeGeometry)
+    if (scenario.destIfr) injectAirport(request.arrivalAirport, IFR) // 목적지 IFR → TAF ETA±1h로 교체공항 필요도 함께 발생
+    if (scenario.routeTs) injectRouteSigmet(request.routeGeometry, SIG_PHENOM.ts)
+    if (scenario.routeIce) injectRouteSigmet(request.routeGeometry, SIG_PHENOM.ice)
+    if (scenario.destNotam) injectNotam(request.arrivalAirport, request.routeGeometry)
 
     // 주입된 store로 알림 계산 + 적재 + 발송(알림센터/텔레그램).
     const data = currentData()
@@ -136,6 +172,64 @@ export function createDevRouter({ db = null } = {}) {
     }
     const deletedAlerts = database().prepare('DELETE FROM triggered_alerts WHERE user_id = ?').run(req.session.userId).changes
     res.json({ ok: true, restored, deletedAlerts, note: '실황(고정 원본) 복구 + 발생 알림 삭제.' })
+  })
+
+  // POST /api/dev/tick → 실제 스케줄러 1회 즉시 평가(15분 대기 제거). 첫 tick=baseline, 주입 후 tick=변경 발화.
+  router.post('/tick', async (req, res) => {
+    const summary = await runTick(database())
+    res.json({ ok: true, ...summary, note: '스케줄러 1회 평가. 주입 전 1회(baseline) → 주입 → 다시 tick 하면 변경 발화.' })
+  })
+
+  // POST /api/dev/clear-alerts → 내 발생 알림만 삭제(store/실황은 유지, reset과 달리 데이터 복구 안 함).
+  router.post('/clear-alerts', (req, res) => {
+    const deleted = database().prepare('DELETE FROM triggered_alerts WHERE user_id = ?').run(req.session.userId).changes
+    res.json({ ok: true, deleted })
+  })
+
+  // GET /api/dev/vitals → 관찰 탭용 프로세스 상태(uptime·메모리). 테스트 모드 전용 마운트라 노출 안전.
+  router.get('/vitals', (req, res) => {
+    const m = process.memoryUsage()
+    res.json({ uptimeSec: Math.round(process.uptime()), rss: m.rss, heapUsed: m.heapUsed, heapTotal: m.heapTotal })
+  })
+
+  // GET /api/dev/request-log?limit= → 최근 /api 요청 로그 + 경로별 지연·응답크기 집계(헛fetch·통짜 payload 감지).
+  router.get('/request-log', (req, res) => {
+    const limit = Math.min(500, Number(req.query.limit) || 100)
+    res.json({ recent: getRequests(limit), byPath: aggregateByPath() })
+  })
+
+  // GET /api/dev/processor-log?limit= → 수집기 최근 run(타입·시각·소요·성공여부) + 타입별 요약(성공/실패/스킵).
+  // 테스트 모드(cron off)에선 stats/latest.json에서 로드된 마지막 실제 수집 결과가 고정 표시됨.
+  router.get('/processor-log', (req, res) => {
+    const limit = Math.min(50, Number(req.query.limit) || 30)
+    const s = getStats()
+    const summary = Object.entries(s.types ?? {}).map(([type, e]) => ({
+      type, total: e.total_runs ?? 0, success: e.success ?? 0, failure: e.failure ?? 0, skips: e.skips ?? 0, lastRun: e.last_run ?? null,
+    }))
+    res.json({ recent: (s.recent_runs ?? []).slice(0, limit), summary })
+  })
+
+  // POST /api/dev/role { role } → 내 계정 role 임시 전환(테스트 모드 전용, 권한별 UI/API 검증용).
+  // DB role + (예보관이면) airports 갱신 + req.session.role 즉시 반영 → requireRole이 바로 새 role로 판정.
+  // 이 라우터 자체가 DISABLE_COLLECTION에서만 마운트되므로 운영엔 존재하지 않음.
+  router.post('/role', (req, res) => {
+    const { role } = req.body ?? {}
+    if (!DEV_ROLES.includes(role)) return res.status(400).json({ error: 'invalid_role', hint: `role은 ${DEV_ROLES.join('/')} 중 하나.` })
+    const uid = req.session.userId
+    const airports = role === 'forecaster' ? JSON.stringify(['RKSI']) : null // 예보관 큐가 최소 1개 담당공항 필요
+    database().prepare('UPDATE users SET role=?, airports=? WHERE id=?').run(role, airports, uid)
+    req.session.role = role // 세션에도 즉시 반영(로그아웃/재로그인 없이 적용). 프론트 AuthContext는 새로고침 시 /me로 갱신.
+    res.json({ ok: true, role, note: 'DB+세션 반영됨. 프론트 권한 UI는 새로고침 후 갱신.' })
+  })
+
+  // GET /api/dev/store-stats → store(메모리 캐시) 타입별 아이템수·대략 바이트·해시 + snapshot-meta 캐시 hit/miss.
+  router.get('/store-stats', (req, res) => {
+    const types = STORE_TYPES.map((type) => {
+      const data = getCached(type)
+      const bytes = data ? Buffer.byteLength(JSON.stringify(data)) : 0
+      return { type, present: !!data, items: storeItemCount(data), bytes }
+    })
+    res.json({ types, cache: getCacheStats() })
   })
 
   return router
