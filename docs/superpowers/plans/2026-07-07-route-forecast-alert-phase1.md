@@ -10,7 +10,8 @@
   - 스냅샷 prev는 **인메모리 캐시**(§5B) + `last_briefing_snapshot_id`=해시 마커. 재시작 생존 필요 시 routes에 JSON 컬럼(ponytail 주석).
   - **dwell 2h·rate-limit·group_wait은 미구현**(§5B) — diff는 prev→curr 전이 + route+dedup_key 중복억제까지만. 데모엔 충분, 알림피로 강화는 후속.
 - ✅ **Task 6 완료** (`e876c25`): 발송 seam `backend/src/alerts/sender.js`(`formatAlert`/`dispatchAlert`) + 텔레그램(env 게이트·딥링크 버튼) + 채널 차등(HIGH/CRITICAL만 푸시). scheduler runTick 배선. 유닛 6/6.
-- ▶ **다음 = Task 7** (알림센터 피드 API `GET /api/me/alerts` + 읽음 표시). 이후 8·9(프론트)·10(딥링크)·11(통합).
+- ✅ **Task 7 완료** (`649eb7a`): 알림센터 피드. **경로 충돌 정정** — 스펙의 `GET /api/me/alerts`는 Task 3 예정비행 목록이 점유 → **피드는 `/api/me/notifications`**(GET·PATCH /:id/read·POST /read-all). `listNotifications`/`markNotificationRead`/`markAllNotificationsRead` 순수 DB 함수. 유닛 3/3.
+- ▶ **다음 = Task 8·9(프론트)**. ⚠️ UI 작업 → 착수 전 `docs/design/design-language.md` 정독 필수. 이후 10(딥링크 `?flight=`)·11(통합·텔레그램 e2e·Playwright). **백엔드(1~7) Phase 1 완료.**
 - ⚠️ **테스트 실행 주의:** bcrypt(cost 12)·서버 통합 테스트는 이 환경에서 느려 실행 보류 중 — 파일만 작성하고 CI/수동에 맡김. **순수 함수 유닛 테스트는 즉시 실행 OK.**
 
 **목표(Phase 1, 시연):** 서버가 저장된 비행을 감시 → 예보가 v1 7종 기준 나빠지면 **인앱 알림센터 + 텔레그램**으로 알림 + 탭하면 그 비행 브리핑으로 딥링크. **서비스워커 없이 end-to-end 시연.** (Web Push=Phase 2, 카카오·이메일=v2.)
@@ -70,9 +71,9 @@
 - [x] scheduler `runTick` 배선(insertAlert→id, dispatchAlert). `.env.example` 키. 유닛 6/6.
 - [x] Commit (`e876c25`).
 
-## Task 7: 알림센터 피드 API
-- [ ] `GET /api/me/alerts`(triggered_alerts, userId 필터, 최신순) + 읽음 표시(`PATCH .../read` or `read_at`).
-- [ ] 스모크. Commit.
+## Task 7: 알림센터 피드 API ✅
+- [x] **경로 = `/api/me/notifications`**(스펙 `/alerts`는 예정비행 목록 점유). GET(userId·최신순·경로명 조인·unreadCount) + `PATCH /:id/read` + `POST /read-all`. 순수 DB 함수로 분리. 유닛 3/3.
+- [x] Commit (`649eb7a`). ⚠️ 프론트(Task 8)는 피드를 `/api/me/notifications`에서 읽을 것.
 
 ## Task 8: 프론트 — 인앱 알림센터 (신규)
 - [ ] 앱 셸(App.jsx/Sidebar)에 벨 버튼 + 안 읽음 배지 + 패널(누적 알림 리스트). **legacy 알림 UI 재사용 안 함, 신규 제작.** 디자인 헌법 토큰.
