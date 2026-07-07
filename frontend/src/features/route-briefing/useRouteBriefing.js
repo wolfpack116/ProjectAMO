@@ -673,6 +673,10 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     if (result?.flightRule === 'VFR' && Array.isArray(saved.vfrWaypoints) && saved.vfrWaypoints.length >= 2) {
       // Backfill uid for routes saved before uids existed (stable React keys).
       setVfrWaypoints(saved.vfrWaypoints.map((wp) => (wp.uid ? wp : { ...wp, uid: crypto.randomUUID() })))
+    } else if (saved.routeForm.flightRule === 'IFR') {
+      // IFR: 로드 후 절차 자동추천 자동 발화(수동 '자동검색' 클릭과 동일) — SID/STAR 매칭·해외 경로 확보.
+      // 스냅샷에 selectedSid/Star가 없어 존중할 값이 없으므로 자동추천이 안전. runRouteSearch await 뒤라 순차(수동 흐름 재현).
+      setAutoRecommendRequested(true)
     }
   }
 
