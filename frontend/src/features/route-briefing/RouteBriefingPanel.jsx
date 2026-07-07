@@ -326,7 +326,7 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     const def = `${routeForm.departureAirport || '?'} → ${routeForm.arrivalAirport || '?'}`
     const name = window.prompt('경로 이름', def)
     if (name == null) return
-    await saveRoute(name.trim() || def, { routeForm, vfrWaypoints, cruiseAltitudeFt, alternateAirport, etd })
+    await saveRoute(name.trim() || def, { routeForm, vfrWaypoints, cruiseAltitudeFt, cruiseSpeedKt, alternateAirport, etd })
     refreshSaved()
   }
   const routeMenu = (

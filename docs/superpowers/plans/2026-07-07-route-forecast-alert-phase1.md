@@ -25,11 +25,11 @@
 - [ ] 스모크: `backend/test/db.test.js`에 컬럼·테이블 존재 1개. Run `node --test backend/test/db.test.js`.
 - [ ] Commit.
 
-## Task 2: tasKt 스냅샷 저장 + 단일 미니마 저장/복원
-- [ ] 프론트: `RouteBriefingPanel.jsx:329` `saveRoute(..., { ..., tasKt })` — 스냅샷에 `cruiseSpeedKt` 추가. (백엔드 `z.record`라 스키마 변경 없음)
-- [ ] 백엔드: `me` 라우터에 `GET/PUT /api/me/minima` — `users.min_ceiling_ft/min_visibility_m` 읽기·쓰기(zod 검증, `req.session.userId`만).
-- [ ] 프론트 `SettingsModal` 기상 미니마 탭: 공항별 그리드 → **단일 운고·시정 + VFR/IFR 프리셋**(목업 기준). 로드=`GET /api/me/minima`, 저장=`PUT`.
-- [ ] 스모크: me minima 왕복 테스트. 프론트 esbuild 빌드.
+## Task 2: tasKt 스냅샷 저장 + 단일 미니마 API
+- [x] 프론트: `RouteBriefingPanel.jsx:329` `saveRoute(..., { ..., cruiseSpeedKt })` — 스냅샷에 속도 추가. (ETA는 이미 `computeEtaIso`로 클라 계산 중)
+- [x] 백엔드: `createMeRouter`(presets.js)에 `GET/PUT /api/me/minima` — `users.min_ceiling_ft/min_visibility_m`, zod 검증, userId만.
+- [x] 스모크: `me-presets.test.js`에 minima 왕복 1개.
+- ⚠️ **정정: 기존 `SettingsModal` "공항 미니마" 탭은 건드리지 않는다** — per-airport `airport_minima_settings`는 monitoring(MonitoringPage·MetarCard·TafTimeline)이 소비하는 load-bearing 표시값. #13 **단일 미니마 입력 UI는 새 개인설정 패널 [기상 미니마] 탭(Task 9)**에 넣는다.
 - [ ] Commit.
 
 ## Task 3: 알림 등록 API (예정 비행)
@@ -67,8 +67,9 @@
 - [ ] 각 항목 탭 → `?flight=<id>` 딥링크(Task 10).
 - [ ] esbuild 빌드. Commit.
 
-## Task 9: 프론트 — 개인설정 [비행 알림] 탭
-- [ ] 등록 폼(템플릿 select·ETD·ETA[etaCalc pre-fill·수정]·고급 접힘[감시시작 2h 2~6·이상없음 off]) + 등록 목록(상태칩 대기/감시중/순번, ETD 조정·삭제). 목업 기준.
+## Task 9: 프론트 — 개인설정 패널 [기상 미니마]+[비행 알림] 탭
+- [ ] **[기상 미니마] 탭**: 단일 운고·시정 + VFR/IFR 프리셋. 로드=`GET /api/me/minima`, 저장=`PUT`. (기존 SettingsModal 공항 미니마와 별개.)
+- [ ] **[비행 알림] 탭**: 등록 폼(템플릿 select·ETD·ETA[etaCalc pre-fill·수정]·고급 접힘[감시시작 2h 2~6·이상없음 off]) + 등록 목록(상태칩 대기/감시중/순번, ETD 조정·삭제). 목업 기준.
 - [ ] 경로 창 [이 비행 알림 등록] 지름길 → 템플릿 자동저장 + 패널 등록.
 - [ ] 시간 Z+KST 병기. esbuild 빌드. Commit.
 

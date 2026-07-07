@@ -41,6 +41,18 @@ test('presets: PUT saves, GET returns own presets', async () => {
   } finally { s.close(); db.close() }
 })
 
+test('#13 minima: PUT saves single value, GET returns it', async () => {
+  const { db, app } = makeServer()
+  const s = await listen(app)
+  try {
+    const cookie = await registerAndLogin(s, db, 'pilotm')
+    let r = await fetch(at(s, '/api/me/minima'), { method: 'PUT', headers: { ...JSONH, cookie }, body: JSON.stringify({ ceilingFt: 1000, visibilityM: 5000 }) })
+    assert.equal(r.status, 200)
+    r = await fetch(at(s, '/api/me/minima'), { headers: { ...CLOSE, cookie } })
+    assert.deepEqual((await r.json()).minima, { ceilingFt: 1000, visibilityM: 5000 })
+  } finally { s.close(); db.close() }
+})
+
 test('presets: unauthenticated → 401', async () => {
   const { db, app } = makeServer()
   const s = await listen(app)
