@@ -5,6 +5,7 @@ import {
 import { CURRENT_VERSION } from '../../features/about/changelog.js'
 import { useAuth, ROLE_LABEL_KO } from '../../features/auth/AuthContext.jsx'
 import NotificationCenter from '../../features/notifications/NotificationCenter.jsx'
+import PersonalSettingsButton from '../../features/personal/PersonalSettingsButton.jsx'
 import './Sidebar.css'
 
 const topItems = [
@@ -108,6 +109,8 @@ function Sidebar({ activePanel, onPanelToggle, isExpanded, onExpandToggle, hasUp
       <div className="sidebar-section">
         {/* #13 알림센터 — 로그인 사용자만(컴포넌트 자체 게이트). 벨 + 안읽음 배지 + Popover 피드. */}
         <NotificationCenter isExpanded={isExpanded} />
+        {/* #13 개인설정 — 로그인 사용자만(컴포넌트 자체 게이트). 미니마·비행알림 2탭 패널. */}
+        <PersonalSettingsButton isExpanded={isExpanded} />
         {bottomItems.map((item) => {
           const panelId = PANEL_MAP[item.label]
           return (
