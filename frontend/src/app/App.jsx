@@ -11,6 +11,7 @@ import AuthModal from '../features/auth/AuthModal.jsx'
 import { AuthProvider } from '../features/auth/AuthContext.jsx'
 import UpdatesModal from '../features/about/UpdatesModal.jsx'
 import SearchPalette from '../features/search/SearchPalette.jsx'
+import FlightAlertDetail from '../features/notifications/FlightAlertDetail.jsx'
 import { buildSearchCatalog } from '../features/map/layerActions.js'
 import { mergeAdvisoryPayloads, mergeAirportPayloads } from '../api/weatherApi.js'
 import { useLastSeenVersion } from '../features/about/useLastSeenVersion.js'
@@ -39,6 +40,11 @@ function MainAppShell() {
     // 딥링크: ?airport=RKSI 로 공항패널 바로 열기 (공유 링크 + Playwright 캡처용)
     const p = new URLSearchParams(window.location.search).get('airport')
     return p ? p.toUpperCase() : null
+  })
+  const [deeplinkFlightId, setDeeplinkFlightId] = useState(() => {
+    // 딥링크: ?flight=<routeId> 로 비행 알림 에스컬레이션 화면 바로 열기 (Task 10)
+    const p = new URLSearchParams(window.location.search).get('flight')
+    return p ? Number(p) : null
   })
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
   const [mobileTask, setMobileTask] = useState('map')
@@ -228,6 +234,13 @@ function MainAppShell() {
 
       <div className="utc-bar">{formatTimeByTz(nowMs, tz)}</div>
       {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
+      {deeplinkFlightId != null && (
+        <FlightAlertDetail
+          flightId={deeplinkFlightId}
+          onClose={() => setDeeplinkFlightId(null)}
+          onOpenRoute={() => { setDeeplinkFlightId(null); setActivePanel('route-check') }}
+        />
+      )}
       {activePanel === 'settings' && (
         <SettingsModal onClose={() => togglePanel('settings')} />
       )}
