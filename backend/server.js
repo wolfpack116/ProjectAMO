@@ -19,6 +19,7 @@ import { startSampler } from './src/admin/metrics.js'
 import { getDb } from './src/db/index.js'
 import { createMeRouter } from './src/me/presets.js'
 import { createRoutesRouter } from './src/me/routes.js'
+import { createAlertsRouter } from './src/me/alerts.js'
 import { createMeRequestsRouter } from './src/me/requests.js'
 import { createForecasterRouter } from './src/forecaster/router.js'
 import adsbProcessor from './src/processors/adsb-processor.js'
@@ -145,6 +146,7 @@ if (process.env.NODE_ENV !== 'test') {
   app.use('/api/auth', createAuthRouter())
   app.use('/api/me', createMeRouter()) // 내 프리셋(로그인 필요, 자기 것만)
   app.use('/api/me', createRoutesRouter()) // 내 저장 경로
+  app.use('/api/me', createAlertsRouter()) // #13 예정 비행(알림) 등록·관리
   app.use('/api/me', createMeRequestsRouter()) // 조종사 문의 생성/상태
   app.use('/api/forecaster', createForecasterRouter()) // 예보관 문의 대기열(담당공항만)
   app.use('/api/admin', createAdminRouter()) // 관리자 콘솔(requireRole admin)
