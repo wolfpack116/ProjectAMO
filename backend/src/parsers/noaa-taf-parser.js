@@ -182,7 +182,10 @@ export function parse(entry) {
     state = deepClone(state ? stripMeta(state) : stripMeta(base))
 
     for (const becmg of becmgList) {
-      if (becmg._from && time >= becmg._from) state = partialMerge(state, becmg)
+      // 정상 TAF는 시작 시각부터 바로 적용(플리커 방지). 단 BECMG가 유효시작과 동시에
+      // 시작하는 비정상 TAF는 BASE가 지속시간 0이 되어 증발하므로 이때만 창 끝에 적용.
+      const gate = becmg._from === validStart ? becmg._to : becmg._from
+      if (gate && time >= gate) state = partialMerge(state, becmg)
     }
     for (const tempo of tempoList) {
       if (tempo._from && tempo._to && time >= tempo._from && time < tempo._to) state = partialMerge(state, tempo)
