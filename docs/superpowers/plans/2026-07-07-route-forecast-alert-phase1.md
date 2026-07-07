@@ -4,7 +4,12 @@
 
 ## 진행 현황 (2026-07-07)
 - ✅ **Task 1·2·3 완료·푸시** (`26a2bb6`·`c32f072`·`9dea79c`): DB 스키마, 단일 미니마 API + 스냅샷 cruiseSpeedKt, 알림 등록 API(pickActiveFlight 유닛 4/4).
-- ▶ **다음 = Task 4·5** (스케줄러 + diff 엔진 — 핵심 두뇌). 착수 전 `flight-category.js`·`taf-window.js`·`hazard-section.js`·`enroute-model.js` 리턴 구조 정독 필요.
+- ✅ **Task 5 완료** (`e642acd`): diff 엔진 `backend/src/alerts/diff.js` `detectChanges(prev,curr,plan)` — 7종 순수 판정. 유닛 8/8.
+- ✅ **Task 4 완료** (`56fe9dc`): 스케줄러 `backend/src/alerts/scheduler.js`(`evaluateFlight`/`buildSnapshot`/`buildBriefingRequest`) + `taf-window.metricsAt()` + server.js 배선. 유닛 5/5.
+  - ⚠️ **발견(계획 공백 해소):** 서버 재브리핑에 필요한 `routeGeometry`가 저장 스냅샷에 없었음. IFR은 프론트 플래너(`getCurrentRouteLineString`) 산출물이라 서버 재구성 불가 → **`RouteBriefingPanel.saveRoute`에 `routeGeometry` 저장 추가**(cruiseSpeedKt 선례). 등록은 payload 복제라 자동 전파. **기존 저장경로는 기하 없어 스케줄러가 skip**(재저장 시 활성). `me/routes.js` snapshot=z.record라 백엔드 스키마 변경 불필요.
+  - 스냅샷 prev는 **인메모리 캐시**(§5B) + `last_briefing_snapshot_id`=해시 마커. 재시작 생존 필요 시 routes에 JSON 컬럼(ponytail 주석).
+  - **dwell 2h·rate-limit·group_wait은 미구현**(§5B) — diff는 prev→curr 전이 + route+dedup_key 중복억제까지만. 데모엔 충분, 알림피로 강화는 후속.
+- ▶ **다음 = Task 6** (발송 seam + 텔레그램). 이후 7(피드 API)·8·9(프론트)·10(딥링크)·11(통합).
 - ⚠️ **테스트 실행 주의:** bcrypt(cost 12)·서버 통합 테스트는 이 환경에서 느려 실행 보류 중 — 파일만 작성하고 CI/수동에 맡김. **순수 함수 유닛 테스트는 즉시 실행 OK.**
 
 **목표(Phase 1, 시연):** 서버가 저장된 비행을 감시 → 예보가 v1 7종 기준 나빠지면 **인앱 알림센터 + 텔레그램**으로 알림 + 탭하면 그 비행 브리핑으로 딥링크. **서비스워커 없이 end-to-end 시연.** (Web Push=Phase 2, 카카오·이메일=v2.)
@@ -45,17 +50,18 @@
 - [ ] 스모크: 등록→목록→삭제 1개.
 - [ ] Commit.
 
-## Task 4: 재브리핑 스케줄러 (test-first 스모크)
-- [ ] `backend/test/alert-scheduler.test.js` 먼저: 활성 예정비행 1건 넣고 tick 돌리면 baseline 스냅샷이 저장되는지.
-- [ ] `backend/src/alerts/scheduler.js`: 인터벌(예 15분) or 상류 store 변경 훅. 활성 비행(Task 3 헬퍼)마다 저장된 `routeForm`으로 `briefing-composer` 재계산 → 스냅샷 저장(`last_briefing_snapshot_id`). **국내+해외 6 store 게이트**(store.js 해시로 무변경 시 skip). 무거운 KIM/KTG는 소스 주기에만.
-- [ ] 등록 시 baseline 1회 계산.
-- [ ] Run `node --test backend/test/alert-scheduler.test.js`. Commit.
+## Task 4: 재브리핑 스케줄러 (test-first 스모크) ✅
+- [x] `backend/test/alert-scheduler.test.js`: baseline(무발화)·스냅샷 저장 + 목적지 하락→CEIL + dedup + 기하없음 skip. 유닛 5/5.
+- [x] `backend/src/alerts/scheduler.js`: 15분 인터벌. 활성 비행(pickActiveFlight)마다 저장 `payload.routeGeometry`로 `composeBriefing`+`summarizeEnrouteModel` 재계산 → `buildSnapshot` → `evaluateFlight`. `last_briefing_snapshot_id`=해시 마커.
+  - ⚠️ 국내+해외 병합은 composer가 이미 하므로 tafByIcao merge만. **store.js 해시 무변경 skip 게이트는 미배선**(15분 무조건 tick) — 부하 여유(§5C) 크므로 데모엔 무해, 후속 최적화.
+- [x] 등록 직후 baseline: `startAlertScheduler`가 기동 시 즉시 tick 1회. (등록 시점 훅은 아니고 다음 tick에 baseline — 데모 OK.)
+- [x] Run·Commit (`56fe9dc`).
 
-## Task 5: diff 엔진 (test-first 스모크 — 두뇌)
-- [ ] `backend/test/alert-diff.test.js` 먼저: prev(정상)→curr(목적지 IFR 하락) 넣으면 MINIMA 알림 1건, 무변경이면 0건.
-- [ ] `backend/src/alerts/diff.js` `detectChanges(prev,curr,plan)`: 스펙 §1 7종. 판정은 기존 호출 — `flight-category.js`(운고/시정 크로싱), `taf-window.js alternateRequired`(교체 플립), `hazard-section.js`+고도필터(SIGMET·착빙·난류 severe), 출발공항 LVP/TS. 실효 미니마=max(users 미니마, #8 없으면 내 값).
-- [ ] severity + dedup(항목ID+시퀀스) + dwell 2h + rate-limit(reference §5·§5B). `triggered_alerts` 행 생성.
-- [ ] Run test. Commit.
+## Task 5: diff 엔진 (test-first 스모크 — 두뇌) ✅
+- [x] `backend/test/alert-diff.test.js`: 목적지 하락→CEIL 1건, 무변경 0건, 지속 0건, VFR 프리셋, 교체플립, SIGMET 신규/재발행, 착빙 severe, 출발 TS. 유닛 8/8.
+- [x] `backend/src/alerts/diff.js` `detectChanges(prev,curr,plan)`: 7종. 최소 스냅샷 계약 위 순수 비교(판정 수치는 스케줄러가 기존 모듈로 채움). `effectiveMinima`=사용자값→VFR 프리셋 폴백(#8 미구현).
+- [x] severity(CRITICAL=IFR 프리셋 아래) + dedup(route+dedup_key, 스케줄러). **dwell 2h·rate-limit은 미구현**(전이만) — 후속.
+- [x] Run·Commit (`e642acd`).
 
 ## Task 6: 발송 seam + 텔레그램
 - [ ] `backend/src/alerts/sender.js`: `formatAlert(alert)` → 글랜서블 문구(`RKPC 목적지 IFR 하락 · ETA…`). 채널 분기 seam.
