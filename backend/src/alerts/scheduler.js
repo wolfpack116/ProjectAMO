@@ -14,6 +14,7 @@ import { summarizeEnrouteModel } from '../briefing/enroute-model.js'
 import { loadRouteCrossSection } from '../briefing/enroute-cross-section.js'
 import { metricsAt } from '../briefing/taf-window.js'
 import { detectChanges } from './diff.js'
+import { dispatchAlert } from './sender.js'
 
 const RANK = { 약: 1, 중: 2, 심: 3 }
 const DEFAULT_CRUISE_ALT_FT = 9000
@@ -119,12 +120,12 @@ function alreadyFired(db, routeId, dedupKey) {
 }
 
 function insertAlert(db, route, c, nowIso) {
-  db.prepare(`
+  return db.prepare(`
     INSERT INTO triggered_alerts (user_id, route_id, type, severity, target, from_val, to_val, source_id, dedup_key, detected_at)
     VALUES (?,?,?,?,?,?,?,?,?,?)
   `).run(route.user_id, route.id, c.type, c.severity, c.target ?? null,
     c.from == null ? null : String(c.from), c.to == null ? null : String(c.to),
-    c.sourceId ?? null, c.dedupKey, nowIso)
+    c.sourceId ?? null, c.dedupKey, nowIso).lastInsertRowid
 }
 
 // 활성 비행 1건 평가: 재계산 스냅샷 vs prev diff → triggered_alerts 적재, 스냅샷 갱신.
@@ -141,8 +142,8 @@ export function evaluateFlight({ db, route, briefing, tafByIcao, now = Date.now(
     const changes = detectChanges(prev, curr, { minima: userMinima(db, route.user_id) })
     for (const c of changes) {
       if (alreadyFired(db, route.id, c.dedupKey)) continue
-      insertAlert(db, route, c, nowIso)
-      inserted.push(c)
+      const id = insertAlert(db, route, c, nowIso)
+      inserted.push({ ...c, id, to_val: c.to == null ? null : String(c.to) })
     }
   }
 
@@ -208,7 +209,9 @@ async function runTick(db, now = Date.now()) {
   for (const route of activeFlights(db, now)) {
     try {
       const res = recompute(route)
-      if (res) evaluateFlight({ db, route, briefing: res.briefing, tafByIcao: res.tafByIcao, now })
+      if (!res) continue
+      const { changes } = evaluateFlight({ db, route, briefing: res.briefing, tafByIcao: res.tafByIcao, now })
+      for (const alert of (changes ?? [])) await dispatchAlert(db, alert, route, { now })
     } catch (err) {
       console.error(`[alert-scheduler] route ${route.id} 평가 실패:`, err.message)
     }
