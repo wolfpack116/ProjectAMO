@@ -653,9 +653,15 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeForm.flightRule, routeForm.departureAirport, routeForm.arrivalAirport])
 
+  // 딥링크 '전체 브리핑 보기' 착지 시 로드 후 브리핑 자동 생성을 예약하는 플래그.
+  const [autoBriefingPending, setAutoBriefingPending] = useState(false)
+  const autoSearchRef = useRef(false) // 자동추천이 픽스를 채운 뒤 검색을 1회만 재실행하도록 가드
+
   // 불러오기: restore saved inputs, re-search, then overlay saved VFR waypoints.
-  async function loadSavedRoute(saved) {
+  // opts.autoBriefing=true → 경로검색 완료(routeResult) 후 아래 effect가 브리핑을 자동 생성.
+  async function loadSavedRoute(saved, opts = {}) {
     if (!saved?.routeForm) return
+    if (opts.autoBriefing) { setAutoBriefingPending(true); autoSearchRef.current = false }
     // 자동 VFR 생성 effect가 이 dep/arr에 또 발동해 overlay를 덮지 않도록 키 선점.
     lastVfrKeyRef.current = `${saved.routeForm.departureAirport}>${saved.routeForm.arrivalAirport}`
     clearRouteDisplay()
@@ -679,6 +685,24 @@ export function useRouteBriefing({ activePanel, airports = [], metarData = null 
       setAutoRecommendRequested(true)
     }
   }
+
+  // 딥링크 자동 브리핑 체인: (1) 경로 준비되면 브리핑 생성. (2) 아직이면, 자동추천이 픽스를
+  // 채운 시점에 검색을 1회 실행(수동 흐름의 '검색' 클릭 대체) → routeResult 생기면 (1)로.
+  useEffect(() => {
+    if (!autoBriefingPending || briefing) return
+    if (routeResult) {
+      setAutoBriefingPending(false)
+      handleGenerateBriefing()
+      return
+    }
+    const f = routeForm
+    const fixesReady = f.flightRule !== 'IFR' || (!!f.entryFix && !!f.exitFix)
+    if (fixesReady && !routeLoading && !autoSearchRef.current) {
+      autoSearchRef.current = true
+      runRouteSearch(f)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoBriefingPending, routeResult, briefing, routeForm.entryFix, routeForm.exitFix, routeLoading])
 
   // 임포트한 경유점의 중간(비고정) 지점들 초기고도를, 그 지점과 맞닿은 leg의 최고
   // 지형고도 + IMPORT_TERRAIN_MARGIN_FT 이상이 되는 가장 낮은 반원고도로 채운다.

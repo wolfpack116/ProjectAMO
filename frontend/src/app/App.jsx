@@ -12,6 +12,7 @@ import { AuthProvider } from '../features/auth/AuthContext.jsx'
 import UpdatesModal from '../features/about/UpdatesModal.jsx'
 import SearchPalette from '../features/search/SearchPalette.jsx'
 import FlightAlertDetail from '../features/notifications/FlightAlertDetail.jsx'
+import { listSavedRoutes } from '../features/route-briefing/lib/routeStore.js'
 import { buildSearchCatalog } from '../features/map/layerActions.js'
 import { mergeAdvisoryPayloads, mergeAirportPayloads } from '../api/weatherApi.js'
 import { useLastSeenVersion } from '../features/about/useLastSeenVersion.js'
@@ -238,7 +239,16 @@ function MainAppShell() {
         <FlightAlertDetail
           flightId={deeplinkFlightId}
           onClose={() => setDeeplinkFlightId(null)}
-          onOpenRoute={() => { setDeeplinkFlightId(null); setActivePanel('route-check') }}
+          onOpenRoute={async () => {
+            const id = deeplinkFlightId
+            setDeeplinkFlightId(null)
+            setActivePanel('route-check')
+            try {
+              const routes = await listSavedRoutes()
+              const route = routes.find((r) => r.id === id)
+              if (route) mapRef.current?.loadRouteBriefing?.(route)
+            } catch { /* best-effort: 경로 로드 실패해도 패널은 열림 */ }
+          }}
         />
       )}
       {activePanel === 'settings' && (
@@ -261,7 +271,8 @@ function App() {
   if (window.location.pathname === '/monitoring') {
     return <Suspense fallback={null}><MonitoringPage /></Suspense>
   }
-  if (window.location.pathname === '/test') {
+  if (window.location.pathname === '/test' && import.meta.env.DEV) {
+    // 디자인 테스트 페이지 — 개발 빌드에서만. 운영 빌드(npm run build)에선 이 코드가 제거되어 접근 불가.
     return <Suspense fallback={null}><DesignTestPage /></Suspense>
   }
   if (window.location.pathname === '/admin') {

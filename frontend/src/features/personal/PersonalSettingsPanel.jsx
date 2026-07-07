@@ -211,11 +211,61 @@ function AlertsTab({ s, templates, flights, registerAlert, deleteAlert }) {
   )
 }
 
-// #13 개인설정 패널 — 로그인 사용자 전용. 탭A 기상 미니마 / 탭B 비행 알림.
+// 개발자 탭(import.meta.env.DEV에서만) — 테스트 인스턴스(npm run dev:test, 데이터 고정)에서 사용.
+// 내 활성 경로에 가상 악기상을 store에 주입(파일 미변경)하거나 실황으로 복구. 지도·브리핑·알림에 반영.
+function DevTab({ s, flights }) {
+  const [msg, setMsg] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const routeId = flights?.[0]?.id ?? null
+
+  async function call(path, body, okText) {
+    setBusy(true)
+    try {
+      const res = await fetch(path, { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok) {
+        setMsg({ intent: 'success', text: `${okText(data)} 화면 새로고침 중…` })
+        setTimeout(() => window.location.reload(), 900) // 지도·SIGMET·마커 즉시 반영
+      } else {
+        setMsg({ intent: 'error', text: data.hint || '실패했습니다.' })
+      }
+    } catch {
+      setMsg({ intent: 'error', text: '네트워크 오류입니다.' })
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <div className={s.tabBody}>
+      <div className={s.hint}>
+        테스트 인스턴스(<code>npm run dev:test</code>, 자동수집 꺼짐)에서 사용하세요.
+        등록된 비행 경로에 가상 악기상을 얹어 지도·브리핑·알림 반응을 테스트합니다. 운영 데이터 파일은 안 건드립니다.
+      </div>
+      {!routeId && <div className={s.hint} style={{ color: 'var(--level-amber)' }}>먼저 [비행 알림] 탭에서 경로를 등록하세요.</div>}
+      <Button appearance="primary" disabled={busy || !routeId}
+        onClick={() => call('/api/dev/inject', { routeId, scenario: { depLifr: true, routeTs: true } }, (d) => `악기상 주입: ${d.dep} LIFR + 경로 뇌우 — 알림 ${d.firedCount}건.`)}>
+        🌩 악기상 주입 (출발 LIFR + 경로 뇌우)
+      </Button>
+      <Button appearance="outline" disabled={busy}
+        onClick={() => call('/api/dev/reset', {}, (d) => `초기화 — 실황 복구 + 알림 ${d.deletedAlerts ?? 0}건 삭제.`)}>
+        ↺ 초기화 (실황 복구)
+      </Button>
+      {msg && <MessageBar intent={msg.intent}><MessageBarBody>{msg.text}</MessageBarBody></MessageBar>}
+    </div>
+  )
+}
+
+// #13 개인설정 패널 — 로그인 사용자 전용. 탭A 기상 미니마 / 탭B 비행 알림 / (dev) 개발자.
 export default function PersonalSettingsPanel({ open, onOpenChange }) {
   const s = useStyles()
   const [tab, setTab] = useState('minima')
+  const [testMode, setTestMode] = useState(false)
   const { minima, templates, flights, saveMinima, registerAlert, deleteAlert } = usePersonalSettings()
+
+  // 개발자 탭은 테스트 인스턴스(npm run dev:test, cron off)에서만. 일반 모드에선 주입이 무의미하므로 숨김.
+  useEffect(() => {
+    if (!import.meta.env.DEV || !open) return
+    fetch('/api/health').then((r) => r.json()).then((d) => setTestMode(!!d.testMode)).catch(() => {})
+  }, [open])
 
   return (
     <Dialog open={open} onOpenChange={(_, d) => onOpenChange(d.open)}>
@@ -226,10 +276,11 @@ export default function PersonalSettingsPanel({ open, onOpenChange }) {
             <TabList selectedValue={tab} onTabSelect={(_, d) => setTab(d.value)}>
               <Tab value="minima">기상 미니마</Tab>
               <Tab value="alerts">비행 알림</Tab>
+              {import.meta.env.DEV && testMode && <Tab value="dev">개발자</Tab>}
             </TabList>
-            {tab === 'minima'
-              ? <MinimaTab s={s} minima={minima} saveMinima={saveMinima} />
-              : <AlertsTab s={s} templates={templates} flights={flights} registerAlert={registerAlert} deleteAlert={deleteAlert} />}
+            {tab === 'minima' && <MinimaTab s={s} minima={minima} saveMinima={saveMinima} />}
+            {tab === 'alerts' && <AlertsTab s={s} templates={templates} flights={flights} registerAlert={registerAlert} deleteAlert={deleteAlert} />}
+            {tab === 'dev' && testMode && <DevTab s={s} flights={flights} />}
           </DialogContent>
         </DialogBody>
       </DialogSurface>

@@ -313,7 +313,11 @@ const MapView = forwardRef(function MapView({
     if (kind === 'met') setMetVisibility((prev) => (prev[id] ? prev : getNextMetVisibility(prev, id, { lowPower })))
     else if (kind === 'aviation') setAviationVisibility((prev) => (prev[id] ? prev : { ...prev, [id]: true }))
   }
-  useImperativeHandle(ref, () => ({ setLayerOn, switchBasemap }))
+  // loadRouteBriefing: 딥링크 '전체 브리핑 보기'가 저장경로를 route-briefing 훅으로 로드+브리핑 자동생성(§검증).
+  useImperativeHandle(ref, () => ({
+    setLayerOn, switchBasemap,
+    loadRouteBriefing: (saved) => routeBriefing.actions.loadSavedRoute(saved, { autoBriefing: true }),
+  }))
   const { routeResult, fitBoundsRequest } = routeBriefing.state
   const { vfrWaypointsRef, hideTimerRef } = routeBriefing.refs
   const { setHoveredWpInfo, setVfrWaypoints } = routeBriefing.actions

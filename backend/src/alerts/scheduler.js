@@ -180,7 +180,8 @@ export function cleanupExpired(db, now = Date.now()) {
 }
 
 // 저장 route 재브리핑 — store 캐시 + 경로단면(KIM/KTG best-effort) → { briefing, tafByIcao }.
-function recompute(route) {
+// export: 개발용 강제 발화(dev/fire-alert.js)가 주입된 store로 재계산할 때 재사용.
+export function recompute(route) {
   const request = buildBriefingRequest(route)
   if (!request) return null
   const data = {

@@ -166,13 +166,20 @@ async function withServers(task) {
   }
 }
 
-if (!['serve', 'verify', 'smoke', 'screenshots'].includes(command)) {
-  console.error('Usage: node scripts/projectamo-dev.mjs [serve|verify|smoke|screenshots]')
+if (!['serve', 'serve:test', 'verify', 'smoke', 'screenshots'].includes(command)) {
+  console.error('Usage: node scripts/projectamo-dev.mjs [serve|serve:test|verify|smoke|screenshots]')
   process.exit(2)
 }
 
+// serve:test = 테스트 인스턴스: 자동수집(cron)을 꺼서 데이터를 고정. 나머지는 serve와 동일(같은 포트).
+// startProcess가 process.env를 상속하므로 여기서 세팅하면 백엔드에 전달됨.
+if (command === 'serve:test') {
+  process.env.DISABLE_COLLECTION = '1'
+  console.log('[projectamo-dev] TEST MODE — 자동수집 비활성(DISABLE_COLLECTION=1). 데이터 고정, 자유 조작 가능.')
+}
+
 try {
-  if (command === 'serve') {
+  if (command === 'serve' || command === 'serve:test') {
     await startServers()
     await waitForUrl(backendHealthUrl, 'backend')
     await waitForUrl(appUrl, 'frontend')

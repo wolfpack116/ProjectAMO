@@ -114,6 +114,13 @@ async function main() {
   store.initFromFiles(config.storage.base_path);
   stats.initFromFile(config.storage.base_path);
 
+  // 테스트 인스턴스: DISABLE_COLLECTION이면 자동수집(cron)·초기수집을 건너뛴다.
+  // store는 이미 파일에서 로드됨(위 initFromFiles) → 데이터가 그 시점으로 "고정". 개발자가 자유 조작 가능.
+  if (process.env.DISABLE_COLLECTION) {
+    console.log('[collection] DISABLE_COLLECTION 설정됨 — 자동수집/초기수집 생략 (데이터 고정, 테스트 모드).')
+    return
+  }
+
   console.log("Scheduler started");
 
   cron.schedule(config.schedule.metar_interval, () => runWithLock("metar", metarProcessor.processAll));

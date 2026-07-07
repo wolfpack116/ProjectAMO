@@ -21,6 +21,7 @@ import { getDb } from './src/db/index.js'
 import { createMeRouter } from './src/me/presets.js'
 import { createRoutesRouter } from './src/me/routes.js'
 import { createAlertsRouter } from './src/me/alerts.js'
+import { createDevRouter } from './src/dev/scenario.js'
 import { createMeRequestsRouter } from './src/me/requests.js'
 import { createForecasterRouter } from './src/forecaster/router.js'
 import adsbProcessor from './src/processors/adsb-processor.js'
@@ -151,10 +152,17 @@ if (process.env.NODE_ENV !== 'test') {
   app.use('/api/me', createMeRequestsRouter()) // 조종사 문의 생성/상태
   app.use('/api/forecaster', createForecasterRouter()) // 예보관 문의 대기열(담당공항만)
   app.use('/api/admin', createAdminRouter()) // 관리자 콘솔(requireRole admin)
+  if (process.env.DISABLE_COLLECTION) {
+    // 테스트 인스턴스(cron off)에서만 마운트 — 일반 모드에선 주입이 readLatest/cron에 되돌려져 무의미하므로 아예 노출 안 함.
+    app.use('/api/dev', createDevRouter()) // 개발 전용: 가상 악기상 주입/초기화
+  }
 }
 
 function readLatest(type) {
   const cached = store.getCached(type)
+  // 테스트 인스턴스(DISABLE_COLLECTION): 디스크 재조정을 건너뛰고 캐시를 그대로 서빙.
+  // → 개발자 주입(in-memory)이 지도·API에 일관 반영되고 파일(운영 원본)은 안 건드림. 수집이 없어 디스크는 어차피 고정.
+  if (process.env.DISABLE_COLLECTION) return cached
   const filePath = path.join(DATA_ROOT, type, 'latest.json')
 
   if (!fs.existsSync(filePath)) return cached
@@ -799,7 +807,7 @@ app.get('/api/sigwx-low-fronts', (req, res) => sendSigwxOverlayMeta(req, res, 'f
 app.get('/api/sigwx-low-clouds', (req, res) => sendSigwxOverlayMeta(req, res, 'clouds'))
 
 app.get('/api/stats', (_req, res) => res.json(stats.getStats()))
-app.get('/api/health', (_req, res) => res.json({ ok: true, uptime: process.uptime() }))
+app.get('/api/health', (_req, res) => res.json({ ok: true, uptime: process.uptime(), testMode: !!process.env.DISABLE_COLLECTION }))
 app.post('/api/vertical-profile', (req, res) => {
   try {
     res.json(buildVerticalProfile(req.body, terrainSampler))

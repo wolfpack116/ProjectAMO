@@ -82,7 +82,7 @@ export async function loadNavdata() {
 }
 
 function normalizeIdent(value) {
-  return value.trim().toUpperCase()
+  return (value ?? '').trim().toUpperCase() // 픽스 미입력 등 undefined 방어 — 크래시 대신 빈 ident(→ 하류 "not found" 처리)
 }
 
 function haversineNm(lon1, lat1, lon2, lat2) {
