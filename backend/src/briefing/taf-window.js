@@ -215,6 +215,24 @@ export function buildDestination(taf, etaIso, { alternateTaf = null, alternateIc
   }
 }
 
+// #13 미니마 판정용 — ETA(또는 임의 시각)에 가장 가까운 타임라인 엔트리의 수치(운고 ft·시정 m·카테고리).
+// selectTafAtEta는 display+category만 돌려줘 원시 수치가 없다 → 사용자 미니마 선 비교를 위해 숫자를 노출.
+export function metricsAt(taf, iso) {
+  const timeline = taf?.timeline ?? []
+  const target = Date.parse(iso)
+  if (timeline.length === 0 || !Number.isFinite(target)) return null
+  let best = null
+  for (const entry of timeline) {
+    const t = Date.parse(entry.time)
+    if (!Number.isFinite(t)) continue
+    const delta = Math.abs(t - target)
+    if (!best || delta < best.delta) best = { delta, entry }
+  }
+  if (!best) return null
+  const { visibilityM, ceilingFt } = entryMetrics(best.entry)
+  return { visibilityM, ceilingFt, category: categoryFor({ visibilityM, ceilingFt, icao: taf?.header?.icao }) }
+}
+
 // 1-2-3 근사: ETA ±1h 구간에서 운고<2000ft 또는 시정<5000m이면 교체공항 필요.
 export function alternateRequired(taf, etaIso) {
   const timeline = taf?.timeline ?? []
@@ -235,4 +253,4 @@ export function alternateRequired(taf, etaIso) {
   return { required: false, reason: 'ETA±1h 최저치 충족' }
 }
 
-export default { selectTafAtEta, alternateRequired }
+export default { selectTafAtEta, alternateRequired, metricsAt }

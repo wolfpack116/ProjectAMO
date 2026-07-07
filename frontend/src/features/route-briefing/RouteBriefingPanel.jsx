@@ -9,6 +9,7 @@ import {
   buildIfrDistanceBreakdown,
   buildIfrSequenceTokens,
   getVfrAirportAltitudeFt,
+  getCurrentRouteLineString,
 } from './lib/routeBriefingModel.js'
 import { Button, Field, Dropdown, Combobox, Option, Input, SpinButton, TabList, Tab, Badge, MessageBar, MessageBarBody, DatePicker, TimePicker, Menu, MenuTrigger, MenuButton, MenuPopover, MenuList, MenuItem, Divider, Dialog, DialogSurface, DialogTitle, DialogBody, DialogContent, makeStyles, tokens } from '../../shared/ui/fluent.js'
 import { listSavedRoutes, saveRoute, deleteSavedRoute } from './lib/routeStore.js'
@@ -326,7 +327,9 @@ export default function RouteBriefingPanel({ state, refs = {}, derived, actions,
     const def = `${routeForm.departureAirport || '?'} → ${routeForm.arrivalAirport || '?'}`
     const name = window.prompt('경로 이름', def)
     if (name == null) return
-    await saveRoute(name.trim() || def, { routeForm, vfrWaypoints, cruiseAltitudeFt, cruiseSpeedKt, alternateAirport, etd })
+    // #13 서버측 재브리핑용 경로 기하 저장(IFR은 프론트 플래너 산출물이라 서버 재구성 불가). saveRoute는 입력값만이나 기하는 예외.
+    const routeGeometry = getCurrentRouteLineString({ routeResult, vfrWaypoints, selectedSid, selectedStar, selectedIap })
+    await saveRoute(name.trim() || def, { routeForm, vfrWaypoints, cruiseAltitudeFt, cruiseSpeedKt, alternateAirport, etd, routeGeometry })
     refreshSaved()
   }
   const routeMenu = (

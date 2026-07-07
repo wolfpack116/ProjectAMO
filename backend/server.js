@@ -8,6 +8,7 @@ import store from './src/store.js'
 import stats from './src/stats.js'
 import config from './src/config.js'
 import { main as startScheduler } from './src/index.js'
+import { startAlertScheduler } from './src/alerts/scheduler.js'
 import cors from 'cors'
 import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
@@ -879,6 +880,8 @@ if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, HOST, () => console.log(`[server] Backend running on ${HOST}:${PORT}`))
 
   startSampler(getDb()) // 관리자 콘솔: 60초 리소스 샘플링 시작
+
+  startAlertScheduler(getDb()) // #13 경로 예보변화 알림: 활성 예정비행 15분 재브리핑 → diff → 알림 적재
 
   startScheduler().catch((err) => {
     console.error('[server] Scheduler startup error:', err.message)
