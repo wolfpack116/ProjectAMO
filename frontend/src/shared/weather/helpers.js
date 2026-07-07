@@ -180,24 +180,6 @@ export const DEFAULT_AIRPORT_MINIMA_RULES = {
   RKNY: { visibilityM: 550, ceilingFt: 200 },
 };
 
-function normalizeNullableNumber(value) {
-  if (value === '' || value == null) return null;
-  const next = Number(value);
-  return Number.isFinite(next) ? next : null;
-}
-
-export function normalizeAirportMinimaSettings(raw) {
-  const next = {};
-  for (const [icao, defaults] of Object.entries(DEFAULT_AIRPORT_MINIMA_RULES)) {
-    const source = raw?.[icao] || defaults;
-    next[icao] = {
-      visibilityM: normalizeNullableNumber(source.visibilityM) ?? defaults.visibilityM,
-      ceilingFt: normalizeNullableNumber(source.ceilingFt),
-    };
-  }
-  return next;
-}
-
 function getAirportMinimaRule(icao, minimaSettings = null) {
   const rules = minimaSettings || DEFAULT_AIRPORT_MINIMA_RULES;
   return rules[String(icao || '').toUpperCase()] || null;

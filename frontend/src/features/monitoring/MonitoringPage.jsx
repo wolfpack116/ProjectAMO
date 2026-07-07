@@ -10,12 +10,7 @@ import {
   resolveSettings,
   setAlertCallback,
 } from './legacy/utils/alerts'
-import {
-  DEFAULT_AIRPORT_MINIMA_RULES,
-  formatUtc,
-  getFlightCategory,
-  normalizeAirportMinimaSettings,
-} from './legacy/utils/helpers'
+import { formatUtc } from './legacy/utils/helpers'
 import {
   getDefaultAdvisoryFilterSettings,
   loadAdvisoryFilterSettings,
@@ -200,9 +195,6 @@ export default function MonitoringPage() {
   const [trafficAltitudeBands, setTrafficAltitudeBands] = useState(() => (
     readJsonLocalStorage('traffic_altitude_bands', ALL_ALTITUDE_BANDS)
   ))
-  const [airportMinimaSettings, setAirportMinimaSettings] = useState(() => (
-    normalizeAirportMinimaSettings(readJsonLocalStorage('airport_minima_settings', DEFAULT_AIRPORT_MINIMA_RULES))
-  ))
   const [advisoryFilter, setAdvisoryFilter] = useState(() => loadAdvisoryFilterSettings())
 
   const prevDataRef = useRef(null)
@@ -235,10 +227,6 @@ export default function MonitoringPage() {
   useEffect(() => {
     localStorage.setItem('traffic_altitude_bands', JSON.stringify(trafficAltitudeBands))
   }, [trafficAltitudeBands])
-
-  useEffect(() => {
-    localStorage.setItem('airport_minima_settings', JSON.stringify(airportMinimaSettings))
-  }, [airportMinimaSettings])
 
   useEffect(() => {
     document.body.classList.add('monitoring-legacy-body')
@@ -407,9 +395,6 @@ export default function MonitoringPage() {
     loadMonitoringAlertDefaults().then((defaults) => setAlertDefaults({ ...defaults }))
     setTimeZone(localStorage.getItem('time_zone') || 'KST')
     setMapTheme(localStorage.getItem('map_theme') || 'light')
-    setAirportMinimaSettings(normalizeAirportMinimaSettings(
-      readJsonLocalStorage('airport_minima_settings', DEFAULT_AIRPORT_MINIMA_RULES),
-    ))
     setAdvisoryFilter(loadAdvisoryFilterSettings())
   }
 
@@ -441,8 +426,6 @@ export default function MonitoringPage() {
         setTrafficCallsignFilter={setTrafficCallsignFilter}
         trafficAltitudeBands={trafficAltitudeBands}
         setTrafficAltitudeBands={setTrafficAltitudeBands}
-        minimaSettings={airportMinimaSettings}
-        setMinimaSettings={setAirportMinimaSettings}
         advisoryFilter={advisoryFilter}
         setAdvisoryFilter={(next) => {
           setAdvisoryFilter(next || getDefaultAdvisoryFilterSettings())
@@ -488,13 +471,6 @@ export default function MonitoringPage() {
     return `${airportName}(${icao})`
   })()
 
-  const metarVis = metarTarget?.observation?.visibility?.value ?? null
-  const metarClouds = metarTarget?.observation?.clouds || []
-  const metarCeiling = metarClouds
-    .filter((cloud) => cloud.amount === 'BKN' || cloud.amount === 'OVC')
-    .sort((a, b) => (a.base ?? Infinity) - (b.base ?? Infinity))[0]?.base ?? null
-  getFlightCategory(metarVis, metarCeiling, selectedAirport, airportMinimaSettings)
-
   const warningPanel = (
     <WarningList
       warningData={data.warning}
@@ -520,7 +496,6 @@ export default function MonitoringPage() {
       metarData={data.metar}
       amosData={data.amos}
       icao={selectedAirport}
-      minimaSettings={airportMinimaSettings}
       airportMeta={selectedAirportMeta}
       metarTime={metarTime}
       version="v2"
@@ -533,7 +508,6 @@ export default function MonitoringPage() {
     <TafTimeline
       tafData={data.taf}
       icao={selectedAirport}
-      minimaSettings={airportMinimaSettings}
       version={tafVersion}
       onVersionToggle={setTafVersion}
       tz={timeZone}
