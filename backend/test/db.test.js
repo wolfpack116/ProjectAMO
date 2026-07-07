@@ -77,6 +77,36 @@ test('metrics and visits tables exist', () => {
   assert.ok(t.includes('visits'))
 })
 
+// --- #13 경로 예보변화 알림 ---
+
+test('#13: routes has alert columns with safe defaults', () => {
+  const db = freshDb()
+  const cols = db.prepare('PRAGMA table_info(routes)').all().map((c) => c.name)
+  for (const c of ['eta', 'alert_enabled', 'alert_start_min_before_etd', 'altitude_filter_ft', 'send_no_change_confirm', 'confirm_min_before_etd', 'last_briefing_snapshot_id', 'expires_at']) {
+    assert.ok(cols.includes(c), `missing routes.${c}`)
+  }
+  const u = createUser(db, { username: 'alert_user', password: 'password1' })
+  db.prepare("INSERT INTO routes (user_id, created_at, updated_at) VALUES (?, 't', 't')").run(u.id)
+  const row = db.prepare('SELECT alert_enabled, alert_start_min_before_etd, altitude_filter_ft FROM routes WHERE user_id=?').get(u.id)
+  assert.equal(row.alert_enabled, 0)          // 기존/신규 경로는 감시 off
+  assert.equal(row.alert_start_min_before_etd, 120)
+  assert.equal(row.altitude_filter_ft, 4000)
+})
+
+test('#13: users has single-value minima columns', () => {
+  const db = freshDb()
+  const cols = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name)
+  assert.ok(cols.includes('min_ceiling_ft'))
+  assert.ok(cols.includes('min_visibility_m'))
+})
+
+test('#13: triggered_alerts and push_subscriptions tables exist', () => {
+  const db = freshDb()
+  const t = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map((r) => r.name)
+  assert.ok(t.includes('triggered_alerts'))
+  assert.ok(t.includes('push_subscriptions'))
+})
+
 test('createUser status + verifyLogin returns status + admin queries', () => {
   const db = freshDb()
   createUser(db, { username: 'pilotA', password: 'password1', status: 'pending' })
