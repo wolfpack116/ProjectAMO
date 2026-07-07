@@ -3,6 +3,10 @@
 // 라이선스: CC-BY-SA-4.0 — 상업 사용 가능, 단 출처 표기 필수(지도 attribution). 파생물 동일 라이선스.
 // 출력: frontend/public/data/fir-overseas.geojson  (인천 FIR처럼 경계선+라벨로 표시)
 // 재생성: node scripts/generate_overseas_fir.mjs
+// ⚠️ 재생성 시 수동 보정 유실 주의: ZSHA/ZYSH 공유 경계(N38~38.25, E120~124)는 VAT-Spy
+//    원본이 부정확(대각선이 122.28E까지 과도하게 늘어짐)해서 AIP 실측 좌표
+//    (124,38)→(123,38.25)→(120,38.25)로 수동 스냅해뒀음(2026-07-07). 재생성하면 이 보정이
+//    사라지니 다시 적용할 것.
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
