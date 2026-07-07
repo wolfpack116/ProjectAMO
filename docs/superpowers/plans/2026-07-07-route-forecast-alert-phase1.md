@@ -17,7 +17,9 @@
   - → **Task 9 [기상 미니마] 탭 = 개인 단일값(`/api/me/minima`)만** 깔끔.
 - ✅ **Task 9 완료** (`997667b`): 개인설정 패널 `frontend/src/features/personal/`(벨 아래 UserCog 입구, 로그인 게이트). [기상 미니마] 단일값+VFR/IFR 프리셋(`/api/me/minima`) · [비행 알림] 템플릿·ETD·ETA(haversine+etaCalc pre-fill)·등록/목록/삭제(`/api/me/alerts`)·상태칩·Z+KST. Fluent Dialog+TabList. vite 빌드 그린.
   - ⏸ **범위 밖(별도)**: 경로창 [이 비행 알림 등록] 지름길 · PATCH ETD 조정 · 딥링크(Task 10).
-- ▶ **다음 = Task 10(딥링크 `?flight=`)** → 11(통합·텔레그램 e2e·Playwright). **백엔드+프론트(알림센터·개인설정) 완료, 남은 건 딥링크·통합.**
+- ✅ **Task 10 완료** (`32d5675`): 딥링크 `?flight=` 착지. `App.jsx`가 쿼리 읽어 `FlightAlertDetail`(Fluent Dialog) 렌더 — 알림 피드를 routeId 필터해 변경점(severity·formatNotification·before→after·Z+KST) + 읽음 처리 + [전체 브리핑]→경로 패널 + KMA 고지. Option A 서버 브리핑 재렌더는 후속. vite 그린.
+- ✅ **부가 수정** (`17f1a27`): 저장 경로 IFR 로드 시 자동추천 자동발화(수동 '자동검색' 대체 — SID/STAR 매칭·해외 경로 오류 해결). UI 동작은 사용자 검증 위임.
+- ▶ **다음 = Task 11(통합·텔레그램 e2e·Playwright)** — 실제 서버·봇 토큰·로그인 필요 → **사용자 환경에서 진행.** 코드는 Phase 1 완료.
 - ⚠️ **테스트 실행 주의:** bcrypt(cost 12)·서버 통합 테스트는 이 환경에서 느려 실행 보류 중 — 파일만 작성하고 CI/수동에 맡김. **순수 함수 유닛 테스트는 즉시 실행 OK.**
 
 **목표(Phase 1, 시연):** 서버가 저장된 비행을 감시 → 예보가 v1 7종 기준 나빠지면 **인앱 알림센터 + 텔레그램**으로 알림 + 탭하면 그 비행 브리핑으로 딥링크. **서비스워커 없이 end-to-end 시연.** (Web Push=Phase 2, 카카오·이메일=v2.)
@@ -93,9 +95,9 @@
 - [x] 시간 Z+KST 병기(`timeFormat.js`). vite 빌드 그린. Commit (`997667b`).
 - ⏸ 경로 창 지름길·PATCH ETD 조정은 **미착수(별도)**.
 
-## Task 10: 딥링크 `?flight=`
-- [ ] `App.jsx`: `?flight=<routeId>` 읽어(기존 `?airport=` 패턴) 그 예정 비행 로드 → 브리핑 + 변경점 하이라이트 화면. 세션 만료 시 로그인 후 착지.
-- [ ] esbuild 빌드. Commit.
+## Task 10: 딥링크 `?flight=` ✅
+- [x] `App.jsx`가 `?flight=<routeId>` 읽어 `FlightAlertDetail`(features/notifications) 렌더 — 알림 피드 routeId 필터로 변경점 카드(severity·문구·before→after·Z+KST)·읽음 처리·로그인 게이트·KMA 고지·[전체 브리핑]→경로 패널. vite 그린. Commit (`32d5675`).
+- ⏸ Option A 서버 브리핑 재렌더([전체 브리핑]이 실제 그 비행 브리핑 로드)는 후속.
 
 ## Task 11: 통합 · 수동 확인
 - [ ] 텔레그램 e2e: 봇 토큰·chat_id 넣고 등록→강제 diff→텔레그램 수신 확인.
