@@ -2,22 +2,28 @@ import { useEffect, useRef, useState } from 'react'
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 
+// slot: 'top' keeps these above Mapbox Standard's own theme layers (e.g. the
+// monochrome/dark basemap otherwise paints over unslotted custom layers) — same
+// convention as useFirTickOverlay.js.
 const DRAW_STYLES = [
   {
     id: 'sb-poly-fill-inactive',
     type: 'fill',
+    slot: 'top',
     filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'false']],
     paint: { 'fill-opacity': 0 },
   },
   {
     id: 'sb-poly-fill-active',
     type: 'fill',
+    slot: 'top',
     filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'true']],
     paint: { 'fill-color': '#2563eb', 'fill-opacity': 0.3 },
   },
   {
     id: 'sb-poly-stroke',
     type: 'line',
+    slot: 'top',
     filter: ['==', '$type', 'Polygon'],
     paint: { 'line-color': '#2563eb', 'line-width': 2, 'line-join': 'round' },
   },
@@ -50,6 +56,10 @@ export function usePolygonDraw(map) {
   const isDrawingRef = useRef(false)
   const vertsRef = useRef([])
   const mousePosRef = useRef(null)
+  // Finished polygons captured from the outgoing draw control when `map` swaps identity
+  // (e.g. a basemap switch tears the old control down and this effect builds a fresh one
+  // on the new style) — survives across effect runs so they can be reinstalled below.
+  const savedFeaturesRef = useRef(null)
   const [drawing, setDrawing] = useState(false)
   const [vertCount, setVertCount] = useState(0)
   const [polyCount, setPolyCount] = useState(0)
@@ -62,12 +72,19 @@ export function usePolygonDraw(map) {
     map.addControl(draw)
     drawRef.current = draw
 
+    if (savedFeaturesRef.current?.length) {
+      draw.set({ type: 'FeatureCollection', features: savedFeaturesRef.current })
+      savedFeaturesRef.current = null
+      setPolyCount(draw.getAll().features.length)
+    }
+
     function addPreviewLayers() {
       if (map.getSource(PREVIEW_SRC)) return
       map.addSource(PREVIEW_SRC, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
       map.addLayer({
         id: PREVIEW_LINE_LAYER,
         type: 'line',
+        slot: 'top',
         source: PREVIEW_SRC,
         filter: ['==', '$type', 'LineString'],
         paint: { 'line-color': '#3b82f6', 'line-width': 2, 'line-dasharray': [4, 2] },
@@ -75,6 +92,7 @@ export function usePolygonDraw(map) {
       map.addLayer({
         id: PREVIEW_POINTS_LAYER,
         type: 'circle',
+        slot: 'top',
         source: PREVIEW_SRC,
         filter: ['==', '$type', 'Point'],
         paint: { 'circle-radius': 5, 'circle-color': '#fff', 'circle-stroke-width': 2, 'circle-stroke-color': '#3b82f6' },
@@ -151,7 +169,21 @@ export function usePolygonDraw(map) {
       map.off('draw.delete', onDrawDelete)
       map.off('draw.selectionchange', onDrawSelectionChange)
       map.off('mousemove', onMouseMove)
+
+      // An unfinished polygon-in-progress lives outside MapboxDraw (as loose vertices)
+      // until closed, so it can't be captured/reinstalled below — cancel it instead of
+      // leaving stale "drawing" UI state once this control/map is gone.
+      if (isDrawingRef.current) {
+        vertsRef.current = []
+        mousePosRef.current = null
+        isDrawingRef.current = false
+        setDrawing(false)
+        setVertCount(0)
+      }
+      setHasSelection(false)
+
       try {
+        savedFeaturesRef.current = draw.getAll().features
         if (map.getLayer(PREVIEW_LINE_LAYER)) map.removeLayer(PREVIEW_LINE_LAYER)
         if (map.getLayer(PREVIEW_POINTS_LAYER)) map.removeLayer(PREVIEW_POINTS_LAYER)
         if (map.getSource(PREVIEW_SRC)) map.removeSource(PREVIEW_SRC)

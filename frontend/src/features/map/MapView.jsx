@@ -16,6 +16,7 @@ import { addAdsbLayers, bindAdsbHover, createAdsbGeoJSON, createAdsbTrailGeoJSON
 import { registerAircraftImages } from '../aviation-layers/aircraftIconImages.js'
 import { registerAirlineLogos } from '../aviation-layers/airlineLogoImages.js'
 import AviationLayerPanel from '../aviation-layers/AviationLayerPanel.jsx'
+import CustomAreaOverlay from '../custom-area/CustomAreaOverlay.jsx'
 import NotamPanel from '../notam/NotamPanel.jsx'
 import { updateNotamLayerData, setNotamVisibility, setNotamCategoryFilter as applyNotamCategoryFilter, notamPopupHtml, notamsAtPoint, addNotamHighlight, setNotamHighlight, geometryBounds } from '../notam/lib/notamLayers.js'
 import { notamToFeatureCollection, displayGeometry } from '../notam/lib/notamGeoJson.js'
@@ -214,6 +215,7 @@ const MapView = forwardRef(function MapView({
   onClosePanel,
   onOpenNotamPanel,
   onOpenRoutePanel,
+  onOpenCustomAreaPanel,
   enableWindOverlay = true,
 }, ref) {
   const isMobile = useIsMobile()
@@ -1470,7 +1472,12 @@ const MapView = forwardRef(function MapView({
           onToggle={toggleAviation}
           onClose={onClosePanel}
           onClearAll={clearAviationLayers}
+          onOpenCustomArea={onOpenCustomAreaPanel}
         />
+      )}
+
+      {activePanel === 'custom-area' && (
+        <CustomAreaOverlay mapRef={mapRef} isStyleReady={isStyleReady} onClose={onClosePanel} />
       )}
 
       {hoveredAirportIcao && (() => {
