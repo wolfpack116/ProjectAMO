@@ -1,18 +1,20 @@
 export const MAP_CONFIG = {
   center: [127.5, 36.5],
   zoom: 6,
-  minZoom: 5,
+  minZoom: 3,
   maxZoom: 16,
+  // 해외 확장: 한국~일본·중국·동남아(필리핀/태국/싱가포르)까지 아우르는 아시아 범위.
+  // 이전 국내 전용 바운즈 [[116,26],[139,44]]에서 확장.
   maxBounds: [
-    [116, 26],
-    [139, 44],
+    [90, -5],
+    [155, 50],
   ],
 }
 
 export const BASEMAP_OPTIONS = [
   {
     id: 'standard',
-    label: 'Standard',
+    label: '기본',
     thumbnail: '/basemap-thumbs/standard.png',
     style: 'mapbox://styles/mapbox/standard',
     config: {
@@ -34,7 +36,7 @@ export const BASEMAP_OPTIONS = [
   },
   {
     id: 'dark',
-    label: 'Dark',
+    label: '단색',
     thumbnail: '/basemap-thumbs/dark.png',
     style: 'mapbox://styles/mapbox/standard',
     config: {
@@ -55,21 +57,35 @@ export const BASEMAP_OPTIONS = [
       colorWater: '#5f6364',
       colorGreenspace: '#686e66',
       colorAdminBoundaries: '#d2d5d0',
-      colorRoads: 'hsla(0, 0%, 72%, 0.42)',
-      colorMotorways: 'hsla(0, 0%, 78%, 0.52)',
-      colorTrunks: 'hsla(0, 0%, 75%, 0.48)',
+      colorRoads: 'hsla(0, 0%, 72%, 0.2)',
+      colorMotorways: 'hsla(0, 0%, 78%, 0.2)',
+      colorTrunks: 'hsla(0, 0%, 75%, 0.2)',
     },
   },
   {
+    // VFR 체크포인트 가시성용 지형 basemap. 임시로 Mapbox Outdoors(음영기복·등고선·물길)를
+    // base로 걸어 미리보기 — 사장님 Studio 커스텀 스타일(물/강/저수지 강조) 완성 후 style URL만 교체.
+    // ⚠️ Outdoors는 클래식 스타일이라 아래 config(basemap import)는 무시됨(applyRoadVisibility가 가드).
+    id: 'terrain',
+    label: '지형',
+    thumbnail: '/basemap-thumbs/standard.png',
+    style: 'mapbox://styles/mapbox/outdoors-v12',
+    config: {},
+  },
+  {
     id: 'satellite',
-    label: 'Satellite',
+    label: '위성',
     thumbnail: '/basemap-thumbs/satellite.png',
     style: 'mapbox://styles/mapbox/standard-satellite',
     config: {
       showPlaceLabels: false,
+      showPedestrianRoads: false,
       showPointOfInterestLabels: false,
       showRoadLabels: false,
       font: 'Noto Sans CJK JP',
+      colorRoads: 'hsla(0, 0%, 88%, 0.2)',
+      colorMotorways: 'hsla(0, 0%, 88%, 0.2)',
+      colorTrunks: 'hsla(0, 0%, 88%, 0.2)',
     },
   },
 ]

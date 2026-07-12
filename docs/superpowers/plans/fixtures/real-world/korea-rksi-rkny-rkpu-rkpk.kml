@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>인천-양양-울산-김해 (OurAirports 실좌표)</name>
+    <Placemark>
+      <name>인천-양양-울산-김해</name>
+      <LineString>
+        <coordinates>
+          126.450996,37.469101,0
+          128.669822,38.060481,0
+          129.352005005,35.59349823,0
+          128.938004,35.179501,0
+        </coordinates>
+      </LineString>
+    </Placemark>
+  </Document>
+</kml>

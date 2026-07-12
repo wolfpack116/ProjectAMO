@@ -228,6 +228,39 @@ function terrainElevationFtForIndex(terrainResult, sampleIndex) {
   return Number.isFinite(elevationM) ? Math.max(0, Math.round(elevationM * M_TO_FT)) : null
 }
 
+// leg(경유점 i → i+1)별 구간 아래 최고 지형고도(ft). 조종사가 순항고도를 정할 때
+// "이 구간에서 만나는 가장 높은 땅"을 알아야 지형 여유를 판단한다(= 종이차트 MEF 개념).
+// axis.samples(거리별)와 terrainResult(샘플별 표고)를 재사용 — 새 데이터 없음.
+export function buildVfrLegTerrain(waypoints, axis, terrainResult) {
+  if (!Array.isArray(waypoints) || waypoints.length < 2) return []
+  const elevMByIndex = new Map((terrainResult?.terrain?.values ?? []).map((v) => [v.index, v.elevationM]))
+  const samples = (axis?.samples ?? []).map((s) => {
+    const elevationM = elevMByIndex.get(s.index)
+    return { distanceNm: s.distanceNm, elevationFt: Number.isFinite(elevationM) ? elevationM * M_TO_FT : null }
+  })
+
+  const legs = []
+  for (let i = 0; i < waypoints.length - 1; i += 1) {
+    const from = waypoints[i]
+    const to = waypoints[i + 1]
+    let maxFt = null
+    for (const sample of samples) {
+      if (sample.elevationFt == null) continue
+      if (sample.distanceNm >= from.distanceNm - 0.01 && sample.distanceNm <= to.distanceNm + 0.01) {
+        if (maxFt == null || sample.elevationFt > maxFt) maxFt = sample.elevationFt
+      }
+    }
+    legs.push({
+      fromLabel: from.id,
+      toLabel: to.id,
+      fromNm: from.distanceNm,
+      toNm: to.distanceNm,
+      maxTerrainFt: maxFt == null ? null : Math.max(0, Math.round(maxFt)),
+    })
+  }
+  return legs
+}
+
 function buildVfrProfile(payload, axis, terrainResult, cruiseAltitudeFt) {
   const routeCoordinates = getRouteCoordinates(payload.routeGeometry)
   const waypoints = (payload.vfrWaypoints ?? [])
@@ -252,6 +285,7 @@ function buildVfrProfile(payload, axis, terrainResult, cruiseAltitudeFt) {
         { distanceNm: 0, altitudeFt: 0, source: 'AIRPORT' },
         { distanceNm: axis.totalDistanceNm, altitudeFt: 0, source: 'AIRPORT' },
       ],
+      legs: [],
       tod: null,
       model: { vfrWaypointAltitudes: true },
     }
@@ -278,6 +312,7 @@ function buildVfrProfile(payload, axis, terrainResult, cruiseAltitudeFt) {
         source: waypoint.fixed ? 'AIRPORT' : 'USER_WAYPOINT',
       }
     }),
+    legs: buildVfrLegTerrain(waypoints, axis, terrainResult),
     tod: null,
     model: { vfrWaypointAltitudes: true },
   }
@@ -310,9 +345,11 @@ function getIfrBoundaries(payload, routeCoordinates, totalDistanceNm) {
   }
 }
 
-function buildIfrProfile(payload, routeCoordinates, cruiseAltitudeFt) {
+function buildIfrProfile(payload, routeCoordinates, cruiseAltitudeFt, ground = {}) {
   const totalDistanceNm = totalRouteDistanceNm(routeCoordinates)
   const { sid, star, iap, enrouteStartNm, enrouteEndNm } = getIfrBoundaries(payload, routeCoordinates, totalDistanceNm)
+  const departureGroundFt = Math.max(0, asNumber(ground.departureGroundFt) ?? 0)
+  const arrivalGroundFt = Math.max(0, asNumber(ground.arrivalGroundFt) ?? 0)
   const points = []
   let tod = null
 
@@ -327,7 +364,9 @@ function buildIfrProfile(payload, routeCoordinates, cruiseAltitudeFt) {
   if (sid?.fixes?.length >= 2 && enrouteStartNm > 0.01) {
     buildGradientClimbProfile({ procedure: sid, routeCoordinates, cruiseAltitudeFt, enrouteStartNm }).forEach(pushPoint)
   } else {
-    pushPoint({ distanceNm: 0, altitudeFt: cruiseAltitudeFt, source: 'ENROUTE' })
+    // SID 없음(예: 해외 출발) → 순항고도로 시작하지 말고 지상(공항 표고)에서 시작.
+    // 아래 CLIMB_TO_CRUISE 블록이 기울기 상승선을 이어붙인다.
+    pushPoint({ distanceNm: 0, altitudeFt: departureGroundFt, source: 'DEPARTURE' })
   }
 
   const lastClimbPoint = points[points.length - 1]
@@ -365,7 +404,16 @@ function buildIfrProfile(payload, routeCoordinates, cruiseAltitudeFt) {
     }
     descentProfile.points.forEach(pushPoint)
   } else {
-    pushPoint({ distanceNm: totalDistanceNm, altitudeFt: cruiseAltitudeFt, source: 'ENROUTE' })
+    // STAR/IAP 없음(예: 해외 도착) → 순항고도 유지하지 말고 지상(공항 표고)까지 기울기 하강 + TOD.
+    const descentDistanceNm = Math.max(0, cruiseAltitudeFt - arrivalGroundFt) / DEFAULT_DESCENT_GRADIENT_FT_PER_NM
+    const descentStartNm = clamp(totalDistanceNm - descentDistanceNm, cruiseReadyNm, totalDistanceNm)
+    tod = {
+      distanceNm: descentStartNm,
+      distanceFromEnrouteEndNm: Number((enrouteEndNm - descentStartNm).toFixed(1)),
+      referenceFixLabel: payload?.procedureContext?.exitFix ?? null,
+    }
+    pushPoint({ distanceNm: descentStartNm, altitudeFt: cruiseAltitudeFt, source: 'TOD' })
+    pushPoint({ distanceNm: totalDistanceNm, altitudeFt: arrivalGroundFt, source: 'ARRIVAL_END' })
   }
 
   const deduped = []
@@ -404,7 +452,11 @@ export function buildFlightPlanProfile(payload, axis, terrainResult) {
   const routeCoordinates = getRouteCoordinates(payload.routeGeometry)
   const profile = String(payload?.flightRule ?? '').toUpperCase() === 'VFR'
     ? buildVfrProfile(payload, axis, terrainResult, Math.round(cruiseAltitudeFt))
-    : buildIfrProfile(payload, routeCoordinates, Math.round(cruiseAltitudeFt))
+    : buildIfrProfile(payload, routeCoordinates, Math.round(cruiseAltitudeFt), {
+        // 절차(SID/STAR) 없는 공항(해외)에서 지상 상승·하강을 만들 기준 표고. 지형 없으면 0(해수면).
+        departureGroundFt: terrainElevationFtForIndex(terrainResult, axis.samples[0]?.index ?? 0) ?? 0,
+        arrivalGroundFt: terrainElevationFtForIndex(terrainResult, axis.samples[axis.samples.length - 1]?.index ?? 0) ?? 0,
+      })
 
   return {
     unit: 'ft',

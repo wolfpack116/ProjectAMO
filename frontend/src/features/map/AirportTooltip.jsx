@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
-import { AIRPORT_CATEGORY_UNKNOWN_COLOR } from './lib/airportStationModel.js'
+import { classifyVisibilityCategory, classifyCeilingCategory, formatRvr } from '../../shared/weather/helpers.js'
+import { AIRPORT_CATEGORY_UNKNOWN_COLOR, getCeilingFeet, getVisibilityMeters } from './lib/airportStationModel.js'
 import './AirportTooltip.css'
 
 function formatWind(wind) {
@@ -23,12 +24,7 @@ function formatVisibility(observation) {
 
 function formatWeather(observation) {
   if (!observation?.weather?.length) return ''
-  return observation.weather.map((w) => {
-    const intensity = w.intensity === 'MODERATE' ? '' : (w.intensity || '')
-    const phenomenon = Array.isArray(w.phenomena) ? w.phenomena.join('') : (w.phenomenon || '')
-    const parts = [intensity, w.descriptor, phenomenon].filter(Boolean)
-    return parts.join('')
-  }).join(' ')
+  return observation.display?.weather || ''
 }
 
 function formatClouds(observation) {
@@ -91,6 +87,15 @@ export default function AirportTooltip({ metar, airport, flightCategory, categor
   const resolvedCategoryColor = categoryColor || AIRPORT_CATEGORY_UNKNOWN_COLOR
   const resolvedCategory = flightCategory && flightCategory !== 'UNKNOWN' ? flightCategory : null
 
+  // 어떤 요소(시정/운고) 때문에 이 범주가 됐는지 — 각각 독립 판정해 전체 범주와 같은 쪽만 원인으로 표시.
+  const visibilityMeters = obs?.visibility?.cavok || obs?.cavok ? 99999 : getVisibilityMeters(obs || {})
+  const ceilingFeet = getCeilingFeet(obs || {})
+  const visCategory = classifyVisibilityCategory(visibilityMeters, airport?.icao)?.category
+  const ceilCategory = classifyCeilingCategory(ceilingFeet, airport?.icao)?.category
+  const visIsDriver = resolvedCategory && resolvedCategory !== 'VFR' && visCategory === resolvedCategory
+  const ceilIsDriver = resolvedCategory && resolvedCategory !== 'VFR' && ceilCategory === resolvedCategory
+  const driverStyle = { color: resolvedCategoryColor, fontWeight: 700 }
+
   const TOOLTIP_W = 152
   const TOOLTIP_H = 210
   const OFFSET = 28
@@ -127,13 +132,21 @@ export default function AirportTooltip({ metar, airport, flightCategory, categor
         </div>
         <div className="airport-tooltip-row">
           <span className="airport-tooltip-label">시정</span>
-          <span className="airport-tooltip-value">
-            {vis}{wx ? <span className="airport-tooltip-wx"> {wx}</span> : null}
-          </span>
+          <span className="airport-tooltip-value" style={visIsDriver ? driverStyle : undefined}>{vis}</span>
         </div>
+        {wx && (
+          <div className="airport-tooltip-row">
+            <span className="airport-tooltip-label">현상</span>
+            <span className="airport-tooltip-value airport-tooltip-wx">{wx}</span>
+          </div>
+        )}
         <div className="airport-tooltip-row">
           <span className="airport-tooltip-label">운고</span>
-          <span className="airport-tooltip-value">{clouds}</span>
+          <span className="airport-tooltip-value" style={ceilIsDriver ? driverStyle : undefined}>{clouds}</span>
+        </div>
+        <div className="airport-tooltip-row">
+          <span className="airport-tooltip-label">RVR</span>
+          <span className="airport-tooltip-value">{formatRvr(obs)}</span>
         </div>
         <div className="airport-tooltip-row">
           <span className="airport-tooltip-label">기온</span>

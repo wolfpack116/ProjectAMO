@@ -6,6 +6,7 @@ import EnhancedTafTab from './tabs/TafTab.jsx'
 import AmosBoardTab from './tabs/AmosTab.jsx'
 import WarningTab from './tabs/WarningTab.jsx'
 import AirportInfoTab from './tabs/AirportInfoTab.jsx'
+import NotamTab from './tabs/NotamTab.jsx'
 import './AirportPanel.css'
 
 const AIRPORT_HEADER_NAME_KO = {
@@ -27,6 +28,7 @@ const TABS_FULL = [
   { id: 'taf',     label: 'TAF' },
   { id: 'amos',    label: 'AMOS' },
   { id: 'warn',    label: '공항경보' },
+  { id: 'notam',   label: 'NOTAM' },
   { id: 'info',    label: '기상정보' },
 ]
 
@@ -35,6 +37,7 @@ const TABS_LIMITED = [
   { id: 'metar',   label: 'METAR' },
   { id: 'taf',     label: 'TAF' },
   { id: 'warn',    label: '공항경보' },
+  { id: 'notam',   label: 'NOTAM' },
 ]
 
 function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherData }) {
@@ -62,8 +65,11 @@ function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherD
   const headerNameEn = airport.name || AIRPORT_NAME_KO[icao] || icao
   const headerImageSrc = `/images/${String(icao || 'RKSI').toLowerCase()}_banner.webp`
 
-  const metar      = weatherData?.metar?.airports?.[icao] || null
-  const taf        = weatherData?.taf?.airports?.[icao] || null
+  const airportWeatherSource = airport?.overseas ? 'overseas' : 'domestic'
+  const metarPayload = airportWeatherSource === 'overseas' ? weatherData?.metarOverseas : weatherData?.metar
+  const tafPayload = airportWeatherSource === 'overseas' ? weatherData?.tafOverseas : weatherData?.taf
+  const metar      = metarPayload?.airports?.[icao] || null
+  const taf        = tafPayload?.airports?.[icao] || null
   const amos       = weatherData?.amos?.airports?.[icao] || null
   const warning    = weatherData?.warning?.airports?.[icao] || null
   const warnCount  = warning?.warnings?.length || 0
@@ -123,6 +129,7 @@ function AirportPanel({ airport, weatherData, onClose, onRequestDeferredWeatherD
           {tab === 'taf'   && <EnhancedTafTab taf={taf} icao={icao} />}
           {tab === 'amos'  && <AmosBoardTab amos={amos} metar={metar} airportMeta={airport} />}
           {tab === 'warn'  && <WarningTab warning={warning} />}
+          {tab === 'notam' && <NotamTab notam={weatherData?.notam || null} icao={icao} />}
           {tab === 'info'  && <AirportInfoTab info={airportInfo} />}
         </div>
       </div>

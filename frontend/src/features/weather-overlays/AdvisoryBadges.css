@@ -1,0 +1,159 @@
+/* 위험 요약 칩(Fluent Button·소프트 톤·삼각형·CounterBadge·펼침 caret) / 팝오버(Fluent, 알림형 리스트). */
+.advisory-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-s);
+  font-weight: var(--fw-semibold);
+}
+
+/* 소프트 톤: 연한 배경 + 레벨색 글자/아이콘. Fluent Button 기본을 specificity로 모든 상태에서 덮음. */
+.advisory-badge-bar .advisory-chip--sigmet,
+.advisory-badge-bar .advisory-chip--sigmet:hover,
+.advisory-badge-bar .advisory-chip--sigmet:active,
+.advisory-badge-bar .advisory-chip--warning,
+.advisory-badge-bar .advisory-chip--warning:hover,
+.advisory-badge-bar .advisory-chip--warning:active {
+  background: var(--level-red-bg);
+  color: var(--level-red);
+  border-color: transparent;
+}
+
+.advisory-badge-bar .advisory-chip--airmet,
+.advisory-badge-bar .advisory-chip--airmet:hover,
+.advisory-badge-bar .advisory-chip--airmet:active {
+  background: var(--level-amber-bg);
+  color: var(--level-amber);
+  border-color: transparent;
+}
+
+.advisory-badge-bar .advisory-chip--sigwx,
+.advisory-badge-bar .advisory-chip--sigwx:hover,
+.advisory-badge-bar .advisory-chip--sigwx:active {
+  background: #ede9fe;
+  color: #6d28d9;
+  border-color: transparent;
+}
+
+/* 열린(활성) 칩: 톤색 안쪽 링으로 "지금 이 팝오버 소속" 표시. */
+.advisory-badge-bar .advisory-chip.is-open {
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+/* 펼침 신호 caret(클릭 가능 어포던스). 열리면 위로 회전. */
+.advisory-chip-caret {
+  opacity: 0.55;
+  transition: transform 150ms ease;
+}
+.advisory-chip.is-open .advisory-chip-caret {
+  transform: rotate(180deg);
+}
+
+/* AIRMET 카운트 배지: Fluent warning 노랑은 앰버 칩에 묻혀 → 솔리드 앰버+흰 글자로 보정. */
+.advisory-chip--airmet .advisory-ct,
+.advisory-pop--airmet .advisory-ct {
+  background-color: var(--level-amber);
+  color: #fff;
+}
+
+.advisory-pop {
+  min-width: 260px;
+  max-width: 340px;
+  display: grid;
+  gap: var(--space-s);
+}
+
+.advisory-pop-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding-bottom: var(--space-s);
+  border-bottom: 1px solid var(--stroke-2);
+}
+
+.advisory-pop-title {
+  font-size: var(--fs-300);
+}
+
+.advisory-pop-list {
+  display: grid;
+  gap: var(--space-xxs);
+}
+
+/* 행 = 풀폭 Fluent Button. 2줄 콘텐츠 위해 높이 auto, 좌측 정렬. */
+.advisory-pop-list .advisory-pop-row {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  justify-content: flex-start;
+  gap: var(--space-m);
+  padding: var(--space-s) var(--space-snudge);
+}
+
+.advisory-pop-acc {
+  flex: 0 0 auto;
+  width: 4px;
+  align-self: stretch;
+  min-height: 32px;
+  border-radius: var(--radius-circular);
+}
+
+.advisory-pop-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.advisory-pop-name {
+  font-size: var(--fs-300);
+  font-weight: var(--fw-semibold);
+  color: var(--text-1);
+  line-height: 1.3;
+}
+
+.advisory-pop-time {
+  margin-top: 2px;
+  font-size: var(--fs-200);
+  font-weight: var(--fw-regular);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.advisory-pop-trail {
+  flex: 0 0 auto;
+  color: var(--text-3);
+}
+.advisory-pop-trail--off {
+  color: var(--text-disabled);
+}
+
+.advisory-pop-empty {
+  color: var(--text-3);
+  padding: var(--space-xs) 0;
+}
+
+/* 태블릿 터치: 칩·행을 최소 44px로. */
+@media (pointer: coarse) {
+  .advisory-badge-bar .advisory-chip {
+    min-height: 44px;
+  }
+  .advisory-pop-list .advisory-pop-row {
+    min-height: 44px;
+  }
+}
+
+/* 모바일: 상단 상태 칩은 데스크톱 크기가 과함 — 컴팩트하게(폰트·간격·높이 축소).
+   상태 표시용이라 44px보다 작아도 탭 가능. 팝오버 행은 44px 유지(가독·터치). */
+@media (max-width: 719px) {
+  .advisory-badge-bar .advisory-chip {
+    min-height: 32px;
+    gap: var(--space-xs);
+    font-size: var(--fs-200);
+    padding-left: var(--space-s);
+    padding-right: var(--space-s);
+  }
+  .advisory-badge-bar .advisory-chip .advisory-chip-caret {
+    font-size: var(--fs-100);
+  }
+}

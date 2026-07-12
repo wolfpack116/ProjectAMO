@@ -6,6 +6,7 @@ import {
   buildIfrSequenceTokens,
   buildInitialVfrWaypoints,
   buildIapCandidates,
+  buildVfrRouteFromWaypoints,
   chooseIapKeyForRunway,
   getCurrentRouteLineString,
   pickBestRunwayGroup,
@@ -81,7 +82,10 @@ test('buildInitialVfrWaypoints preserves fixed airport endpoints and airport ele
     { id: 'RKPC', elevation_m: 36 },
   ]
 
-  assert.deepEqual(buildInitialVfrWaypoints(routeResult, airports), [
+  const wps = buildInitialVfrWaypoints(routeResult, airports)
+  assert.ok(wps.every((w) => typeof w.uid === 'string' && w.uid.length > 0), '각 경유점에 uid 부여')
+  // 랜덤 uid는 제외하고 나머지 필드 비교
+  assert.deepEqual(wps.map(({ uid, ...rest }) => rest), [
     { id: 'RKSI', lon: 126, lat: 37, fixed: true, airportElevationFt: 23, altitudeFt: 23 },
     { id: 'RKPC', lon: 127, lat: 36, fixed: true, airportElevationFt: 118, altitudeFt: 118 },
   ])
@@ -152,4 +156,78 @@ test('getCurrentRouteLineString returns VFR waypoint geometry and IFR procedure-
   })
   assert.deepEqual(ifrGeometry.coordinates[0], [126, 37])
   assert.deepEqual(ifrGeometry.coordinates[1], [126.2, 36.8])
+})
+
+test('buildVfrRouteFromWaypoints: 공항 둘 다 스냅됨 — fixed 끝점 + 중간 WP', () => {
+  const airports = [
+    { icao: 'RKSS', elevationFt: 18 },
+    { icao: 'RKPK', elevationFt: 9 },
+  ]
+  const coords = [[126.7906, 37.5583], [127.4, 37.0], [128.9382, 35.1795]]
+  const { routeResult, vfrWaypoints } = buildVfrRouteFromWaypoints(coords, {
+    departureAirport: 'RKSS',
+    arrivalAirport: 'RKPK',
+    airports,
+  })
+
+  assert.equal(routeResult.flightRule, 'VFR')
+  assert.equal(routeResult.departureAirport, 'RKSS')
+  assert.equal(routeResult.arrivalAirport, 'RKPK')
+  assert.ok(routeResult.distanceNm > 0)
+  assert.ok(routeResult.previewGeojson?.type === 'FeatureCollection')
+
+  assert.equal(vfrWaypoints.length, 3)
+  assert.equal(vfrWaypoints[0].id, 'RKSS')
+  assert.equal(vfrWaypoints[0].fixed, true)
+  assert.equal(vfrWaypoints[0].airportElevationFt, 18)
+  assert.equal(vfrWaypoints[2].id, 'RKPK')
+  assert.equal(vfrWaypoints[2].fixed, true)
+  assert.equal(vfrWaypoints[1].fixed, false)
+  assert.equal(vfrWaypoints[1].id, 'WP1')
+})
+
+test('buildVfrRouteFromWaypoints: 중간 경유점에 실제 이름이 있으면 WPn 대신 그 이름을 쓴다', () => {
+  // 실제 EFB(ForeFlight/SkyDemon) GPX route는 rtept마다 픽스 이름(예: AGAVO)이 실려
+  // 있다 — buildVfrRouteFromWaypoints가 그걸 받으면 WP1 대신 그 이름으로 보여야 한다.
+  const airports = [{ icao: 'RKSS', elevationFt: 18 }, { icao: 'RKPK', elevationFt: 9 }]
+  const coords = [[126.7906, 37.5583], [127.4, 37.0], [128.9382, 35.1795]]
+  const { vfrWaypoints } = buildVfrRouteFromWaypoints(coords, {
+    departureAirport: 'RKSS',
+    arrivalAirport: 'RKPK',
+    airports,
+    waypointNames: ['RKSS', 'AGAVO', 'RKPK'],
+  })
+  assert.equal(vfrWaypoints[1].id, 'AGAVO')
+  assert.equal(vfrWaypoints[1].named, true)
+  assert.equal(vfrWaypoints[1].fixed, false)
+})
+
+test('buildVfrRouteFromWaypoints: waypointNames가 없거나 빈 이름이면 기존처럼 WPn', () => {
+  const airports = [{ icao: 'RKSS', elevationFt: 18 }, { icao: 'RKPK', elevationFt: 9 }]
+  const coords = [[126.7906, 37.5583], [127.4, 37.0], [128.9382, 35.1795]]
+  const { vfrWaypoints } = buildVfrRouteFromWaypoints(coords, {
+    departureAirport: 'RKSS', arrivalAirport: 'RKPK', airports, waypointNames: [null, '', null],
+  })
+  assert.equal(vfrWaypoints[1].id, 'WP1')
+  assert.ok(!vfrWaypoints[1].named)
+})
+
+test('buildVfrRouteFromWaypoints: 공항 폴백(스냅 안 됨) — 전부 일반 지점', () => {
+  const coords = [[130.0, 40.0], [131.0, 41.0]]
+  const { routeResult, vfrWaypoints } = buildVfrRouteFromWaypoints(coords, {
+    departureAirport: null,
+    arrivalAirport: null,
+    airports: [],
+  })
+
+  assert.equal(routeResult.flightRule, 'VFR')
+  assert.equal(routeResult.departureAirport, '')
+  assert.equal(routeResult.arrivalAirport, '')
+  assert.equal(vfrWaypoints.length, 2)
+  assert.equal(vfrWaypoints[0].fixed, false)
+  assert.equal(vfrWaypoints[1].fixed, false)
+})
+
+test('buildVfrRouteFromWaypoints: 점이 2개 미만이면 에러', () => {
+  assert.throws(() => buildVfrRouteFromWaypoints([[126.79, 37.5]], { airports: [] }))
 })

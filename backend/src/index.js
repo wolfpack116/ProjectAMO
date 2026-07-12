@@ -16,29 +16,34 @@ import satelliteProcessor from './processors/satellite-processor.js'
 import groundForecastProcessor from './processors/ground-forecast-processor.js'
 import environmentProcessor from './processors/environment-processor.js'
 import airportInfoProcessor from './processors/airport-info-processor.js'
+import takeoffForecastProcessor from './processors/takeoff-forecast-processor.js'
 import ktgProcessor from './processors/ktg-processor.js'
 import flightCategoryProcessor from './processors/flight-category-processor.js'
+import notamProcessor from './processors/notam-processor.js'
+import overseasProcessor from './processors/overseas-weather-processor.js'
 
-// ADS-B collection is intentionally not scheduled — frontend disables ADS-B display (ADSB_FETCH_DISABLED).
-// The /api/adsb route serves a static latest.json if one exists; no processor runs.
-const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, kim_surface_wind: false, ktg: false, satellite: false, ground_forecast: false, environment: false, airport_info: false, flight_category: false };
+// ADS-B is collected on demand by the /api/adsb route (only when a viewer is watching),
+// so it is intentionally not scheduled here.
+const locks = { metar: false, taf: false, warning: false, sigmet: false, airmet: false, sigwx_low: false, amos: false, lightning: false, radar_echo: false, kim_surface_wind: false, ktg: false, satellite: false, ground_forecast: false, environment: false, airport_info: false, takeoff_fcst: false, flight_category: false, notam: false, metar_overseas: false, taf_overseas: false, sigmet_overseas: false };
 const KIM_NWP_CRON_OPTIONS = { timezone: 'Etc/UTC' }
 const AIRPORT_INFO_CRON_OPTIONS = { timezone: 'Asia/Seoul' }
 
 async function runWithLock(type, job) {
   if (locks[type]) {
     console.warn(`${type}: skipped (already running)`);
+    stats.recordSkip(type); // 수집 주기 < 처리시간 신호(관찰 탭)
     return;
   }
 
   locks[type] = true;
+  const t0 = Date.now();
   try {
     const result = await job();
     console.log(`[${new Date().toISOString()}] ${type}:`, result);
-    stats.recordSuccess(type, result);
+    stats.recordSuccess(type, result, Date.now() - t0);
   } catch (error) {
     console.error(`[${new Date().toISOString()}] ${type} failed:`, error.message);
-    stats.recordFailure(type, error.message);
+    stats.recordFailure(type, error.message, Date.now() - t0);
   } finally {
     locks[type] = false;
   }
@@ -60,12 +65,32 @@ function scheduleAirportInfoJob(scheduler = cron) {
   )
 }
 
+function scheduleTakeoffFcstJob(scheduler = cron) {
+  return scheduler.schedule(
+    config.schedule.takeoff_fcst_interval,
+    () => runWithLock("takeoff_fcst", takeoffForecastProcessor.process),
+    AIRPORT_INFO_CRON_OPTIONS, // fctm이 KST 기반이라 Asia/Seoul
+  )
+}
+
+// 시작 시점 NOTAM 캐시가 재크롤이 필요할 만큼 오래됐나. 없음/빈것/시각손상은 stale로 간주(크롤).
+function isNotamCacheStale() {
+  const cached = store.getCached('notam')
+  const fetchedMs = Date.parse(cached?.fetched_at)
+  if (!(cached?.items?.length > 0) || !Number.isFinite(fetchedMs)) return true
+  const maxAgeMs = (config.notam?.startup_max_age_hours ?? 6) * 3600000
+  return Date.now() - fetchedMs >= maxAgeMs
+}
+
 function buildInitialCollectionJobs({ includeKimNwp = config.kim_nwp?.collect_on_startup !== false } = {}) {
   const jobs = [
     ["metar", metarProcessor.processAll],
     ["taf", tafProcessor.processAll],
     ["warning", warningProcessor.process],
     ["sigmet", sigmetProcessor.process],
+    ["metar_overseas", overseasProcessor.processMetar],
+    ["taf_overseas", overseasProcessor.processTaf],
+    ["sigmet_overseas", overseasProcessor.processSigmet],
     ["airmet", airmetProcessor.process],
     ["sigwx_low", sigwxLowProcessor.process],
     ["amos", amosProcessor.process],
@@ -75,10 +100,14 @@ function buildInitialCollectionJobs({ includeKimNwp = config.kim_nwp?.collect_on
     ["ground_forecast", groundForecastProcessor.process],
     ["environment", environmentProcessor.process],
     ["airport_info", airportInfoProcessor.process],
+    ["takeoff_fcst", takeoffForecastProcessor.process],
   ]
   if (includeKimNwp) jobs.splice(10, 0, ["kim_surface_wind", kimSurfaceWindProcessor.process])
   if (config.ktg?.collect_on_startup !== false) jobs.push(["ktg", ktgProcessor.process])
   if (config.flight_category?.collect_on_startup !== false) jobs.push(["flight_category", flightCategoryProcessor.process])
+  // NOTAM 시작 크롤: 명시적으로 끄지 않았고(collect_on_startup) 캐시가 오래됐을 때만.
+  // 유효한 최신 스냅샷이 이미 있으면(신선도 내) 굳이 재크롤 안 하고 그걸 그대로 씀 — 재시작해도 즉시 표시.
+  if (config.notam?.collect_on_startup !== false && isNotamCacheStale()) jobs.push(["notam", notamProcessor.process])
   return jobs
 }
 
@@ -87,12 +116,23 @@ async function main() {
   store.initFromFiles(config.storage.base_path);
   stats.initFromFile(config.storage.base_path);
 
+  // 테스트 인스턴스: DISABLE_COLLECTION이면 자동수집(cron)·초기수집을 건너뛴다.
+  // store는 이미 파일에서 로드됨(위 initFromFiles) → 데이터가 그 시점으로 "고정". 개발자가 자유 조작 가능.
+  if (process.env.DISABLE_COLLECTION) {
+    console.log('[collection] DISABLE_COLLECTION 설정됨 — 자동수집/초기수집 생략 (데이터 고정, 테스트 모드).')
+    return
+  }
+
   console.log("Scheduler started");
 
   cron.schedule(config.schedule.metar_interval, () => runWithLock("metar", metarProcessor.processAll));
   cron.schedule(config.schedule.taf_interval, () => runWithLock("taf", tafProcessor.processAll));
   cron.schedule(config.schedule.warning_interval, () => runWithLock("warning", warningProcessor.process));
   cron.schedule(config.schedule.sigmet_interval, () => runWithLock("sigmet", sigmetProcessor.process));
+  // 해외(NOAA) — 국내와 같은 주기, 별도 job·별도 저장 파일.
+  cron.schedule(config.schedule.metar_interval, () => runWithLock("metar_overseas", overseasProcessor.processMetar));
+  cron.schedule(config.schedule.taf_interval, () => runWithLock("taf_overseas", overseasProcessor.processTaf));
+  cron.schedule(config.schedule.sigmet_interval, () => runWithLock("sigmet_overseas", overseasProcessor.processSigmet));
   cron.schedule(config.schedule.airmet_interval, () => runWithLock("airmet", airmetProcessor.process));
   cron.schedule(config.schedule.sigwx_low_interval, () => runWithLock("sigwx_low", sigwxLowProcessor.process));
   cron.schedule(config.schedule.amos_interval, () => runWithLock("amos", amosProcessor.process));
@@ -104,7 +144,9 @@ async function main() {
   cron.schedule(config.schedule.ground_forecast_interval, () => runWithLock("ground_forecast", groundForecastProcessor.process));
   cron.schedule(config.schedule.environment_interval, () => runWithLock("environment", environmentProcessor.process));
   scheduleAirportInfoJob();
+  scheduleTakeoffFcstJob();
   cron.schedule(config.schedule.flight_category_interval, () => runWithLock('flight_category', flightCategoryProcessor.process))
+  cron.schedule(config.schedule.notam_interval, () => runWithLock("notam", notamProcessor.process))
 
   // 서버 시작 직후 1회 즉시 수집
   console.log("Running initial data collection...");
@@ -122,5 +164,5 @@ if (process.argv[1] && (__filename === process.argv[1] || __filename.endsWith(pr
   });
 }
 
-export { AIRPORT_INFO_CRON_OPTIONS, KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleAirportInfoJob, scheduleKimNwpJob }
-export default { AIRPORT_INFO_CRON_OPTIONS, KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleAirportInfoJob, scheduleKimNwpJob }
+export { AIRPORT_INFO_CRON_OPTIONS, KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleAirportInfoJob, scheduleTakeoffFcstJob, scheduleKimNwpJob }
+export default { AIRPORT_INFO_CRON_OPTIONS, KIM_NWP_CRON_OPTIONS, buildInitialCollectionJobs, main, runWithLock, scheduleAirportInfoJob, scheduleTakeoffFcstJob, scheduleKimNwpJob }

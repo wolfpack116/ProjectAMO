@@ -1,0 +1,38 @@
+/* 지도 레이어 토글칩 — 토큰 기반, on=accent. CrossSectionToggles와 같은 결. */
+.layer-toggle-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-s);
+}
+
+.ltc-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 var(--space-m);
+  border: 1px solid var(--stroke-2);
+  border-radius: var(--radius-circular);
+  background: var(--bg-1);
+  color: var(--text-2);
+  font-family: var(--app-font, system-ui, sans-serif);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.ltc-chip:hover {
+  background: var(--bg-2);
+  border-color: var(--stroke-1);
+}
+
+.ltc-chip.is-on {
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-1));
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  color: var(--accent);
+  font-weight: var(--fw-semibold);
+}
+
+@media (pointer: coarse) {
+  .ltc-chip { min-height: var(--touch-min); }
+}

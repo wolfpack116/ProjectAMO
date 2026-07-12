@@ -22,12 +22,21 @@ test('getCachedSnapshotMeta reuses cache within TTL and invalidates on source mt
   process.env.DATA_PATH = root
 
   const metarPath = writeLatest(root, 'metar', 'hash-1')
+  writeLatest(root, 'metar_overseas', 'overseas-hash-1')
+  writeLatest(root, 'taf_overseas', 'taf-overseas-hash-1')
+  writeLatest(root, 'sigmet_overseas', 'sigmet-overseas-hash-1')
   const { getCachedSnapshotMeta } = await import(`../server.js?snapshot-meta-cache-test=${Date.now()}`)
 
   const first = getCachedSnapshotMeta(1000)
   const second = getCachedSnapshotMeta(1001)
   assert.equal(second, first)
   assert.equal(second.metar.hash, 'hash-1')
+  assert.equal(second.metarOverseas.hash, 'overseas-hash-1')
+  assert.equal(second.tafOverseas.hash, 'taf-overseas-hash-1')
+  assert.equal(second.sigmetOverseas.hash, 'sigmet-overseas-hash-1')
+  // 죽은 별칭 kimWind/kim_wind는 제거됨 (소비처 0건) — 되살아나지 않도록 가드
+  assert.equal('kimWind' in second, false)
+  assert.equal('kim_wind' in second, false)
 
   writeLatest(root, 'metar', 'hash-2')
   fs.utimesSync(metarPath, new Date('2099-01-01T00:00:00.000Z'), new Date('2099-01-01T00:00:00.000Z'))

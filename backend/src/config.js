@@ -30,6 +30,25 @@ import airportsData from '../../shared/airports.js'
 
 export const airports = airportsData
 
+const DEFAULT_OVERSEAS_AIRPORTS = [
+  'RCKH', 'RCMQ', 'RCTP', 'RJAA', 'RJBB', 'RJCC', 'RJFF', 'RJFK', 'RJFR', 'RJFT',
+  'RJGG', 'RJOA', 'RJOH', 'RJOM', 'RJOT', 'RJSS', 'RJTT', 'ROAH', 'ROMY', 'RPLC',
+  'RPLL', 'RPVM', 'VDPP', 'VHHH', 'VMMC', 'VTBS', 'VTCC', 'VVCR', 'VVDN', 'VVNB',
+  'VVPQ', 'VVTS', 'WADD', 'WBKK', 'WIII', 'WMKK', 'WSSS', 'ZBAA', 'ZBAD', 'ZGGG',
+  'ZGSZ', 'ZMCK', 'ZSHC', 'ZSPD', 'ZSQD', 'ZSSS', 'ZYTL', 'ZYTX',
+]
+
+function loadOverseasAirportIds() {
+  const filePath = path.join(projectRoot, 'frontend', 'public', 'data', 'navdata', 'airports-overseas.json')
+  try {
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+    const ids = Object.keys(data || {}).filter((id) => /^[A-Z0-9]{4}$/.test(id)).sort()
+    return ids.length > 0 ? ids : DEFAULT_OVERSEAS_AIRPORTS
+  } catch {
+    return DEFAULT_OVERSEAS_AIRPORTS
+  }
+}
+
 export const api = {
   base_url: process.env.API_BASE_URL || 'https://apihub.kma.go.kr/api/typ02/openApi',
   lightning_url: process.env.LIGHTNING_API_URL || 'https://apihub.kma.go.kr/api/typ01/url/lgt_pnt.php',
@@ -46,6 +65,7 @@ export const api = {
     sigmet: '/AmmIwxxmService/getSigmet',
     airmet: '/AmmIwxxmService/getAirmet',
     airport_info: '/AirPortService/getAirPort',
+    takeoff_fcst: '/AirInfoService/getAirInfo',
   },
   auth_key: process.env.KMA_AUTH_KEY || process.env.API_AUTH_KEY || '',
   airkorea_key: process.env.AIRKOREA_API_KEY || '',
@@ -82,6 +102,7 @@ export const environment = {
 export const ground_forecast = {
   timeout_ms: 15000,
   short_endpoint: '/VilageFcstMsgService/getLandFcst',
+  village_endpoint: '/VilageFcstInfoService_2.0/getVilageFcst',
   mid_land_endpoint: '/MidFcstInfoService/getMidLandFcst',
   mid_temp_endpoint: '/MidFcstInfoService/getMidTa',
   quality_drop_tolerance: 0,
@@ -150,12 +171,14 @@ export const flight_category = {
 }
 
 export const adsb = {
-  url: process.env.ADSB_API_URL || 'https://opensky-network.org/api/states/all',
-  token_url: process.env.ADSB_TOKEN_URL || 'https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token',
-  client_id: process.env.ADSB_CLIENT_ID || process.env.OPENSKY_CLIENT_ID || '',
-  client_secret: process.env.ADSB_CLIENT_SECRET || process.env.OPENSKY_CLIENT_SECRET || '',
+  url: process.env.ADSB_API_URL || 'https://api.adsb.lol/v2',
   timeout_ms: 20000,
   max_history_frames: 36,
+  center: {
+    lat: Number(process.env.ADSB_LAT || 36.5),
+    lon: Number(process.env.ADSB_LON || 127.5),
+  },
+  dist_nm: Number(process.env.ADSB_DIST_NM || 250),
   bounds: {
     lamin: Number(process.env.ADSB_LAMIN || 30),
     lamax: Number(process.env.ADSB_LAMAX || 39),
@@ -197,7 +220,34 @@ export const kim_nwp = {
   icing_variables: ['w', 'rh_liq', 'tqc', 'tqi', 'tqr', 'tqs', 'cld'],
 }
 
+export const notam = {
+  horizon_hours: 24, // site hard-caps the search window at 24h (validateAndSearch clamps)
+  timeout_ms: Number(process.env.NOTAM_TIMEOUT_MS || 30000),
+  fir_codes: (process.env.NOTAM_FIR_CODES || 'RKRR').split(','),
+  // 시작 시 크롤 여부. 기본 ON이되(아래 신선도 조건과 결합), NOTAM_COLLECT_ON_STARTUP=0 이면 완전히 끔.
+  collect_on_startup: process.env.NOTAM_COLLECT_ON_STARTUP !== '0',
+  // 시작 시 캐시가 이 시간(h)보다 오래됐을 때만 크롤. 그 안이면 유효한 최신본이라 스킵.
+  // 기본 6h = 크롤 주기. 이러면 재시작해도 유효 데이터는 재크롤 없이 즉시 씀.
+  startup_max_age_hours: Number(process.env.NOTAM_STARTUP_MAX_AGE_HOURS || 6),
+}
+
+// 해외 기상: NOAA Aviation Weather(JSON, 무인증). 국내(RKxx)=KMA 유지, 해외만 NOAA.
+// overseas_airports = frontend/public/data/navdata/airports-overseas.json에서 파생.
+// asia_firs = NOAA 국제 SIGMET(전세계 1콜)에서 남길 아시아 FIR. RKRR(국내)은 KMA와 중복되므로 제외.
+// ⚠️ 프놈펜은 공항코드 VDPP이지만 FIR코드는 VDPF(ICAO 재지정) — SIGMET firId 매칭엔 VDPF.
+export const noaa = {
+  base_url: process.env.NOAA_BASE_URL || 'https://aviationweather.gov/api/data',
+  timeout_ms: Number(process.env.NOAA_TIMEOUT_MS || 20000),
+  overseas_airports: loadOverseasAirportIds(),
+  asia_firs: [
+    'RJJJ', 'RCAA', 'VHHK', 'ZMUB', 'ZBPE', 'ZSHA', 'ZGZU', 'ZYSH', 'ZHWH', 'ZJSA',
+    'ZLHW', 'VVHN', 'VVHM', 'VDPF', 'VTBB', 'WMFC', 'WSJC', 'WIIF', 'WAAF', 'RPHI',
+    'ZPKM', 'VLVT', 'WBFC', // 쿤밍(서남부 청두·쿤밍·충칭), 비엔티안(라오스), 코타키나발루
+  ],
+}
+
 export const schedule = {
+  notam_interval: '0 */6 * * *', // 6시간 주기(00,06,12,18 UTC)
   metar_interval: '*/10 * * * *',
   taf_interval: '*/30 * * * *',
   warning_interval: '*/5 * * * *',
@@ -208,12 +258,12 @@ export const schedule = {
   lightning_interval: '*/5 * * * *',
   radar_echo_interval: '*/5 * * * *',
   satellite_interval: '*/10 * * * *',
-  adsb_interval: '0 * * * *',
   ktg_interval: '25 1,2,7,8,13,14,19,20 * * *',
   kim_surface_wind_interval: '12 0,1,2,6,7,8,12,13,14,18,19,20 * * *',
   ground_forecast_interval: '30 6,11,18,23 * * *',
   environment_interval: '10 * * * *',
   airport_info_interval: '0,30 6,17 * * *',
+  takeoff_fcst_interval: '8 * * * *', // 매시(KST) — 이륙예보는 정시 발표
   flight_category_interval: '5 * * * *',
 }
 
@@ -229,6 +279,8 @@ export const storage = {
 export default {
   api,
   airports,
+  noaa,
+  notam,
   environment,
   ground_forecast,
   flight_category,

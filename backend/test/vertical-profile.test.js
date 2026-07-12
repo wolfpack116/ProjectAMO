@@ -117,6 +117,24 @@ test('buildVerticalProfile returns briefing-ready VFR profile and markers', () =
   assert.equal(profile.markers.length, 3)
 })
 
+test('IFR profile climbs from ground and descends to ground when procedures are absent (overseas)', () => {
+  // 해외 공항은 SID/STAR 데이터가 없다(procedureContext 없음). 순항고도 평선이 아니라
+  // 지상→순항 상승, 순항→지상 하강이 나와야 한다(공항 표고 = 지형, 여기선 null → 0).
+  const routeGeometry = { type: 'LineString', coordinates: [[126, 37.5], [124, 35], [121, 31.2]] }
+  const axis = buildRouteAxis(routeGeometry, 10000)
+  const terrainResult = { terrain: { unit: 'm', values: axis.samples.map((s) => ({ index: s.index, elevationM: null })) }, warnings: [] }
+  const flightPlan = buildFlightPlanProfile({
+    flightRule: 'IFR',
+    routeGeometry,
+    plannedCruiseAltitudeFt: 35000,
+  }, axis, terrainResult)
+  const points = flightPlan.profile.points
+  assert.ok(points[0].altitudeFt < 1000, 'departs from ground, not cruise')
+  assert.ok(points[points.length - 1].altitudeFt < 1000, 'arrives at ground, not cruise')
+  assert.equal(Math.max(...points.map((p) => p.altitudeFt)), 35000)
+  assert.ok(flightPlan.profile.tod?.distanceNm > 0, 'has a top-of-descent')
+})
+
 test('buildFlightPlanProfile composes IFR climb, cruise, descent, and TOD', () => {
   const routeGeometry = {
     type: 'LineString',

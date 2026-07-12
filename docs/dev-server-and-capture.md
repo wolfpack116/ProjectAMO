@@ -1,8 +1,6 @@
 # ProjectAMO Dev Server and Capture Procedure
 
-Use this guide whenever a task requires opening the local backend, opening the frontend, running Playwright screenshots, or using the Codex App Browser against the local app.
-
-In Codex, do not spend a first attempt starting Vite inside the default sandbox for server or capture work. This workspace has a verified Vite/esbuild sandbox failure; request sandbox escalation up front for `dev:verify`, `dev:smoke`, `dev:screenshots`, and `dev:serve`.
+Use this guide whenever a task requires opening the local backend, opening the frontend, or running Playwright screenshots against the local app.
 
 ## Standard Ports
 
@@ -26,7 +24,7 @@ If either port is already in use, identify whether it is an existing ProjectAMO 
 
 ## PowerShell PATH Normalization
 
-In the Codex Windows shell, `Path` and `PATH` can both exist in the process environment. This can make `Start-Process` fail with:
+On Windows, `Path` and `PATH` can both exist in the process environment. This can make `Start-Process` fail with:
 
 ```text
 An item with the same key has already been added. Key being added: PATH
@@ -74,13 +72,13 @@ npm.cmd run dev:screenshots
 
 The launcher starts `backend/server.js` and Vite directly with Node instead of keeping long-running servers behind npm wrapper processes. It writes server logs under `artifacts/runtime-logs/`.
 
-Expected timing in the Codex Windows workspace with escalation:
+Expected timing:
 
 - `npm.cmd run dev:verify`: usually a few seconds.
 - `npm.cmd run dev:smoke`: usually under 15 seconds.
 - `npm.cmd run dev:screenshots`: usually about 20-30 seconds for the 18-image baseline matrix.
 
-If a single screenshot is needed, do not run the full 18-image baseline matrix. Use Codex App Browser for an interactive state, or write/run a focused Playwright capture for the exact route, viewport, and UI state requested.
+If a single screenshot is needed, do not run the full 18-image baseline matrix. Write/run a focused Playwright capture for the exact route, viewport, and UI state requested.
 
 Manual backend command:
 
@@ -94,7 +92,7 @@ Manual frontend command:
 npm.cmd run dev --prefix frontend -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
-The launcher is preferred over manual commands for Codex verification because it keeps the startup, readiness checks, and cleanup behavior consistent.
+The launcher is preferred over manual commands because it keeps the startup, readiness checks, and cleanup behavior consistent.
 
 ## Manual Readiness Checks
 
@@ -151,32 +149,10 @@ artifacts/responsive-screenshots/<phase>/<YYYY-MM-DD_HHMM_label>/
 
 Include a short README or manifest with the capture time, branch/commit, viewport matrix, capture method, and verification commands when the capture is part of responsive/UI work.
 
-## Codex App Browser
-
-Use the Codex App Browser for interactive inspection and screenshots when the task needs visible UI state, manual interaction, or browser-side debugging.
-
-Default URL:
-
-```text
-http://127.0.0.1:5173
-```
-
-Before interacting, confirm both servers are ready. After code changes, reload the browser tab before judging the UI. Prefer Playwright scripts for repeatable baseline captures and Codex App Browser for interactive states.
-
 ## Known Failure Modes
 
 - `Start-Process` fails with duplicate `PATH`: use the Node launcher, or run the PATH normalization snippet before manual `Start-Process` commands.
-- Vite fails with `Cannot read directory "../../../../..": Access is denied`: this is a known sandbox permission issue seen when Vite/esbuild loads `frontend/vite.config.js`. In Codex, do not retry this repeatedly inside the sandbox; rerun once with sandbox escalation.
 - `5173` is already in use: because `--strictPort` is required, the frontend will fail instead of moving ports. Find and stop the existing ProjectAMO frontend or reuse it after verifying it serves the current workspace.
 - Backend starts but upstream data collection logs `fetch failed`: this is not a readiness blocker by itself. The server is considered ready when `/api/health` returns success; live external API refresh may still fail because of network/API availability.
 - Stopping only the parent `cmd.exe` may leave child `node.exe` processes behind. Clean up by checking listening ports and, when needed, stopping the owning process for `3001` and `5173`.
 - Avoid `networkidle` as the default screenshot wait condition for this app. Mapbox tiles and polling can keep the network busy; prefer route-specific DOM readiness selectors.
-
-## Verified Baseline
-
-This procedure was verified on 2026-05-19 in the Codex Windows workspace:
-
-- `npm.cmd run dev:verify` returned backend and frontend readiness successfully with sandbox escalation.
-- `npm.cmd run dev:smoke` completed successfully with sandbox escalation.
-- `npm.cmd run dev:screenshots` completed successfully with sandbox escalation and generated 18 baseline PNG files for 6 viewports x 3 routes.
-- The sandboxed Vite start failed with the access-denied config-load error above, and the same flow succeeded when rerun with sandbox escalation.

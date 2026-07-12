@@ -2,6 +2,16 @@ export function safe(value, fallback = '-') {
   return value == null || value === '' ? fallback : value;
 }
 
+// RVR 표시 — METAR observation.rvr([{runway, mean}])를 "R15L/2000m, R33R/1800m"로.
+// 보고값 없으면(저시정 아님) "2000+"(보고 최댓값 초과)로 항상 표시. METAR 표시 전 지점 공용.
+export function formatRvr(observation) {
+  const entries = Array.isArray(observation?.rvr) ? observation.rvr : [];
+  const parts = entries
+    .map((item) => (item?.runway && Number.isFinite(item?.mean) ? `R${item.runway}/${item.mean}m` : null))
+    .filter(Boolean);
+  return parts.length > 0 ? parts.join(', ') : '2000+';
+}
+
 export function getDisplayDate(isoString, tz) {
   const base = new Date(isoString);
   if (tz === 'KST') return new Date(base.getTime() + 9 * 60 * 60 * 1000);
@@ -169,24 +179,6 @@ export const DEFAULT_AIRPORT_MINIMA_RULES = {
   RKPU: { visibilityM: 550, ceilingFt: 200 },
   RKNY: { visibilityM: 550, ceilingFt: 200 },
 };
-
-function normalizeNullableNumber(value) {
-  if (value === '' || value == null) return null;
-  const next = Number(value);
-  return Number.isFinite(next) ? next : null;
-}
-
-export function normalizeAirportMinimaSettings(raw) {
-  const next = {};
-  for (const [icao, defaults] of Object.entries(DEFAULT_AIRPORT_MINIMA_RULES)) {
-    const source = raw?.[icao] || defaults;
-    next[icao] = {
-      visibilityM: normalizeNullableNumber(source.visibilityM) ?? defaults.visibilityM,
-      ceilingFt: normalizeNullableNumber(source.ceilingFt),
-    };
-  }
-  return next;
-}
 
 function getAirportMinimaRule(icao, minimaSettings = null) {
   const rules = minimaSettings || DEFAULT_AIRPORT_MINIMA_RULES;

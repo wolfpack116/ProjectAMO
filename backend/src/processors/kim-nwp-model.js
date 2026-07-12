@@ -3,7 +3,6 @@ import crypto from 'node:crypto'
 export const KIM_NWP_MODEL = 'KIMG/NE57'
 export const KIM_NWP_FORECAST_HOURS = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36]
 export const KIM_NWP_LEVELS = [
-  { id: '10m', label: '10m', kind: 'height', value: 10, unit: 'm', level: 0, uName: 'u10m', vName: 'v10m' },
   { id: '1000hPa', label: '1000', kind: 'pressure', value: 1000, unit: 'hPa', level: 1000, uName: 'u', vName: 'v' },
   { id: '975hPa', label: '975', kind: 'pressure', value: 975, unit: 'hPa', level: 975, uName: 'u', vName: 'v' },
   { id: '950hPa', label: '950', kind: 'pressure', value: 950, unit: 'hPa', level: 950, uName: 'u', vName: 'v' },
@@ -26,7 +25,7 @@ export const KIM_NWP_LEVELS = [
   { id: '200hPa', label: '200', kind: 'pressure', value: 200, unit: 'hPa', level: 200, uName: 'u', vName: 'v' },
   { id: '150hPa', label: '150', kind: 'pressure', value: 150, unit: 'hPa', level: 150, uName: 'u', vName: 'v' },
 ]
-export const KIM_NWP_MOISTURE_LEVEL_IDS = ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa']
+export const KIM_NWP_MOISTURE_LEVEL_IDS = ['1000hPa', '975hPa', '950hPa', '925hPa', '900hPa', '875hPa', '850hPa', '800hPa', '750hPa', '700hPa', '650hPa', '600hPa', '550hPa', '500hPa', '450hPa', '400hPa', '350hPa', '300hPa', '250hPa', '200hPa', '150hPa']
 export const KIM_NWP_MOISTURE_LEVELS = KIM_NWP_LEVELS.filter((level) => KIM_NWP_MOISTURE_LEVEL_IDS.includes(level.id))
 export const KIM_NWP_ICING_LEVEL_IDS = ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa']
 export const KIM_NWP_ICING_LEVELS = KIM_NWP_LEVELS.filter((level) => KIM_NWP_ICING_LEVEL_IDS.includes(level.id))
@@ -68,7 +67,7 @@ function encodeComponent(values, scale = DEFAULT_SCALE) {
   })
 }
 
-function decodeComponent(values, variable = {}) {
+export function decodeComponent(values, variable = {}) {
   if (variable.encoding === 'int16-scaled-json-v1') {
     return values.map((value) => (
       value === MISSING_ENCODED || !Number.isFinite(value)
@@ -158,7 +157,7 @@ function statsForTemperature(values) {
     : { minT: null, maxT: null, meanT: null }
 }
 
-function dewpointCFromTempRh(tempK, rhPct) {
+export function dewpointCFromTempRh(tempK, rhPct) {
   if (!Number.isFinite(tempK) || !Number.isFinite(rhPct)) return Number.NaN
   const tempC = tempK - 273.15
   const rh = Math.max(1e-6, Math.min(100, rhPct))
@@ -180,7 +179,7 @@ export function cloudPotentialThresholdForLevel(level) {
   return level?.id === '500hPa' ? 6 : 4
 }
 
-function cloudPotentialScoreForSpread(spreadC, thresholdC) {
+export function cloudPotentialScoreForSpread(spreadC, thresholdC) {
   if (!Number.isFinite(spreadC)) return Number.NaN
   if (spreadC > thresholdC) return 0
   return Math.max(0, Math.min(100, ((thresholdC - Math.max(0, spreadC)) / thresholdC) * 100))
@@ -548,6 +547,20 @@ export function buildKimCloudPotentialFieldFromGrid(grid, { thresholdC = cloudPo
   }
 }
 
+// 격자 간격(도)→km. 위도방향은 상수 111.32, 경도방향은 위도 의존(×cos lat). #4 해상도 표기용.
+function computeKimResolution(grid) {
+  if (!grid) return null
+  const { nx, ny, latMin, latMax, dx, dy } = grid
+  const latMid = (Number(latMin) + Number(latMax)) / 2
+  const round1 = (n) => Math.round(n * 10) / 10
+  return {
+    nx: Number.isFinite(nx) ? nx : null,
+    ny: Number.isFinite(ny) ? ny : null,
+    dx_km: Number.isFinite(dx) && Number.isFinite(latMid) ? round1(dx * 111.32 * Math.cos((latMid * Math.PI) / 180)) : null,
+    dy_km: Number.isFinite(dy) ? round1(dy * 111.32) : null,
+  }
+}
+
 export function buildKimNwpIndex({ model = KIM_NWP_MODEL, tmfc, grids, pathForGrid }) {
   const levels = KIM_NWP_LEVELS
     .filter((level) => grids.some((grid) => grid.level?.id === level.id))
@@ -573,6 +586,8 @@ export function buildKimNwpIndex({ model = KIM_NWP_MODEL, tmfc, grids, pathForGr
     type: 'kim_nwp_index',
     model,
     latestRun: tmfc,
+    initial_time: addForecastHours(tmfc, 0), // tmfc(초기장) ISO 형태. #4 메타.
+    resolution: computeKimResolution(grids[0]?.grid), // {nx,ny,dx_km,dy_km} 위도보정. #4 메타.
     levels,
     times,
     availability,
@@ -628,7 +643,10 @@ export default {
   calcLiquidRatio,
   calcPhasePenalty,
   calcSfipBaseScore,
+  cloudPotentialScoreForSpread,
   cloudPotentialThresholdForLevel,
+  decodeComponent,
+  dewpointCFromTempRh,
   filterKimNwpIndexForVariables,
   icingGradeFor,
   icingHardGate,

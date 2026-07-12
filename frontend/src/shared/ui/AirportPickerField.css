@@ -1,0 +1,190 @@
+.apf {
+  display: block;
+  position: relative;
+}
+
+.apf .apf-row {
+  width: 100%;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border: 1px solid var(--stroke-1);
+  border-radius: 8px;
+  background: var(--bg-1);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.apf .apf-label {
+  font-size: var(--fs-200);
+  font-weight: 800;
+  color: var(--text-3);
+}
+
+.apf .apf-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0; /* 자식 ellipsis 허용 */
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+/* 공항 한글명: 한 줄 유지, 넘치면 … (칸 부족해도 줄바꿈 안 함) */
+.apf .apf-ko {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.apf .apf-icao {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.apf .apf-placeholder {
+  color: var(--text-3);
+  font-weight: 600;
+}
+
+.apf .apf-caret {
+  flex-shrink: 0;
+  color: var(--text-3);
+  font-size: 12px;
+}
+
+/* 버튼 바로 아래에 뜨는 드롭다운 — 좌 지역목록 / 우 해당 지역 공항 (2단 드릴다운) */
+.apf-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  width: 360px;
+  max-width: min(360px, 88vw);
+  height: 320px;
+  display: flex;
+  background: var(--bg-1);
+  border: 1px solid var(--stroke-1);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+.apf-align-right .apf-pop {
+  left: auto;
+  right: 0;
+}
+
+.apf-regions {
+  width: 122px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--stroke-1);
+  background: color-mix(in srgb, var(--stroke-1) 12%, var(--bg-1));
+  display: flex;
+  flex-direction: column;
+}
+
+.apf-region {
+  text-align: left;
+  padding: 12px 14px;
+  border: none;
+  border-left: 3px solid transparent;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-2, var(--text-1));
+  cursor: pointer;
+}
+
+.apf-region.is-active {
+  color: var(--accent);
+  background: var(--bg-1);
+  border-left-color: var(--accent);
+}
+
+.apf-region--fir {
+  margin-top: auto;
+  border-top: 1px solid var(--stroke-1);
+  color: var(--text-3);
+  font-weight: 600;
+}
+
+.apf-airports {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  align-content: start;
+}
+
+.apf .apf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.apf .apf-chip {
+  height: auto;
+  min-height: 46px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 2px;
+  border: 1.5px solid var(--stroke-1);
+  border-radius: 10px;
+  background: var(--bg-1);
+  color: var(--accent);
+  font-family: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.apf .apf-chip.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
+  color: var(--accent);
+}
+
+.apf .apf-chip:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.apf .apf-chip-ko {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.apf .apf-chip-icao {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.apf .apf-chip.is-active .apf-chip-icao {
+  color: var(--accent);
+}
+
+.apf .apf-chip--fir {
+  flex-direction: row;
+  min-height: 46px;
+}
+
+.apf .apf-divider {
+  display: block;
+  height: 0.5px;
+  background: rgba(226, 232, 240, 0.95);
+  margin: 8px 0;
+}

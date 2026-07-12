@@ -5,10 +5,6 @@ import {
   clearPersonalSettings,
 } from "../../utils/alerts";
 import {
-  DEFAULT_AIRPORT_MINIMA_RULES,
-  normalizeAirportMinimaSettings,
-} from "../../utils/helpers";
-import {
   SIGMET_FILTER_GROUPS,
   AIRMET_FILTER_GROUPS,
   SIGWX_FILTER_GROUPS,
@@ -34,8 +30,6 @@ const TRAFFIC_ALTITUDE_OPTIONS = [
   "30000-40000",
   "40000-50000",
 ];
-
-const MINIMA_AIRPORT_ORDER = ["RKSI", "RKSS", "RKPC", "RKPK", "RKJY", "RKJB", "RKPU", "RKNY"];
 
 const SIGMET_FILTER_LABELS = {
   thunderstorm:     "뇌우",
@@ -107,8 +101,6 @@ export default function Settings({
   setTrafficCallsignFilter,
   trafficAltitudeBands,
   setTrafficAltitudeBands,
-  minimaSettings,
-  setMinimaSettings,
   advisoryFilter,
   setAdvisoryFilter,
   variant = "modal",
@@ -132,9 +124,6 @@ export default function Settings({
   const [localMapTheme, setLocalMapTheme] = useState(mapTheme || localStorage.getItem("map_theme") || "light");
   const [localTrafficCallsignFilter, setLocalTrafficCallsignFilter] = useState(trafficCallsignFilter || "");
   const [localTrafficAltitudeBands, setLocalTrafficAltitudeBands] = useState(trafficAltitudeBands || []);
-  const [localMinimaSettings, setLocalMinimaSettings] = useState(
-    normalizeAirportMinimaSettings(minimaSettings || DEFAULT_AIRPORT_MINIMA_RULES)
-  );
   const [localAdvisoryFilter, setLocalAdvisoryFilter] = useState(
     advisoryFilter || getDefaultAdvisoryFilterSettings()
   );
@@ -188,16 +177,6 @@ export default function Settings({
     }));
   }
 
-  function updateMinimaValue(icao, key, value) {
-    setLocalMinimaSettings((prev) => ({
-      ...prev,
-      [icao]: {
-        ...prev[icao],
-        [key]: value === "" ? null : Number(value),
-      },
-    }));
-  }
-
   function applySettings() {
     const overrides = {
       global: {
@@ -219,14 +198,12 @@ export default function Settings({
     localStorage.setItem("map_theme", localMapTheme);
     localStorage.setItem("traffic_callsign_filter", localTrafficCallsignFilter);
     localStorage.setItem("traffic_altitude_bands", JSON.stringify(localTrafficAltitudeBands));
-    localStorage.setItem("airport_minima_settings", JSON.stringify(localMinimaSettings));
     saveAdvisoryFilterSettings(localAdvisoryFilter);
 
     setTimeZone?.(localTimeZone);
     setMapTheme?.(localMapTheme);
     setTrafficCallsignFilter?.(localTrafficCallsignFilter);
     setTrafficAltitudeBands?.(localTrafficAltitudeBands);
-    setMinimaSettings?.(normalizeAirportMinimaSettings(localMinimaSettings));
     setAdvisoryFilter?.(localAdvisoryFilter);
 
     onSettingsChange?.(overrides);
@@ -247,14 +224,12 @@ export default function Settings({
     localStorage.removeItem("map_theme");
     localStorage.removeItem("traffic_callsign_filter");
     localStorage.removeItem("traffic_altitude_bands");
-    localStorage.removeItem("airport_minima_settings");
     localStorage.removeItem("advisory_filter_settings");
 
     setTimeZone?.("KST");
     setMapTheme?.("light");
     setTrafficCallsignFilter?.("");
     setTrafficAltitudeBands?.([]);
-    setMinimaSettings?.(normalizeAirportMinimaSettings(DEFAULT_AIRPORT_MINIMA_RULES));
     setAdvisoryFilter?.(getDefaultAdvisoryFilterSettings());
 
     onSettingsChange?.(null);
@@ -432,12 +407,6 @@ export default function Settings({
               항적
             </button>
             <button
-              className={`alert-settings-tab-btn${activeTab === "minima" ? " active" : ""}`}
-              onClick={() => setActiveTab("minima")}
-            >
-              LIFR
-            </button>
-            <button
               className={`alert-settings-tab-btn${activeTab === "advisory" ? " active" : ""}`}
               onClick={() => setActiveTab("advisory")}
             >
@@ -579,45 +548,6 @@ export default function Settings({
               </fieldset>
             )}
 
-            {activeTab === "minima" && (
-              <fieldset className="alert-settings-section">
-                <legend>공항별 LIFR(MINIMA) 기준</legend>
-                <div className="minima-grid">
-                  {MINIMA_AIRPORT_ORDER.map((icao) => {
-                    const rule = localMinimaSettings[icao] || { visibilityM: null, ceilingFt: null };
-                    const noDhAirport = icao === "RKSI" || icao === "RKSS";
-                    return (
-                      <div key={icao} className="minima-card">
-                        <div className="minima-card-head">{icao}</div>
-                        <label className="minima-card-row">
-                          <span>시정(m)</span>
-                          <input
-                            type="number"
-                            min={50}
-                            max={5000}
-                            step={25}
-                            value={rule.visibilityM ?? ""}
-                            onChange={(e) => updateMinimaValue(icao, "visibilityM", e.target.value)}
-                          />
-                        </label>
-                        <label className="minima-card-row">
-                          <span>운고(ft)</span>
-                          <input
-                            type="number"
-                            min={50}
-                            max={1000}
-                            step={10}
-                            value={rule.ceilingFt ?? ""}
-                            onChange={(e) => updateMinimaValue(icao, "ceilingFt", e.target.value)}
-                            placeholder={noDhAirport ? "NO DH(기본값)" : ""}
-                          />
-                        </label>
-                      </div>
-                    );
-                  })}
-                </div>
-              </fieldset>
-            )}
             {activeTab === "advisory" && (
               <div className="advisory-filter-tab">
                 {[

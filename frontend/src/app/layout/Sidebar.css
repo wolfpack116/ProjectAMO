@@ -1,3 +1,11 @@
+/* Mobile uses the bottom task bar instead of the icon rail.
+   `.app .sidebar` outranks the base `.sidebar { display: flex }` regardless of source order. */
+@media (max-width: 719px) {
+  .app .sidebar {
+    display: none;
+  }
+}
+
 .sidebar {
   position: fixed;
   top: 0;
@@ -64,10 +72,10 @@
 }
 
 .sidebar-logo-text {
-  font-family: 'Karla', sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
   font-weight: 700;
   font-size: 22px;
-  color: #1e1e1e;
+  color: var(--text-1);
 }
 
 .sidebar-search-container {
@@ -79,15 +87,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #fafafa;
-  border: 1px solid #e7e7e7;
+  background: var(--bg-2);
+  border: 1px solid var(--stroke-2);
   border-radius: 6px;
   padding: 12px;
   height: 44px;
 }
 
 .search-icon {
-  color: #9a9a9a;
+  color: var(--text-3);
   flex-shrink: 0;
 }
 
@@ -96,7 +104,7 @@
   background: transparent;
   width: 100%;
   font-size: 16px;
-  color: #1e1e1e;
+  color: var(--text-1);
   outline: none;
 }
 
@@ -135,7 +143,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: var(--text-3);
   background: transparent;
   border: 1px solid transparent;
   cursor: pointer;
@@ -155,7 +163,7 @@
 
 .sidebar-icon-button:hover {
   background: rgba(255, 255, 255, 0.68);
-  color: #334155;
+  color: var(--accent);
   transform: translateY(-1px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
@@ -163,16 +171,24 @@
 }
 
 .sidebar-icon-button.is-active {
-  color: #2563eb;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.98),
-    rgba(226, 236, 250, 0.9)
-  );
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 4px 10px rgba(37, 99, 235, 0.12);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-1));
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
+}
+
+/* 미구현(비활성) 메뉴: 죽은 항목이 살아있는 척하지 않도록 흐림 + 비인터랙티브 */
+.sidebar-icon-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+  color: var(--text-3);
+}
+
+.sidebar-icon-button:disabled:hover {
+  background: transparent;
+  color: var(--text-3);
+  transform: none;
+  box-shadow: none;
 }
 
 .sidebar-icon-wrapper {
@@ -183,26 +199,27 @@
 }
 
 .sidebar-label {
-  font-family: 'Karla', sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
   font-size: 16px;
   font-weight: 500;
   margin-left: 0;
 }
 
+/* 알림·카운트 배지는 중립 accent. 빨강(--level-red)은 위험 의미 전용으로 회수. */
 .sidebar-badge-dot {
   position: absolute;
   top: -2px;
   right: -2px;
   width: 8px;
   height: 8px;
-  background: #e51c1c;
+  background: var(--accent);
   border: 2px solid rgba(248, 251, 255, 0.94);
   border-radius: 50%;
 }
 
 .sidebar-badge-count {
   margin-left: auto;
-  background: #e51c1c;
+  background: var(--accent);
   color: white;
   font-size: 12px;
   font-weight: 700;
@@ -214,7 +231,7 @@
 .sidebar-divider {
   width: 100%;
   height: 1px;
-  background: #d9d9d9;
+  background: var(--stroke-1);
   margin: 12px 0;
 }
 
@@ -225,7 +242,15 @@
   gap: 10px;
   width: 100%;
   padding: 4px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 10px;
+  text-align: left;
 }
+.sidebar-profile:hover { background: var(--bg-3); }
 
 .sidebar.is-expanded .sidebar-profile {
   justify-content: flex-start; /* 확장 시 왼쪽 */
@@ -236,11 +261,11 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--bg-1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: var(--text-3);
   overflow: hidden;
 }
 
@@ -254,11 +279,21 @@
 .profile-name {
   font-size: 16px;
   font-weight: 500;
-  color: #1e1e1e;
+  color: var(--text-1);
 }
 
 .profile-email {
   font-size: 14px;
-  font-weight: 650;
-  color: #64748b;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.sidebar-version {
+  margin: 6px auto 2px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }

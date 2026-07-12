@@ -57,6 +57,41 @@ function normalizeAirports(airports) {
     .map((a) => ({ ...a, nameKo: AIRPORT_NAME_KO[a.icao] || a.name || a.icao }))
 }
 
+// Overseas airport navdata is used only for map/search metadata.
+// Weather payloads remain separate as metarOverseas/tafOverseas/sigmetOverseas.
+async function loadOverseasAirportList() {
+  const data = await fetchJson('/data/navdata/airports-overseas.json', { optional: true })
+  if (!data || typeof data !== 'object') return []
+  return Object.values(data)
+    .filter((a) => a && Number.isFinite(a.coordinates?.lat) && Number.isFinite(a.coordinates?.lon))
+    .map((a) => ({
+      icao: a.id,
+      name: a.name || a.id,
+      nameKo: a.nameKo || a.name || a.id,
+      lat: a.coordinates.lat,
+      lon: a.coordinates.lon,
+      overseas: true,
+    }))
+}
+
+// Display-only merge. Domestic/overseas payloads stay separate in app state.
+export function mergeAirportPayloads(domestic, overseas) {
+  if (!domestic && !overseas) return null
+  return {
+    ...(domestic || overseas),
+    airports: { ...(domestic?.airports || {}), ...(overseas?.airports || {}) },
+  }
+}
+
+// Display-only merge. NOAA items keep source:'NOAA' for the overseas map layer.
+export function mergeAdvisoryPayloads(domestic, overseas) {
+  if (!domestic && !overseas) return null
+  return {
+    ...(domestic || overseas),
+    items: [...(domestic?.items || []), ...(overseas?.items || [])],
+  }
+}
+
 function buildHashEntry(payload) {
   const hash = payload?.content_hash
   return hash ? { hash } : null
@@ -65,9 +100,15 @@ function buildHashEntry(payload) {
 export function buildSnapshotMetaFromData(data = {}) {
   return {
     metar: buildHashEntry(data.metar),
+    metarOverseas: buildHashEntry(data.metarOverseas),
+    metar_overseas: buildHashEntry(data.metarOverseas),
     taf: buildHashEntry(data.taf),
+    tafOverseas: buildHashEntry(data.tafOverseas),
+    taf_overseas: buildHashEntry(data.tafOverseas),
     warning: buildHashEntry(data.warning),
     sigmet: buildHashEntry(data.sigmet),
+    sigmetOverseas: buildHashEntry(data.sigmetOverseas),
+    sigmet_overseas: buildHashEntry(data.sigmetOverseas),
     airmet: buildHashEntry(data.airmet),
     sigwxLow: buildHashEntry(data.sigwxLow),
     amos: buildHashEntry(data.amos),
@@ -101,7 +142,8 @@ export async function loadWeatherData() {
     airports, metar, taf, amos, warning,
     sigmet, airmet, lightning,
     echoMeta, satMeta, sigwxLow, sigwxFrontMeta, sigwxCloudMeta,
-    groundForecast,
+    groundForecast, notam, overseasAirports,
+    metarOverseas, tafOverseas, sigmetOverseas,
   ] = await Promise.all([
     fetchJson('/api/airports', { optional: true }),
     fetchJson('/api/metar', { optional: true }),
@@ -117,15 +159,23 @@ export async function loadWeatherData() {
     fetchJson('/api/sigwx-front-meta', { optional: true }),
     fetchJson('/api/sigwx-cloud-meta', { optional: true }),
     fetchJson('/api/ground-forecast', { optional: true }),
+    fetchJson('/api/notam', { optional: true }),
+    loadOverseasAirportList(),
+    fetchJson('/api/metar-overseas', { optional: true }),
+    fetchJson('/api/taf-overseas', { optional: true }),
+    fetchJson('/api/sigmet-overseas', { optional: true }),
   ])
 
   return {
-    airports: normalizeAirports(airports),
+    airports: [...normalizeAirports(airports), ...(overseasAirports || [])],
     metar,
+    metarOverseas,
     taf,
+    tafOverseas,
     amos,
     warning,
     sigmet,
+    sigmetOverseas,
     airmet,
     lightning,
     echoMeta,
@@ -136,6 +186,7 @@ export async function loadWeatherData() {
     sigwxCloudMeta,
     adsb: null,
     groundForecast,
+    notam,
     groundOverview: null,
     environment: null,
     airportInfo: null,
@@ -154,6 +205,10 @@ export async function loadDeferredWeatherData(keys = []) {
   const uniqueKeys = [...new Set(keys)].filter((key) => DEFERRED_WEATHER_FETCHERS[key])
   const values = await Promise.all(uniqueKeys.map((key) => DEFERRED_WEATHER_FETCHERS[key]()))
   return Object.fromEntries(uniqueKeys.map((key, index) => [key, values[index]]))
+}
+
+export async function fetchNotam() {
+  return fetchJson('/api/notam', { optional: true })
 }
 
 export async function fetchSnapshotMeta() {
@@ -229,9 +284,12 @@ export async function loadChangedWeatherData(changes, { deferredKeys = 'all' } =
   const keys = []
 
   if (changes.metar) { fetches.push(fetchJson('/api/metar', { optional: true })); keys.push('metar') }
+  if (changes.metarOverseas) { fetches.push(fetchJson('/api/metar-overseas', { optional: true })); keys.push('metarOverseas') }
   if (changes.taf) { fetches.push(fetchJson('/api/taf', { optional: true })); keys.push('taf') }
+  if (changes.tafOverseas) { fetches.push(fetchJson('/api/taf-overseas', { optional: true })); keys.push('tafOverseas') }
   if (changes.warning) { fetches.push(fetchJson('/api/warning', { optional: true })); keys.push('warning') }
   if (changes.sigmet) { fetches.push(fetchJson('/api/sigmet', { optional: true })); keys.push('sigmet') }
+  if (changes.sigmetOverseas) { fetches.push(fetchJson('/api/sigmet-overseas', { optional: true })); keys.push('sigmetOverseas') }
   if (changes.airmet) { fetches.push(fetchJson('/api/airmet', { optional: true })); keys.push('airmet') }
   if (changes.sigwxLow) {
     fetches.push(fetchJson('/api/sigwx-low', { optional: true }))
@@ -254,6 +312,7 @@ export async function loadChangedWeatherData(changes, { deferredKeys = 'all' } =
     keys.push('sigwxCloudMeta')
   }
   if (changes.amos) { fetches.push(fetchJson('/api/amos', { optional: true })); keys.push('amos') }
+  if (changes.notam) { fetches.push(fetchJson('/api/notam', { optional: true })); keys.push('notam') }
   if (changes.lightning) { fetches.push(fetchJson('/api/lightning', { optional: true })); keys.push('lightning') }
   if (!ADSB_FETCH_DISABLED && changes.adsb && includesDeferredKey(deferredKeys, 'adsb')) { fetches.push(fetchJson('/api/adsb', { optional: true })); keys.push('adsb') }
   if (changes.groundForecast) { fetches.push(fetchJson('/api/ground-forecast', { optional: true })); keys.push('groundForecast') }

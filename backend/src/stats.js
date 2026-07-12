@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
-const TYPES = ['metar', 'taf', 'warning', 'sigmet', 'airmet', 'sigwx_low', 'lightning', 'radar', 'amos', 'adsb']
+const TYPES = ['metar', 'taf', 'warning', 'sigmet', 'airmet', 'sigwx_low', 'lightning', 'radar', 'amos', 'adsb', 'metar_overseas', 'taf_overseas', 'sigmet_overseas']
 const MAX_RECENT_RUNS = 50
 
 const METAR_LIMIT_MIN = { RKSI: 40 }
@@ -17,6 +17,7 @@ function makeTypeEntry() {
     last_error: null,
     error_counts: {},
     airport_failures: {},
+    skips: 0,
   }
 }
 
@@ -63,20 +64,28 @@ function saveToFile() {
   }
 }
 
-function addRecentRun(type, success, error, failedAirports) {
+function addRecentRun(type, success, error, failedAirports, durationMs) {
   statsData.recent_runs.unshift({
     type,
     time: new Date().toISOString(),
     success,
     error: error || null,
     failed_airports: failedAirports || [],
+    duration_ms: durationMs ?? null,
   })
   if (statsData.recent_runs.length > MAX_RECENT_RUNS) {
     statsData.recent_runs = statsData.recent_runs.slice(0, MAX_RECENT_RUNS)
   }
 }
 
-export function recordSuccess(type, result) {
+// 락 스킵(직전 run이 아직 진행 중) 카운트 — 수집 주기가 처리시간보다 짧다는 신호.
+export function recordSkip(type) {
+  const entry = statsData.types[type]
+  if (!entry) return
+  entry.skips = (entry.skips || 0) + 1
+}
+
+export function recordSuccess(type, result, durationMs) {
   const entry = statsData.types[type]
   if (!entry) return
 
@@ -115,11 +124,11 @@ export function recordSuccess(type, result) {
     }
   }
 
-  addRecentRun(type, true, null, failedAirports)
+  addRecentRun(type, true, null, failedAirports, durationMs)
   saveToFile()
 }
 
-export function recordFailure(type, errorMsg) {
+export function recordFailure(type, errorMsg, durationMs) {
   const entry = statsData.types[type]
   if (!entry) return
 
@@ -133,7 +142,7 @@ export function recordFailure(type, errorMsg) {
   const key = errorMsg || 'Unknown error'
   entry.error_counts[key] = (entry.error_counts[key] || 0) + 1
 
-  addRecentRun(type, false, errorMsg, [])
+  addRecentRun(type, false, errorMsg, [], durationMs)
   saveToFile()
 }
 
@@ -141,4 +150,4 @@ export function getStats() {
   return statsData
 }
 
-export default { initFromFile, recordSuccess, recordFailure, getStats }
+export default { initFromFile, recordSuccess, recordFailure, recordSkip, getStats }

@@ -46,10 +46,10 @@ test('loadDeferredWeatherData fetches panel-only datasets when requested', async
     assert.ok(data.groundOverview)
     assert.ok(data.environment)
     assert.ok(data.airportInfo)
-    assert.equal(data.adsb, null)
+    assert.ok(data.adsb)
     assert.deepEqual(
       recorder.calls,
-      ['/api/sigwx-low-history', '/api/ground-overview', '/api/environment', '/api/airport-info'],
+      ['/api/sigwx-low-history', '/api/ground-overview', '/api/environment', '/api/airport-info', '/api/adsb'],
     )
   } finally {
     recorder.restore()
@@ -75,6 +75,33 @@ test('loadChangedWeatherData does not fetch deferred datasets until they are loa
     assert.equal(recorder.calls.includes('/api/ground-overview'), false)
     assert.equal(recorder.calls.includes('/api/environment'), false)
     assert.equal(recorder.calls.includes('/api/airport-info'), false)
+  } finally {
+    recorder.restore()
+  }
+})
+
+test('loadChangedWeatherData fetches overseas datasets independently from domestic changes', async () => {
+  const recorder = installFetchRecorder()
+  try {
+    const data = await loadChangedWeatherData({
+      metar: false,
+      metarOverseas: true,
+      taf: false,
+      tafOverseas: true,
+      sigmet: false,
+      sigmetOverseas: true,
+    })
+
+    assert.ok(data.metarOverseas)
+    assert.ok(data.tafOverseas)
+    assert.ok(data.sigmetOverseas)
+    assert.equal(data.metar, undefined)
+    assert.equal(data.taf, undefined)
+    assert.equal(data.sigmet, undefined)
+    assert.deepEqual(
+      recorder.calls,
+      ['/api/metar-overseas', '/api/taf-overseas', '/api/sigmet-overseas'],
+    )
   } finally {
     recorder.restore()
   }

@@ -1,0 +1,139 @@
+.updates-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.updates-modal {
+  width: 100%;
+  max-width: 440px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-1);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+  overflow: hidden;
+}
+
+.updates-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.updates-modal__header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-1);
+}
+
+.updates-modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+}
+
+.updates-modal__close:hover {
+  background: var(--bg-3);
+  color: var(--text-1);
+}
+
+.updates-modal__body {
+  padding: 8px 20px 20px;
+  overflow-y: auto;
+}
+
+.updates-entry {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--bg-3);
+}
+
+.updates-entry:last-child {
+  border-bottom: none;
+}
+
+.updates-entry__head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.updates-entry.is-open .updates-entry__head {
+  margin-bottom: 6px;
+}
+
+.updates-entry__chevron {
+  color: var(--text-3);
+  flex: none;
+  transform: rotate(-90deg);
+  transition: transform 0.15s ease;
+}
+
+.updates-entry.is-open .updates-entry__chevron {
+  transform: rotate(0deg);
+}
+
+.updates-entry__version {
+  font-weight: 800;
+  font-size: 13px;
+  color: #10b981;
+  font-variant-numeric: tabular-nums;
+}
+
+.updates-entry__title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-1);
+}
+
+.updates-entry__badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #ffffff;
+  background: #10b981;
+  border-radius: 999px;
+  padding: 1px 7px;
+  letter-spacing: 0.04em;
+}
+
+.updates-entry__date {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.updates-entry__items {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.updates-entry.is-latest .updates-entry__items {
+  color: var(--accent);
+}

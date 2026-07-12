@@ -1,5 +1,6 @@
 export const ROUTE_PREVIEW_SOURCE = 'briefing-route-preview'
 export const ROUTE_PREVIEW_LINE = 'briefing-route-preview-line'
+export const ROUTE_PREVIEW_LINE_HIT = 'briefing-route-preview-line-hit'
 export const ROUTE_PREVIEW_POINT = 'briefing-route-preview-point'
 export const VFR_WP_CIRCLE = 'vfr-wp-circle'
 export const VFR_WP_LABEL = 'vfr-wp-label'
@@ -51,7 +52,9 @@ export function findInsertIndex(waypoints, lngLat) {
 
 export function relabeledWaypoints(waypoints) {
   let wpCount = 0
-  return waypoints.map((wp) => wp.fixed ? wp : { ...wp, id: `WP${++wpCount}` })
+  // fixed (출/도착) keep id; named (검색-추가 fix) keep their fix name; only
+  // anonymous map-clicked points get the WP1.. running label.
+  return waypoints.map((wp) => (wp.fixed || wp.named) ? wp : { ...wp, id: `WP${++wpCount}` })
 }
 
 export function buildVfrGeoJSON(waypoints) {
@@ -162,6 +165,16 @@ export function addRoutePreviewLayers(map) {
   if (!map.getSource(ROUTE_PREVIEW_SOURCE)) {
     map.addSource(ROUTE_PREVIEW_SOURCE, { type: 'geojson', data: emptyGeoJSON })
   }
+  // 투명 굵은 "히트 라인" — VFR 경로선 클릭/드래그(WP 추가) 충돌판정 확대용.
+  // opacity 0이어도 Mapbox 이벤트/queryRenderedFeatures는 잡힘. 보이는 선 아래에 깐다.
+  if (!map.getLayer(ROUTE_PREVIEW_LINE_HIT)) {
+    map.addLayer({
+      id: ROUTE_PREVIEW_LINE_HIT, type: 'line', source: ROUTE_PREVIEW_SOURCE, slot: 'top',
+      filter: ['==', ['get', 'role'], 'route-preview-line'],
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': '#000', 'line-opacity': 0, 'line-width': 20 },
+    })
+  }
   if (!map.getLayer(ROUTE_PREVIEW_LINE)) {
     map.addLayer({
       id: ROUTE_PREVIEW_LINE, type: 'line', source: ROUTE_PREVIEW_SOURCE, slot: 'top',
@@ -187,7 +200,7 @@ export function addProcedurePreviewLayers(map) {
       id: PROC_SID_LINE, type: 'line', source: PROC_PREVIEW_SOURCE, slot: 'top',
       filter: ['==', ['get', 'role'], 'sid-line'],
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#2563eb', 'line-width': 2, 'line-dasharray': [5, 3] },
+      paint: { 'line-color': '#2563eb', 'line-width': 4, 'line-opacity': 0.9 },
     })
   }
   if (!map.getLayer(PROC_STAR_LINE)) {
@@ -195,7 +208,7 @@ export function addProcedurePreviewLayers(map) {
       id: PROC_STAR_LINE, type: 'line', source: PROC_PREVIEW_SOURCE, slot: 'top',
       filter: ['==', ['get', 'role'], 'star-line'],
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#7c3aed', 'line-width': 2, 'line-dasharray': [5, 3] },
+      paint: { 'line-color': '#7c3aed', 'line-width': 4, 'line-opacity': 0.9 },
     })
   }
   if (!map.getLayer(PROC_IAP_LINE)) {
@@ -203,7 +216,7 @@ export function addProcedurePreviewLayers(map) {
       id: PROC_IAP_LINE, type: 'line', source: PROC_PREVIEW_SOURCE, slot: 'top',
       filter: ['==', ['get', 'role'], 'iap-line'],
       layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#0ea5e9', 'line-width': 2, 'line-dasharray': [3, 3] },
+      paint: { 'line-color': '#0ea5e9', 'line-width': 4, 'line-opacity': 0.9 },
     })
   }
   if (!map.getLayer(PROC_WP_CIRCLE)) {
@@ -211,7 +224,7 @@ export function addProcedurePreviewLayers(map) {
       id: PROC_WP_CIRCLE, type: 'circle', source: PROC_PREVIEW_SOURCE, slot: 'top',
       filter: ['any', ['==', ['get', 'role'], 'sid-wp'], ['==', ['get', 'role'], 'star-wp'], ['==', ['get', 'role'], 'iap-wp']],
       paint: {
-        'circle-radius': 4,
+        'circle-radius': 3,
         'circle-color': ['case',
           ['==', ['get', 'role'], 'sid-wp'], '#2563eb',
           ['==', ['get', 'role'], 'iap-wp'], '#0ea5e9',
@@ -227,6 +240,7 @@ export function addProcedurePreviewLayers(map) {
       id: PROC_WP_LABEL, type: 'symbol', source: PROC_PREVIEW_SOURCE, slot: 'top',
       filter: ['any', ['==', ['get', 'role'], 'sid-wp'], ['==', ['get', 'role'], 'star-wp'], ['==', ['get', 'role'], 'iap-wp']],
       layout: {
+        visibility: 'none',
         'text-field': ['get', 'label'],
         'text-font': ['Noto Sans CJK JP Bold'],
         'text-size': 10,
@@ -292,7 +306,7 @@ export function bindVfrInteractions(map, vfrWaypointsRef, setVfrWaypoints) {
     map.getCanvas().style.cursor = 'grabbing'
   })
 
-  map.on('mousedown', ROUTE_PREVIEW_LINE, (e) => {
+  map.on('mousedown', ROUTE_PREVIEW_LINE_HIT, (e) => {
     if (vfrWaypointsRef.current.length < 2) return
     const wpHit = map.queryRenderedFeatures(e.point, { layers: [VFR_WP_CIRCLE] })
     if (wpHit.length > 0) return
@@ -300,7 +314,7 @@ export function bindVfrInteractions(map, vfrWaypointsRef, setVfrWaypoints) {
     const wps = vfrWaypointsRef.current
     const insertIdx = findInsertIndex(wps, e.lngLat)
     const wpCount = wps.filter((wp) => !wp.fixed).length
-    const newWp = { id: `WP${wpCount + 1}`, lon: e.lngLat.lng, lat: e.lngLat.lat }
+    const newWp = { id: `WP${wpCount + 1}`, uid: crypto.randomUUID(), lon: e.lngLat.lng, lat: e.lngLat.lat }
     const next = relabeledWaypoints([...wps.slice(0, insertIdx), newWp, ...wps.slice(insertIdx)])
     vfrWaypointsRef.current = next
     map.getSource(ROUTE_PREVIEW_SOURCE)?.setData(buildVfrGeoJSON(next))
@@ -309,10 +323,10 @@ export function bindVfrInteractions(map, vfrWaypointsRef, setVfrWaypoints) {
     map.getCanvas().style.cursor = 'grabbing'
   })
 
-  map.on('mousemove', ROUTE_PREVIEW_LINE, () => {
+  map.on('mousemove', ROUTE_PREVIEW_LINE_HIT, () => {
     if (draggingIdx < 0) map.getCanvas().style.cursor = 'crosshair'
   })
-  map.on('mouseleave', ROUTE_PREVIEW_LINE, () => {
+  map.on('mouseleave', ROUTE_PREVIEW_LINE_HIT, () => {
     if (draggingIdx < 0) map.getCanvas().style.cursor = ''
   })
   map.on('mousemove', VFR_WP_CIRCLE, () => {

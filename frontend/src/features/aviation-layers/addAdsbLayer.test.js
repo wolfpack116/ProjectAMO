@@ -4,23 +4,19 @@ import { bindAdsbHover, syncAdsbLayer } from './addAdsbLayer.js'
 
 function createMapMock() {
   const calls = []
-  const source = {
-    data: null,
-    setData(data) {
-      this.data = data
-    },
-  }
+  const sources = {}
   return {
     calls,
-    source,
+    sources,
     on(type, layerId, handler) {
       calls.push(['on', type, layerId, handler])
     },
     off(type, layerId, handler) {
       calls.push(['off', type, layerId, handler])
     },
-    getSource() {
-      return source
+    getSource(id) {
+      if (!sources[id]) sources[id] = { data: null, setData(data) { this.data = data } }
+      return sources[id]
     },
     getLayer() {
       return true
@@ -40,10 +36,17 @@ test('bindAdsbHover returns cleanup for all registered handlers', () => {
   assert.equal(map.calls.filter((call) => call[0] === 'off').length, 3)
 })
 
-test('syncAdsbLayer applies current data and visibility', () => {
+test('syncAdsbLayer applies data to point and trail sources, and visibility to all layers', () => {
   const map = createMapMock()
   const geojson = { type: 'FeatureCollection', features: [] }
-  syncAdsbLayer(map, { geojson, isVisible: true })
-  assert.equal(map.source.data, geojson)
-  assert.deepEqual(map.calls.at(-1), ['layout', 'adsb-layer', 'visibility', 'visible'])
+  const trailGeojson = { type: 'FeatureCollection', features: [] }
+  syncAdsbLayer(map, { geojson, trailGeojson, isVisible: true })
+  assert.equal(map.sources['adsb-source'].data, geojson)
+  assert.equal(map.sources['adsb-trail-source'].data, trailGeojson)
+  const visibilityCalls = map.calls.filter((call) => call[0] === 'layout' && call[2] === 'visibility')
+  assert.deepEqual(visibilityCalls, [
+    ['layout', 'adsb-trail-layer', 'visibility', 'visible'],
+    ['layout', 'adsb-layer', 'visibility', 'visible'],
+    ['layout', 'adsb-logo-layer', 'visibility', 'visible'],
+  ])
 })

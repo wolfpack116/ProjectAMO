@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, Check, MoveUp } from 'lucide-react'
 import WeatherIcon from '../../../shared/ui/WeatherIcon.jsx'
+import DataProvenance from '../../../shared/ui/DataProvenance.jsx'
 import {
   buildCompactMetarModel,
   buildCompactTafModel,
@@ -187,12 +188,13 @@ function MetarSummary({ metar, amosData, icao, airportMeta }) {
 
   const cardList = [
     model.cards.visibility,
+    model.cards.rvr,
     model.cards.weather,
     model.cards.wind,
     model.cards.ceiling,
     model.cards.qnh,
     model.cards.temperature,
-  ]
+  ].filter(Boolean)
 
   function renderCardLabel(card) {
     if (card.id === 'weather') {
@@ -248,6 +250,7 @@ function MetarSummary({ metar, amosData, icao, airportMeta }) {
         <span className="ap-current-section-badge">METAR</span>
         <span className="ap-current-section-time">{fmtKstShort(metar?.header?.observation_time || metar?.header?.issue_time, tz)}</span>
       </div>
+      <DataProvenance source={metar?.header?.source} className="ap-current-provenance" />
       <div className="ap-current-metar-layout">
         <article
           className="ap-current-flight-card"
@@ -323,6 +326,7 @@ function TafSummary({ taf, icao }) {
         <span className="ap-current-section-badge">{model.hdr?.report_status === 'AMENDMENT' ? 'TAF AMD' : 'TAF'}</span>
         <span className="ap-current-section-time">{fmtKstShort(model.slots[0]?.time, tz)} – {fmtKstShort(new Date(new Date(model.slots.at(-1)?.time).getTime() + 3600000).toISOString(), tz)}</span>
       </div>
+      <DataProvenance source={taf?.header?.source} className="ap-current-provenance" />
       <div className="ap-taf-timeline">
         <div className="ap-taf-scale" style={{ '--taf-hour-count': model.slots.length }}>
           {model.slots.map((item, index) => (

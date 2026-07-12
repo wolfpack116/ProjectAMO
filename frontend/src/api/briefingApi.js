@@ -21,3 +21,7 @@ export function fetchCrossSection(payload) {
   return postJson('/api/briefing/cross-section', payload)
 }
 
+export function fetchRouteBriefing(payload) {
+  return postJson('/api/route-briefing', payload)
+}
+

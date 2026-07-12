@@ -24,6 +24,7 @@ import {
 } from '../src/processors/kim-nwp-model.js'
 
 const BOUNDS = { lonMin: 119, latMin: 30, lonMax: 119.083333, latMax: 30.083333, dx: 0.083333, dy: 0.083333 }
+const levelById = (id) => KIM_NWP_LEVELS.find((level) => level.id === id)
 
 function component(variable, values, level = 0) {
   return { variable, unit: 'm/s', level, nx: 2, ny: 2, bounds: BOUNDS, values }
@@ -34,8 +35,8 @@ function tempComponent(values, unit = 'K') {
 }
 
 test('KIM wind levels and forecast hours match this phase scope', () => {
-  assert.deepEqual(KIM_NWP_LEVELS.map((level) => level.id), ['10m', '1000hPa', '925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa', '250hPa', '200hPa', '150hPa'])
-  assert.deepEqual(KIM_NWP_MOISTURE_LEVEL_IDS, ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa'])
+  assert.deepEqual(KIM_NWP_LEVELS.map((level) => level.id), ['1000hPa', '975hPa', '950hPa', '925hPa', '900hPa', '875hPa', '850hPa', '800hPa', '750hPa', '700hPa', '650hPa', '600hPa', '550hPa', '500hPa', '450hPa', '400hPa', '350hPa', '300hPa', '250hPa', '200hPa', '150hPa'])
+  assert.deepEqual(KIM_NWP_MOISTURE_LEVEL_IDS, ['1000hPa', '975hPa', '950hPa', '925hPa', '900hPa', '875hPa', '850hPa', '800hPa', '750hPa', '700hPa', '650hPa', '600hPa', '550hPa', '500hPa', '450hPa', '400hPa', '350hPa', '300hPa', '250hPa', '200hPa', '150hPa'])
   assert.deepEqual(KIM_NWP_FORECAST_HOURS, [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36])
 })
 
@@ -46,13 +47,13 @@ test('icing levels include 300hPa but exclude 10m', () => {
   assert.equal(isKimNwpIcingLevel({ id: '600hPa' }), true)
 })
 
-test('moisture levels extended to 300hPa', () => {
-  assert.deepEqual(KIM_NWP_MOISTURE_LEVEL_IDS, ['925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa'])
+test('moisture levels extended to 150hPa (matches wind/temp cruise-altitude ceiling)', () => {
+  assert.deepEqual(KIM_NWP_MOISTURE_LEVEL_IDS, KIM_NWP_LEVELS.filter((l) => l.kind === 'pressure').map((l) => l.id))
 })
 
 test('expanded pressure level set tops at 150hPa for wind/temp', () => {
   const ids = KIM_NWP_LEVELS.map((l) => l.id)
-  for (const id of ['10m', '1000hPa', '925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa', '250hPa', '200hPa', '150hPa']) {
+  for (const id of ['1000hPa', '925hPa', '850hPa', '700hPa', '600hPa', '500hPa', '400hPa', '300hPa', '250hPa', '200hPa', '150hPa']) {
     assert.ok(ids.includes(id), `missing ${id}`)
   }
   assert.ok(!ids.includes('100hPa'), '100hPa must be excluded')
@@ -149,7 +150,7 @@ test('buildKimSurfaceWindFieldFromWindGrid derives renderer field', () => {
   const field = buildKimSurfaceWindFieldFromWindGrid(grid)
 
   assert.equal(field.type, 'kim_surface_wind')
-  assert.equal(field.level.id, '10m')
+  assert.equal(field.level.id, '1000hPa')
   assert.equal(field.stats.maxSpeed, 17)
   assert.deepEqual(field.u, grid.variables.u.values)
   assert.deepEqual(field.v, grid.variables.v.values)
@@ -290,7 +291,7 @@ test('filterKimNwpIndexForVariables exposes icing grids only when all required v
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 0,
-    level: KIM_NWP_LEVELS[3],
+    level: levelById('850hPa'),
     components: [
       tempComponent([263, 263, 263, 263]),
       { variable: 'rh_liq', unit: '%', level: 850, nx: 2, ny: 2, bounds: BOUNDS, values: [90, 90, 90, 90] },
@@ -306,7 +307,7 @@ test('filterKimNwpIndexForVariables exposes icing grids only when all required v
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 0,
-    level: KIM_NWP_LEVELS[4],
+    level: levelById('700hPa'),
     components: [
       tempComponent([263, 263, 263, 263]),
       { variable: 'rh_liq', unit: '%', level: 700, nx: 2, ny: 2, bounds: BOUNDS, values: [90, 90, 90, 90] },
@@ -354,7 +355,7 @@ test('buildKimNwpIndex hashes variable content without exposing values', () => {
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 0,
-    level: KIM_NWP_LEVELS[2],
+    level: levelById('925hPa'),
     components: [
       component('u', [1, 1, 1, 1], 925),
       component('v', [0, 0, 0, 0], 925),
@@ -364,7 +365,7 @@ test('buildKimNwpIndex hashes variable content without exposing values', () => {
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 0,
-    level: KIM_NWP_LEVELS[2],
+    level: levelById('925hPa'),
     components: [
       component('u', [2, 2, 2, 2], 925),
       component('v', [0, 0, 0, 0], 925),
@@ -403,7 +404,7 @@ test('filterKimNwpIndexForVariables separates wind and temp availability', () =>
     model: 'KIMG/NE57',
     tmfc: '2026051900',
     hf: 3,
-    level: KIM_NWP_LEVELS[2],
+    level: levelById('925hPa'),
     components: [
       component('u', [1, 1, 1, 1], 925),
       component('v', [0, 0, 0, 0], 925),
@@ -420,10 +421,10 @@ test('filterKimNwpIndexForVariables separates wind and temp availability', () =>
   const windIndex = filterKimNwpIndexForVariables(index, ['u', 'v'])
   const tempIndex = filterKimNwpIndexForVariables(index, ['T'])
 
-  assert.deepEqual(windIndex.levels.map((level) => level.id), ['10m', '925hPa'])
+  assert.deepEqual(windIndex.levels.map((level) => level.id), ['1000hPa', '925hPa'])
   assert.deepEqual(tempIndex.levels.map((level) => level.id), ['925hPa'])
-  assert.equal(tempIndex.availability['10m'], undefined)
-  assert.deepEqual(windIndex.availability['10m']['0'].variables, ['u', 'v'])
+  assert.equal(tempIndex.availability['1000hPa'], undefined)
+  assert.deepEqual(windIndex.availability['1000hPa']['0'].variables, ['u', 'v'])
   assert.deepEqual(windIndex.availability['925hPa']['3'].variables, ['u', 'v'])
   assert.deepEqual(tempIndex.availability['925hPa']['3'].variables, ['T'])
 })
@@ -437,14 +438,14 @@ test('filterKimNwpIndexForVariables exposes cloud grids only when T and rh exist
         model: 'KIMG/NE57',
         tmfc: '2026051900',
         hf: 0,
-        level: KIM_NWP_LEVELS[2],
+        level: levelById('925hPa'),
         components: [tempComponent([279, 280, 281, 282])],
       }),
       buildKimNwpGrid({
         model: 'KIMG/NE57',
         tmfc: '2026051900',
         hf: 3,
-        level: KIM_NWP_LEVELS[3],
+        level: levelById('850hPa'),
         components: [
           tempComponent([279, 280, 281, 282]),
           { variable: 'rh', unit: '%', level: 850, nx: 2, ny: 2, bounds: BOUNDS, values: [90, 80, 70, 60] },

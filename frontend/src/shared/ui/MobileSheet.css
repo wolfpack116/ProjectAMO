@@ -1,0 +1,112 @@
+.mobile-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--stroke-1);
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 -4px 14px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: hidden;
+  font-family: var(--app-font, system-ui, sans-serif);
+  color: var(--accent);
+  transition: height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-sheet.is-dragging {
+  transition: none;
+}
+
+/* Full detent: flush to the top of the map wrapper, so square the top corners
+   (rounded corners would let the map show through at the very top). */
+.mobile-sheet.is-full {
+  border-top: 0;
+  border-radius: 0;
+}
+
+.mobile-sheet-grab {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.mobile-sheet-grab-handle {
+  width: 40px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.5);
+}
+
+.mobile-sheet-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px 12px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.95);
+}
+
+.mobile-sheet-titles {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mobile-sheet-eyebrow {
+  color: var(--text-3);
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.1;
+}
+
+.mobile-sheet-title {
+  margin-top: 2px;
+  color: var(--text-1);
+  font-size: 16px;
+  font-weight: 850;
+  line-height: 1.15;
+}
+
+.mobile-sheet-header-extra {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-sheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 12px 14px;
+}
+
+.mobile-sheet-footer {
+  flex: 0 0 auto;
+  padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 0.5px solid rgba(226, 232, 240, 0.95);
+  background: rgba(255, 255, 255, 0.97);
+}
+
+.mobile-sheet-peek {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0 14px 8px;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: center;
+  cursor: pointer;
+}

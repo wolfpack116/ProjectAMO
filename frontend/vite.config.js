@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   envDir: '..', // .env is at project root, not inside frontend/
+  resolve: { dedupe: ['react', 'react-dom'] },
   server: {
     proxy: {
       '/api': {

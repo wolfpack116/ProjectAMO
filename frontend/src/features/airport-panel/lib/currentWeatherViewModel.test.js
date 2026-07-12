@@ -82,7 +82,7 @@ describe('current weather tab view model', () => {
     assert.equal(model.flightCategory, model.flight.category)
     assert.equal(model.cards.weather.secondary, '2.4 mm')
     assert.equal(model.cards.wind.secondary, 'G28kt')
-    assert.equal(model.cards.visibility.secondary, 'R33L/650m')
+    assert.equal(model.cards.rvr.value, 'R33L/650m') // #5: RVR은 이제 독립 카드(과거 시정 카드 secondary 아님)
     assert.equal(model.cards.qnh.value, '1011 hPa')
     assert.equal(model.cards.temperature.value, '21\u00b0C / 18\u00b0C')
   })

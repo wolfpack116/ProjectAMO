@@ -4,11 +4,8 @@ import {
   hasSpecialWeather as sharedHasSpecialWeather,
 } from "../../../../shared/weather/helpers.js";
 
-import {
-  DEFAULT_AIRPORT_MINIMA_RULES,
-  normalizeAirportMinimaSettings,
-} from "../../../../shared/weather/helpers.js";
-export { DEFAULT_AIRPORT_MINIMA_RULES, normalizeAirportMinimaSettings };
+import { DEFAULT_AIRPORT_MINIMA_RULES } from "../../../../shared/weather/helpers.js";
+export { DEFAULT_AIRPORT_MINIMA_RULES };
 
 export function safe(value, fallback = "-") {
   return value == null || value === "" ? fallback : value;

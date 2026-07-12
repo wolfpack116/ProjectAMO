@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "RKSS-RKPK VFR sample" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [126.7906, 37.5583],
+          [127.4000, 37.0000],
+          [127.9000, 36.3000],
+          [128.4000, 35.7000],
+          [128.9382, 35.1795]
+        ]
+      }
+    }
+  ]
+}

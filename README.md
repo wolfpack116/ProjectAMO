@@ -79,7 +79,7 @@ npm --prefix backend install
 
 ## 로컬 개발
 
-권장 실행 방식은 저장소에 포함된 ProjectAMO dev 런처를 사용하는 것입니다. 이 런처는 백엔드와 프론트엔드를 저장소 기준 경로에서 실행하고, 준비 상태를 확인하며, Windows/Codex 환경의 `Path`/`PATH` 중복 문제를 피하도록 만들어져 있습니다.
+권장 실행 방식은 저장소에 포함된 ProjectAMO dev 런처를 사용하는 것입니다. 이 런처는 백엔드와 프론트엔드를 저장소 기준 경로에서 실행하고, 준비 상태를 확인하며, Windows 환경의 `Path`/`PATH` 중복 문제를 피하도록 만들어져 있습니다.
 
 두 dev 서버가 정상적으로 뜨는지 확인:
 
@@ -104,7 +104,7 @@ npm run dev:serve
 npm run dev
 ```
 
-Codex에서 서버를 열거나 Playwright/Codex App Browser로 캡처할 때는 `docs/dev-server-and-capture.md`의 절차를 우선 따르세요.
+로컬 서버를 열거나 Playwright로 캡처할 때는 `docs/dev-server-and-capture.md`의 절차를 우선 따르세요.
 
 ## 빌드
 
@@ -195,7 +195,7 @@ artifacts/responsive-screenshots/<phase>/
 
 ## 기여자 참고 사항
 
-- 코드 변경 전 `agents.md`, `Architecture.md`, `EntryPoints.md`를 먼저 확인하세요.
+- 코드 변경 전 `CLAUDE.md`, `Architecture.md`, `EntryPoints.md`를 먼저 확인하세요.
 - 지도 관련 기능은 가능하면 소유 feature 모듈에 둡니다. `MapView.jsx`는 Mapbox 생명주기, basemap 전환, style readiness, 고수준 composition에 집중해야 합니다.
-- UI, CSS, 레이아웃, 반응형 작업은 `docs/ui-responsive-guidelines.md`를 따르세요.
-- 로컬 서버 실행, Playwright 스크린샷, Codex App Browser 캡처 작업은 `docs/dev-server-and-capture.md`를 따르세요.
+- UI, CSS, 레이아웃, 반응형, 디자인 작업은 `docs/design/design-language.md`(디자인 헌법, 단일 출처)를 따르세요.
+- 로컬 서버 실행, Playwright 스크린샷·캡처 작업은 `docs/dev-server-and-capture.md`를 따르세요.

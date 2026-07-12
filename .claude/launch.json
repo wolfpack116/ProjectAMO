@@ -6,14 +6,16 @@
       "runtimeExecutable": "cmd.exe",
       "runtimeArgs": ["/c", "set PATH=C:\\Program Files\\nodejs;%PATH% && npm run dev"],
       "cwd": "frontend",
-      "port": 5173
+      "port": 5173,
+      "autoPort": true
     },
     {
       "name": "Backend (Node)",
       "runtimeExecutable": "cmd.exe",
       "runtimeArgs": ["/c", "set PATH=C:\\Program Files\\nodejs;%PATH% && node server.js"],
       "cwd": "backend",
-      "port": 3001
+      "port": 3001,
+      "autoPort": true
     }
   ]
 }

@@ -31,7 +31,7 @@
 
 body {
   margin: 0;
-  font-family: "Manrope", sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
   color: var(--ink);
   background: var(--bg);
   overflow: hidden;
@@ -475,7 +475,7 @@ body {
   border-radius: 999px;
   border: 1px solid rgba(15, 23, 42, 0.16);
   background: rgba(255, 255, 255, 0.96);
-  color: #0f172a;
+  color: var(--text-1);
   font-size: 10px;
   line-height: 1;
   font-weight: 800;
@@ -491,14 +491,14 @@ body {
 
 .weather-icon-overlay--light {
   background: rgba(239, 246, 255, 0.98);
-  color: #1d4ed8;
+  color: var(--accent);
   border-color: rgba(29, 78, 216, 0.18);
 }
 
 .weather-icon-overlay--vicinity {
   min-width: 24px;
   background: rgba(241, 245, 249, 0.98);
-  color: #334155;
+  color: var(--accent);
   border-color: rgba(51, 65, 85, 0.16);
 }
 
@@ -699,7 +699,7 @@ body {
 }
 
 .metar-panel-rain-value {
-  color: #2563eb;
+  color: var(--accent);
 }
 
 .metar-weather-grid--bottom {
@@ -954,7 +954,7 @@ body {
 
 .metar-rain-text {
   font-size: 13px;
-  color: #2563eb;
+  color: var(--accent);
   line-height: 1.1;
   margin-top: -1px;
 }
@@ -1942,7 +1942,7 @@ body {
   margin-bottom: 8px;
   font-size: 0.78rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-1);
   letter-spacing: 0.04em;
 }
 
@@ -1981,19 +1981,19 @@ body {
 .advisory-detail-title {
   font-size: 0.92rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-1);
 }
 
 .advisory-detail-time {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #2563eb;
+  color: var(--accent);
 }
 
 .advisory-detail-meta,
 .advisory-detail-altitude {
   font-size: 0.76rem;
-  color: #475569;
+  color: var(--text-2);
 }
 
 .map-right-legends {
@@ -2027,7 +2027,7 @@ body {
   font-size: 0.66rem;
   font-weight: 800;
   line-height: 1;
-  color: #111827;
+  color: var(--text-1);
   text-align: right;
 }
 
@@ -2048,7 +2048,7 @@ body {
   font-size: 0.62rem;
   line-height: 1;
   text-align: right;
-  color: #111827;
+  color: var(--text-1);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
@@ -2077,7 +2077,7 @@ body {
 .lightning-time-legend-sub,
 .lightning-time-legend-current,
 .lightning-time-legend-label {
-  color: #111827;
+  color: var(--text-1);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -2217,7 +2217,7 @@ body {
   height: 28px;
   padding: 0;
   border-radius: 8px;
-  background: #f5f7fa;
+  background: var(--bg-3);
   color: var(--ink);
   border: 1px solid var(--line);
   font-weight: 700;
@@ -2475,7 +2475,7 @@ body {
   background: rgba(255, 255, 255, 0.92);
   border-color: rgba(15, 23, 42, 0.14);
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
-  color: #0f172a;
+  color: var(--text-1);
 }
 
 .leaflet-advisory-icon-shell {
@@ -2588,7 +2588,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0 10px;
-  color: #1d4ed8;
+  color: var(--accent);
   font-size: 0.68rem;
   font-weight: 800;
   line-height: 1;
@@ -2611,7 +2611,7 @@ body {
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(15, 23, 42, 0.14);
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
-  color: #0f172a;
+  color: var(--text-1);
 }
 
 .leaflet-advisory-icon-text-chip--advisory {
@@ -2638,7 +2638,7 @@ body {
 }
 
 .leaflet-advisory-icon-motion-text {
-  color: #1d4ed8;
+  color: var(--accent);
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1;
@@ -2691,7 +2691,7 @@ body {
 
 .advisory-tooltip-meta {
   font-size: 0.68rem;
-  color: #475569;
+  color: var(--text-2);
   line-height: 1.25;
   word-break: break-word;
 }
@@ -2710,7 +2710,7 @@ body {
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(15, 23, 42, 0.18);
-  color: #0f172a;
+  color: var(--text-1);
   font-size: 0.72rem;
   font-weight: 700;
   line-height: 1;
@@ -2732,7 +2732,7 @@ body {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid rgba(15, 23, 42, 0.14);
-  color: #0f172a;
+  color: var(--text-1);
   font-size: 0.72rem;
   font-weight: 700;
   line-height: 1.1;
@@ -2774,7 +2774,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.78);
-  color: #f8fafc;
+  color: var(--bg-2);
   padding: 6px 10px;
   font-size: 0.75rem;
   font-weight: 800;
@@ -2877,7 +2877,7 @@ body {
 
 .interactive-map-shell--dark .advisory-detail-icon {
   background: rgba(148, 163, 184, 0.16);
-  color: #f8fafc;
+  color: var(--bg-2);
 }
 
 .advisory-detail-main {
@@ -2924,9 +2924,9 @@ body {
 }
 
 .advisory-detail-toggle input:checked {
-  background: linear-gradient(135deg, #0d7f6f 0%, #2563eb 100%);
-  border-color: rgba(37, 99, 235, 0.92);
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.22);
+  background: linear-gradient(135deg, #0d7f6f 0%, var(--accent) 100%);
+  border-color: rgba(51, 65, 85, 0.92);
+  box-shadow: 0 4px 10px rgba(51, 65, 85, 0.22);
 }
 
 .advisory-detail-toggle input:checked::after {
@@ -2965,11 +2965,11 @@ body {
 
 .interactive-map-shell--dark .advisory-detail-title,
 .interactive-map-shell--dark .advisory-detail-altitude {
-  color: #f8fafc;
+  color: var(--bg-2);
 }
 
 .advisory-detail-time {
-  color: #2563eb;
+  color: var(--accent);
   line-height: 1.25;
 }
 
@@ -3405,13 +3405,79 @@ label { font-size: 0.9rem; font-weight: 700; }
 .panel h3 {
   margin: 0 0 10px;
   font-size: 1rem;
-  font-family: "Space Grotesk", sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
 }
 .ground-forecast-panel {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 18px 20px;
+  gap: 12px;
+  padding: 12px 18px;
+}
+.ground-hourly-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+}
+.ground-hourly-header {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink, #242424);
+  font-family: var(--app-font, system-ui, sans-serif);
+}
+.ground-hourly-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--app-font, system-ui, sans-serif);
+}
+.ghs-iconband {
+  fill: #f2eee6;
+}
+.ghs-line {
+  fill: none;
+  stroke: var(--accent, #334155);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.ghs-dot {
+  fill: var(--accent, #334155);
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+.ghs-temp {
+  fill: var(--ink, #242424);
+  font-size: 14px;
+  font-weight: 700;
+}
+.ghs-bar {
+  fill: #9cc3ea;
+}
+.ghs-pop {
+  fill: #185fa5;
+  font-size: 11px;
+}
+.ghs-icon {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.18));
+}
+.ghs-time {
+  fill: var(--muted, #616161);
+  font-size: 12px;
+}
+.ghs-time.is-now {
+  fill: #15803d;
+  font-weight: 700;
+}
+.ghs-time.is-daybreak {
+  fill: var(--accent, #334155);
+  font-weight: 700;
+}
+[data-theme="dark"] .ghs-iconband {
+  fill: #2d342f;
+}
+[data-theme="dark"] .ghs-dot {
+  stroke: #1a1d23;
 }
 .ground-forecast-header {
   display: flex;
@@ -3424,7 +3490,7 @@ label { font-size: 0.9rem; font-weight: 700; }
   margin: 0;
   font-size: 1.1rem;
   font-weight: 800;
-  font-family: "Manrope", sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
 }
 .ground-forecast-meta {
   display: flex;
@@ -3442,8 +3508,8 @@ label { font-size: 0.9rem; font-weight: 700; }
 .ground-forecast-grid {
   display: grid;
   grid-template-columns: 78px repeat(7, minmax(0, 1fr));
-  grid-template-rows: 72px 86px 86px 60px;
-  gap: 10px;
+  grid-template-rows: 54px 70px 70px 48px;
+  gap: 8px;
   align-items: stretch;
 }
 .ground-forecast-label-column {
@@ -3493,7 +3559,7 @@ label { font-size: 0.9rem; font-weight: 700; }
   color: var(--muted);
 }
 .ground-forecast-label-low {
-  color: #2563eb;
+  color: var(--accent);
 }
 .ground-forecast-card {
   display: flex;
@@ -3511,9 +3577,9 @@ label { font-size: 0.9rem; font-weight: 700; }
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 4px;
-  min-height: 72px;
-  padding: 14px 8px 8px;
+  gap: 2px;
+  min-height: 46px;
+  padding: 8px 8px 6px;
   border-radius: 12px 12px 0 0;
   border-top: 1px solid color-mix(in srgb, var(--line) 92%, #ffffff);
   border-left: 1px solid color-mix(in srgb, var(--line) 92%, #ffffff);
@@ -3527,7 +3593,7 @@ label { font-size: 0.9rem; font-weight: 700; }
   letter-spacing: -0.01em;
 }
 .ground-forecast-card-title--sat {
-  color: #2563eb;
+  color: var(--accent);
 }
 .ground-forecast-card-title--sun {
   color: #dc2626;
@@ -3538,7 +3604,7 @@ label { font-size: 0.9rem; font-weight: 700; }
   font-weight: 500;
 }
 .ground-forecast-card-date--sat {
-  color: #3b82f6;
+  color: var(--accent);
 }
 .ground-forecast-card-date--sun {
   color: #ef4444;
@@ -3587,15 +3653,15 @@ label { font-size: 0.9rem; font-weight: 700; }
   color: #0c4a6e;
 }
 .ground-forecast-weather-icon.weather-icon-wrapper {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.16));
 }
 .ground-forecast-rain-prob {
   font-size: 0.84rem;
   line-height: 1;
   font-weight: 700;
-  color: #4b5563;
+  color: var(--text-2);
   min-height: 0.84rem;
 }
 .ground-forecast-period-empty {
@@ -3645,7 +3711,7 @@ label { font-size: 0.9rem; font-weight: 700; }
   display: inline-block;
 }
 .ground-forecast-temp-min {
-  color: #2563eb;
+  color: var(--accent);
   display: inline-block;
 }
 .ground-forecast-empty {
@@ -3819,7 +3885,7 @@ label { font-size: 0.9rem; font-weight: 700; }
 }
 
 .ground-current-metric-min {
-  color: #2563eb;
+  color: var(--accent);
 }
 
 .ground-current-metric-divider {
@@ -4079,7 +4145,7 @@ tr.row-danger td { background: #ffe9e7; }
   font-size: 1rem;
   font-weight: 800;
   color: #111111;
-  background: color-mix(in srgb, var(--panel) 94%, #f8fafc);
+  background: color-mix(in srgb, var(--panel) 94%, var(--bg-2));
 }
 .taf-v3-time-hour {
   font-size: 1.08rem;
@@ -4401,7 +4467,7 @@ tr.row-danger td { background: #ffe9e7; }
 }
 
 .taf-mobile-v3-head {
-  background: #f8fafc;
+  background: var(--bg-2);
   border-bottom: 1px solid var(--line);
 }
 
@@ -4681,7 +4747,7 @@ tr.row-danger td { background: #ffe9e7; }
   }
 
   .phone-task-tab.active {
-    background: #111827;
+    background: var(--text-1);
     color: #ffffff;
   }
 
@@ -5184,7 +5250,7 @@ tr.row-danger td { background: #ffe9e7; }
 
 [data-theme="dark"] .rainrate-legend-title,
 [data-theme="dark"] .rainrate-legend-label {
-  color: #cbd5e1;
+  color: var(--stroke-1);
 }
 
 [data-theme="dark"] .rainrate-legend-swatch {
@@ -5201,7 +5267,7 @@ tr.row-danger td { background: #ffe9e7; }
 [data-theme="dark"] .lightning-time-legend-sub,
 [data-theme="dark"] .lightning-time-legend-current,
 [data-theme="dark"] .lightning-time-legend-label {
-  color: #cbd5e1;
+  color: var(--stroke-1);
 }
 
 [data-theme="dark"] .lightning-time-legend-swatch {
@@ -5331,8 +5397,8 @@ tr.row-danger td { background: #ffe9e7; }
   z-index: 1;
 }
 
-.taf-forecast-seg--day    { background: #3b82f6; }
-.taf-forecast-seg--night  { background: #4b5563; }
+.taf-forecast-seg--day    { background: #3b82f6; /* color-lint-ignore: 주/야 세그먼트 의미색(주간=파랑) */ }
+.taf-forecast-seg--night  { background: var(--text-2); }
 
 .taf-forecast-seg-content {
   display: inline-flex;

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProjectAMO — 디자인 토큰 미리보기</title>
+<style>
+:root{
+  /* A. 간격 (Fluent 2 8pt) */
+  --space-xxs:2px; --space-xs:4px; --space-snudge:6px; --space-s:8px;
+  --space-mnudge:10px; --space-m:12px; --space-l:16px; --space-xl:20px;
+  --space-xxl:24px; --space-xxxl:32px;
+  /* B. 타이포 */
+  --font-base:"Segoe UI", Pretendard, system-ui, sans-serif;
+  --fs-100:10px; --fs-200:12px; --fs-300:14px; --fs-400:16px; --fs-500:20px; --fs-600:24px; --fs-700:28px;
+  --fw-reg:400; --fw-med:500; --fw-semi:600; --fw-bold:700;
+  /* C. radius */
+  --radius-sm:2px; --radius-md:4px; --radius-lg:6px; --radius-xl:8px;
+  /* D. 중립 (Fluent 2 grey, 라이트) */
+  --text-1:#242424; --text-2:#424242; --text-3:#616161; --text-disabled:#bdbdbd;
+  --bg-1:#ffffff; --bg-2:#fafafa; --bg-3:#f5f5f5; --bg-4:#f0f0f0; --bg-5:#ebebeb;
+  --stroke-1:#d1d1d1; --stroke-2:#e0e0e0; --stroke-strong:#616161;
+  --accent:#0f6cbd;
+  /* 다크 지도(베이스맵 후퇴) */
+  --map-bg:#1b2230; --map-surface:#222b3a; --map-line:#374257; --map-text:#e8edf5; --map-muted:#9fb0c8;
+  /* E1. 심각도 레벨 */
+  --lvl-green:#166534; --lvl-green-bg:#dcefe2;
+  --lvl-amber:#92400e; --lvl-amber-bg:#fdecc8;
+  --lvl-red:#c0291f;   --lvl-red-bg:#f7dcd9;
+  --lvl-gray:#475569;  --lvl-gray-bg:#eef2f7;
+  /* E2. 항공 카테고리 */
+  --cat-vfr:#166534; --cat-mvfr:#1d4ed8; --cat-ifr:#c0291f; --cat-lifr:#9d2c9d;
+  /* E3. 기상 데이터 램프 */
+  --ice-1:#ACC7FF; --ice-2:#6B88CD; --ice-3:#383D6F;
+  --turb-l:#64D264; --turb-m:#FFC300; --turb-s:#FF3737;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:var(--font-base); color:var(--text-1); background:var(--bg-3);
+  font-size:var(--fs-300); line-height:1.45; -webkit-font-smoothing:antialiased; padding:var(--space-xxl);}
+.wrap{max-width:1200px; margin:0 auto;}
+.note{font-size:var(--fs-200); color:var(--text-3); background:var(--lvl-amber-bg); color:var(--lvl-amber);
+  border-radius:var(--radius-md); padding:var(--space-s) var(--space-m); margin-bottom:var(--space-l);}
+h1.page{font-size:var(--fs-600); font-weight:var(--fw-semi); margin-bottom:var(--space-xs);}
+.page-sub{font-size:var(--fs-200); color:var(--text-3); margin-bottom:var(--space-xl);}
+
+/* ===== App shell ===== */
+.app{background:var(--bg-1); border:1px solid var(--stroke-2); border-radius:var(--radius-xl); overflow:hidden;}
+.appbar{display:flex; align-items:center; gap:var(--space-m); padding:var(--space-m) var(--space-l);
+  border-bottom:1px solid var(--stroke-2); background:var(--bg-1);}
+.brand{display:flex; align-items:center; gap:var(--space-s); font-weight:var(--fw-semi); font-size:var(--fs-300);}
+.brand .mark{width:22px; height:22px; border-radius:var(--radius-md); background:var(--text-1); color:#fff;
+  display:grid; place-items:center; font-size:11px; font-weight:var(--fw-bold);}
+.route{font-size:var(--fs-400); font-weight:var(--fw-semi); margin-left:var(--space-s);}
+.route .alt{font-size:var(--fs-200); color:var(--text-3); font-weight:var(--fw-reg); margin-left:var(--space-s);}
+.rule-chip{font-size:var(--fs-100); font-weight:var(--fw-semi); letter-spacing:.04em; color:var(--cat-ifr);
+  background:var(--lvl-red-bg); padding:2px 8px; border-radius:var(--radius-md);}
+.spacer{flex:1;}
+.eta{font-size:var(--fs-200); color:var(--text-2); font-variant-numeric:tabular-nums;}
+.live{display:flex; align-items:center; gap:6px; font-size:var(--fs-200); color:var(--text-3);}
+.live .dot{width:8px; height:8px; border-radius:50%; background:var(--lvl-green);}
+
+/* summary board */
+.board{display:flex; flex-wrap:wrap; gap:var(--space-s); padding:var(--space-m) var(--space-l);
+  border-bottom:1px solid var(--stroke-2); background:var(--bg-2);}
+.chip{display:inline-flex; align-items:center; gap:6px; font-size:var(--fs-200); font-weight:var(--fw-med);
+  padding:4px 10px; border-radius:var(--radius-md); border:1px solid var(--stroke-2); background:var(--bg-1);}
+.chip .cdot{width:8px; height:8px; border-radius:50%;}
+.chip.red{background:var(--lvl-red-bg); color:var(--lvl-red); border-color:transparent;}
+.chip.green{background:var(--lvl-green-bg); color:var(--lvl-green); border-color:transparent;}
+.chip.amber{background:var(--lvl-amber-bg); color:var(--lvl-amber); border-color:transparent;}
+
+/* ===== Workspace ===== */
+.ws{display:grid; grid-template-columns:1fr 380px; gap:0;}
+@media(max-width:900px){.ws{grid-template-columns:1fr;}}
+
+/* map */
+.map{position:relative; height:420px; background:var(--map-bg); overflow:hidden;}
+.map svg{position:absolute; inset:0; width:100%; height:100%;}
+.ov{position:absolute; z-index:2;}
+.layerbar{top:var(--space-m); left:var(--space-m); display:flex; gap:6px;}
+.lchip{font-size:var(--fs-100); font-weight:var(--fw-med); color:var(--map-muted);
+  background:rgba(20,26,38,.7); border:1px solid var(--map-line); padding:4px 9px; border-radius:var(--radius-md);}
+.lchip.on{color:#fff; background:rgba(40,52,76,.92); border-color:#4a5b80;}
+.lchip .s{display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:5px; vertical-align:middle;}
+.pickpill{top:var(--space-m); right:var(--space-m); background:rgba(20,26,38,.82); border:1px solid var(--map-line);
+  border-radius:var(--radius-md); padding:6px 10px; font-size:var(--fs-100); color:var(--map-text);
+  font-variant-numeric:tabular-nums; line-height:1.5;}
+.pickpill b{color:var(--ice-1); font-weight:var(--fw-semi);}
+.legend{left:var(--space-m); bottom:48px; background:rgba(20,26,38,.82); border:1px solid var(--map-line);
+  border-radius:var(--radius-md); padding:8px 10px;}
+.legend .lt{font-size:var(--fs-100); color:var(--map-muted); margin-bottom:5px;}
+.legend .row{display:flex; align-items:center; gap:6px; font-size:var(--fs-100); color:var(--map-text);}
+.legend .sw{width:14px; height:10px; border-radius:2px; display:inline-block;}
+/* time slider */
+.timebar{left:0; right:0; bottom:0; padding:8px var(--space-l) 10px; background:linear-gradient(transparent,rgba(15,20,30,.85));}
+.track{position:relative; height:4px; background:rgba(255,255,255,.22); border-radius:2px;}
+.track .fill{position:absolute; left:0; top:0; height:4px; width:42%; background:rgba(255,255,255,.6); border-radius:2px;}
+.track .thumb{position:absolute; left:42%; top:50%; width:13px; height:13px; border-radius:50%;
+  background:#ff9f1c; transform:translate(-50%,-50%); border:2px solid #1b2230;}
+.ticks{display:flex; justify-content:space-between; margin-top:5px; font-size:var(--fs-100); color:var(--map-muted);
+  font-variant-numeric:tabular-nums;}
+.ticks .now{color:#ff9f1c; font-weight:var(--fw-semi);}
+/* altitude slider */
+.altbar{right:var(--space-m); top:54px; bottom:64px; width:34px; display:flex; flex-direction:column; align-items:center;}
+.altbar .vtrack{position:relative; flex:1; width:4px; background:rgba(255,255,255,.22); border-radius:2px;}
+.altbar .vthumb{position:absolute; left:50%; top:46%; width:13px; height:13px; border-radius:50%; background:#fff;
+  transform:translate(-50%,-50%); border:2px solid #1b2230;}
+.altbar .vlabels{display:flex; flex-direction:column; justify-content:space-between; height:100%;
+  font-size:var(--fs-100); color:var(--map-muted); margin-left:6px;}
+.altbar .vlabels .cur{color:#fff; font-weight:var(--fw-semi);}
+.altwrap{position:absolute; right:var(--space-m); top:54px; bottom:64px; display:flex; z-index:2;}
+
+/* ===== Briefing side ===== */
+.side{border-left:1px solid var(--stroke-2); background:var(--bg-1); display:flex; flex-direction:column;}
+.sect{padding:var(--space-m) var(--space-l); border-bottom:1px solid var(--stroke-2);}
+.sect h3{font-size:var(--fs-300); font-weight:var(--fw-semi); margin-bottom:var(--space-s); display:flex; align-items:center; gap:6px;}
+.sect h3 .n{color:var(--text-3); font-weight:var(--fw-med);}
+.acards{display:grid; grid-template-columns:1fr 1fr 1fr; gap:var(--space-s);}
+.acard{border:1px solid var(--stroke-2); border-radius:var(--radius-md); padding:var(--space-s); background:var(--bg-1);}
+.acard .top{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;}
+.acard .icao{font-size:var(--fs-200); font-weight:var(--fw-semi);}
+.acard .role{font-size:9px; color:var(--text-3); display:block; font-weight:var(--fw-reg);}
+.badge{font-size:9px; font-weight:var(--fw-bold); padding:2px 5px; border-radius:var(--radius-sm); color:#fff;}
+.badge.vfr{background:var(--cat-vfr);} .badge.mvfr{background:var(--cat-mvfr);}
+.badge.ifr{background:var(--cat-ifr);} .badge.lifr{background:var(--cat-lifr);}
+.kv{width:100%; font-size:var(--fs-100); border-collapse:collapse; font-variant-numeric:tabular-nums;}
+.kv td{padding:2px 0;} .kv td:first-child{color:var(--text-3);} .kv td:last-child{text-align:right;}
+.kv .flag{color:var(--lvl-red); font-weight:var(--fw-semi);}
+.plan{font-size:var(--fs-200); color:var(--text-2); margin-bottom:var(--space-s);}
+.plan b{color:var(--text-1); font-weight:var(--fw-semi); font-size:var(--fs-300);}
+/* hazard ribbon */
+.ribbon-row{margin-bottom:var(--space-s);}
+.ribbon-head{display:flex; justify-content:space-between; font-size:var(--fs-100); color:var(--text-3); margin-bottom:3px;}
+.ribbon{position:relative; height:12px; background:var(--bg-4); border-radius:var(--radius-sm); overflow:hidden;}
+.seg{position:absolute; top:0; height:12px;}
+/* cross-section */
+.xs{border:1px solid var(--stroke-2); border-radius:var(--radius-md); background:var(--bg-1); padding:6px;}
+.xs svg{display:block; width:100%; height:130px;}
+/* footer */
+.foot{display:flex; gap:var(--space-s); padding:var(--space-m) var(--space-l); background:var(--bg-2);}
+.btn{font-size:var(--fs-200); font-weight:var(--fw-med); padding:8px 14px; border-radius:var(--radius-md);
+  border:1px solid var(--stroke-strong); background:var(--bg-1); color:var(--text-1); cursor:pointer;}
+.btn.primary{background:var(--text-1); color:#fff; border-color:var(--text-1);}
+.btn.ghost{border-color:var(--stroke-2); color:var(--text-2);}
+
+/* ===== Styleguide ===== */
+.guide{margin-top:var(--space-xxxl);}
+.guide h2{font-size:var(--fs-500); font-weight:var(--fw-semi); margin-bottom:var(--space-m); padding-bottom:var(--space-s); border-bottom:2px solid var(--stroke-2);}
+.guide h4{font-size:var(--fs-200); color:var(--text-3); font-weight:var(--fw-semi); margin:var(--space-l) 0 var(--space-s); text-transform:uppercase; letter-spacing:.05em;}
+.swatches{display:flex; flex-wrap:wrap; gap:var(--space-s);}
+.sw-card{width:120px; border:1px solid var(--stroke-2); border-radius:var(--radius-md); overflow:hidden; background:var(--bg-1);}
+.sw-chip{height:54px;}
+.sw-meta{padding:6px 8px; font-size:var(--fs-100); line-height:1.5;}
+.sw-meta .nm{font-weight:var(--fw-semi); color:var(--text-1);}
+.sw-meta .hex{color:var(--text-3); font-variant-numeric:tabular-nums;}
+.scale-row{display:flex; align-items:center; gap:var(--space-m); margin-bottom:6px; font-size:var(--fs-200);}
+.scale-row .bar{background:var(--accent); height:14px; border-radius:2px;}
+.scale-row .lab{width:130px; color:var(--text-3);}
+.type-row{display:flex; align-items:baseline; gap:var(--space-m); margin-bottom:6px;}
+.type-row .lab{width:130px; color:var(--text-3); font-size:var(--fs-200);}
+.radius-row{display:flex; gap:var(--space-m); align-items:flex-end;}
+.radius-box{width:70px; height:54px; background:var(--bg-4); border:1px solid var(--stroke-1);}
+.radius-box .cap{font-size:var(--fs-100); color:var(--text-3); text-align:center; margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="page">ProjectAMO — 디자인 토큰 미리보기</h1>
+  <div class="page-sub">Fluent 2 토대(중립·간격·타이포·radius) + 자체 기상 의미색. 라이트 패널 + 다크 지도(데이터가 주인공).</div>
+  <div class="note">⚠️ 이 페이지는 토큰 적용 예시(초안)입니다. 실제 앱에는 아직 반영 전 — 헌법·토큰을 눈으로 확인하는 용도.</div>
+
+  <!-- ===================== APP MOCKUP ===================== -->
+  <div class="app">
+    <!-- top bar -->
+    <div class="appbar">
+      <div class="brand"><span class="mark">A</span>ProjectAMO</div>
+      <span class="route">RKSS → RKPC <span class="alt">교체 RKPK</span></span>
+      <span class="rule-chip">IFR</span>
+      <span class="spacer"></span>
+      <span class="eta">ETD 0920 → ETA 1014Z</span>
+      <span class="live"><span class="dot"></span>실시간 · 0914Z 갱신</span>
+    </div>
+
+    <!-- summary board -->
+    <div class="board">
+      <span class="chip red">위험 1건</span>
+      <span class="chip"><span class="cdot" style="background:var(--cat-vfr)"></span>출발 RKSS · VFR</span>
+      <span class="chip"><span class="cdot" style="background:var(--cat-ifr)"></span>도착 RKPC · IFR</span>
+      <span class="chip"><span class="cdot" style="background:var(--cat-mvfr)"></span>교체 RKPK · MVFR</span>
+      <span class="chip amber">착빙 中 · FL120–180</span>
+    </div>
+
+    <!-- workspace -->
+    <div class="ws">
+      <!-- MAP -->
+      <div class="map">
+        <svg viewBox="0 0 640 420" preserveAspectRatio="xMidYMid slice">
+          <!-- graticule -->
+          <g stroke="var(--map-line)" stroke-width="1">
+            <line x1="0" y1="105" x2="640" y2="105"/><line x1="0" y1="210" x2="640" y2="210"/><line x1="0" y1="315" x2="640" y2="315"/>
+            <line x1="160" y1="0" x2="160" y2="420"/><line x1="320" y1="0" x2="320" y2="420"/><line x1="480" y1="0" x2="480" y2="420"/>
+          </g>
+          <!-- icing blob -->
+          <ellipse cx="380" cy="180" rx="120" ry="74" fill="var(--ice-2)" opacity="0.45"/>
+          <ellipse cx="360" cy="175" rx="64" ry="40" fill="var(--ice-3)" opacity="0.5"/>
+          <!-- hazard polygon (SIGMET) -->
+          <polygon points="430,70 540,90 560,180 470,200 420,130" fill="var(--lvl-red)" opacity="0.16"
+            stroke="var(--lvl-red)" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text x="490" y="135" fill="#ff8a80" font-size="11" font-weight="700" text-anchor="middle">SIGMET ICE</text>
+          <!-- route -->
+          <polyline points="105,300 320,210 500,120" fill="none" stroke="#e8edf5" stroke-width="2" stroke-dasharray="7 5" opacity="0.85"/>
+          <!-- aircraft -->
+          <g transform="translate(320,210) rotate(-28)">
+            <path d="M0,-9 L3,3 L11,7 L3,7 L0,12 L-3,7 L-11,7 L-3,3 Z" fill="#ffffff"/>
+          </g>
+          <!-- airports -->
+          <g font-size="11" font-weight="600">
+            <circle cx="105" cy="300" r="6" fill="var(--cat-vfr)" stroke="#fff" stroke-width="2"/>
+            <text x="105" y="322" fill="#e8edf5" text-anchor="middle">RKSS</text>
+            <circle cx="500" cy="120" r="6" fill="var(--cat-ifr)" stroke="#fff" stroke-width="2"/>
+            <text x="500" y="108" fill="#e8edf5" text-anchor="middle">RKPC</text>
+            <circle cx="430" cy="330" r="6" fill="var(--cat-mvfr)" stroke="#fff" stroke-width="2"/>
+            <text x="430" y="352" fill="#e8edf5" text-anchor="middle">RKPK</text>
+          </g>
+        </svg>
+
+        <!-- overlays -->
+        <div class="ov layerbar">
+          <span class="lchip on"><span class="s" style="background:var(--ice-2)"></span>착빙</span>
+          <span class="lchip"><span class="s" style="background:var(--turb-m)"></span>난류</span>
+          <span class="lchip">레이더</span>
+          <span class="lchip">바람</span>
+        </div>
+        <div class="ov pickpill">37.21°N 126.84°E<br><b>착빙 中(2)</b> · −9°C · FL160</div>
+        <div class="ov legend">
+          <div class="lt">착빙 잠재</div>
+          <div class="row"><span class="sw" style="background:var(--ice-1)"></span>Trace</div>
+          <div class="row"><span class="sw" style="background:var(--ice-2)"></span>Moderate</div>
+          <div class="row"><span class="sw" style="background:var(--ice-3)"></span>Severe</div>
+        </div>
+        <!-- altitude slider -->
+        <div class="altwrap">
+          <div class="vtrack" style="position:relative; width:4px; background:rgba(255,255,255,.22); border-radius:2px;">
+            <div class="vthumb"></div>
+          </div>
+          <div class="vlabels">
+            <span>MAX</span><span>FL300</span><span class="cur">FL180</span><span>FL100</span><span>SFC</span>
+          </div>
+        </div>
+        <!-- time slider -->
+        <div class="ov timebar">
+          <div class="track"><div class="fill"></div><div class="thumb"></div></div>
+          <div class="ticks"><span>06Z</span><span class="now">09Z</span><span>12Z</span><span>15Z</span><span>18Z</span></div>
+        </div>
+      </div>
+
+      <!-- BRIEFING SIDE -->
+      <div class="side">
+        <div class="sect">
+          <h3><span class="n">③</span> 현재 실황</h3>
+          <div class="acards">
+            <div class="acard">
+              <div class="top"><span class="icao">RKSS<span class="role">출발</span></span><span class="badge vfr">VFR</span></div>
+              <table class="kv"><tr><td>바람</td><td>290/06</td></tr><tr><td>시정</td><td>9999</td></tr><tr><td>운고</td><td>FEW040</td></tr><tr><td>QNH</td><td>1014</td></tr></table>
+            </div>
+            <div class="acard">
+              <div class="top"><span class="icao">RKPC<span class="role">도착</span></span><span class="badge ifr">IFR</span></div>
+              <table class="kv"><tr><td>바람</td><td>120/14</td></tr><tr><td>시정</td><td class="flag">2800</td></tr><tr><td>운고</td><td class="flag">BKN008</td></tr><tr><td>QNH</td><td>1009</td></tr></table>
+            </div>
+            <div class="acard">
+              <div class="top"><span class="icao">RKPK<span class="role">교체</span></span><span class="badge mvfr">MVFR</span></div>
+              <table class="kv"><tr><td>바람</td><td>140/10</td></tr><tr><td>시정</td><td>6000</td></tr><tr><td>운고</td><td>SCT025</td></tr><tr><td>QNH</td><td>1011</td></tr></table>
+            </div>
+          </div>
+        </div>
+
+        <div class="sect">
+          <h3><span class="n">④</span> 노선 위험</h3>
+          <div class="plan">계획고도 <b>FL160</b> · 총 148NM</div>
+          <div class="ribbon-row">
+            <div class="ribbon-head"><span>착빙</span><span>中 64–96NM</span></div>
+            <div class="ribbon"><span class="seg" style="left:43%; width:22%; background:var(--ice-2)"></span><span class="seg" style="left:65%; width:8%; background:var(--ice-3)"></span></div>
+          </div>
+          <div class="ribbon-row">
+            <div class="ribbon-head"><span>난류</span><span>弱 20–40NM</span></div>
+            <div class="ribbon"><span class="seg" style="left:14%; width:13%; background:var(--turb-l)"></span><span class="seg" style="left:70%; width:6%; background:var(--turb-m)"></span></div>
+          </div>
+        </div>
+
+        <div class="sect">
+          <h3>연직 단면도</h3>
+          <div class="xs">
+            <svg viewBox="0 0 360 130" preserveAspectRatio="none">
+              <!-- grid -->
+              <g stroke="var(--stroke-2)" stroke-width="1">
+                <line x1="34" y1="20" x2="350" y2="20"/><line x1="34" y1="55" x2="350" y2="55"/><line x1="34" y1="90" x2="350" y2="90"/>
+              </g>
+              <g fill="var(--text-3)" font-size="9" text-anchor="end">
+                <text x="30" y="23">FL300</text><text x="30" y="58">FL180</text><text x="30" y="93">FL060</text>
+              </g>
+              <!-- icing band -->
+              <rect x="150" y="40" width="120" height="34" fill="var(--ice-2)" opacity="0.5"/>
+              <rect x="190" y="46" width="46" height="22" fill="var(--ice-3)" opacity="0.55"/>
+              <!-- turb cell -->
+              <rect x="70" y="64" width="44" height="16" fill="var(--turb-m)" opacity="0.55"/>
+              <!-- planned altitude line -->
+              <polyline points="34,105 90,70 250,58 320,58 350,40" fill="none" stroke="var(--cat-ifr)" stroke-width="2"/>
+              <!-- terrain -->
+              <path d="M34,118 L90,110 L150,114 L210,104 L280,112 L350,108 L350,128 L34,128 Z" fill="var(--bg-5)" stroke="var(--stroke-1)" stroke-width="1"/>
+              <!-- fixes -->
+              <g fill="var(--text-3)" font-size="9" text-anchor="middle">
+                <text x="34" y="128">RKSS</text><text x="200" y="128">OLMEN</text><text x="350" y="128">RKPC</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="foot">
+          <button class="btn primary">브리핑 생성</button>
+          <button class="btn ghost">초기화</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== STYLEGUIDE ===================== -->
+  <div class="guide">
+    <h2>토큰 팔레트 (이 페이지가 실제로 쓰는 값)</h2>
+
+    <h4>심각도 레벨</h4>
+    <div class="swatches">
+      <div class="sw-card"><div class="sw-chip" style="background:var(--lvl-green)"></div><div class="sw-meta"><div class="nm">level / green</div><div class="hex">#166534 · 정상</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--lvl-amber)"></div><div class="sw-meta"><div class="nm">level / amber</div><div class="hex">#92400e · 주의</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--lvl-red)"></div><div class="sw-meta"><div class="nm">level / red</div><div class="hex">#c0291f · 위험</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--lvl-gray)"></div><div class="sw-meta"><div class="nm">level / gray</div><div class="hex">#475569 · 없음</div></div></div>
+    </div>
+
+    <h4>항공 카테고리 (표준)</h4>
+    <div class="swatches">
+      <div class="sw-card"><div class="sw-chip" style="background:var(--cat-vfr)"></div><div class="sw-meta"><div class="nm">cat / VFR</div><div class="hex">#166534</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--cat-mvfr)"></div><div class="sw-meta"><div class="nm">cat / MVFR</div><div class="hex">#1d4ed8</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--cat-ifr)"></div><div class="sw-meta"><div class="nm">cat / IFR</div><div class="hex">#c0291f</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--cat-lifr)"></div><div class="sw-meta"><div class="nm">cat / LIFR</div><div class="hex">#9d2c9d</div></div></div>
+    </div>
+
+    <h4>기상 데이터 램프</h4>
+    <div class="swatches">
+      <div class="sw-card"><div class="sw-chip" style="background:var(--ice-1)"></div><div class="sw-meta"><div class="nm">icing 1</div><div class="hex">#ACC7FF</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--ice-2)"></div><div class="sw-meta"><div class="nm">icing 2</div><div class="hex">#6B88CD</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--ice-3)"></div><div class="sw-meta"><div class="nm">icing 3</div><div class="hex">#383D6F</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--turb-l)"></div><div class="sw-meta"><div class="nm">turb light</div><div class="hex">#64D264</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--turb-m)"></div><div class="sw-meta"><div class="nm">turb mod</div><div class="hex">#FFC300</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--turb-s)"></div><div class="sw-meta"><div class="nm">turb sev</div><div class="hex">#FF3737</div></div></div>
+    </div>
+
+    <h4>중립 (Fluent 2 grey)</h4>
+    <div class="swatches">
+      <div class="sw-card"><div class="sw-chip" style="background:var(--text-1)"></div><div class="sw-meta"><div class="nm">text-1</div><div class="hex">#242424</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--text-3)"></div><div class="sw-meta"><div class="nm">text-3</div><div class="hex">#616161</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--stroke-1)"></div><div class="sw-meta"><div class="nm">stroke-1</div><div class="hex">#d1d1d1</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--bg-3); border-bottom:1px solid var(--stroke-2)"></div><div class="sw-meta"><div class="nm">bg-3</div><div class="hex">#f5f5f5</div></div></div>
+      <div class="sw-card"><div class="sw-chip" style="background:var(--map-bg)"></div><div class="sw-meta"><div class="nm">map-bg</div><div class="hex">#1b2230</div></div></div>
+    </div>
+
+    <h4>간격 (8pt 스케일)</h4>
+    <div class="scale-row"><span class="lab">space-xs · 4</span><span class="bar" style="width:4px"></span></div>
+    <div class="scale-row"><span class="lab">space-s · 8</span><span class="bar" style="width:8px"></span></div>
+    <div class="scale-row"><span class="lab">space-m · 12</span><span class="bar" style="width:12px"></span></div>
+    <div class="scale-row"><span class="lab">space-l · 16</span><span class="bar" style="width:16px"></span></div>
+    <div class="scale-row"><span class="lab">space-xl · 20</span><span class="bar" style="width:20px"></span></div>
+    <div class="scale-row"><span class="lab">space-xxl · 24</span><span class="bar" style="width:24px"></span></div>
+    <div class="scale-row"><span class="lab">space-xxxl · 32</span><span class="bar" style="width:32px"></span></div>
+
+    <h4>타이포 (Fluent 2)</h4>
+    <div class="type-row"><span class="lab">fs-200 · 12/16</span><span style="font-size:12px">비행 전 기상 브리핑</span></div>
+    <div class="type-row"><span class="lab">fs-300 · 14/20 본문</span><span style="font-size:14px">비행 전 기상 브리핑</span></div>
+    <div class="type-row"><span class="lab">fs-400 · 16/22</span><span style="font-size:16px; font-weight:500">비행 전 기상 브리핑</span></div>
+    <div class="type-row"><span class="lab">fs-500 · 20/28</span><span style="font-size:20px; font-weight:600">비행 전 기상 브리핑</span></div>
+    <div class="type-row"><span class="lab">fs-600 · 24/32</span><span style="font-size:24px; font-weight:600">비행 전 기상 브리핑</span></div>
+
+    <h4>radius</h4>
+    <div class="radius-row">
+      <div><div class="radius-box" style="border-radius:2px"></div><div class="cap">sm · 2</div></div>
+      <div><div class="radius-box" style="border-radius:4px"></div><div class="cap">md · 4</div></div>
+      <div><div class="radius-box" style="border-radius:6px"></div><div class="cap">lg · 6</div></div>
+      <div><div class="radius-box" style="border-radius:8px"></div><div class="cap">xl · 8</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { formatNwpTimeTick, getNwpSliderOptions, shouldCommitNwpSelection } from './NwpSliderBarModel.js'
+import LevelRail from './LevelRail.jsx'
 import { useTimeZone } from '../../shared/timezone/TimeZoneContext.jsx'
 
 function NwpSliderBar({
@@ -10,6 +11,7 @@ function NwpSliderBar({
   selection = null,
   availability = null,
   isElevated = false,
+  timeSliderEnabled = true,
   onSelectionChange,
 }) {
   const { tz } = useTimeZone()
@@ -32,8 +34,7 @@ function NwpSliderBar({
   if (!showTimeSlider && !showLevelSlider) return null
 
   const selectedIndex = Math.max(0, availableTimes.findIndex((time) => Number(time.hf) === Number(activeSelection.hf)))
-  const selectedLevelIndex = Math.max(0, availableLevels.findIndex((level) => level.id === activeSelection.level))
-  const selectedLevel = availableLevels[selectedLevelIndex] || availableLevels[0]
+  const selectedLevel = availableLevels.find((level) => level.id === activeSelection.level) || availableLevels[0]
 
   const nextTimeSelection = (timeIndex) => {
     const nextTime = availableTimes[timeIndex]
@@ -70,21 +71,15 @@ function NwpSliderBar({
       commitSelection(nextTimeSelection(Number(event.currentTarget.value)))
     }
   }
-  const handleLevelInput = (event) => updateDraft(nextLevelSelection(Number(event.target.value)))
-  const handleLevelChange = (event) => {
-    const nextSelection = nextLevelSelection(Number(event.currentTarget.value))
+  const selectLevel = (levelId) => {
+    const nextSelection = nextLevelSelection(availableLevels.findIndex((level) => level.id === levelId))
     updateDraft(nextSelection)
     commitSelection(nextSelection)
-  }
-  const handleLevelCommit = (event) => {
-    if (shouldCommitNwpSelection(event.type)) {
-      commitSelection(nextLevelSelection(Number(event.currentTarget.value)))
-    }
   }
 
   return (
     <>
-      {showTimeSlider && (
+      {showTimeSlider && timeSliderEnabled && (
         <div className={`nwp-time-slider-bar${isElevated ? ' nwp-time-slider-bar--elevated' : ''}`}>
           <div className="nwp-time-slider-main">
             <input
@@ -115,32 +110,12 @@ function NwpSliderBar({
         </div>
       )}
       {showLevelSlider && selectedLevel && (
-        <div className="nwp-level-slider-rail" aria-label="NWP level selector">
-          <input
-            className="nwp-level-slider"
-            type="range"
-            min="0"
-            max={String(availableLevels.length - 1)}
-            step="1"
-            value={String(selectedLevelIndex)}
-            aria-label="NWP level"
-            onInput={handleLevelInput}
-            onChange={handleLevelChange}
-            onPointerUp={handleLevelCommit}
-            onKeyUp={handleLevelCommit}
-            onBlur={handleLevelCommit}
-          />
-          <div className="nwp-level-slider-ticks" aria-hidden="true">
-            {[...availableLevels].reverse().map((level) => (
-              <span
-                key={level.id}
-                className={`nwp-level-slider-tick${level.id === activeSelection.level ? ' is-active' : ''}`}
-              >
-                {level.label}
-              </span>
-            ))}
-          </div>
-        </div>
+        <LevelRail
+          title="고도"
+          items={availableLevels.map((level) => ({ value: level.id, label: level.label }))}
+          activeValue={activeSelection.level}
+          onSelect={selectLevel}
+        />
       )}
     </>
   )

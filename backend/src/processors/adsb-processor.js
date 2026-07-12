@@ -7,10 +7,9 @@ import config from '../config.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-let tokenCache = {
-  accessToken: null,
-  expiresAt: 0,
-}
+const FEET_TO_METERS = 1 / 3.28084
+const KNOTS_TO_MPS = 1 / 1.94384
+const FPM_TO_MPS = 1 / 196.85
 
 let _firPolygon = null;
 function loadFirPolygon() {
@@ -85,7 +84,7 @@ async function fetchWithTimeout(url, timeoutMs = config.adsb.timeout_ms) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const headers = await buildRequestHeaders()
+    const headers = buildRequestHeaders()
     try {
       const response = await fetch(url, {
         signal: controller.signal,
@@ -109,64 +108,11 @@ async function fetchWithTimeout(url, timeoutMs = config.adsb.timeout_ms) {
   }
 }
 
-async function buildRequestHeaders() {
-  const headers = {
-    "User-Agent": "KMA-Weather-Dashboard/1.0"
+function buildRequestHeaders() {
+  return {
+    "User-Agent": "KMA-Weather-Dashboard/1.0",
+    "Accept": "application/json",
   }
-
-  const token = await getAccessToken()
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
-
-  return headers
-}
-
-async function getAccessToken() {
-  const clientId = String(config.adsb.client_id || '').trim()
-  const clientSecret = String(config.adsb.client_secret || '').trim()
-
-  if (!clientId || !clientSecret) {
-    return null
-  }
-
-  const now = Date.now()
-  if (tokenCache.accessToken && tokenCache.expiresAt > now + 60_000) {
-    return tokenCache.accessToken
-  }
-
-  const body = new URLSearchParams({
-    grant_type: 'client_credentials',
-    client_id: clientId,
-    client_secret: clientSecret,
-  })
-
-  const response = await fetch(config.adsb.token_url, {
-    method: 'POST',
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "User-Agent": "KMA-Weather-Dashboard/1.0",
-    },
-    body,
-  })
-
-  if (!response.ok) {
-    throw new Error(`OpenSky token HTTP ${response.status}`)
-  }
-
-  const payload = await response.json()
-  const accessToken = payload?.access_token
-  if (!accessToken) {
-    throw new Error('OpenSky token missing access_token')
-  }
-
-  const expiresIn = Number(payload?.expires_in || 300)
-  tokenCache = {
-    accessToken,
-    expiresAt: now + expiresIn * 1000,
-  }
-
-  return accessToken
 }
 
 function fetchViaHttpsRequest(url, timeoutMs, headers) {
@@ -204,57 +150,49 @@ function fetchViaHttpsRequest(url, timeoutMs, headers) {
 }
 
 function buildUrl() {
-  const params = new URLSearchParams({
-    lamin: String(config.adsb.bounds.lamin),
-    lomin: String(config.adsb.bounds.lomin),
-    lamax: String(config.adsb.bounds.lamax),
-    lomax: String(config.adsb.bounds.lomax)
-  });
-  return `${config.adsb.url}?${params.toString()}`;
+  const { lat, lon } = config.adsb.center;
+  return `${config.adsb.url}/lat/${lat}/lon/${lon}/dist/${config.adsb.dist_nm}`;
 }
 
-function normalizeState(state) {
-  const [
-    icao24,
-    callsign,
-    origin_country,
-    time_position,
-    last_contact,
-    longitude,
-    latitude,
-    baro_altitude,
-    on_ground,
-    velocity,
-    true_track,
-    vertical_rate,
-    ,
-    geo_altitude,
-    squawk,
-    spi,
-    position_source
-  ] = state;
+// adsb.lol returns feet / knots / fpm; convert to OpenSky-compatible meters / m·s⁻¹
+// so the snapshot schema and frontend consumers stay unchanged.
+function normalizeState(ac) {
+  const latitude = ac.lat;
+  const longitude = ac.lon;
 
   if (typeof latitude !== "number" || typeof longitude !== "number") {
     return null;
   }
 
+  const on_ground = ac.alt_baro === "ground";
+  const baroFt = typeof ac.alt_baro === "number" ? ac.alt_baro : null;
+  const geomFt = typeof ac.alt_geom === "number" ? ac.alt_geom : null;
+  const gsKt = typeof ac.gs === "number" ? ac.gs : null;
+  const rateFpm = typeof ac.baro_rate === "number" ? ac.baro_rate
+    : (typeof ac.geom_rate === "number" ? ac.geom_rate : null);
+
+  const callsign = typeof ac.flight === "string" ? ac.flight.trim() : "";
+
   return {
-    icao24,
-    callsign: typeof callsign === "string" ? callsign.trim() : null,
-    origin_country: origin_country || null,
-    time_position: time_position || null,
-    last_contact: last_contact || null,
+    icao24: ac.hex || null,
+    callsign: /[A-Za-z0-9]/.test(callsign) ? callsign : null,
+    origin_country: null,
+    time_position: typeof ac.seen_pos === "number" ? ac.seen_pos : null,
+    last_contact: typeof ac.seen === "number" ? ac.seen : null,
     lat: latitude,
     lon: longitude,
-    baro_altitude: typeof baro_altitude === "number" ? baro_altitude : null,
-    geo_altitude: typeof geo_altitude === "number" ? geo_altitude : null,
-    velocity: typeof velocity === "number" ? velocity : null,
-    true_track: typeof true_track === "number" ? true_track : null,
-    vertical_rate: typeof vertical_rate === "number" ? vertical_rate : null,
-    squawk: squawk || null,
-    spi: Boolean(spi),
-    position_source: position_source ?? null,
-    on_ground: Boolean(on_ground)
+    baro_altitude: baroFt !== null ? baroFt * FEET_TO_METERS : null,
+    geo_altitude: geomFt !== null ? geomFt * FEET_TO_METERS : null,
+    velocity: gsKt !== null ? gsKt * KNOTS_TO_MPS : null,
+    true_track: typeof ac.track === "number" ? ac.track : null,
+    vertical_rate: rateFpm !== null ? rateFpm * FPM_TO_MPS : null,
+    squawk: ac.squawk || null,
+    spi: false,
+    position_source: null,
+    on_ground,
+    type_code: typeof ac.t === "string" ? ac.t : null,
+    category: typeof ac.category === "string" ? ac.category : null,
+    registration: typeof ac.r === "string" ? ac.r : null
   };
 }
 
@@ -263,9 +201,10 @@ async function process() {
   fs.mkdirSync(dir, { recursive: true });
 
   const raw = await fetchWithTimeout(buildUrl());
-  const aircraft = (raw.states || [])
+  const aircraft = (raw.ac || [])
     .map(normalizeState)
     .filter(Boolean)
+    .filter((a) => !a.on_ground)
     .filter((a) => isInFir(a.lon, a.lat))
     .sort((a, b) => {
       const left = `${a.callsign || ""}-${a.icao24 || ""}`;
@@ -275,9 +214,9 @@ async function process() {
 
   const snapshot = {
     type: "adsb",
-    source: "opensky-network",
+    source: "adsb.lol",
     fetched_at: new Date().toISOString(),
-    updated_at: new Date((raw.time || Math.floor(Date.now() / 1000)) * 1000).toISOString(),
+    updated_at: new Date(typeof raw.now === "number" ? raw.now : Date.now()).toISOString(),
     bounds: { ...config.adsb.bounds },
     total_aircraft: aircraft.length,
     aircraft

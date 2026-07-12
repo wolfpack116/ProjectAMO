@@ -5,7 +5,9 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background: #f0f4f8;
+  background: var(--bg-3);
+  /* 글꼴 단일 레버: --app-font 하나로 앱 전역(상속 텍스트 포함) 적용 */
+  font-family: var(--app-font, system-ui, sans-serif);
 }
 
 #root {
@@ -15,6 +17,21 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+/* 키보드 포커스 가시화(전역). 마우스 클릭에는 영향 없음(:focus-visible). */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 폼 요소는 기본적으로 글꼴을 상속하지 않음(브라우저 기본=Arial). 전역 --app-font를 따르게 강제. */
+button,
+input,
+select,
+textarea,
+optgroup {
+  font-family: inherit;
 }
 
 .app {
@@ -41,11 +58,173 @@ body {
   bottom: 0;
   z-index: 20;
   height: var(--app-bottom-bar);
-  border-top: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #94a3b8;
+  border-top: 1px solid var(--stroke-2);
+  background: var(--bg-1);
+  color: var(--text-3);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 11px;
   line-height: 23px;
   text-align: center;
+}
+
+/* ── Mobile shell (≤719px): task bar replaces the sidebar; map is a task. ── */
+@media (max-width: 719px) {
+  .app {
+    --active-sidebar-width: 0px;
+  }
+
+  .map-shell {
+    margin-left: 0;
+    width: 100vw;
+    height: calc(100dvh - var(--mobile-task-bar-h));
+  }
+
+  .utc-bar {
+    display: none;
+  }
+
+  /* On-map layer entry points (sidebar is hidden). */
+  .mobile-map-layer-btns {
+    position: fixed;
+    top: 10px;
+    left: 12px;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mobile-map-layer-btn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 52px;
+    min-height: 52px;
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--accent);
+    font-size: var(--fs-200);
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+    cursor: pointer;
+  }
+
+  .mobile-map-layer-btn.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #ffffff;
+  }
+
+  .mobile-map-layer-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #ffffff;
+    font-size: var(--fs-200);
+    font-weight: 800;
+    line-height: 1;
+    border: 1.5px solid #ffffff;
+  }
+
+  .mobile-map-layer-btn.is-active .mobile-map-layer-count {
+    background: var(--bg-1);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* A full-detent mobile sheet owns the whole surface — hide the map chrome
+     (layer chips, basemap switcher) that would otherwise sit on top. */
+  .amo-sheet-full .mobile-map-layer-btns,
+  .amo-sheet-full .basemap-switcher {
+    display: none;
+  }
+
+  /* "더보기" task surface. */
+  .mobile-more {
+    position: fixed;
+    inset: 0 0 var(--mobile-task-bar-h) 0;
+    z-index: 110;
+    padding: 18px 16px;
+    background: var(--bg-2);
+    overflow-y: auto;
+  }
+
+  .mobile-more-title {
+    margin: 6px 4px 14px;
+    font-size: 20px;
+    font-weight: 850;
+    color: var(--text-1);
+  }
+
+  .mobile-more-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mobile-more-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 56px;
+    padding: 0 16px;
+    border: 1px solid var(--stroke-2);
+    border-radius: 12px;
+    background: var(--bg-1);
+    color: var(--text-1);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .mobile-more-item:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  .mobile-more-item-icon {
+    position: relative;
+    display: inline-flex;
+    color: var(--accent);
+  }
+
+  .mobile-more-item:disabled .mobile-more-item-icon {
+    color: var(--text-3);
+  }
+
+  .mobile-more-dot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 1.5px solid #ffffff;
+  }
+
+  .mobile-more-item-label {
+    flex: 1 1 auto;
+    text-align: left;
+  }
+
+  .mobile-more-chevron {
+    color: var(--stroke-1);
+  }
 }

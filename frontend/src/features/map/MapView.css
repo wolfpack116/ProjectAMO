@@ -16,11 +16,11 @@
   z-index: 6;
   max-width: min(420px, calc(100vw - 32px));
   padding: 10px 12px;
-  border: 1px solid #fecaca;
+  border: 1px solid color-mix(in srgb, var(--level-red) 30%, var(--level-red-bg));
   border-radius: 6px;
-  background: #fef2f2;
-  color: #b91c1c;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--level-red-bg);
+  color: var(--level-red);
+  font-family: var(--app-font, system-ui, sans-serif);
   font-size: 13px;
   font-weight: 700;
   line-height: 1.35;
@@ -35,7 +35,7 @@
   top: 12px;
   right: 12px;
   z-index: 7;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
 }
 
 .basemap-switcher-toggle {
@@ -50,8 +50,19 @@
 }
 
 .basemap-switcher-toggle:hover {
-  border-color: #94a3b8;
+  border-color: var(--text-3);
   box-shadow: 0 2px 12px rgba(15, 23, 42, 0.28);
+}
+
+@media (pointer: coarse) {
+  /* Hit area only — thumbnail visual size (36px) stays put via padding. */
+  .basemap-switcher-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+  }
 }
 
 .basemap-switcher-thumb {
@@ -71,7 +82,7 @@
   list-style: none;
   display: flex;
   gap: 6px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--stroke-2);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.97);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
@@ -86,19 +97,19 @@
   border: 2px solid transparent;
   border-radius: 6px;
   background: transparent;
-  color: #475569;
+  color: var(--text-2);
   font-size: 10px;
   font-weight: 700;
   cursor: pointer;
 }
 
 .basemap-switcher-item:hover {
-  border-color: #94a3b8;
+  border-color: var(--text-3);
 }
 
 .basemap-switcher-item.is-active {
-  border-color: #2563eb;
-  color: #2563eb;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .dev-layer-panel {
@@ -108,18 +119,18 @@
   z-index: 5;
   width: var(--panel-overlay-sm);
   padding: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--stroke-2);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
-  color: #334155;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--accent);
+  font-family: var(--app-font, system-ui, sans-serif);
   font-size: 12px;
 }
 
 .dev-layer-panel-title {
   margin-bottom: 8px;
-  color: #64748b;
+  color: var(--text-3);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -128,8 +139,8 @@
 .dev-layer-section-title {
   margin: 8px 0 3px;
   padding-bottom: 3px;
-  border-bottom: 1px solid #e2e8f0;
-  color: #475569;
+  border-bottom: 1px solid var(--stroke-2);
+  color: var(--text-2);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.07em;
@@ -170,8 +181,8 @@
   margin-left: auto;
   font-size: 10px;
   font-weight: 800;
-  color: #64748b;
-  background: #e2e8f0;
+  color: var(--text-3);
+  background: var(--stroke-2);
   padding: 1px 5px;
   border-radius: 8px;
 }
@@ -182,7 +193,7 @@
   gap: 7px;
   height: 24px;
   margin-left: 20px;
-  color: #475569;
+  color: var(--text-2);
   cursor: pointer;
 }
 
@@ -217,18 +228,18 @@
 }
 
 .layer-drawer-eyebrow {
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 850;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 700;
   line-height: 1.1;
   letter-spacing: 0;
 }
 
 .layer-drawer-title {
   margin-top: 3px;
-  color: #0f172a;
+  color: var(--text-1);
   font-size: 15px;
-  font-weight: 850;
+  font-weight: 700;
   line-height: 1.15;
   letter-spacing: 0;
 }
@@ -237,12 +248,12 @@
   flex: 0 0 auto;
   min-width: 48px;
   padding: 5px 9px;
-  border: 1px solid rgba(37, 99, 235, 0.18);
+  border: 1px solid rgba(51, 65, 85, 0.18);
   border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
+  color: var(--accent);
   font-size: 11px;
-  font-weight: 850;
+  font-weight: 700;
   line-height: 1;
   text-align: center;
 }
@@ -269,7 +280,7 @@
   gap: 10px;
   min-height: 34px;
   padding: 8px 10px;
-  color: #334155;
+  color: var(--accent);
   font-size: 12px;
   font-weight: 850;
   line-height: 1.1;
@@ -286,8 +297,8 @@
   content: "";
   width: 7px;
   height: 7px;
-  border-right: 2px solid #64748b;
-  border-bottom: 2px solid #64748b;
+  border-right: 2px solid var(--text-3);
+  border-bottom: 2px solid var(--text-3);
   transform: rotate(45deg);
   transition: transform 0.14s ease;
 }
@@ -304,7 +315,7 @@
   padding: 3px 7px;
   border-radius: 999px;
   background: rgba(226, 232, 240, 0.92);
-  color: #64748b;
+  color: var(--text-3);
   font-size: 10px;
   font-weight: 850;
   line-height: 1;
@@ -327,7 +338,7 @@
   padding: 5px 7px;
   border: 1px solid transparent;
   border-radius: 8px;
-  color: #334155;
+  color: var(--accent);
   cursor: pointer;
 }
 
@@ -338,8 +349,8 @@
 
 .layer-toggle-row:has(.layer-toggle-input:checked) {
   border-color: rgba(59, 130, 246, 0.22);
-  background: rgba(239, 246, 255, 0.78);
-  color: #0f172a;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
+  color: var(--text-1);
 }
 
 .layer-toggle-row.is-disabled {
@@ -359,7 +370,7 @@
   width: 30px;
   height: 18px;
   border-radius: 999px;
-  background: #cbd5e1;
+  background: var(--stroke-1);
   box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.14);
   transition: background 0.14s ease;
 }
@@ -372,13 +383,13 @@
   width: 12px;
   height: 12px;
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--bg-1);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.24);
   transition: transform 0.14s ease;
 }
 
 .layer-toggle-input:checked + .layer-toggle-switch {
-  background: #2563eb;
+  background: var(--accent);
 }
 
 .layer-toggle-input:checked + .layer-toggle-switch::after {
@@ -386,7 +397,7 @@
 }
 
 .layer-toggle-input:focus-visible + .layer-toggle-switch {
-  outline: 2px solid #38bdf8;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -415,7 +426,7 @@
   padding: 3px 7px;
   border-radius: 999px;
   background: rgba(226, 232, 240, 0.82);
-  color: #475569;
+  color: var(--text-2);
   font-size: 11px;
   font-weight: 850;
   line-height: 1;
@@ -424,15 +435,15 @@
 }
 
 .layer-toggle-row:has(.layer-toggle-input:checked) .layer-toggle-badge {
-  background: rgba(219, 234, 254, 0.92);
-  color: #1d4ed8;
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-1));
+  color: var(--accent);
 }
 
 .layer-toggle-row--sub {
   grid-template-columns: 30px minmax(0, 1fr);
   min-height: 30px;
   margin-left: 18px;
-  color: #64748b;
+  color: var(--text-3);
 }
 
 .wind-toggle-block {
@@ -452,7 +463,7 @@
   gap: 8px;
   min-height: 28px;
   margin: 0 8px 0 56px;
-  color: #64748b;
+  color: var(--text-3);
 }
 
 .wind-flow-control-label,
@@ -470,12 +481,12 @@
 .wind-flow-control-slider {
   width: 100%;
   min-width: 0;
-  accent-color: #64748b;
+  accent-color: var(--text-3);
 }
 
 .wind-toggle-meta {
   margin: 1px 8px 4px 56px;
-  color: #64748b;
+  color: var(--text-3);
   font-size: 10px;
   font-weight: 750;
   line-height: 1.25;
@@ -485,18 +496,18 @@
 .dev-layer-inline-button {
   margin-left: auto;
   padding: 2px 6px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--stroke-1);
   border-radius: 999px;
-  background: #ffffff;
-  color: #475569;
+  background: var(--bg-1);
+  color: var(--text-2);
   font-size: 10px;
   font-weight: 800;
   cursor: pointer;
 }
 
 .dev-layer-inline-button:hover {
-  border-color: #94a3b8;
-  color: #0f172a;
+  border-color: var(--text-3);
+  color: var(--text-1);
 }
 
 .dev-filter-grid {
@@ -508,18 +519,18 @@
 
 .dev-filter-chip {
   padding: 3px 8px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--stroke-1);
   border-radius: 999px;
-  background: #f8fafc;
-  color: #334155;
+  background: var(--bg-2);
+  color: var(--accent);
   font-size: 10px;
   font-weight: 800;
   cursor: pointer;
 }
 
 .dev-filter-chip.is-off {
-  background: #e2e8f0;
-  color: #94a3b8;
+  background: var(--stroke-2);
+  color: var(--text-3);
 }
 
 .sigwx-group-list {
@@ -554,7 +565,7 @@
 
 .sigwx-group-text,
 .sigwx-group-empty {
-  color: #475569;
+  color: var(--text-2);
   font-size: 10px;
   font-weight: 700;
 }
@@ -571,6 +582,112 @@
   pointer-events: none;
 }
 
+/* When the far-right level rail is shown, shift the legends left (with a gap) and align their top
+   to the level rail's chip box (which sits below the "고도" title). */
+.map-view-wrapper:has(.level-rail) .map-right-legends {
+  right: 88px;
+  top: 100px;
+}
+
+/* 모바일 범례(Windy식): 하단(타임라인 위)에 가로 범례 바 + '범례' 칩 토글(슬라이드업).
+   데스크톱은 우측 세로 컬러바 상시 노출(이 dock 없음). */
+.map-view-wrapper .map-legend-mobile-dock {
+  position: absolute;
+  left: 12px;
+  right: auto;
+  width: min(72vw, 300px);
+  /* 타임라인 실제 눈금(viewport)은 rail 하단 ≈38px에만 있음(위는 재생버튼 영역) →
+     눈금 바로 위에 붙게 그 높이만 넘김. 칩은 좌측이라 중앙 재생버튼과 안 겹침. */
+  bottom: calc(38px + var(--space-s));
+  z-index: 4;
+  pointer-events: none;
+}
+.map-view-wrapper .map-legend-mobile-dock > * {
+  pointer-events: auto;
+}
+
+.map-legend-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 32px;
+  padding: var(--space-xs) var(--space-m);
+  border: 1px solid var(--stroke-1);
+  border-radius: var(--radius-circular);
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--text-1);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+}
+.map-legend-toggle.is-open {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.map-legend-toggle-caret {
+  font-size: 0.6rem;
+}
+
+/* 가로 범례 카드 — 칩 위에 absolute(흐름 밖: 닫혔을 때 칩을 밀지 않음) + 슬라이드업. */
+.map-legends-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: var(--space-xs);
+  width: 100%;
+  display: grid;
+  gap: var(--space-s);
+  padding: var(--space-s) var(--space-m);
+  border: 1px solid var(--stroke-1);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.16);
+  transform: translateY(12px);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 200ms ease, opacity 200ms ease, visibility 200ms;
+}
+.map-legends-bottom.is-open {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.hlegend {
+  display: grid;
+  gap: 3px;
+}
+.hlegend-title {
+  font-size: var(--fs-100);
+  font-weight: var(--fw-bold);
+  color: var(--text-2);
+  letter-spacing: 0.02em;
+}
+.hlegend-bar {
+  display: flex;
+  height: 12px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+}
+.hlegend-cell {
+  flex: 1 1 0;
+}
+.hlegend-labels {
+  display: flex;
+}
+.hlegend-label {
+  flex: 1 1 0;
+  text-align: center;
+  font-size: 0.5rem;
+  line-height: 1;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .map-view-wrapper .rainrate-legend {
   display: grid;
   gap: 4px;
@@ -584,7 +701,7 @@
 }
 
 .map-view-wrapper .rainrate-legend-title {
-  color: #111827;
+  color: var(--text-1);
   text-align: right;
   font-size: 0.62rem;
   font-weight: 900;
@@ -612,7 +729,7 @@
 .map-view-wrapper .lightning-time-legend-sub,
 .map-view-wrapper .lightning-time-legend-current,
 .map-view-wrapper .lightning-time-legend-label {
-  color: #111827;
+  color: var(--text-1);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -632,6 +749,7 @@
   height: 18px;
   border: 1px solid rgba(17, 24, 39, 0.12);
 }
+
 
 .map-view-wrapper .lightning-time-legend {
   display: grid;
@@ -663,6 +781,25 @@
   font-weight: 800;
   line-height: 1.1;
   margin-bottom: 1px;
+}
+
+.map-view-wrapper .lightning-legend-blink {
+  margin-top: 3px;
+  padding: 4px 0;
+  border-radius: 7px;
+  border: 1px solid rgba(17, 24, 39, 0.18);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text-3);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.map-view-wrapper .lightning-legend-blink.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
 }
 
 .sigwx-history-bar {
@@ -725,86 +862,283 @@
   font-variant-numeric: tabular-nums;
 }
 
-.weather-timeline-bar {
+/* Unified always-on time scrubber: full-width scrolling tape with a fixed playhead. */
+/* Past observations (solid baseline) -> 지금 -> future forecast (dashed). Drag the tape to scrub. */
+.timeline-rail {
   position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  height: 88px;
+  pointer-events: none;
+  font-family: var(--app-font, system-ui, sans-serif);
+}
+
+/* The frosted band lives only below the baseline (the viewport); above it stays clear over the map. */
+.timeline-rail__viewport {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 38px;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 -4px 14px rgba(15, 23, 42, 0.07);
+}
+
+.timeline-rail__viewport:active {
+  cursor: grabbing;
+}
+
+.timeline-rail__viewport:focus-visible {
+  outline: 2px solid rgba(51, 65, 85, 0.4);
+  outline-offset: -2px;
+}
+
+.timeline-rail__baseline {
+  position: absolute;
+  top: 0;
+  height: 0;
+}
+
+.timeline-rail__baseline--past {
+  left: 0;
+  border-top: 2px solid rgba(51, 65, 85, 0.85);
+}
+
+.timeline-rail__baseline--future {
+  right: 0;
+  border-top: 2px dashed rgba(51, 65, 85, 0.45);
+}
+
+.timeline-rail__frame {
+  position: absolute;
+  top: 3px;
+  width: 2px;
+  height: 7px;
+  transform: translateX(-50%);
+  background: rgba(51, 65, 85, 0.5);
+  border-radius: 1px;
+}
+
+.timeline-rail__frame--future {
+  background: rgba(51, 65, 85, 0.3);
+}
+
+.timeline-rail__tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.timeline-rail__tick-mark {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 4px;
+  background: rgba(51, 65, 85, 0.5);
+}
+
+.timeline-rail__tick--mid .timeline-rail__tick-mark {
+  height: 7px;
+  background: rgba(51, 65, 85, 0.7);
+}
+
+.timeline-rail__tick--major .timeline-rail__tick-mark {
+  width: 2px;
+  height: 11px;
+  background: var(--accent);
+}
+
+.timeline-rail__tick--future .timeline-rail__tick-mark {
+  background: rgba(51, 65, 85, 0.38);
+}
+
+.timeline-rail__tick-label {
+  position: absolute;
+  top: 16px;
   left: 50%;
-  bottom: 18px;
-  z-index: 5;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-1);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9), 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+.timeline-rail__tick--future .timeline-rail__tick-label {
+  color: var(--text-3);
+}
+
+.timeline-rail__playhead {
+  position: absolute;
+  bottom: 0;
+  height: 38px;
+  width: 2px;
+  transform: translateX(-1px);
+  background: var(--accent);
+  pointer-events: none;
+}
+
+.timeline-rail__play {
+  position: absolute;
+  bottom: 42px;
   transform: translateX(-50%);
   display: grid;
-  grid-template-columns: 34px minmax(220px, 1fr) auto auto;
-  align-items: center;
-  gap: 8px;
-  width: min(640px, calc(100% - 48px));
-  min-height: 52px;
-  padding: 9px 12px;
-  border: 1px solid rgba(17, 24, 39, 0.16);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2);
-  backdrop-filter: blur(8px);
-  color: #334155;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-.weather-timeline-play {
-  display: inline-grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgba(37, 99, 235, 0.28);
-  border-radius: 6px;
-  background: #eff6ff;
-  color: #1d4ed8;
-  cursor: pointer;
+  width: 44px;
+  height: 44px;
   padding: 0;
-  line-height: 1;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  pointer-events: auto;
+  filter: drop-shadow(0 1px 3px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 1px rgba(15, 23, 42, 0.45));
 }
 
-.weather-timeline-play svg {
+.timeline-rail__play svg {
   display: block;
 }
 
-.weather-timeline-play:hover {
-  border-color: #94a3b8;
+.timeline-rail__play:hover {
+  color: var(--text-1);
 }
 
-.weather-timeline-slider {
-  width: 100%;
-  accent-color: #2563eb;
-}
-
-.weather-timeline-time {
-  color: #0f172a;
-  font-size: 12px;
-  font-weight: 850;
-  line-height: 1.1;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-.weather-timeline-speed {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 850;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.weather-timeline-speed select {
-  height: 26px;
-  padding: 0 22px 0 8px;
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  border-radius: 6px;
-  background: #ffffff;
-  color: #334155;
+/* Selected-time readout above the playhead — shown only while scrubbing/focused. */
+.timeline-rail__readout {
+  position: absolute;
+  bottom: 90px;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: 7px;
+  border: 0.5px solid rgba(51, 65, 85, 0.2);
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--text-1);
   font-size: 11px;
-  font-weight: 850;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 브리핑 패널이 닫혀도 지도에 남는 경로를 알려주고 지울 수 있는 칩. bottom:140px는
+   타임라인 스크럽 스택(재생버튼 42px·읽기값 90px·NWP슬라이더 최대 104px)보다
+   위에서 항상 안 겹치도록 확인된 값이다(MapView.css .timeline-rail 계열 참고). */
+.active-route-chip {
+  position: absolute;
+  left: 50%;
+  bottom: 140px;
+  z-index: 6;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke-2, rgba(51, 65, 85, 0.16));
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+  font-family: var(--app-font, system-ui, sans-serif);
+  font-size: 12px;
+  color: var(--text-1);
   cursor: pointer;
+}
+
+.active-route-chip:hover {
+  border-color: var(--accent, #2563eb);
+}
+
+.active-route-chip-route {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.active-route-chip-dist {
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.active-route-chip-clear {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.active-route-chip-clear:hover {
+  background: rgba(15, 23, 42, 0.12);
+  color: var(--text-1);
+}
+
+/* Return-to-now (reset) — shown only when scrubbed away from now. Transparent icon, beside play. */
+.timeline-rail__live {
+  position: absolute;
+  left: 50%;
+  bottom: 48px;
+  transform: translateX(26px);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  pointer-events: auto;
+  filter: drop-shadow(0 1px 3px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 1px rgba(15, 23, 42, 0.45));
+}
+
+.timeline-rail__live svg {
+  display: block;
+}
+
+.timeline-rail__live:hover {
+  color: var(--text-1);
+}
+
+/* Lift Mapbox controls/attribution above the full-width tape so nothing is hidden. */
+.map-view-wrapper .mapboxgl-ctrl-bottom-right,
+.map-view-wrapper .mapboxgl-ctrl-bottom-left {
+  bottom: 56px;
+}
+
+@media (pointer: coarse) {
+  /* 터치에서 Mapbox 기본 29px는 작지만 44px는 시각적으로 과함 — 38px로 절충. */
+  .map-view-wrapper .mapboxgl-ctrl-group button {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 640px) {
+  .timeline-rail__tick-label {
+    font-size: 10px;
+  }
 }
 
 .nwp-time-slider-bar {
@@ -818,8 +1152,8 @@
   align-items: start;
   width: min(900px, calc(100% - 72px));
   pointer-events: auto;
-  color: #f8fafc;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--bg-2);
+  font-family: var(--app-font, system-ui, sans-serif);
   text-shadow: 0 1px 5px rgba(15, 23, 42, 0.82);
 }
 
@@ -838,7 +1172,7 @@
   height: 26px;
   margin: 0;
   background: transparent;
-  accent-color: #38bdf8;
+  accent-color: var(--accent);
 }
 
 .nwp-time-slider::-webkit-slider-runnable-track {
@@ -877,70 +1211,63 @@
 }
 
 .nwp-time-slider-tick.is-active {
-  color: #e0f2fe;
+  color: color-mix(in srgb, var(--accent) 14%, var(--bg-1));
 }
 
-.nwp-level-slider-rail {
+/* Far-right vertical level (altitude) selector: compact chip stack, highest on top. */
+.level-rail {
   position: absolute;
-  right: 24px;
-  top: 50%;
+  right: 14px;
+  top: 76px;
   z-index: 6;
-  transform: translateY(-50%);
-  display: grid;
-  grid-template-columns: auto auto;
-  grid-template-rows: minmax(210px, 34vh);
-  align-items: center;
-  gap: 9px;
-  pointer-events: auto;
-  color: #f8fafc;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  text-shadow: 0 1px 5px rgba(15, 23, 42, 0.82);
-}
-
-.nwp-level-slider {
-  width: 28px;
-  height: 100%;
-  margin: 0;
-  background: transparent;
-  accent-color: #38bdf8;
-  writing-mode: vertical-lr;
-  direction: rtl;
-}
-
-.nwp-level-slider::-webkit-slider-runnable-track {
-  width: 3px;
-  border-radius: 999px;
-  background: rgba(248, 250, 252, 0.56);
-  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.42);
-}
-
-.nwp-level-slider::-webkit-slider-thumb {
-  margin-left: -6px;
-}
-
-.nwp-level-slider::-moz-range-track {
-  width: 3px;
-  border-radius: 999px;
-  background: rgba(248, 250, 252, 0.56);
-  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.42);
-}
-
-.nwp-level-slider-ticks {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-self: stretch;
-  min-height: 210px;
-  color: rgba(248, 250, 252, 0.72);
-  font-size: 10px;
-  font-weight: 850;
-  line-height: 1;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
+  align-items: center;
+  gap: 4px;
+  pointer-events: auto;
+  font-family: var(--app-font, system-ui, sans-serif);
 }
 
-.nwp-level-slider-tick.is-active {
-  color: #e0f2fe;
+.level-rail__title {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.85);
+}
+
+.level-rail__chips {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 5px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.78);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 0.5px solid rgba(51, 65, 85, 0.2);
+}
+
+.level-rail__chip {
+  min-width: 42px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  text-align: center;
+}
+
+.level-rail__chip:hover {
+  background: rgba(51, 65, 85, 0.08);
+}
+
+.level-rail__chip.is-active {
+  background: var(--accent);
+  color: #fff;
 }
 
 @media (max-width: 640px) {
@@ -1015,7 +1342,7 @@
 }
 
 .sigwx-legend-title {
-  color: #111827;
+  color: var(--text-1);
   font-size: 13px;
   font-weight: 900;
 }
@@ -1025,8 +1352,8 @@
   height: 24px;
   border: none;
   border-radius: 999px;
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--stroke-2);
+  color: var(--accent);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
@@ -1044,11 +1371,11 @@
   gap: 10px;
   min-height: 26px;
   padding-bottom: 4px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--stroke-2);
 }
 
 .sigwx-legend-label {
-  color: #334155;
+  color: var(--accent);
   font-size: 11px;
   font-weight: 700;
 }
@@ -1084,7 +1411,7 @@
   font-weight: 900;
 }
 
-.sigwx-legend-sign--wind::before {
+.sigwx-legend-sign--wind::before { /* color-lint-ignore: SIGWX 표준 차트색 */
   content: "90 km/h";
   position: absolute;
   inset: 0;
@@ -1092,7 +1419,7 @@
   align-items: center;
   justify-content: center;
   border: 2px solid #1d4ed8;
-  background: #ffffff;
+  background: var(--bg-1);
   color: #1d4ed8;
   font-size: 11px;
   font-weight: 900;
@@ -1109,8 +1436,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #111827;
-  background: #ffffff;
+  border: 2px solid var(--text-1);
+  background: var(--bg-1);
   font-size: 11px;
   font-weight: 900;
 }
@@ -1121,7 +1448,7 @@
   border-color: #ea580c;
 }
 
-.sigwx-legend-sign--icing::before {
+.sigwx-legend-sign--icing::before { /* color-lint-ignore: SIGWX 표준 차트색 */
   content: "MOD ICING";
   color: #2563eb;
   border-color: #2563eb;
@@ -1135,7 +1462,7 @@
 
 .sigwx-legend-sign--fog::before {
   content: "FG/HAIL";
-  color: #111827;
+  color: var(--text-1);
 }
 
 .sigwx-legend-sign--freezing-rain::before {
@@ -1146,7 +1473,7 @@
 
 .sigwx-legend-sign--freeze-label::before {
   content: "0℃:100";
-  color: #111827;
+  color: var(--text-1);
 }
 
 .sigwx-legend-sign--wind-area,
@@ -1158,7 +1485,7 @@
   border-bottom: 3px dashed transparent;
 }
 
-.sigwx-legend-sign--wind-area {
+.sigwx-legend-sign--wind-area { /* color-lint-ignore: SIGWX 표준 차트색 */
   border-color: #2563eb;
 }
 
@@ -1166,13 +1493,13 @@
   border-color: #ea580c;
 }
 
-.sigwx-legend-sign--icing-area {
+.sigwx-legend-sign--icing-area { /* color-lint-ignore: SIGWX 표준 차트색 */
   border-color: #2563eb;
   border-style: solid;
 }
 
 .sigwx-legend-sign--cloud-area {
-  border-color: #64748b;
+  border-color: var(--text-3);
 }
 
 .sigwx-legend-sign--precip-area {
@@ -1194,7 +1521,7 @@
   border-top: 3px dashed #ef4444;
 }
 
-.sigwx-legend-sign--fronts::after {
+.sigwx-legend-sign--fronts::after { /* color-lint-ignore: SIGWX 표준 차트색(전선) */
   content: "";
   position: absolute;
   left: 0;
@@ -1220,7 +1547,7 @@
   white-space: pre-wrap;
 }
 
-.airport-metar-marker {
+.airport-metar-marker { /* color-lint-ignore: 공항 마커 식별색 */
   width: 14px;
   height: 14px;
   background: #3b82f6;
@@ -1265,7 +1592,7 @@
 }
 
 .map-view-wrapper .temperature-legend-title {
-  color: #111827;
+  color: var(--text-1);
   text-align: right;
   font-size: 0.62rem;
   font-weight: 900;
@@ -1287,7 +1614,7 @@
 }
 
 .map-view-wrapper .temperature-legend-label {
-  color: #111827;
+  color: var(--text-1);
   text-align: right;
   font-size: 0.58rem;
   line-height: 1;
@@ -1303,7 +1630,7 @@
 }
 
 .map-view-wrapper .wind-speed-legend-title {
-  color: #111827;
+  color: var(--text-1);
   text-align: right;
   font-size: 0.62rem;
   font-weight: 900;
@@ -1325,7 +1652,7 @@
 }
 
 .map-view-wrapper .wind-speed-legend-label {
-  color: #111827;
+  color: var(--text-1);
   text-align: right;
   font-size: 0.62rem;
   line-height: 1;
@@ -1357,219 +1684,6 @@
   transform: translateX(-50%);
 }
 
-.advisory-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border: 1px solid rgba(15, 23, 42, 0.14);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
-  color: #334155;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-}
-
-.advisory-badge:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.24);
-}
-
-.advisory-badge.is-active {
-  border-color: currentColor;
-}
-
-.advisory-badge--sigwx {
-  color: #5b21b6;
-}
-
-.advisory-badge--sigmet {
-  color: #b91c1c;
-}
-
-.advisory-badge--airmet {
-  color: #b45309;
-}
-
-.advisory-badge-label {
-  white-space: nowrap;
-}
-
-.advisory-badge-count {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: rgba(148, 163, 184, 0.18);
-  font-size: 11px;
-  line-height: 18px;
-  text-align: center;
-}
-
-.advisory-detail-panel {
-  position: absolute;
-  top: 72px;
-  left: 50%;
-  z-index: 5;
-  width: min(360px, calc(100vw - 88px));
-  max-height: min(420px, calc(100vh - 180px));
-  padding: 14px;
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 20px 44px rgba(15, 23, 42, 0.22);
-  transform: translateX(-50%);
-  backdrop-filter: blur(10px);
-}
-
-.advisory-detail-panel--sigwxLow {
-  border-top: 4px solid #7c3aed;
-}
-
-.advisory-detail-panel--sigmet {
-  border-top: 4px solid #dc2626;
-}
-
-.advisory-detail-panel--airmet {
-  border-top: 4px solid #d97706;
-}
-
-.advisory-detail-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.advisory-detail-title {
-  color: #0f172a;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 0.03em;
-}
-
-.advisory-detail-close {
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid #cbd5e1;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #64748b;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.advisory-detail-close:hover {
-  border-color: #94a3b8;
-  color: #0f172a;
-}
-
-.advisory-detail-list {
-  display: grid;
-  gap: 8px;
-  max-height: min(340px, calc(100vh - 250px));
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-.advisory-detail-item {
-  display: grid;
-  grid-template-columns: 14px 10px 1fr;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  min-height: 28px;
-  color: #334155;
-  cursor: pointer;
-}
-
-.advisory-detail-item input {
-  width: 14px;
-  height: 14px;
-  margin: 0;
-}
-
-.advisory-detail-line {
-  display: block;
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-}
-
-.advisory-detail-line--sigmet {
-  background: #dc2626;
-}
-
-.advisory-detail-line--airmet {
-  background: #d97706;
-}
-
-.advisory-detail-text {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
-}
-
-.advisory-detail-time {
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 750;
-  font-variant-numeric: tabular-nums;
-}
-
-.advisory-detail-empty {
-  padding: 10px 0 4px;
-  color: #64748b;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.map-view-wrapper .advisory-detail-panel {
-  left: 50%;
-  width: min(420px, calc(100vw - 88px));
-  transform: translateX(-50%);
-}
-
-.map-view-wrapper .advisory-detail-item {
-  display: grid;
-  grid-template-columns: 14px 10px minmax(0, 1fr);
-  align-items: start;
-  width: 100%;
-}
-
-.map-view-wrapper .advisory-detail-text {
-  justify-self: stretch;
-  text-align: left;
-  white-space: normal;
-  word-break: normal;
-  overflow-wrap: break-word;
-}
-
-@media (min-width: 900px) {
-  .map-view-wrapper .advisory-detail-panel {
-    left: max(50%, 580px);
-  }
-}
-
 @media (max-width: 920px) {
   .adsb-timestamp--compact {
     left: 50%;
@@ -1578,46 +1692,9 @@
   }
 }
 
-@media (max-width: 719px) {
-  .map-view-wrapper .layer-drawer,
-  .dev-layer-panel {
-    left: var(--panel-inset);
-    right: var(--panel-inset);
-    width: auto;
-    max-width: none;
-  }
-
-  .route-briefing-map-mode-toggle {
-    position: absolute;
-    right: 84px;
-    bottom: 34px;
-    z-index: 8;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 88px;
-    min-height: 42px;
-    padding: 0 14px;
-    border: 1px solid rgba(15, 23, 42, 0.16);
-    border-radius: 8px;
-    background: #111827;
-    color: #ffffff;
-    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.22);
-    font: 800 13px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    cursor: pointer;
-  }
-
-  .map-view-wrapper[data-route-briefing-map-mode="true"] .route-check-panel {
-    display: none;
-  }
-
-  .map-view-wrapper[data-route-briefing-map-mode="true"] .route-briefing-map-mode-toggle {
-    top: 14px;
-    bottom: auto;
-    left: 14px;
-    right: auto;
-  }
-}
+/* Mobile (≤719px): layer panels and route briefing render via the shared
+   MobileSheet (grabber + detents); the floating 지도 보기 toggle and the
+   interim fixed-height bottom-sheet overrides are no longer used there. */
 
 @media (max-width: 720px) {
   .weather-timeline-bar {
@@ -1645,50 +1722,239 @@
     transform: translateX(-50%);
   }
 
+  /* S1: mobile drops the centered placement — it collided with the left
+     layer-button column (z60, ~64px) and the right basemap thumbnail (z7),
+     clipping/overlapping chips at 390px. Constrain to the safe gutter
+     between them and wrap instead of horizontal-scrolling. */
   .advisory-badge-bar {
-    max-width: calc(100% - 24px);
-    overflow-x: auto;
+    left: 68px;
+    right: 58px;
+    transform: none;
+    max-width: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow-x: visible;
   }
 }
 
 /* ── Weather Layer Timestamp Bar ───────────────────────────── */
+/* ICAO: meteorological data issue/valid time, clearly shown. One panel, one row per active forecast
+   layer, bottom-left above the timeline. High contrast over the map (legibility > subtlety). */
 .layer-timestamp-bar {
   position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 14px;
+  bottom: 64px;
   z-index: 5;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 6px 10px;
-  border: 1px solid rgba(17, 24, 39, 0.14);
+  padding: 8px 10px;
+  border: 0.5px solid rgba(51, 65, 85, 0.22);
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
   pointer-events: none;
+  font-family: var(--app-font, system-ui, sans-serif);
 }
 
-.layer-timestamp-entry {
+.layer-timestamp-header {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  white-space: nowrap;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 10px;
-  line-height: 1.3;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 6px;
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.layer-timestamp-header svg {
+  display: block;
+}
+
+.layer-timestamp-grid {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 3px 14px;
+  font-variant-numeric: tabular-nums;
 }
 
 .layer-timestamp-name {
-  color: #94a3b8;
-  font-weight: 800;
-  min-width: 72px;
-  font-variant-numeric: tabular-nums;
+  color: var(--text-1);
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.layer-timestamp-time {
-  color: #e2e8f0;
+.layer-timestamp-cell {
+  color: var(--text-2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.layer-timestamp-label {
+  margin-right: 4px;
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+.adsb-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.18);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.adsb-loading__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(16, 185, 129, 0.25);
+  border-top-color: #10b981;
+  border-radius: 50%;
+  animation: adsb-spin 0.8s linear infinite;
+}
+
+@keyframes adsb-spin {
+  to { transform: rotate(360deg); }
+}
+
+.layer-sheet-clear {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  border-radius: 999px;
+  background: var(--bg-1);
+  color: var(--text-2);
+  font-size: 11px;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.layer-sheet-clear:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── Mobile layer tile grid (rendered inside MobileSheet on ≤719px) ── */
+.layer-tile-groups {
+  display: grid;
+  gap: 16px;
+}
+
+.layer-tile-group-title {
+  margin-bottom: 8px;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.layer-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.layer-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 78px;
+  padding: 10px 6px;
+  border: 1.5px solid rgba(148, 163, 184, 0.4);
+  border-radius: 12px;
+  background: var(--bg-1);
+  color: var(--accent);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.layer-tile.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
+  color: var(--accent);
+}
+
+.layer-tile.is-disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.layer-tile-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  color: var(--text-2);
+}
+
+.layer-tile.is-active .layer-tile-visual {
+  color: var(--accent);
+}
+
+.layer-tile-label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.layer-tile-check {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.layer-tile-badge {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--level-red);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.layer-tile-square {
+  width: 24px;
+  height: 24px;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 5px;
+}
+
+.layer-tile-line {
+  width: 26px;
+  height: 0;
+  border-top-width: 3px;
+  border-top-style: solid;
+}
+
+.layer-tile-symbol {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
 }

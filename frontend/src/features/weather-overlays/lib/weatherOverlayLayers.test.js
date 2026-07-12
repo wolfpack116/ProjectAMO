@@ -202,9 +202,11 @@ test('syncAdvisoryLayers and syncLightningLayers update installed sources and vi
   syncAdvisoryLayers(map, {
     sigmetFeatures: empty,
     sigmetLabels: empty,
+    sigmetIntlFeatures: empty,
+    sigmetIntlLabels: empty,
     airmetFeatures: empty,
     airmetLabels: empty,
-    visibility: { sigmet: true, airmet: false },
+    visibility: { sigmet: true, sigmet_intl: true, airmet: false },
   })
   syncLightningLayers(map, {
     lightningGeoJSON: empty,
@@ -215,6 +217,7 @@ test('syncAdvisoryLayers and syncLightningLayers update installed sources and vi
 
   assert.ok(map.getSource(LIGHTNING_SOURCE))
   assert.ok(map.layoutCalls.some(([id, prop, value]) => id === 'kma-sigmet-advisories-fill' && prop === 'visibility' && value === 'visible'))
+  assert.ok(map.layoutCalls.some(([id, prop, value]) => id === 'noaa-sigmet-advisories-fill' && prop === 'visibility' && value === 'visible'))
   assert.ok(map.layoutCalls.some(([id, prop, value]) => id === 'kma-airmet-advisories-fill' && prop === 'visibility' && value === 'none'))
   assert.ok(map.paintCalls.some(([id, prop]) => id === 'kma-lightning-ground' && prop === 'icon-opacity'))
 })

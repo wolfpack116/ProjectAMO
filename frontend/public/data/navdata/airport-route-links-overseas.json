@@ -1,0 +1,1460 @@
+{
+  "RCKH": {
+    "airport": "RCKH",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 15.7,
+        "fix": "ARLEN"
+      },
+      {
+        "distanceNm": 17.9,
+        "fix": "MENON"
+      },
+      {
+        "distanceNm": 34.5,
+        "fix": "TNN"
+      },
+      {
+        "distanceNm": 37.0,
+        "fix": "PARPA"
+      },
+      {
+        "distanceNm": 47.7,
+        "fix": "HCN"
+      }
+    ],
+    "nearestFix": "ARLEN"
+  },
+  "RCMQ": {
+    "airport": "RCMQ",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 20.2,
+        "fix": "ANLOT"
+      },
+      {
+        "distanceNm": 23.9,
+        "fix": "PILOX"
+      },
+      {
+        "distanceNm": 24.2,
+        "fix": "HLG"
+      },
+      {
+        "distanceNm": 33.0,
+        "fix": "SWORD"
+      },
+      {
+        "distanceNm": 42.4,
+        "fix": "DALIN"
+      }
+    ],
+    "nearestFix": "ANLOT"
+  },
+  "RCTP": {
+    "airport": "RCTP",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 16.8,
+        "fix": "APU"
+      },
+      {
+        "distanceNm": 20.8,
+        "fix": "TONNY"
+      },
+      {
+        "distanceNm": 27.2,
+        "fix": "SANAS"
+      },
+      {
+        "distanceNm": 35.9,
+        "fix": "HLG"
+      },
+      {
+        "distanceNm": 39.6,
+        "fix": "CAROL"
+      }
+    ],
+    "nearestFix": "APU"
+  },
+  "RJAA": {
+    "airport": "RJAA",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 6.2,
+        "fix": "TYE"
+      },
+      {
+        "distanceNm": 17.6,
+        "fix": "TLE"
+      },
+      {
+        "distanceNm": 20.2,
+        "fix": "CVC"
+      },
+      {
+        "distanceNm": 22.2,
+        "fix": "SNE"
+      },
+      {
+        "distanceNm": 22.7,
+        "fix": "KASMI"
+      }
+    ],
+    "nearestFix": "TYE"
+  },
+  "RJBB": {
+    "airport": "RJBB",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 10.8,
+        "fix": "SKE"
+      },
+      {
+        "distanceNm": 16.5,
+        "fix": "MAIKO"
+      },
+      {
+        "distanceNm": 18.0,
+        "fix": "HALKA"
+      },
+      {
+        "distanceNm": 18.6,
+        "fix": "PROOF"
+      },
+      {
+        "distanceNm": 20.1,
+        "fix": "SUMAR"
+      }
+    ],
+    "nearestFix": "SKE"
+  },
+  "RJCC": {
+    "airport": "RJCC",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 4.5,
+        "fix": "CHE"
+      },
+      {
+        "distanceNm": 22.7,
+        "fix": "MOIWA"
+      },
+      {
+        "distanceNm": 22.9,
+        "fix": "KURIS"
+      },
+      {
+        "distanceNm": 26.6,
+        "fix": "TOMAM"
+      },
+      {
+        "distanceNm": 29.4,
+        "fix": "SPE"
+      }
+    ],
+    "nearestFix": "CHE"
+  },
+  "RJFF": {
+    "airport": "RJFF",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 6.2,
+        "fix": "DGC"
+      },
+      {
+        "distanceNm": 18.5,
+        "fix": "OGORI"
+      },
+      {
+        "distanceNm": 24.2,
+        "fix": "DGC25"
+      },
+      {
+        "distanceNm": 28.1,
+        "fix": "EBISU"
+      },
+      {
+        "distanceNm": 28.9,
+        "fix": "IMARI"
+      }
+    ],
+    "nearestFix": "DGC"
+  },
+  "RJFK": {
+    "airport": "RJFK",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 7.5,
+        "fix": "ISAMI"
+      },
+      {
+        "distanceNm": 9.4,
+        "fix": "HKC"
+      },
+      {
+        "distanceNm": 17.8,
+        "fix": "JINGU"
+      },
+      {
+        "distanceNm": 21.5,
+        "fix": "MOCOS"
+      },
+      {
+        "distanceNm": 23.2,
+        "fix": "AKUNE"
+      }
+    ],
+    "nearestFix": "ISAMI"
+  },
+  "RJFR": {
+    "airport": "RJFR",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 2.1,
+        "fix": "KANDA"
+      },
+      {
+        "distanceNm": 8.9,
+        "fix": "DGC25"
+      },
+      {
+        "distanceNm": 12.3,
+        "fix": "IWC45"
+      },
+      {
+        "distanceNm": 19.7,
+        "fix": "KIRIN"
+      },
+      {
+        "distanceNm": 20.7,
+        "fix": "TTE"
+      }
+    ],
+    "nearestFix": "KANDA"
+  },
+  "RJFT": {
+    "airport": "RJFT",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 0.7,
+        "fix": "KUE"
+      },
+      {
+        "distanceNm": 3.3,
+        "fix": "TUJUN"
+      },
+      {
+        "distanceNm": 19.4,
+        "fix": "TAIME"
+      },
+      {
+        "distanceNm": 21.4,
+        "fix": "FUGEN"
+      },
+      {
+        "distanceNm": 22.5,
+        "fix": "ASONO"
+      }
+    ],
+    "nearestFix": "KUE"
+  },
+  "RJGG": {
+    "airport": "RJGG",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 7.3,
+        "fix": "SHTLE"
+      },
+      {
+        "distanceNm": 8.1,
+        "fix": "KOZUN"
+      },
+      {
+        "distanceNm": 11.9,
+        "fix": "XMC"
+      },
+      {
+        "distanceNm": 20.7,
+        "fix": "FLUTE"
+      },
+      {
+        "distanceNm": 24.4,
+        "fix": "RITTO"
+      }
+    ],
+    "nearestFix": "SHTLE"
+  },
+  "RJOA": {
+    "airport": "RJOA",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 7.6,
+        "fix": "BAMBO"
+      },
+      {
+        "distanceNm": 12.9,
+        "fix": "BINGO"
+      },
+      {
+        "distanceNm": 16.3,
+        "fix": "KINOE"
+      },
+      {
+        "distanceNm": 22.6,
+        "fix": "ONDOC"
+      },
+      {
+        "distanceNm": 23.0,
+        "fix": "KRETA"
+      }
+    ],
+    "nearestFix": "BAMBO"
+  },
+  "RJOH": {
+    "airport": "RJOH",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 7.3,
+        "fix": "JEC"
+      },
+      {
+        "distanceNm": 25.7,
+        "fix": "OPERA"
+      },
+      {
+        "distanceNm": 26.1,
+        "fix": "IZUMO"
+      },
+      {
+        "distanceNm": 27.0,
+        "fix": "STAGE"
+      },
+      {
+        "distanceNm": 29.6,
+        "fix": "DOZEN"
+      }
+    ],
+    "nearestFix": "JEC"
+  },
+  "RJOM": {
+    "airport": "RJOM",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 1.2,
+        "fix": "MPE"
+      },
+      {
+        "distanceNm": 19.5,
+        "fix": "KRETA"
+      },
+      {
+        "distanceNm": 21.0,
+        "fix": "ROCKY"
+      },
+      {
+        "distanceNm": 21.9,
+        "fix": "KINOE"
+      },
+      {
+        "distanceNm": 24.1,
+        "fix": "ONDOC"
+      }
+    ],
+    "nearestFix": "MPE"
+  },
+  "RJOT": {
+    "airport": "RJOT",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 0.4,
+        "fix": "KTE"
+      },
+      {
+        "distanceNm": 7.4,
+        "fix": "TZC"
+      },
+      {
+        "distanceNm": 7.5,
+        "fix": "KOMPI"
+      },
+      {
+        "distanceNm": 10.2,
+        "fix": "IGOSO"
+      },
+      {
+        "distanceNm": 12.9,
+        "fix": "OBOKE"
+      }
+    ],
+    "nearestFix": "KTE"
+  },
+  "RJSS": {
+    "airport": "RJSS",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 0.2,
+        "fix": "SDE"
+      },
+      {
+        "distanceNm": 14.8,
+        "fix": "SDE15"
+      },
+      {
+        "distanceNm": 16.7,
+        "fix": "CANNA"
+      },
+      {
+        "distanceNm": 21.6,
+        "fix": "FINCH"
+      },
+      {
+        "distanceNm": 25.0,
+        "fix": "KAEDE"
+      }
+    ],
+    "nearestFix": "SDE"
+  },
+  "RJTT": {
+    "airport": "RJTT",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 12.0,
+        "fix": "RB"
+      },
+      {
+        "distanceNm": 20.1,
+        "fix": "DF"
+      },
+      {
+        "distanceNm": 20.2,
+        "fix": "HYE"
+      },
+      {
+        "distanceNm": 22.7,
+        "fix": "YU"
+      },
+      {
+        "distanceNm": 23.7,
+        "fix": "MI"
+      }
+    ],
+    "nearestFix": "RB"
+  },
+  "ROAH": {
+    "airport": "ROAH",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 1.0,
+        "fix": "NHC"
+      },
+      {
+        "distanceNm": 5.6,
+        "fix": "OK"
+      },
+      {
+        "distanceNm": 8.9,
+        "fix": "TIC"
+      },
+      {
+        "distanceNm": 68.7,
+        "fix": "BISIS"
+      },
+      {
+        "distanceNm": 73.2,
+        "fix": "MYC11"
+      }
+    ],
+    "nearestFix": "NHC"
+  },
+  "ROMY": {
+    "airport": "ROMY",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 0.3,
+        "fix": "MY"
+      },
+      {
+        "distanceNm": 0.4,
+        "fix": "MYC"
+      },
+      {
+        "distanceNm": 14.7,
+        "fix": "GAHRA"
+      },
+      {
+        "distanceNm": 26.8,
+        "fix": "SHIMO"
+      },
+      {
+        "distanceNm": 27.7,
+        "fix": "KAMPU"
+      }
+    ],
+    "nearestFix": "MY"
+  },
+  "RPLC": {
+    "airport": "RPLC",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 0.1,
+        "fix": "CIA"
+      },
+      {
+        "distanceNm": 12.1,
+        "fix": "ROSER"
+      },
+      {
+        "distanceNm": 13.1,
+        "fix": "ABMBS"
+      },
+      {
+        "distanceNm": 15.3,
+        "fix": "KIBOK"
+      },
+      {
+        "distanceNm": 15.5,
+        "fix": "RAYAT"
+      }
+    ],
+    "nearestFix": "CIA"
+  },
+  "RPLL": {
+    "airport": "RPLL",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 0.1,
+        "fix": "MIA"
+      },
+      {
+        "distanceNm": 14.5,
+        "fix": "VOTAS"
+      },
+      {
+        "distanceNm": 14.9,
+        "fix": "DILAN"
+      },
+      {
+        "distanceNm": 17.3,
+        "fix": "CAMBA"
+      },
+      {
+        "distanceNm": 19.9,
+        "fix": "BORGA"
+      }
+    ],
+    "nearestFix": "MIA"
+  },
+  "RPVM": {
+    "airport": "RPVM",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 0.6,
+        "fix": "MCT"
+      },
+      {
+        "distanceNm": 20.0,
+        "fix": "MABID"
+      },
+      {
+        "distanceNm": 24.9,
+        "fix": "ASTUR"
+      },
+      {
+        "distanceNm": 24.9,
+        "fix": "TUBIG"
+      },
+      {
+        "distanceNm": 25.0,
+        "fix": "MANOK"
+      }
+    ],
+    "nearestFix": "MCT"
+  },
+  "VHHH": {
+    "airport": "VHHH",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 3.9,
+        "fix": "TAMOT"
+      },
+      {
+        "distanceNm": 8.5,
+        "fix": "CH"
+      },
+      {
+        "distanceNm": 18.4,
+        "fix": "BEKOL"
+      },
+      {
+        "distanceNm": 23.6,
+        "fix": "NLG"
+      },
+      {
+        "distanceNm": 25.5,
+        "fix": "ZUH"
+      }
+    ],
+    "nearestFix": "TAMOT"
+  },
+  "VMMC": {
+    "airport": "VMMC",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 8.2,
+        "fix": "ZUH"
+      },
+      {
+        "distanceNm": 10.1,
+        "fix": "SIERA"
+      },
+      {
+        "distanceNm": 19.7,
+        "fix": "TAMOT"
+      },
+      {
+        "distanceNm": 23.0,
+        "fix": "NLG"
+      },
+      {
+        "distanceNm": 24.7,
+        "fix": "CH"
+      }
+    ],
+    "nearestFix": "ZUH"
+  },
+  "VTBS": {
+    "airport": "VTBS",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 15.5,
+        "fix": "BKK"
+      },
+      {
+        "distanceNm": 22.0,
+        "fix": "POLAK"
+      },
+      {
+        "distanceNm": 47.5,
+        "fix": "HOTEL#0"
+      },
+      {
+        "distanceNm": 51.7,
+        "fix": "GOMES"
+      },
+      {
+        "distanceNm": 62.5,
+        "fix": "BUT"
+      }
+    ],
+    "nearestFix": "BKK"
+  },
+  "VTCC": {
+    "airport": "VTCC",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 0.1,
+        "fix": "CMA"
+      },
+      {
+        "distanceNm": 27.0,
+        "fix": "OSADI"
+      },
+      {
+        "distanceNm": 34.0,
+        "fix": "MACHI"
+      },
+      {
+        "distanceNm": 42.5,
+        "fix": "LPN"
+      },
+      {
+        "distanceNm": 68.2,
+        "fix": "MHS"
+      }
+    ],
+    "nearestFix": "CMA"
+  },
+  "VVCR": {
+    "airport": "VVCR",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 13.7,
+        "fix": "NG"
+      },
+      {
+        "distanceNm": 39.2,
+        "fix": "KARAN"
+      },
+      {
+        "distanceNm": 54.6,
+        "fix": "DL"
+      },
+      {
+        "distanceNm": 56.8,
+        "fix": "DAMVO"
+      },
+      {
+        "distanceNm": 71.5,
+        "fix": "DOXAR"
+      }
+    ],
+    "nearestFix": "NG"
+  },
+  "VVDN": {
+    "airport": "VVDN",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 0.5,
+        "fix": "DAN"
+      },
+      {
+        "distanceNm": 31.9,
+        "fix": "TAMKY"
+      },
+      {
+        "distanceNm": 32.3,
+        "fix": "TANNA"
+      },
+      {
+        "distanceNm": 32.4,
+        "fix": "PB"
+      },
+      {
+        "distanceNm": 32.6,
+        "fix": "SAMBO#0"
+      }
+    ],
+    "nearestFix": "DAN"
+  },
+  "VVNB": {
+    "airport": "VVNB",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 1.6,
+        "fix": "NOB"
+      },
+      {
+        "distanceNm": 14.3,
+        "fix": "AM"
+      },
+      {
+        "distanceNm": 53.0,
+        "fix": "NAH"
+      },
+      {
+        "distanceNm": 54.0,
+        "fix": "BK"
+      },
+      {
+        "distanceNm": 66.4,
+        "fix": "MC"
+      }
+    ],
+    "nearestFix": "NOB"
+  },
+  "VVPQ": {
+    "airport": "VVPQ",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 3.7,
+        "fix": "PQ#0"
+      },
+      {
+        "distanceNm": 21.7,
+        "fix": "CAMPU"
+      },
+      {
+        "distanceNm": 36.0,
+        "fix": "BAVEN"
+      },
+      {
+        "distanceNm": 45.9,
+        "fix": "KISAN"
+      },
+      {
+        "distanceNm": 68.7,
+        "fix": "RG#0"
+      }
+    ],
+    "nearestFix": "PQ#0"
+  },
+  "VVTS": {
+    "airport": "VVTS",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 0.4,
+        "fix": "TSN"
+      },
+      {
+        "distanceNm": 30.2,
+        "fix": "SAPEN"
+      },
+      {
+        "distanceNm": 31.7,
+        "fix": "LOSON"
+      },
+      {
+        "distanceNm": 32.4,
+        "fix": "AC"
+      },
+      {
+        "distanceNm": 40.7,
+        "fix": "LATHA"
+      }
+    ],
+    "nearestFix": "TSN"
+  },
+  "WADD": {
+    "airport": "WADD",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 0.3,
+        "fix": "BLI"
+      },
+      {
+        "distanceNm": 54.9,
+        "fix": "AGUNG"
+      },
+      {
+        "distanceNm": 55.1,
+        "fix": "MTM"
+      },
+      {
+        "distanceNm": 78.1,
+        "fix": "ENTAS"
+      },
+      {
+        "distanceNm": 83.9,
+        "fix": "LEMBU"
+      }
+    ],
+    "nearestFix": "BLI"
+  },
+  "WBKK": {
+    "airport": "WBKK",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 2.3,
+        "fix": "VJN"
+      },
+      {
+        "distanceNm": 54.7,
+        "fix": "VIDIP"
+      },
+      {
+        "distanceNm": 61.3,
+        "fix": "VLB"
+      },
+      {
+        "distanceNm": 71.1,
+        "fix": "UKIBA"
+      },
+      {
+        "distanceNm": 75.0,
+        "fix": "KUDAT"
+      }
+    ],
+    "nearestFix": "VJN"
+  },
+  "WIII": {
+    "airport": "WIII",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 8.4,
+        "fix": "CKG"
+      },
+      {
+        "distanceNm": 16.3,
+        "fix": "HLM"
+      },
+      {
+        "distanceNm": 24.7,
+        "fix": "DKI"
+      },
+      {
+        "distanceNm": 41.8,
+        "fix": "NOKTA"
+      },
+      {
+        "distanceNm": 54.3,
+        "fix": "PW#0"
+      }
+    ],
+    "nearestFix": "CKG"
+  },
+  "WMKK": {
+    "airport": "WMKK",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 2.1,
+        "fix": "VKL"
+      },
+      {
+        "distanceNm": 23.5,
+        "fix": "SAPAT"
+      },
+      {
+        "distanceNm": 25.2,
+        "fix": "RUMID"
+      },
+      {
+        "distanceNm": 31.8,
+        "fix": "DUMOK"
+      },
+      {
+        "distanceNm": 33.6,
+        "fix": "SALAX"
+      }
+    ],
+    "nearestFix": "VKL"
+  },
+  "WSSS": {
+    "airport": "WSSS",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 4.3,
+        "fix": "VTK"
+      },
+      {
+        "distanceNm": 5.7,
+        "fix": "PU#1"
+      },
+      {
+        "distanceNm": 10.3,
+        "fix": "KK#0"
+      },
+      {
+        "distanceNm": 11.4,
+        "fix": "SJ"
+      },
+      {
+        "distanceNm": 13.8,
+        "fix": "ALFA"
+      }
+    ],
+    "nearestFix": "VTK"
+  },
+  "ZBAA": {
+    "airport": "ZBAA",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 14.6,
+        "fix": "WFNB"
+      },
+      {
+        "distanceNm": 16.7,
+        "fix": "HUR"
+      },
+      {
+        "distanceNm": 31.3,
+        "fix": "JR#1"
+      },
+      {
+        "distanceNm": 36.9,
+        "fix": "CDNB"
+      },
+      {
+        "distanceNm": 37.9,
+        "fix": "TONIL"
+      }
+    ],
+    "nearestFix": "WFNB"
+  },
+  "ZBAD": {
+    "airport": "ZBAD",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 19.8,
+        "fix": "JR#1"
+      },
+      {
+        "distanceNm": 20.0,
+        "fix": "VYK"
+      },
+      {
+        "distanceNm": 25.6,
+        "fix": "VM"
+      },
+      {
+        "distanceNm": 29.3,
+        "fix": "JBNB"
+      },
+      {
+        "distanceNm": 31.1,
+        "fix": "DOXAS"
+      }
+    ],
+    "nearestFix": "JR#1"
+  },
+  "ZBTJ": {
+    "airport": "ZBTJ",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 3.4,
+        "fix": "CG"
+      },
+      {
+        "distanceNm": 20.7,
+        "fix": "DOXAS"
+      },
+      {
+        "distanceNm": 23.3,
+        "fix": "VM"
+      },
+      {
+        "distanceNm": 36.3,
+        "fix": "VYK"
+      },
+      {
+        "distanceNm": 46.6,
+        "fix": "TONIL"
+      }
+    ],
+    "nearestFix": "CG"
+  },
+  "ZGGG": {
+    "airport": "ZGGG",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 9.8,
+        "fix": "TEPID"
+      },
+      {
+        "distanceNm": 19.7,
+        "fix": "CON"
+      },
+      {
+        "distanceNm": 23.2,
+        "fix": "POU"
+      },
+      {
+        "distanceNm": 31.5,
+        "fix": "NOMAR"
+      },
+      {
+        "distanceNm": 32.3,
+        "fix": "SAREX"
+      }
+    ],
+    "nearestFix": "TEPID"
+  },
+  "ZGSZ": {
+    "airport": "ZGSZ",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 14.8,
+        "fix": "NLG"
+      },
+      {
+        "distanceNm": 16.7,
+        "fix": "UBLIM"
+      },
+      {
+        "distanceNm": 17.2,
+        "fix": "TAMOT"
+      },
+      {
+        "distanceNm": 17.4,
+        "fix": "IDUMA"
+      },
+      {
+        "distanceNm": 19.2,
+        "fix": "BEKOL"
+      }
+    ],
+    "nearestFix": "NLG"
+  },
+  "ZLXY": {
+    "airport": "ZLXY",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 12.1,
+        "fix": "OD"
+      },
+      {
+        "distanceNm": 14.0,
+        "fix": "ZS"
+      },
+      {
+        "distanceNm": 58.8,
+        "fix": "YIJ"
+      },
+      {
+        "distanceNm": 66.8,
+        "fix": "HO"
+      },
+      {
+        "distanceNm": 71.1,
+        "fix": "NSH"
+      }
+    ],
+    "nearestFix": "OD"
+  },
+  "ZMCK": {
+    "airport": "ZMCK",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 13.7,
+        "fix": "UDA"
+      },
+      {
+        "distanceNm": 128.8,
+        "fix": "ARGAT"
+      },
+      {
+        "distanceNm": 129.5,
+        "fix": "ANIKU"
+      },
+      {
+        "distanceNm": 151.7,
+        "fix": "BU#1"
+      },
+      {
+        "distanceNm": 160.4,
+        "fix": "SERNA"
+      }
+    ],
+    "nearestFix": "UDA"
+  },
+  "ZPPP": {
+    "airport": "ZPPP",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 12.4,
+        "fix": "KMG"
+      },
+      {
+        "distanceNm": 28.0,
+        "fix": "SL"
+      },
+      {
+        "distanceNm": 55.6,
+        "fix": "KIBES"
+      },
+      {
+        "distanceNm": 55.8,
+        "fix": "LXI"
+      },
+      {
+        "distanceNm": 56.3,
+        "fix": "MEBNA"
+      }
+    ],
+    "nearestFix": "KMG"
+  },
+  "ZSHC": {
+    "airport": "ZSHC",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 13.8,
+        "fix": "WY"
+      },
+      {
+        "distanceNm": 14.3,
+        "fix": "CJ"
+      },
+      {
+        "distanceNm": 26.2,
+        "fix": "SUPAR"
+      },
+      {
+        "distanceNm": 38.9,
+        "fix": "SX"
+      },
+      {
+        "distanceNm": 41.0,
+        "fix": "AND"
+      }
+    ],
+    "nearestFix": "WY"
+  },
+  "ZSNJ": {
+    "airport": "ZSNJ",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 10.8,
+        "fix": "GS"
+      },
+      {
+        "distanceNm": 13.4,
+        "fix": "MADUK"
+      },
+      {
+        "distanceNm": 42.0,
+        "fix": "ESBAG"
+      },
+      {
+        "distanceNm": 44.9,
+        "fix": "ZJNB"
+      },
+      {
+        "distanceNm": 55.7,
+        "fix": "PIMOL"
+      }
+    ],
+    "nearestFix": "GS"
+  },
+  "ZSPD": {
+    "airport": "ZSPD",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 2.0,
+        "fix": "PUD"
+      },
+      {
+        "distanceNm": 12.0,
+        "fix": "SHY"
+      },
+      {
+        "distanceNm": 13.6,
+        "fix": "HSH"
+      },
+      {
+        "distanceNm": 23.9,
+        "fix": "JTN"
+      },
+      {
+        "distanceNm": 24.5,
+        "fix": "NINAS"
+      }
+    ],
+    "nearestFix": "PUD"
+  },
+  "ZSQD": {
+    "airport": "ZSQD",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 25.1,
+        "fix": "XJT"
+      },
+      {
+        "distanceNm": 58.8,
+        "fix": "LATUX"
+      },
+      {
+        "distanceNm": 64.9,
+        "fix": "IDVEL"
+      },
+      {
+        "distanceNm": 78.0,
+        "fix": "REPOL"
+      },
+      {
+        "distanceNm": 80.7,
+        "fix": "HCH"
+      }
+    ],
+    "nearestFix": "XJT"
+  },
+  "ZSSS": {
+    "airport": "ZSSS",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 4.4,
+        "fix": "JTN"
+      },
+      {
+        "distanceNm": 5.3,
+        "fix": "PKNB"
+      },
+      {
+        "distanceNm": 18.8,
+        "fix": "POMOK"
+      },
+      {
+        "distanceNm": 23.0,
+        "fix": "PUD"
+      },
+      {
+        "distanceNm": 28.0,
+        "fix": "HSH"
+      }
+    ],
+    "nearestFix": "JTN"
+  },
+  "ZUCK": {
+    "airport": "ZUCK",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 31.0,
+        "fix": "DS"
+      },
+      {
+        "distanceNm": 37.7,
+        "fix": "FLG"
+      },
+      {
+        "distanceNm": 40.0,
+        "fix": "QJG"
+      },
+      {
+        "distanceNm": 58.6,
+        "fix": "ANSAR"
+      },
+      {
+        "distanceNm": 70.0,
+        "fix": "GAO"
+      }
+    ],
+    "nearestFix": "DS"
+  },
+  "ZUTF": {
+    "airport": "ZUTF",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 17.0,
+        "fix": "ZYG"
+      },
+      {
+        "distanceNm": 17.7,
+        "fix": "WFX"
+      },
+      {
+        "distanceNm": 24.1,
+        "fix": "FJC"
+      },
+      {
+        "distanceNm": 30.2,
+        "fix": "CTU"
+      },
+      {
+        "distanceNm": 33.5,
+        "fix": "TEBUN"
+      }
+    ],
+    "nearestFix": "ZYG"
+  },
+  "ZYHB": {
+    "airport": "ZYHB",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 0.4,
+        "fix": "HRB"
+      },
+      {
+        "distanceNm": 69.7,
+        "fix": "ISBOP"
+      },
+      {
+        "distanceNm": 74.5,
+        "fix": "FYU"
+      },
+      {
+        "distanceNm": 112.4,
+        "fix": "LJB"
+      },
+      {
+        "distanceNm": 121.4,
+        "fix": "OTABO"
+      }
+    ],
+    "nearestFix": "HRB"
+  },
+  "ZYTL": {
+    "airport": "ZYTL",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 1.2,
+        "fix": "DLC"
+      },
+      {
+        "distanceNm": 30.8,
+        "fix": "DABOX"
+      },
+      {
+        "distanceNm": 35.3,
+        "fix": "MAKNO"
+      },
+      {
+        "distanceNm": 41.4,
+        "fix": "BM"
+      },
+      {
+        "distanceNm": 52.2,
+        "fix": "ALARA"
+      }
+    ],
+    "nearestFix": "DLC"
+  },
+  "ZYTX": {
+    "airport": "ZYTX",
+    "method": "nearest-overseas-fix",
+    "nearbyFixes": [
+      {
+        "distanceNm": 11.7,
+        "fix": "PU#0"
+      },
+      {
+        "distanceNm": 12.4,
+        "fix": "KY"
+      },
+      {
+        "distanceNm": 39.5,
+        "fix": "ANSUK"
+      },
+      {
+        "distanceNm": 49.3,
+        "fix": "LCH"
+      },
+      {
+        "distanceNm": 61.3,
+        "fix": "DHN"
+      }
+    ],
+    "nearestFix": "PU#0"
+  }
+}

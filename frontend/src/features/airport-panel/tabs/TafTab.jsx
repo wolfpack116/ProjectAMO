@@ -19,21 +19,68 @@ function tafWeatherClass(item, baseClass, { includeSpecial = true } = {}) {
   ].filter(Boolean).join(' ')
 }
 
+const CATEGORY_RANK = { LIFR: 0, IFR: 1, MVFR: 2, VFR: 3 }
+
+// 원문(TAC) 블록 스타일 — Vite dev CSS HMR(대소문자 파일명) 이슈 회피용 인라인.
+export const RAW_TAC_STYLE = {
+  wrap: { display: 'flex', flexDirection: 'column', gap: 4, marginTop: 12 },
+  label: { fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#64748b' },
+  text: {
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+    fontSize: 12, lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+    padding: '8px 10px', borderRadius: 6, background: 'rgba(15,23,42,0.05)',
+    border: '1px solid rgba(15,23,42,0.08)', color: '#0f172a',
+  },
+}
+
+// NOAA rawTAF는 한 줄로 옴 → 우리가 읽는 TAF 형태로 변화군마다 줄바꿈·들여쓰기.
+// FM(DDHHMM)·BECMG·TEMPO·PROBxx(·TEMPO)·RMK 앞에서 개행. PROBxx TEMPO는 한 줄 유지.
+function formatTafTac(raw) {
+  if (!raw) return raw
+  return String(raw)
+    .replace(/\s+(FM\d{6}|PROB\d{2}\s+TEMPO|PROB\d{2}|BECMG|TEMPO|RMK)\b/g, '\n  $1')
+    .trim()
+}
+
+function worstCategory(slots) {
+  return slots.reduce((worst, item) => {
+    const cat = item.flight?.category
+    if (!cat) return worst
+    if (!worst || (CATEGORY_RANK[cat] ?? 9) < (CATEGORY_RANK[worst] ?? 9)) return cat
+    return worst
+  }, null)
+}
+
 export default function EnhancedTafTab({ taf, icao }) {
-  const [view, setView] = useState('timeline')
+  // Mobile lands on the per-period card view (readable reading blocks);
+  // desktop keeps the timeline. User can still switch.
+  const [view, setView] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 719px)').matches
+      ? 'grid'
+      : 'timeline',
+  )
   const { tz } = useTimeZone()
   if (!taf) return <div className="ap-empty">TAF 데이터 없음</div>
 
   const { rawTimeline, slots, hdr } = buildTafViewModel(taf, icao)
+  const worstCat = worstCategory(slots)
 
   return (
     <div className="ap-taf">
+      <div className="ap-taf-summary-bar">
+        <span className={`ap-taf-summary-cat${worstCat ? ` ap-taf-summary-cat--${worstCat}` : ''}`}>{worstCat || '—'}</span>
+        <span className="ap-taf-summary-text">
+          유효 {fmtKstShort(hdr?.valid_start, tz)} – {fmtKstShort(hdr?.valid_end, tz)}
+          {slots.length === 0 && rawTimeline.length > 0 ? ' · 만료됨' : ''}
+        </span>
+      </div>
+
       <div className="ap-taf-header">
         <div>
           <span className="ap-taf-badge">{hdr?.report_status === 'AMENDMENT' ? 'TAF AMD' : 'TAF'}</span>
           <span className="ap-taf-valid">{fmtKstShort(hdr?.valid_start, tz)} – {fmtKstShort(hdr?.valid_end, tz)}</span>
         </div>
-        <div className="ap-taf-switch" role="tablist" aria-label="TAF view">
+        <div className="ap-taf-switch" role="group" aria-label="TAF view">
           {TAF_VIEWS.map((item) => (
             <button key={item.id} type="button" className={`ap-taf-switch-btn${view === item.id ? ' is-active' : ''}`} onClick={() => setView(item.id)} aria-pressed={view === item.id}>
               {item.label}
@@ -104,6 +151,14 @@ export default function EnhancedTafTab({ taf, icao }) {
               <div className="ap-taf-card-row"><span>운고</span><strong>{item.ceilingText}</strong></div>
             </article>
           ))}
+        </div>
+      )}
+
+      {/* ── 원문(TAC) — 타임라인 아래. NOAA 해외 공항 등 원문 제공 시 ── */}
+      {taf?.header?.raw_text && (
+        <div className="ap-raw-tac" style={RAW_TAC_STYLE.wrap}>
+          <span style={RAW_TAC_STYLE.label}>원문 (TAC)</span>
+          <code style={RAW_TAC_STYLE.text}>{formatTafTac(taf.header.raw_text)}</code>
         </div>
       )}
     </div>

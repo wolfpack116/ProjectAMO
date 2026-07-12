@@ -73,7 +73,7 @@ function getSkyCoverState(observation, metar) {
   return SKY_COVER_BY_AMOUNT[amount] || 'clear'
 }
 
-function getCeilingFeet(observation = {}) {
+export function getCeilingFeet(observation = {}) {
   const clouds = Array.isArray(observation.clouds) ? observation.clouds : []
   const ceilingBases = clouds
     .filter((layer) => CEILING_AMOUNTS.has(String(layer?.amount || '').toUpperCase()))
@@ -89,7 +89,7 @@ function formatCeilingText(ceilingFeet) {
   return String(Math.round(ceilingFeet / 100)).padStart(3, '0')
 }
 
-function getVisibilityMeters(observation = {}) {
+export function getVisibilityMeters(observation = {}) {
   return normalizeNumber(observation.visibility?.value)
 }
 

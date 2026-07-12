@@ -10,12 +10,7 @@ import {
   resolveSettings,
   setAlertCallback,
 } from './legacy/utils/alerts'
-import {
-  DEFAULT_AIRPORT_MINIMA_RULES,
-  formatUtc,
-  getFlightCategory,
-  normalizeAirportMinimaSettings,
-} from './legacy/utils/helpers'
+import { formatUtc } from './legacy/utils/helpers'
 import {
   getDefaultAdvisoryFilterSettings,
   loadAdvisoryFilterSettings,
@@ -26,6 +21,7 @@ import MetarCard from './legacy/components/MetarCard'
 import WarningList from './legacy/components/WarningList'
 import TafTimeline from './legacy/components/TafTimeline'
 import GroundForecastPanel from './legacy/components/GroundForecastPanel'
+import GroundHourlyStrip from './legacy/components/GroundHourlyStrip'
 import GroundCurrentWeatherCard from './legacy/components/GroundCurrentWeatherCard'
 import AlertPopup from './legacy/components/alerts/AlertPopup'
 import AlertSound from './legacy/components/alerts/AlertSound'
@@ -77,9 +73,12 @@ function overlayKey(entry) {
 function buildSnapshotStateFromData(data) {
   return {
     metar: data.metar?.content_hash || null,
+    metarOverseas: data.metarOverseas?.content_hash || null,
     taf: data.taf?.content_hash || null,
+    tafOverseas: data.tafOverseas?.content_hash || null,
     warning: data.warning?.content_hash || null,
     sigmet: data.sigmet?.content_hash || null,
+    sigmetOverseas: data.sigmetOverseas?.content_hash || null,
     airmet: data.airmet?.content_hash || null,
     sigwxLow: data.sigwxLow?.content_hash || null,
     amos: data.amos?.content_hash || null,
@@ -98,6 +97,9 @@ function buildSnapshotStateFromData(data) {
 
 function detectChanges(snapshot, saved) {
   const sigwxLow = snapshot?.sigwxLow || snapshot?.sigwx_low
+  const metarOverseas = snapshot?.metarOverseas || snapshot?.metar_overseas
+  const tafOverseas = snapshot?.tafOverseas || snapshot?.taf_overseas
+  const sigmetOverseas = snapshot?.sigmetOverseas || snapshot?.sigmet_overseas
   const groundForecast = snapshot?.groundForecast || snapshot?.ground_forecast
   const groundOverview = snapshot?.groundOverview || snapshot?.ground_overview
   const echo = snapshot?.echoMeta || snapshot?.echo
@@ -105,9 +107,12 @@ function detectChanges(snapshot, saved) {
 
   return {
     metar: hashOf(snapshot?.metar) !== saved.metar,
+    metarOverseas: hashOf(metarOverseas) !== saved.metarOverseas,
     taf: hashOf(snapshot?.taf) !== saved.taf,
+    tafOverseas: hashOf(tafOverseas) !== saved.tafOverseas,
     warning: hashOf(snapshot?.warning) !== saved.warning,
     sigmet: hashOf(snapshot?.sigmet) !== saved.sigmet,
+    sigmetOverseas: hashOf(sigmetOverseas) !== saved.sigmetOverseas,
     airmet: hashOf(snapshot?.airmet) !== saved.airmet,
     sigwxLow: hashOf(sigwxLow) !== saved.sigwxLow,
     amos: hashOf(snapshot?.amos) !== saved.amos,
@@ -126,6 +131,9 @@ function detectChanges(snapshot, saved) {
 
 function nextSnapshotState(snapshot, changedData, saved) {
   const sigwxLow = snapshot?.sigwxLow || snapshot?.sigwx_low
+  const metarOverseas = snapshot?.metarOverseas || snapshot?.metar_overseas
+  const tafOverseas = snapshot?.tafOverseas || snapshot?.taf_overseas
+  const sigmetOverseas = snapshot?.sigmetOverseas || snapshot?.sigmet_overseas
   const groundForecast = snapshot?.groundForecast || snapshot?.ground_forecast
   const groundOverview = snapshot?.groundOverview || snapshot?.ground_overview
   const echo = snapshot?.echoMeta || snapshot?.echo
@@ -133,9 +141,12 @@ function nextSnapshotState(snapshot, changedData, saved) {
 
   return {
     metar: changedData.metar?.content_hash ?? hashOf(snapshot?.metar) ?? saved.metar,
+    metarOverseas: changedData.metarOverseas?.content_hash ?? hashOf(metarOverseas) ?? saved.metarOverseas,
     taf: changedData.taf?.content_hash ?? hashOf(snapshot?.taf) ?? saved.taf,
+    tafOverseas: changedData.tafOverseas?.content_hash ?? hashOf(tafOverseas) ?? saved.tafOverseas,
     warning: changedData.warning?.content_hash ?? hashOf(snapshot?.warning) ?? saved.warning,
     sigmet: changedData.sigmet?.content_hash ?? hashOf(snapshot?.sigmet) ?? saved.sigmet,
+    sigmetOverseas: changedData.sigmetOverseas?.content_hash ?? hashOf(sigmetOverseas) ?? saved.sigmetOverseas,
     airmet: changedData.airmet?.content_hash ?? hashOf(snapshot?.airmet) ?? saved.airmet,
     sigwxLow: changedData.sigwxLow?.content_hash ?? hashOf(sigwxLow) ?? saved.sigwxLow,
     amos: changedData.amos?.content_hash ?? hashOf(snapshot?.amos) ?? saved.amos,
@@ -184,9 +195,6 @@ export default function MonitoringPage() {
   const [trafficAltitudeBands, setTrafficAltitudeBands] = useState(() => (
     readJsonLocalStorage('traffic_altitude_bands', ALL_ALTITUDE_BANDS)
   ))
-  const [airportMinimaSettings, setAirportMinimaSettings] = useState(() => (
-    normalizeAirportMinimaSettings(readJsonLocalStorage('airport_minima_settings', DEFAULT_AIRPORT_MINIMA_RULES))
-  ))
   const [advisoryFilter, setAdvisoryFilter] = useState(() => loadAdvisoryFilterSettings())
 
   const prevDataRef = useRef(null)
@@ -221,10 +229,6 @@ export default function MonitoringPage() {
   }, [trafficAltitudeBands])
 
   useEffect(() => {
-    localStorage.setItem('airport_minima_settings', JSON.stringify(airportMinimaSettings))
-  }, [airportMinimaSettings])
-
-  useEffect(() => {
     document.body.classList.add('monitoring-legacy-body')
     return () => document.body.classList.remove('monitoring-legacy-body')
   }, [])
@@ -256,7 +260,9 @@ export default function MonitoringPage() {
       setSelectedAirport((prev) => {
         const available = new Set([
           ...Object.keys(merged.metar?.airports || {}),
+          ...Object.keys(merged.metarOverseas?.airports || {}),
           ...Object.keys(merged.taf?.airports || {}),
+          ...Object.keys(merged.tafOverseas?.airports || {}),
           ...Object.keys(merged.warning?.airports || {}),
           ...(merged.airports || []).filter((airport) => airport.icao !== 'TST1').map((airport) => airport.icao),
         ])
@@ -389,9 +395,6 @@ export default function MonitoringPage() {
     loadMonitoringAlertDefaults().then((defaults) => setAlertDefaults({ ...defaults }))
     setTimeZone(localStorage.getItem('time_zone') || 'KST')
     setMapTheme(localStorage.getItem('map_theme') || 'light')
-    setAirportMinimaSettings(normalizeAirportMinimaSettings(
-      readJsonLocalStorage('airport_minima_settings', DEFAULT_AIRPORT_MINIMA_RULES),
-    ))
     setAdvisoryFilter(loadAdvisoryFilterSettings())
   }
 
@@ -423,8 +426,6 @@ export default function MonitoringPage() {
         setTrafficCallsignFilter={setTrafficCallsignFilter}
         trafficAltitudeBands={trafficAltitudeBands}
         setTrafficAltitudeBands={setTrafficAltitudeBands}
-        minimaSettings={airportMinimaSettings}
-        setMinimaSettings={setAirportMinimaSettings}
         advisoryFilter={advisoryFilter}
         setAdvisoryFilter={(next) => {
           setAdvisoryFilter(next || getDefaultAdvisoryFilterSettings())
@@ -470,13 +471,6 @@ export default function MonitoringPage() {
     return `${airportName}(${icao})`
   })()
 
-  const metarVis = metarTarget?.observation?.visibility?.value ?? null
-  const metarClouds = metarTarget?.observation?.clouds || []
-  const metarCeiling = metarClouds
-    .filter((cloud) => cloud.amount === 'BKN' || cloud.amount === 'OVC')
-    .sort((a, b) => (a.base ?? Infinity) - (b.base ?? Infinity))[0]?.base ?? null
-  getFlightCategory(metarVis, metarCeiling, selectedAirport, airportMinimaSettings)
-
   const warningPanel = (
     <WarningList
       warningData={data.warning}
@@ -502,7 +496,6 @@ export default function MonitoringPage() {
       metarData={data.metar}
       amosData={data.amos}
       icao={selectedAirport}
-      minimaSettings={airportMinimaSettings}
       airportMeta={selectedAirportMeta}
       metarTime={metarTime}
       version="v2"
@@ -515,7 +508,6 @@ export default function MonitoringPage() {
     <TafTimeline
       tafData={data.taf}
       icao={selectedAirport}
-      minimaSettings={airportMinimaSettings}
       version={tafVersion}
       onVersionToggle={setTafVersion}
       tz={timeZone}
@@ -632,6 +624,9 @@ export default function MonitoringPage() {
           <div className="left-panel-body">
             {warningPanel}
             {metarPanel}
+            {dashboardMode === 'ground' && (
+              <GroundHourlyStrip groundForecastData={data.groundForecast} icao={selectedAirport} />
+            )}
             {tafPanel}
           </div>
 

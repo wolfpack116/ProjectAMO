@@ -2,10 +2,14 @@ import fs from 'fs'
 import path from 'path'
 
 const DEFAULT_CACHE_SIZE = 12
-const TILE_NAME_RE = /^E(\d{3})_N(\d{2})\.bin$/
+const TILE_NAME_RE = /^E(\d{3})_[NS](\d{2})\.bin$/
 
 function tileName(lonDeg, latDeg) {
-  return `E${String(lonDeg).padStart(3, '0')}_N${String(latDeg).padStart(2, '0')}.bin`
+  // 위도 부호로 N/S 구분(남반구 취항지 지원). 예: 37 → N37, -8 → S08.
+  const ns = latDeg >= 0
+    ? `N${String(latDeg).padStart(2, '0')}`
+    : `S${String(-latDeg).padStart(2, '0')}`
+  return `E${String(lonDeg).padStart(3, '0')}_${ns}.bin`
 }
 
 function readJson(filePath) {

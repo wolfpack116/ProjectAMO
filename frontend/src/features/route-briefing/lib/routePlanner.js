@@ -14,6 +14,36 @@ async function fetchJson(path) {
   return response.json()
 }
 
+// 해외 navdata는 선택적 — 파일 없으면 null 반환(국내만으로 정상 동작).
+async function fetchJsonOptional(path) {
+  try {
+    const response = await fetch(`${NAVDATA_BASE_URL}/${path}`)
+    if (!response.ok) return null
+    return await response.json()
+  } catch {
+    return null
+  }
+}
+
+// 해외 항로그래프를 국내에 병합: 노드별 인접 리스트를 이어붙여 국경 공유 지점이 국내↔해외를 연결.
+// 세그먼트 id는 해외가 OVS- 접두어라 (to, segmentId) 중복만 제거하면 됨.
+function mergeRouteGraph(base, overseas) {
+  const merged = { ...base }
+  for (const [nodeId, links] of Object.entries(overseas || {})) {
+    const list = merged[nodeId] ? [...merged[nodeId]] : []
+    const seen = new Set(list.map((link) => `${link.to}|${link.segmentId}`))
+    for (const link of links) {
+      const key = `${link.to}|${link.segmentId}`
+      if (!seen.has(key)) {
+        list.push(link)
+        seen.add(key)
+      }
+    }
+    merged[nodeId] = list
+  }
+  return merged
+}
+
 export async function loadNavdata() {
   if (!navdataCache) {
     const [airports, navpoints, routeGraph, routeSegments, routes, routeDirectionMetadata] = await Promise.all([
@@ -25,12 +55,25 @@ export async function loadNavdata() {
       fetchJson('route-direction-metadata.json'),
     ])
 
+    // 해외(선택) — 해외 확장 데이터가 있으면 국내와 병합.
+    const [airportsO, navpointsO, routeGraphO, routeSegmentsO, routesO] = await Promise.all([
+      fetchJsonOptional('airports-overseas.json'),
+      fetchJsonOptional('navpoints-overseas.json'),
+      fetchJsonOptional('route-graph-overseas.json'),
+      fetchJsonOptional('route-segments-overseas.json'),
+      fetchJsonOptional('routes-overseas.json'),
+    ])
+
+    const allSegments = [...routeSegments, ...(routeSegmentsO || [])]
+
     navdataCache = {
-      airports,
-      navpoints,
-      routeGraph,
-      routeSegmentsById: Object.fromEntries(routeSegments.map((segment) => [segment.id, segment])),
-      routes,
+      // 공항: 겹침 없음(국내 RK / 해외 그 외)
+      airports: { ...airports, ...(airportsO || {}) },
+      // 지점·항로: 공유 ident/routeId는 국내 정의 우선(방향 메타데이터 보존)
+      navpoints: { ...(navpointsO || {}), ...navpoints },
+      routeGraph: mergeRouteGraph(routeGraph, routeGraphO),
+      routeSegmentsById: Object.fromEntries(allSegments.map((segment) => [segment.id, segment])),
+      routes: { ...(routesO || {}), ...routes },
       routeDirectionMetadata,
     }
   }
@@ -39,7 +82,7 @@ export async function loadNavdata() {
 }
 
 function normalizeIdent(value) {
-  return value.trim().toUpperCase()
+  return (value ?? '').trim().toUpperCase() // 픽스 미입력 등 undefined 방어 — 크래시 대신 빈 ident(→ 하류 "not found" 처리)
 }
 
 function haversineNm(lon1, lat1, lon2, lat2) {
@@ -71,6 +114,39 @@ export async function loadRouteDirectionMetadata() {
 export async function loadNavpoints() {
   const navdata = await loadNavdata()
   return navdata.navpoints
+}
+
+// ponytail: load overseas airports + links map; returns {} if file missing or network error.
+// Used by RouteBriefingPanel to populate arrival airport options.
+let overseasAirportsCache = null
+export async function loadOverseasAirports() {
+  if (overseasAirportsCache !== null) return overseasAirportsCache
+
+  try {
+    const response = await fetch(`${NAVDATA_BASE_URL}/airports-overseas.json`)
+    if (!response.ok) return {}
+    overseasAirportsCache = await response.json()
+    return overseasAirportsCache
+  } catch {
+    overseasAirportsCache = {}
+    return {}
+  }
+}
+
+// Load airport-route-links-overseas.json: { ICAO: { nearestFix, nearbyFixes }, ... }
+let overseasLinksCache = null
+export async function loadOverseasLinks() {
+  if (overseasLinksCache !== null) return overseasLinksCache
+
+  try {
+    const response = await fetch(`${NAVDATA_BASE_URL}/airport-route-links-overseas.json`)
+    if (!response.ok) return {}
+    overseasLinksCache = await response.json()
+    return overseasLinksCache
+  } catch {
+    overseasLinksCache = {}
+    return {}
+  }
 }
 
 function getRouteSequenceDirection(route, fromId, toId) {
@@ -354,6 +430,14 @@ export async function buildBriefingRoute({ departureAirport, entryFix, exitFix, 
   const departurePoint = isFirInRoute ? entry : departure
   const departureLabel = isFirInRoute ? entryId : departureId
 
+  // 총거리 = 출발지→진입지점(SID 구간) + 항로 구간 + 이탈지점→도착지(STAR 구간, 직선 근사).
+  // SID 최적 선택은 항로 구간만 보면 엉뚱한 방향(예: 서쪽 진입지점)을 고를 수 있어 총거리로 순위.
+  const firstNp = navdata.navpoints[path.navpointIds[0]]
+  const lastNp = navdata.navpoints[path.navpointIds[path.navpointIds.length - 1]]
+  const legDep = departurePoint && firstNp ? haversineNm(...coordinatesOf(departurePoint), ...coordinatesOf(firstNp)) : 0
+  const legArr = terminalPoint && lastNp ? haversineNm(...coordinatesOf(lastNp), ...coordinatesOf(terminalPoint)) : 0
+  const totalDistanceNm = Number((legDep + path.distanceNm + legArr).toFixed(2))
+
   return {
     flightRule: 'IFR',
     departureAirport: departureLabel,
@@ -362,6 +446,7 @@ export async function buildBriefingRoute({ departureAirport, entryFix, exitFix, 
     exitFix: exitId,
     routeType: selectedRouteType,
     distanceNm: path.distanceNm,
+    totalDistanceNm,
     navpointIds: path.navpointIds,
     routeIds,
     routeTypes,

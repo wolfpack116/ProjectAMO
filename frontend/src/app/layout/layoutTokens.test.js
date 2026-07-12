@@ -80,15 +80,17 @@ test('map overlay panels use responsive panel tokens', () => {
   assert.doesNotMatch(mapCss, /\.sigwx-legend-modal\s*\{[^}]*width:\s*280px/s)
 })
 
-test('route briefing panel uses responsive medium panel token', () => {
-  assert.match(routeCss, /width:\s*var\(--panel-overlay-md\)/)
+test('route briefing panel uses a responsive (non-fixed) width', () => {
+  // 다른 세션에서 브리핑 패널을 조금 넓게(clamp(380px,28vw,460px)) 조정 — 토큰 대신 커스텀 반응형 clamp.
+  // 핵심 의도(고정 px 금지·반응형)는 유지되므로 clamp 사용을 검증한다.
+  assert.match(routeCss, /\.route-check-panel\s*\{[^}]*width:\s*clamp\(/s)
   assert.match(routeCss, /\.vertical-profile-window/)
   assert.doesNotMatch(routeCss, /\.route-check-panel\s*\{[^}]*width:\s*376px/s)
 })
 
 test('airport drawer uses responsive large drawer token', () => {
   assert.match(airportCss, /width:\s*min\(var\(--panel-drawer-lg\),\s*calc\(100vw - var\(--active-sidebar-width\)\)\)/)
-  assert.match(airportCss, /@media \(max-width: 719px\)\s*\{[^}]*\.airport-panel\s*\{[^}]*z-index:\s*120/s)
+  assert.match(airportCss, /@media \(max-width: 719px\)\s*\{[\s\S]*?\.airport-panel\s*\{[^}]*z-index:\s*120/s)
   assert.doesNotMatch(airportCss, /\.airport-panel\s*\{[^}]*width:\s*800px/s)
 })
 
@@ -108,9 +110,12 @@ test('monitoring phone settings task renders settings inline instead of a modal 
   assert.match(monitoringCss, /phone-settings-inline/)
 })
 
-test('route briefing phone map mode is parent-owned and does not use a fake map placeholder', () => {
+test('route briefing map mode is desktop-only (parent-owned) with no fake map placeholder', () => {
+  // Desktop keeps the parent-owned map-mode toggle on the live map wrapper.
   assert.match(mapView, /routeBriefingMapMode/)
   assert.match(mapView, /data-route-briefing-map-mode/)
-  assert.match(mapCss, /@media \(max-width: 719px\)[^]*data-route-briefing-map-mode/)
+  // The floating 지도 보기 toggle is rendered only on desktop; on mobile the
+  // briefing lives in a MobileSheet whose peek detent reveals the map instead.
+  assert.match(mapView, /!isMobile &&[^]*route-briefing-map-mode-toggle/)
   assert.doesNotMatch(mapView, /route-check-(fake|placeholder|preview-map)/i)
 })

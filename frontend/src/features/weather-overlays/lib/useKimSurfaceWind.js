@@ -35,7 +35,7 @@ function getSelectableTimes(times = [], nowMs = null) {
 }
 
 export function selectDefaultKimNwp(index, nowMs = null) {
-  const preferredLevel = index?.levels?.find((level) => level.id === '10m') || index?.levels?.[0]
+  const preferredLevel = index?.levels?.[0]
   if (!preferredLevel) return null
   const time = getSelectableTimes(index.times, nowMs).find((candidate) =>
     selectKimNwpAvailability(index, { level: preferredLevel.id, hf: candidate.hf }))

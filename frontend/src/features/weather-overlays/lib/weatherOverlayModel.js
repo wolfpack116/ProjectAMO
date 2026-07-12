@@ -5,6 +5,7 @@ import {
   pickNearestPreviousFrame,
 } from './weatherTimeline.js'
 import { advisoryItemsToFeatureCollection, advisoryItemsToLabelFeatureCollection } from './advisoryLayers.js'
+import { phenomenonText } from '../../../shared/weather/phenomenonKo.js'
 import { sigwxLowToMapboxData } from './sigwxData.js'
 import { LIGHTNING_AGE_BANDS, createLightningGeoJSON } from './lightningLayers.js'
 
@@ -66,7 +67,7 @@ export function formatSigwxStamp(value, tz = 'KST') {
 export function formatAdvisoryPanelLabel(item, kind) {
   const base = kind === 'sigmet' ? 'SIGMET' : 'AIRMET'
   const sequence = item?.sequence_number ? ` ${item.sequence_number}` : ''
-  const phenomenon = item?.phenomenon_code || item?.phenomenon_label || ''
+  const phenomenon = phenomenonText(item?.phenomenon_code, item?.phenomenon_label || '')
   return `${base}${sequence}${phenomenon ? ` ${phenomenon}` : ''}`
 }
 
@@ -95,7 +96,7 @@ export function buildWeatherOverlayModel({
   sigmetData,
   airmetData,
   visibility = {},
-  weatherTimelineIndex,
+  selectedWeatherTimeMs = null,
   sigwxHistoryIndex,
   sigwxFilter,
   hiddenAdvisoryKeys = {},
@@ -118,15 +119,18 @@ export function buildWeatherOverlayModel({
     visibility.satellite ? satelliteFrames : [],
     visibility.lightning ? lightningFrames : [],
   ])
-  const effectiveWeatherTimelineIndex = weatherTimelineTicks.length > 0
-    ? weatherTimelineIndex >= 0
-      ? Math.min(weatherTimelineIndex, weatherTimelineTicks.length - 1)
-      : weatherTimelineTicks.length - 1
-    : 0
-  const selectedWeatherTimeMs = weatherTimelineTicks[effectiveWeatherTimelineIndex] ?? null
+  // selectedWeatherTimeMs is the unified absolute-time axis; null = live (newest frame).
+  // Scrubbing into the forecast (future) zone clamps observed layers to their newest frame.
+  const firstTickMs = weatherTimelineTicks.length ? weatherTimelineTicks[0] : null
+  const latestTickMs = weatherTimelineTicks.length ? weatherTimelineTicks[weatherTimelineTicks.length - 1] : null
+  const resolvedWeatherTimeMs = weatherTimelineTicks.length
+    ? (Number.isFinite(selectedWeatherTimeMs)
+      ? Math.min(Math.max(selectedWeatherTimeMs, firstTickMs), latestTickMs)
+      : latestTickMs)
+    : null
   const weatherTimelineVisible = (visibility.radar || visibility.satellite || visibility.lightning) && weatherTimelineTicks.length > 0
-  const radarFrame = pickNearestPreviousFrame(radarFrames, selectedWeatherTimeMs)
-  const satelliteFrame = pickNearestPreviousFrame(satelliteFrames, selectedWeatherTimeMs)
+  const radarFrame = pickNearestPreviousFrame(radarFrames, resolvedWeatherTimeMs)
+  const satelliteFrame = pickNearestPreviousFrame(satelliteFrames, resolvedWeatherTimeMs)
   const lightningGeoJSON = createLightningGeoJSON(lightningData, lightningReferenceTimeMs)
 
   const sigmetItems = advisoryItemsWithPanelData(sigmetData, 'sigmet', tz)
@@ -139,10 +143,16 @@ export function buildWeatherOverlayModel({
     ...airmetData,
     items: airmetItems.filter((item) => !(hiddenAdvisoryKeys.airmet || []).includes(item.mapKey)),
   }
-  const sigmetFeatures = advisoryItemsToFeatureCollection(visibleSigmetPayload, 'sigmet')
-  const sigmetLabels = advisoryItemsToLabelFeatureCollection(visibleSigmetPayload, 'sigmet')
-  const airmetFeatures = advisoryItemsToFeatureCollection(visibleAirmetPayload, 'airmet')
-  const airmetLabels = advisoryItemsToLabelFeatureCollection(visibleAirmetPayload, 'airmet')
+  // 국내(KMA)/해외(NOAA=source:'NOAA')로 SIGMET 지도 레이어를 분리 — 각각 독립 토글.
+  // 뱃지·목록(sigmetItems)은 합쳐서 유지(위험 요약은 하나), 지도 폴리곤만 두 레이어로 나눔.
+  const domesticSigmetPayload = { ...visibleSigmetPayload, items: visibleSigmetPayload.items.filter((i) => i.source !== 'NOAA') }
+  const intlSigmetPayload = { ...visibleSigmetPayload, items: visibleSigmetPayload.items.filter((i) => i.source === 'NOAA') }
+  const sigmetFeatures = advisoryItemsToFeatureCollection(domesticSigmetPayload, 'sigmet', tz)
+  const sigmetLabels = advisoryItemsToLabelFeatureCollection(domesticSigmetPayload, 'sigmet', tz)
+  const sigmetIntlFeatures = advisoryItemsToFeatureCollection(intlSigmetPayload, 'sigmet_intl', tz)
+  const sigmetIntlLabels = advisoryItemsToLabelFeatureCollection(intlSigmetPayload, 'sigmet_intl', tz)
+  const airmetFeatures = advisoryItemsToFeatureCollection(visibleAirmetPayload, 'airmet', tz)
+  const airmetLabels = advisoryItemsToLabelFeatureCollection(visibleAirmetPayload, 'airmet', tz)
 
   const sigwxHistoryEntries = Array.isArray(sigwxLowHistoryData) && sigwxLowHistoryData.length > 0
     ? sigwxLowHistoryData
@@ -158,10 +168,14 @@ export function buildWeatherOverlayModel({
   const visibleSigwxGroups = sigwxGroups.filter((group) => !group.hidden && group.enabledByFilter)
   const showVisibleSigwxFrontOverlay = visibleSigwxGroups.some((group) => group.overlayRole === 'front')
   const showVisibleSigwxCloudOverlay = visibleSigwxGroups.some((group) => group.overlayRole === 'cloud')
+  // SIGMET/AIRMET은 위험 알림이라 레이어 토글과 무관하게 활성(count>0)이면 상시 표시.
+  // SIGWX_LOW는 차트 레이어라 레이어를 켰을 때만 동반 뱃지로 노출(기존 유지).
+  // 상단 SIGMET 칩은 국내(KMA)만 카운트. 해외(NOAA)는 기상레이어 패널의 'SIGMET(해외)' 토글로만 표시.
+  const domesticSigmetCount = sigmetItems.filter((i) => i.source !== 'NOAA').length
   const advisoryBadgeItems = [
     visibility.sigwx ? { key: 'sigwxLow', label: 'SIGWX_LOW', count: sigwxGroups.length, tone: 'sigwx' } : null,
-    visibility.sigmet ? { key: 'sigmet', label: 'SIGMET', count: sigmetItems.length, tone: 'sigmet' } : null,
-    visibility.airmet ? { key: 'airmet', label: 'AIRMET', count: airmetItems.length, tone: 'airmet' } : null,
+    domesticSigmetCount > 0 ? { key: 'sigmet', label: 'SIGMET', count: domesticSigmetCount, tone: 'sigmet' } : null,
+    airmetItems.length > 0 ? { key: 'airmet', label: 'AIRMET', count: airmetItems.length, tone: 'airmet' } : null,
   ].filter(Boolean)
 
   return {
@@ -170,8 +184,7 @@ export function buildWeatherOverlayModel({
     satelliteFrames,
     lightningFrames,
     weatherTimelineTicks,
-    effectiveWeatherTimelineIndex,
-    selectedWeatherTimeMs,
+    selectedWeatherTimeMs: resolvedWeatherTimeMs,
     weatherTimelineVisible,
     radarFrame,
     satelliteFrame,
@@ -189,10 +202,13 @@ export function buildWeatherOverlayModel({
     airmetItems,
     sigmetFeatures,
     sigmetLabels,
+    sigmetIntlFeatures,
+    sigmetIntlLabels,
     airmetFeatures,
     airmetLabels,
     advisoryBadgeItems,
     sigmetCount: sigmetFeatures.features.length,
+    sigmetIntlCount: sigmetIntlFeatures.features.length,
     airmetCount: airmetFeatures.features.length,
     sigwxCount: sigwxGroups.length,
     lightningCount: lightningGeoJSON.features.length,

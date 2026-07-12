@@ -3,17 +3,17 @@
   top: 12px;
   left: 12px;
   z-index: 6;
-  width: var(--panel-overlay-md);
+  width: clamp(440px, 32vw, 540px);
   max-height: calc(100% - 24px);
   overflow: auto;
   padding: 0;
-  border: 1px solid rgba(148, 163, 184, 0.42);
+  border: 1px solid var(--stroke-1);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 18px 42px rgba(15, 23, 42, 0.22);
   backdrop-filter: blur(10px);
-  color: #334155;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--accent);
+  font-family: var(--app-font, system-ui, sans-serif);
   font-size: 12px;
 }
 
@@ -36,19 +36,83 @@
   background: linear-gradient(180deg, rgba(248, 250, 252, 0.99), rgba(255, 255, 255, 0.9));
 }
 
+.route-check-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 저장된 경로 메뉴 행: 이름 + 규칙 + 로드/삭제 (MenuPopover 내 커스텀 행) */
+.rb-saved-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  min-width: 240px;
+}
+
+.rb-saved-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.rb-saved-meta {
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+.rb-saved-load {
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--bg-1));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rb-saved-load:hover {
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-1));
+}
+
+.rb-saved-del {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--stroke-2);
+  border-radius: 6px;
+  background: var(--bg-1);
+  color: var(--text-3);
+  cursor: pointer;
+}
+
+.rb-saved-del:hover {
+  background: var(--level-red-bg);
+}
+
 .route-check-eyebrow {
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 850;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 700;
   line-height: 1.1;
   letter-spacing: 0;
 }
 
 .route-check-title {
-  margin-top: 3px;
-  color: #0f172a;
+  margin: 3px 0 0;
+  color: var(--text-1);
   font-size: 15px;
-  font-weight: 850;
+  font-weight: 700;
   line-height: 1.15;
   letter-spacing: 0;
 }
@@ -57,12 +121,12 @@
   flex: 0 0 auto;
   min-width: 44px;
   padding: 5px 9px;
-  border: 1px solid rgba(37, 99, 235, 0.18);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
   border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
+  color: var(--accent);
   font-size: 11px;
-  font-weight: 850;
+  font-weight: 700;
   line-height: 1;
   text-align: center;
 }
@@ -73,32 +137,7 @@
   padding: 10px;
 }
 
-.route-check-section {
-  display: grid;
-  gap: 8px;
-  padding: 10px;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 9px;
-  background: rgba(248, 250, 252, 0.72);
-}
-
-.route-check-section--conditions {
-  background: rgba(239, 246, 255, 0.52);
-}
-
-.route-check-section-title {
-  color: #334155;
-  font-size: 12px;
-  font-weight: 850;
-  line-height: 1.1;
-  letter-spacing: 0;
-}
-
-.route-check-section-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px 10px;
-}
+/* 데스크톱 운항조건 섹션 레이아웃 → Fluent griffel(RouteBriefingPanel.jsx)로 이전, 규칙 삭제 */
 
 .route-check-field {
   display: flex;
@@ -107,9 +146,9 @@
 }
 
 .route-check-field-label {
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 800;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -117,9 +156,9 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 800;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 600;
   letter-spacing: 0;
 }
 
@@ -128,94 +167,68 @@
   width: 100%;
   height: 36px;
   padding: 0 10px;
-  border: 1px solid rgba(148, 163, 184, 0.58);
+  border: 1px solid var(--stroke-1);
   border-radius: 7px;
-  background: #ffffff;
-  color: #0f172a;
+  background: var(--bg-1);
+  color: var(--text-1);
   font-size: 13px;
   font-weight: 700;
 }
 
 .route-check-form input:focus,
 .route-check-form select:focus {
-  outline: 2px solid rgba(56, 189, 248, 0.34);
-  border-color: #38bdf8;
+  outline: 2px solid var(--accent);
+  border-color: var(--accent);
 }
 
-.route-check-flight-rule {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-height: 36px;
-  padding: 2px;
-  border: 1px solid rgba(148, 163, 184, 0.58);
-  border-radius: 9px;
-  background: rgba(241, 245, 249, 0.86);
-}
-
-.route-check-flight-rule-field.full-width {
-  grid-column: 1 / -1;
-}
-
-.route-check-form .route-check-radio {
-  position: relative;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 850;
-  cursor: pointer;
-}
-
-.route-check-form .route-check-radio input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  margin: 0;
-  cursor: pointer;
-}
-
-.route-check-flight-option {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1 1 0;
-  min-width: 52px;
-  min-height: 30px;
-  padding: 0 12px;
+/* Fluent 필드(SpinButton 순항속도·고도 / DatePicker ETD날짜 / TimePicker ETD시간):
+   필드 경계는 root가 갖고 안쪽 input은 테두리 없이 — 커스텀 `.route-check-form input` 테두리가
+   Fluent 내부 input에 또 그려져 '네모 안 네모'로 보이던 것 교정. 입력+아이콘/화살표가 한 박스로. */
+.route-check-form .fui-SpinButton,
+.route-check-form .fui-Input,
+.route-check-form .fui-Combobox {
+  border: 1px solid var(--stroke-1);
   border-radius: 7px;
-  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+  background: var(--bg-1);
+}
+.route-check-form .fui-SpinButton .fui-SpinButton__input,
+.route-check-form .fui-Input .fui-Input__input,
+.route-check-form .fui-Combobox .fui-Combobox__input {
+  border: none;
+  border-radius: 0;
+}
+.route-check-form .fui-SpinButton .fui-SpinButton__input:focus,
+.route-check-form .fui-Input .fui-Input__input:focus,
+.route-check-form .fui-Combobox .fui-Combobox__input:focus {
+  outline: none;
+  border-color: transparent;
+}
+.route-check-form .fui-SpinButton:focus-within,
+.route-check-form .fui-Input:focus-within,
+.route-check-form .fui-Combobox:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  border-color: var(--accent);
 }
 
-.route-check-flight-option.is-active {
-  background: #1d4ed8;
-  color: #ffffff;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.18);
-}
+/* 데스크톱 비행규칙 토글 → Fluent TabList로 전환, 커스텀 규칙 삭제 */
 
-.route-check-flight-divider {
-  display: none;
-}
-
-.route-check-form button {
+/* :not([class*="fui-"]) — Fluent 생성 버튼(Button·SpinButton 증감버튼 등)은 자체 레이아웃/테마로
+   렌더되므로 커스텀 구조 리셋에서 전부 제외. (`.fui-Button`만 제외하면 SpinButton 증감버튼이
+   height:36px를 상속해 상하 버튼이 겹침 — 순항속도/고도·ETD 스피너 깨짐.)
+   ponytail: 배경/색은 개별 버튼(rb-detail-toggle, apf-row, acp-*, etd-chip 등)이 각자 정의 —
+   여기서는 구조 속성만 공통 리셋. CTA/자동검색은 아래에서 명시적으로 accent 승격. */
+.route-check-form button:not([class*="fui-"]) {
   box-sizing: border-box;
   height: 36px;
   border: none;
   border-radius: 7px;
-  background: #2563eb;
-  color: #ffffff;
+  background: none;
+  color: inherit;
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 700;
   cursor: pointer;
   transition: none;
-}
-
-.route-check-form button:disabled {
-  background: #94a3b8;
-  cursor: wait;
 }
 
 .route-check-error {
@@ -229,61 +242,140 @@
 }
 
 .route-check-result {
-  margin: 0 10px 10px;
-  color: #334155;
+  margin: 0 0 10px;
+  color: var(--accent);
 }
 
 .route-check-sequence {
   margin-top: 8px;
-  padding: 9px 10px;
-  border-radius: 7px;
-  background: rgba(248, 250, 252, 0.92);
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.45;
+  padding: 10px 12px;
+  border: 1px solid var(--stroke-2);
+  border-radius: 11px;
+  background: var(--bg-1);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
 }
 
 .route-check-sequence-token {
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .route-check-sequence-sep {
-  color: #94a3b8;
+  color: var(--text-3);
   font-weight: 700;
 }
 
 .route-check-total-dist {
-  margin-top: 8px;
-  padding: 9px 10px;
-  border: 1px dashed rgba(148, 163, 184, 0.7);
-  border-radius: 7px;
-  background: #ffffff;
-  color: #475569;
-  font-size: 11px;
+  margin-top: 10px;
+  padding: 11px 13px;
+  border: 1px solid var(--stroke-2);
+  border-radius: 11px;
+  background: var(--bg-1);
+  color: var(--text-3);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.route-check-total-dist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+}
+
+.rb-mobile .rb-detail-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: var(--touch-min);
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--text-3);
+  font-size: var(--fs-200);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.rb-mobile .rb-detail-toggle[aria-expanded="true"] {
+  color: var(--accent);
+}
+
+.rb-detail-caret {
+  font-size: 9px;
+  color: var(--text-3);
+}
+
+.rb-mobile .rb-detail-toggle[aria-expanded="true"] .rb-detail-caret {
+  color: var(--accent);
+}
+
+.route-check-total-dist strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 경유점 추가: 강조 그룹(헤드라인 + 검색·추가 배지 + 검색 입력).
+   테두리는 두지 않는다 — 안쪽 검색 필드가 이미 테두리를 가져 '네모 안 네모'가 됨.
+   옅은 배경만으로 그룹핑. */
+.vfr-fix-search {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg-1));
+}
+
+.vfr-fix-search-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vfr-fix-search-title {
+  color: var(--accent);
+  font-size: 13px;
   font-weight: 700;
 }
 
-.vfr-altitude-tools {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 8px;
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 850;
+.vfr-fix-search-input {
+  width: 100%;
+  min-width: 0;
 }
 
-.vfr-altitude-tools button {
-  height: 26px;
-  padding: 0 8px;
-  border: 1px solid rgba(15, 118, 110, 0.25);
-  border-radius: 999px;
-  background: #f0fdfa;
-  color: #0f766e;
-  font-size: 10px;
-  font-weight: 850;
-  cursor: pointer;
+/* 검색 후보 옵션: 이름 + 종류 뱃지(공항/지점/VOR…) 양끝 배치 */
+.vfr-fix-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.vfr-fix-opt-id {
+  font-weight: 600;
+}
+
+/* 경유점 리스트 헤더: 제목 + 되돌리기 */
+.vfr-waypoint-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.vfr-waypoint-list-title {
+  color: var(--text-3);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .vfr-waypoint-altitude-list {
@@ -293,121 +385,250 @@
   padding: 8px;
   border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 7px;
-  background: #ffffff;
+  background: var(--bg-1);
 }
 
 .vfr-waypoint-altitude-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: 8px;
   align-items: center;
+  padding: 2px;
+  border-radius: 6px;
+}
+
+.vfr-waypoint-altitude-row.is-fixed {
+  background: color-mix(in srgb, var(--text-3) 6%, transparent);
+}
+
+.vfr-waypoint-altitude-row.is-dragging {
+  opacity: 0.4;
+}
+
+/* 드래그 중 '여기 들어감' 강조(실제 교체는 놓을 때). */
+.vfr-waypoint-altitude-row.is-drop-target {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+/* leg(경유점 사이) 정보 — 구간 최고 지형고도 + 반원고도 힌트. 정상=차분(무채, §2.2). */
+.vfr-leg-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 10px;
+  padding: 0 2px 2px 30px; /* 핸들 폭만큼 들여써 어느 구간인지 시각적으로 묶음 */
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--text-3);
+}
+
+.vfr-leg-terrain strong {
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+/* 반원고도 권장 = 누르면 그 고도로 맞춤(칩 버튼). 준수 상태(is-static)는 차분한 텍스트. */
+.vfr-leg-hint {
+  appearance: none;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--accent);
+  border-radius: 5px;
+  padding: 1px 7px;
+  font-size: 11px;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.vfr-leg-hint:hover {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.vfr-leg-hint.is-static {
+  border: none;
+  background: none;
+  color: var(--text-3);
+  cursor: default;
+  padding: 1px 0;
+}
+
+.vfr-waypoint-handle {
+  width: 22px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-3);
+  line-height: 1;
+  cursor: grab;
+  user-select: none;
+}
+
+button.vfr-waypoint-handle:hover {
+  background: var(--bg-2);
+  color: var(--text-1);
+}
+
+button.vfr-waypoint-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.vfr-waypoint-handle.is-placeholder {
+  cursor: default;
+}
+
+.vfr-waypoint-endpoint {
+  margin-left: 6px;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.vfr-waypoint-delete-placeholder {
+  width: 28px;
+}
+
+/* 순항고도 전체 적용: 리스트 아래 우측 정렬 */
+.vfr-altitude-apply {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.vfr-altitude-apply button {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--stroke-2);
+  border-radius: 7px;
+  background: var(--bg-1);
+  color: var(--text-1);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.vfr-altitude-apply button:hover {
+  background: var(--bg-2);
+}
+
+.vfr-waypoint-delete-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--stroke-2);
+  border-radius: 6px;
+  background: var(--bg-1);
+  color: var(--level-red);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.vfr-waypoint-delete-btn:hover {
+  background: var(--level-red-bg);
+}
+
+/* 키보드 포커스 표시 — raw 버튼들은 Fluent 포커스 링이 없어 직접 부여 */
+.vfr-waypoint-delete-btn:focus-visible,
+.vfr-altitude-apply button:focus-visible,
+.rb-saved-load:focus-visible,
+.rb-saved-del:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .vfr-waypoint-altitude-id {
   min-width: 0;
-  color: #0f172a;
-  font-size: 11px;
-  font-weight: 850;
+  color: var(--text-1);
+  font-size: 13px;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .vfr-waypoint-altitude-pill {
-  height: 26px;
-  min-width: 78px;
-  padding: 0 8px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  height: 30px;
+  min-width: 86px;
+  padding: 0 10px;
+  border: 1px solid var(--stroke-1);
   border-radius: 999px;
-  background: #f8fafc;
-  color: #334155;
-  font-size: 11px;
-  font-weight: 850;
+  background: var(--bg-2);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
+/* 편집 가능한 알약: 호버/포커스로 '누를 수 있음'을 알림 */
+button.vfr-waypoint-altitude-pill:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-1));
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+button.vfr-waypoint-altitude-pill:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* 고정(출발·도착) 표고: 경고색(호박) 대신 중립 회색 — 단순 지상고도라 시선 끌 필요 없음 */
 .vfr-waypoint-altitude-pill.is-fixed {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-color: rgba(217, 119, 6, 0.22);
-  background: #fff7ed;
-  color: #9a3412;
+  border-color: var(--stroke-2);
+  background: var(--bg-2);
+  color: var(--text-2);
   cursor: default;
 }
 
 .vfr-waypoint-altitude-input {
-  width: 86px;
-  height: 26px;
-  padding: 0 7px;
+  width: 92px;
+  height: 30px;
+  padding: 0 9px;
   border: 1px solid rgba(15, 118, 110, 0.42);
   border-radius: 999px;
-  background: #ffffff;
-  color: #0f172a;
-  font-size: 11px;
-  font-weight: 850;
-}
-
-.vertical-profile-control {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
-  align-items: end;
-  margin-top: 10px;
-  padding: 10px;
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  border-radius: 7px;
-  background: rgba(248, 250, 252, 0.92);
-}
-
-.vertical-profile-control label {
-  display: grid;
-  gap: 4px;
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.vertical-profile-control input {
-  width: 100%;
-  height: 34px;
-  padding: 0 9px;
-  border: 1px solid rgba(148, 163, 184, 0.58);
-  border-radius: 7px;
-  background: #ffffff;
-  color: #0f172a;
+  background: var(--bg-1);
+  color: var(--text-1);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 700;
 }
 
-.vertical-profile-control button {
-  height: 34px;
-  padding: 0 10px;
+.vertical-profile-generate {
+  width: 100%;
+  height: 38px;
+  margin-top: 10px;
   border: none;
-  border-radius: 7px;
-  background: #0f766e;
+  border-radius: 8px;
+  background: var(--accent);
   color: #ffffff;
-  font-size: 11px;
-  font-weight: 850;
-  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.vertical-profile-control button:disabled {
-  background: #94a3b8;
-  cursor: wait;
+.vertical-profile-generate:disabled {
+  background: var(--text-3);
+  cursor: not-allowed;
 }
 
 .vertical-profile-open-button {
   width: 100%;
   height: 34px;
   margin-top: 8px;
-  border: 1px solid rgba(15, 118, 110, 0.28);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--bg-1));
   border-radius: 7px;
-  background: #f0fdfa;
-  color: #0f766e;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
+  color: var(--accent);
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -418,7 +639,7 @@
   padding: 8px 10px;
   border-radius: 7px;
   font-size: 11px;
-  font-weight: 750;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -431,20 +652,20 @@
 .vertical-profile-stale {
   border: 1px solid #fde68a;
   background: #fffbeb;
-  color: #92400e;
+  color: var(--level-amber);
 }
 
 .vertical-profile-empty {
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background: #f8fafc;
-  color: #64748b;
+  border: 1px solid var(--stroke-1);
+  background: var(--bg-2);
+  color: var(--text-3);
 }
 
 .vertical-profile-chart {
   padding: 10px;
   border: 1px solid rgba(203, 213, 225, 0.9);
   border-radius: 7px;
-  background: #ffffff;
+  background: var(--bg-1);
 }
 
 .vertical-profile-meta {
@@ -453,9 +674,9 @@
   gap: 8px 14px;
   align-items: center;
   margin-bottom: 10px;
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 750;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .vertical-profile-meta-item {
@@ -466,7 +687,7 @@
 
 .vertical-profile-meta-item strong {
   min-width: 0;
-  color: #0f172a;
+  color: var(--text-1);
   font-size: 11px;
   overflow-wrap: anywhere;
 }
@@ -478,8 +699,8 @@
   border-radius: 999px;
   background: #fffbeb;
   color: #b45309;
-  font-size: 10px;
-  font-weight: 850;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .vertical-profile-chart svg {
@@ -488,27 +709,41 @@
   height: auto;
 }
 
+/* 긴(해외) 항로: 차트를 거리 비례로 넓히고 창 안에서 가로 스크롤 + 왼쪽 고도축 고정. */
+.vertical-profile-chart-body { position: relative; }
+.vertical-profile-plot-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.vertical-profile-axis-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+.vertical-profile-axis-overlay-bg { fill: var(--bg-1); }
+
 .vertical-profile-window-backdrop {
   position: absolute;
   inset: 0;
   z-index: 20;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(15, 23, 42, 0.34);
+  align-items: flex-end;      /* 화면 하단에 붙임 */
+  justify-content: stretch;   /* 전체 폭 */
+  padding: 0;
+  background: transparent;     /* 지도 안 가림(하단 바만) */
+  pointer-events: none;        /* 바 위쪽 지도는 계속 조작 가능 */
 }
 
 .vertical-profile-window {
-  width: min(1120px, calc(100vw - 48px));
-  max-height: calc(100vh - 48px);
+  width: 100%;                 /* 모니터 전체 폭 */
+  max-height: 56vh;
   overflow: auto;
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  border-radius: 10px;
-  background: #ffffff;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.32);
-  color: #334155;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  border: 1px solid var(--stroke-1);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;   /* 위 모서리만 둥글게 */
+  background: var(--bg-1);
+  box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.28);
+  color: var(--accent);
+  font-family: var(--app-font, system-ui, sans-serif);
+  pointer-events: auto;        /* 바 자체는 조작 */
 }
 
 .vertical-profile-window-header {
@@ -518,32 +753,32 @@
   gap: 16px;
   padding: 14px 16px;
   border-bottom: 1px solid rgba(226, 232, 240, 0.95);
-  background: #f8fafc;
+  background: var(--bg-2);
 }
 
 .vertical-profile-window-eyebrow {
-  color: #64748b;
-  font-size: 10px;
-  font-weight: 850;
+  color: var(--text-3);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .vertical-profile-window-title {
   margin-top: 3px;
-  color: #0f172a;
+  color: var(--text-1);
   font-size: 16px;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .vertical-profile-window-close {
   flex: 0 0 auto;
   height: 32px;
   padding: 0 12px;
-  border: 1px solid rgba(148, 163, 184, 0.55);
+  border: 1px solid var(--stroke-1);
   border-radius: 7px;
-  background: #ffffff;
-  color: #334155;
+  background: var(--bg-1);
+  color: var(--accent);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -551,23 +786,23 @@
   display: flex;
   gap: 6px;
   padding: 8px 16px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--stroke-2);
 }
 
 .cs-toggle {
   padding: 4px 10px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--stroke-1);
   border-radius: 4px;
-  background: #f8fafc;
-  color: #475569;
+  background: var(--bg-2);
+  color: var(--text-2);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
 }
 
 .cs-toggle.is-on {
-  background: #0ea5e9;
-  border-color: #0284c7;
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
 }
 
@@ -619,8 +854,8 @@
 }
 
 .vertical-profile-plot {
-  fill: #f8fafc;
-  stroke: #e2e8f0;
+  fill: var(--bg-2);
+  stroke: var(--stroke-2);
 }
 
 .vertical-profile-grid {
@@ -628,20 +863,20 @@
 }
 
 .vertical-profile-axis-label {
-  fill: #64748b;
+  fill: var(--text-3);
   font-size: 9px;
   font-weight: 700;
 }
 
 .vertical-profile-cruise-tick {
-  stroke: #2563eb;
+  stroke: var(--accent);
   stroke-width: 2;
 }
 
 .vertical-profile-cruise-axis-label {
-  fill: #1d4ed8;
-  font-size: 10px;
-  font-weight: 850;
+  fill: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .vertical-profile-marker-tick {
@@ -650,9 +885,9 @@
 }
 
 .vertical-profile-marker-label {
-  fill: #0f172a;
+  fill: var(--text-1);
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .vertical-profile-terrain-area {
@@ -674,9 +909,9 @@
 }
 
 .vertical-profile-tod-summary {
-  color: #92400e;
+  color: var(--level-amber);
   font-size: 11px;
-  font-weight: 850;
+  font-weight: 700;
 }
 
 .vertical-profile-model-info {
@@ -690,8 +925,8 @@
   place-items: center;
   border: 1px solid rgba(100, 116, 139, 0.32);
   border-radius: 999px;
-  background: #ffffff;
-  color: #475569;
+  background: var(--bg-1);
+  color: var(--text-2);
   font-size: 12px;
   font-weight: 900;
   line-height: 1;
@@ -712,24 +947,24 @@
   width: min(320px, 78vw);
   gap: 5px;
   padding: 10px 12px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1px solid var(--stroke-1);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--bg-1);
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
-  color: #475569;
+  color: var(--text-2);
   font-size: 11px;
   font-weight: 700;
   line-height: 1.45;
 }
 
 .vertical-profile-model-info div strong {
-  color: #0f172a;
+  color: var(--text-1);
   font-size: 12px;
   font-weight: 900;
 }
 
 .vertical-profile-tod-label {
-  fill: #92400e;
+  fill: var(--level-amber);
   font-size: 11px;
   font-weight: 900;
 }
@@ -743,17 +978,30 @@
 }
 
 .dist-breakdown {
-  color: #94a3b8;
-  font-weight: 600;
-  font-size: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
 }
 
 .dist-breakdown-token {
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  background: var(--bg-3);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
-.dist-breakdown-sep {
-  color: #94a3b8;
+.dist-breakdown-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
 }
 
 .proc-direct-input {
@@ -776,19 +1024,26 @@
   width: 100%;
 }
 
-.route-check-search-button {
+.route-check-form .route-check-search-button {
   min-width: 0;
   padding: 0 8px;
+  background: var(--accent);
+  color: #ffffff;
   font-size: 12px;
   white-space: nowrap;
+}
+
+.route-check-form .route-check-search-button:disabled {
+  background: var(--text-3);
+  cursor: not-allowed;
 }
 
 .route-check-form .route-check-actions .route-check-secondary-button {
   min-width: 0;
   padding: 0 6px;
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  background: #ffffff;
-  color: #334155;
+  border: 1px solid var(--stroke-1);
+  background: var(--bg-1);
+  color: var(--accent);
   font-size: 12px;
   white-space: nowrap;
 }
@@ -797,16 +1052,16 @@
 .route-check-form .route-check-actions .route-check-secondary-button:focus,
 .route-check-form .route-check-actions .route-check-secondary-button:focus-visible,
 .route-check-form .route-check-actions .route-check-secondary-button:active {
-  border-color: rgba(148, 163, 184, 0.5);
-  background: #ffffff;
-  color: #334155;
+  border-color: var(--stroke-1);
+  background: var(--bg-1);
+  color: var(--accent);
   box-shadow: none;
   outline: none;
   transform: none;
 }
 
 .route-check-form .route-check-actions .route-check-secondary-button:last-child {
-  color: #64748b;
+  color: var(--text-3);
   background: transparent;
 }
 
@@ -814,9 +1069,9 @@
 .route-check-form .route-check-actions .route-check-secondary-button:last-child:focus,
 .route-check-form .route-check-actions .route-check-secondary-button:last-child:focus-visible,
 .route-check-form .route-check-actions .route-check-secondary-button:last-child:active {
-  border-color: rgba(148, 163, 184, 0.5);
+  border-color: var(--stroke-1);
   background: transparent;
-  color: #64748b;
+  color: var(--text-3);
   box-shadow: none;
   outline: none;
   transform: none;
@@ -830,7 +1085,7 @@
   padding: 0;
   border: 1.5px solid #dc2626;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--bg-1);
   color: #dc2626;
   font-size: 11px;
   font-weight: 900;
@@ -846,4 +1101,378 @@
 .vfr-wp-delete:hover {
   background: #dc2626;
   color: #ffffff;
+}
+
+/* ── Mobile route briefing: route-type segmented (iOS-style pill track —
+   active is a white pill + blue text on a gray track, no solid-blue fill).
+   Airport/dependent pickers live in shared AirportPickerField/PickerField. ── */
+.route-check-form .route-type-segmented {
+  display: flex;
+  width: 100%;
+  margin-top: 6px;
+  gap: 3px;
+  padding: 3px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--level-gray-bg);
+}
+
+.route-check-form .route-type-seg {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 34px;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.route-check-form .route-type-seg.is-active {
+  background: var(--bg-1);
+  color: var(--accent);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+/* 폼 전역 `.route-check-form button:not(.fui-Button){background:accent}`(specificity
+   0,2,1)이 세그·swap의 중립 배경(0,2,0)을 덮어 비활성 옵션이 진한 기본버튼처럼 보이는
+   반전 버그 교정. 컨테이너를 셀렉터에 더해 specificity로 이긴다.
+   ponytail: 근본은 blanket 규칙이 너무 넓음 — CTA/자동검색이 그 규칙에 의존해 통째 축소는 위험, 대상만 승격. */
+.route-check-form .route-type-segmented .route-type-seg {
+  background: transparent;
+  color: var(--text-2);
+}
+.route-check-form .route-type-segmented .route-type-seg.is-active {
+  background: var(--bg-1);
+  color: var(--accent);
+}
+.route-check-form .rb-swap .rb-swap-btn {
+  background: var(--bg-1);
+  color: var(--accent);
+}
+
+/* ── Mobile briefing: from→to route block + swap (actions live in the
+   shared MobileSheet footer slot, pinned flush to the task bar) ── */
+.rb-route {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.rb-swap {
+  display: flex;
+  justify-content: center;
+  margin: 2px 0;
+}
+
+.rb-mobile .rb-swap-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0.5px solid var(--stroke-1);
+  background: var(--bg-1);
+  color: var(--accent);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rb-mobile .rb-swap-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Action bar in the MobileSheet footer — primary action is a solid-blue CTA
+   (다음 / 브리핑 생성); 이전 is a white outline secondary. */
+.mobile-sheet-footer .route-check-actions {
+  display: flex;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+}
+
+.mobile-sheet-footer .route-check-actions button {
+  flex: 1 1 0;
+  height: 46px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mobile-sheet-footer .route-check-actions .route-check-search-button {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.mobile-sheet-footer .route-check-actions .route-check-secondary-button {
+  flex: 0 0 auto;
+  min-width: 96px;
+  background: var(--bg-1);
+  color: var(--text-2);
+  border: 1px solid var(--stroke-1);
+}
+
+.mobile-sheet-footer .route-check-actions button:disabled {
+  background: var(--bg-4);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+/* Peek (collapsed) summary — centered route + rule + distance */
+.rb-peek-route {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.rb-peek-arrow {
+  color: var(--text-3);
+}
+
+.rb-peek-rule {
+  font-size: 11px;
+  padding: 3px 8px;
+  min-width: 0;
+}
+
+.rb-peek-dist {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-3);
+}
+
+/* 브리핑 조건 = 내 항공기 + 교체 + ETD + 요약 세로 스택 (카드 테두리 제거, 깔끔한 입력) */
+/* (route-check-section--briefing → Fluent griffel로 이전, 삭제) */
+.rb-altn { display: grid; gap: 4px; color: var(--text-3); font-size: 12px; font-weight: 600; }
+.rb-altn select { height: 36px; padding: 0 8px; border: 1px solid var(--stroke-1); border-radius: 7px; font-size: 13px; font-weight: 700; color: var(--text-1); }
+/* Mobile: match the 출발/도착 picker — label inside a bordered box, borderless select. */
+.rb-mobile .rb-altn {
+  gap: 1px;
+  padding: 6px 12px;
+  border: 0.8px solid var(--stroke-1);
+  border-radius: 8px;
+  background: var(--bg-1);
+  font-size: var(--fs-200);
+}
+.rb-mobile .rb-altn select {
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+/* ETD 필드: 데스크톱 타이핑 / 모바일 휠 + 상대 칩 */
+.etd-field { display: grid; gap: 7px; }
+.etd-row { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 6px; }
+.etd-field select, .etd-field input[type="time"] { height: 36px; padding: 0 8px; border: 1px solid var(--stroke-1); border-radius: 7px; background: var(--bg-1); color: var(--text-1); font-size: 13px; font-weight: 700; }
+.etd-chips, .etd-day-chips { display: flex; gap: 5px; }
+.route-check-form .etd-chip { border: 0; border-radius: 999px; padding: 5px 12px; background: var(--level-gray-bg); color: var(--text-2); font-size: 11px; font-weight: 600; cursor: pointer; }
+.route-check-form .etd-chip.is-active { background: color-mix(in srgb, var(--accent) 8%, var(--bg-1)); color: var(--accent); }
+.etd-field--mobile .etd-time-wheel { width: 100%; }
+
+/* 내 항공기 프로파일 + 직접 입력 */
+.acp { display: grid; gap: 8px; }
+.acp-head { display: flex; align-items: center; gap: 8px; }
+.route-check-form .acp-select { flex: 1; height: auto; min-height: 46px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 1px solid #e7ebf2; border-radius: 10px; background: var(--bg-1); padding: 7px 11px; cursor: pointer; }
+.acp-label { font-size: 12px; font-weight: 600; color: var(--text-3); }
+.acp-value { font-size: 14px; font-weight: 700; color: var(--text-1); }
+.route-check-form .acp-save { border: 0; background: transparent; color: var(--accent); font-size: 11px; font-weight: 600; cursor: pointer; }
+.acp-list { border: 1px solid #e7ebf2; border-radius: 10px; background: var(--bg-1); padding: 4px; }
+.acp-empty { font-size: 12px; color: var(--text-3); padding: 8px; }
+.acp-item { display: flex; align-items: center; }
+.route-check-form .acp-item-pick { flex: 1; text-align: left; border: 0; background: transparent; padding: 8px; font-size: 13px; font-weight: 600; color: var(--text-1); cursor: pointer; }
+.acp-item-pick span { color: var(--text-3); font-weight: 600; }
+.route-check-form .acp-item-del { border: 0; background: transparent; color: var(--level-red); font-size: 16px; cursor: pointer; padding: 0 8px; }
+.acp-perf { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.acp-field { display: grid; gap: 4px; font-size: 12px; font-weight: 600; color: var(--text-3); position: relative; }
+.acp-field input { height: 36px; padding: 0 8px; border: 1px solid var(--stroke-1); border-radius: 7px; font-size: 14px; font-weight: 600; color: var(--text-1); }
+.acp-field em { position: absolute; right: 10px; bottom: 9px; font-style: normal; font-size: 11px; color: var(--text-3); }
+.acp-alt { position: relative; }
+.acp-alt input { width: 100%; }
+.acp-alt-fmt { position: absolute; right: 30px; bottom: 9px; font-size: 11px; font-weight: 700; color: var(--text-3); }
+.acp-step { position: absolute; right: 6px; bottom: 5px; display: flex; flex-direction: column; line-height: .7; }
+.route-check-form .acp-step button { height: auto; border: 0; background: transparent; color: var(--text-3); font-size: 12px; cursor: pointer; padding: 0; }
+.acp-hint { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--level-amber); background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 6px 10px; }
+
+/* 파생 요약 strip: 거리 · ETD→ETA */
+.rb-summary { display: flex; align-items: center; gap: 12px; background: color-mix(in srgb, var(--accent) 8%, var(--bg-1)); border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--bg-1)); border-radius: 11px; padding: 10px 12px; }
+.rb-summary-dist { flex: 0 0 auto; padding-right: 12px; border-right: 1px solid color-mix(in srgb, var(--accent) 18%, var(--bg-1)); text-align: center; }
+.rb-summary-time { flex: 1; text-align: center; }
+.rb-summary span { display: block; font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--accent) 70%, var(--text-3)); }
+.rb-summary strong { font-size: 16px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.rb-summary em { font-size: 11px; font-style: normal; }
+
+/* 모바일 3단계 위저드 */
+.rb-steps { display: flex; gap: 3px; padding: 3px; border-radius: 10px; background: var(--level-gray-bg); margin-bottom: 12px; }
+.route-check-form .rb-step { flex: 1; border: 0; border-radius: 8px; background: transparent; padding: 8px 4px; font-size: 12px; font-weight: 600; color: var(--text-2); cursor: pointer; }
+.route-check-form .rb-step.is-active { background: var(--bg-1); color: var(--accent); box-shadow: 0 1px 2px rgba(15,23,42,.12); }
+.rb-procedures { display: grid; gap: 8px; }
+.rb-vfr-note { font-size: 12px; font-weight: 700; color: var(--text-3); padding: 8px; }
+/* Step ② auto-recommend: same handleAutoRecommend as desktop, surfaced as a
+   full-width primary suggestion (light-accent, own style below) ahead
+   of the manual SID/STAR pickers. */
+.rb-mobile .rb-auto-search {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--bg-1));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-1));
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+.rb-mobile .rb-auto-search:disabled { opacity: 0.6; cursor: default; }
+
+/* Mobile touch targets ≥ 44px (WCAG 2.5.5). Scoped to the mobile wizard /
+   sheet footer so desktop density is unchanged. */
+.rb-mobile .route-type-seg,
+.rb-mobile .rb-step {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.route-check-actions.is-step .route-check-search-button,
+.route-check-actions.is-step .route-check-secondary-button {
+  min-height: 44px;
+}
+.rb-mobile select,
+.rb-mobile .apf-row {
+  min-height: 44px;
+}
+.rb-mobile .vertical-profile-generate,
+.rb-mobile .vertical-profile-open-button {
+  height: 44px;
+  min-height: 44px;
+}
+
+/* B05: waypoint 조작 버튼(핸들·삭제·고도 알약·전체적용) 44px 터치 타깃. */
+.rb-mobile .vfr-waypoint-handle,
+.rb-mobile .vfr-waypoint-delete-btn,
+.rb-mobile .vfr-waypoint-altitude-pill,
+.rb-mobile .vfr-altitude-apply button {
+  min-height: var(--touch-min);
+}
+.rb-mobile .vfr-waypoint-altitude-row {
+  gap: var(--space-s);
+}
+
+/* Compact: step tabs live in the sheet header (right of the title). */
+.mobile-sheet-header-extra .rb-steps {
+  margin: 0;
+  padding: 2px;
+  gap: 2px;
+}
+.mobile-sheet-header-extra .rb-step {
+  min-height: var(--touch-min);
+  padding: 0 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.mobile-sheet-header-extra .rb-step.is-active {
+  background: var(--bg-1);
+  color: var(--accent);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+/* Compact: route preview matches the full width of the inputs above it. */
+.rb-mobile .route-check-result {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Compact: 출발 · ⇅ · 도착 on one row; expand to a column when a picker opens
+   so its airport grid spans full width. */
+.rb-mobile .rb-route {
+  position: relative;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 0;
+}
+/* Even vertical rhythm: let the form gap own spacing, drop ad-hoc margins. */
+.rb-mobile .route-type-segmented {
+  margin-top: 0;
+}
+.rb-mobile .rb-route > .apf {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.rb-mobile .rb-route > .rb-swap {
+  flex: 0 0 auto;
+  margin: 0;
+}
+.rb-mobile .rb-route .apf-row {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  padding: 0 10px;
+}
+/* Keep the row compact when a picker opens — float its airport grid below the
+   whole row as a full-width dropdown instead of reflowing to a column. */
+.rb-mobile .rb-route .apf-picker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 6px;
+  z-index: 20;
+  padding: 10px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--bg-1);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+}
+
+/* 경로 불러오기 다이얼로그 드롭존 — 정상=차분한 점선(§2.2), 드래그 중=강조. */
+.rb-import-dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  padding: 24px;
+  border: 2px dashed var(--stroke-2);
+  border-radius: 12px;
+  background: var(--bg-2);
+  text-align: center;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.rb-import-dropzone.is-drag-over {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.rb-import-dropzone-text {
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.rb-import-dropzone.is-drag-over .rb-import-dropzone-text {
+  color: var(--accent);
 }

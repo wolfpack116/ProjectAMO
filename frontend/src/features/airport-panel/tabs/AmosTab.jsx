@@ -1,4 +1,4 @@
-import { buildAmosConsoleModel } from '../lib/amosViewModel.js'
+import { buildAmosConsoleModel } from '../../../shared/weather/amosViewModel.js'
 import { useTimeZone } from '../../../shared/timezone/TimeZoneContext.jsx'
 
 const BEARINGS = [
@@ -107,7 +107,7 @@ export default function AmosBoardTab({ amos, metar, airportMeta }) {
 
       <PrioritySummary items={model.prioritySummary} />
 
-      <section className="ap-amos-console-board" aria-label="AMOS layout">
+      <section className="ap-amos-console-board" tabIndex={0} aria-label="AMOS layout, 가로 스크롤 가능">
         <header className="ap-amos-console-top">
           {model.runwayLabels.map((label) => (
             <div className={`ap-amos-console-runway-id${label === model.activeRunwayLabel ? ' is-active' : ''}`} key={label}>

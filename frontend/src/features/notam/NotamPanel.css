@@ -1,0 +1,140 @@
+/* NOTAM 전역 패널. 색 = 시간상태(--level-*), 카테고리 = 아이콘. layer-drawer 셸 재사용. */
+/* 밀도형 표 + 4열 타일이 있어 기본 --panel-overlay-sm(≤320px)보다 넓어야 함.
+   .map-view-wrapper .layer-drawer 규칙을 이기려 동일 접두 + .notam-panel 로 특이도 확보. */
+.map-view-wrapper .layer-drawer.notam-panel { width: min(520px, 94vw); }
+.notam-panel { width: min(520px, 94vw); }
+
+.notam-master { display: flex; align-items: center; gap: 6px; }
+.notam-master-label { font-size: 12px; font-weight: 700; color: var(--text-2); }
+.notam-switch {
+  width: 34px; height: 19px; border-radius: 10px; border: none; padding: 2px;
+  background: var(--stroke-1); cursor: pointer; display: inline-flex; align-items: center;
+  transition: background 0.15s;
+}
+.notam-switch.is-on { background: var(--accent); }
+.notam-switch-knob { width: 15px; height: 15px; border-radius: 50%; background: #fff; transition: transform 0.15s; }
+.notam-switch.is-on .notam-switch-knob { transform: translateX(15px); }
+
+.notam-horizon {
+  display: flex; align-items: center; gap: 6px; padding: 7px 0; margin-bottom: 8px;
+  font-size: 11px; color: var(--text-2); border-bottom: 1px solid var(--stroke-2);
+}
+
+.notam-legend { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-bottom: 10px; }
+.notam-legend-lbl { font-size: 10px; font-weight: 800; color: var(--text-3); }
+
+/* 시간상태 배지: 색 + 형태 글리프 + 텍스트 (색맹 대비, spec 접근성 1) */
+.notam-ts {
+  display: inline-flex; align-items: center; gap: 3px; font-weight: 800; font-size: 11px;
+  padding: 1px 6px; border-radius: 3px; white-space: nowrap;
+}
+.notam-ts-glyph { font-size: 0.9em; line-height: 1; }
+.ts-active { background: var(--level-red-bg); color: var(--level-red); }
+.ts-soon { background: var(--level-amber-bg); color: var(--level-amber); }
+.ts-upcoming { background: var(--level-gray-bg); color: var(--level-gray); }
+
+.notam-filter { padding: 4px 0 12px; }
+.notam-filter-title { font-size: 10px; font-weight: 800; letter-spacing: 0.04em; color: var(--text-3); text-transform: uppercase; margin-bottom: 8px; }
+.notam-filter-count { color: var(--accent); }
+/* NOTAM 카테고리 필터: 타일 패러다임 유지하되 컴팩트 가로형(아이콘+라벨 한 줄)로 축소 —
+   기본 전체 켜짐이라 큰 자리를 먹지 않게, NOTAM 목록이 바로 보이도록(감사 Sev3). */
+.notam-tile-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.notam-tile-grid .layer-tile {
+  flex-direction: row; justify-content: flex-start; gap: 6px;
+  min-height: 0; padding: 7px 8px; border-radius: 8px; border-width: 1px;
+}
+.notam-tile-grid .layer-tile-visual { height: auto; }
+.notam-tile-grid .layer-tile-label { font-size: 11px; text-align: left; }
+.notam-tile-grid .layer-tile-check { top: 3px; right: 5px; font-size: 10px; }
+
+.notam-priority { padding: 10px 0; border-top: 1px solid var(--stroke-2); }
+.notam-priority-title { font-size: 11px; font-weight: 800; color: var(--accent); margin-bottom: 6px; }
+.notam-priority-row { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 3px 0; }
+.notam-priority-cat { font-weight: 700; color: var(--text-1); }
+.notam-priority-sum { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notam-priority-row .notam-ts { margin-left: auto; flex-shrink: 0; }
+
+.notam-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+/* 고정 레이아웃 열 너비: 요약(3번째)만 나머지 자동, 긴 값은 셀에서 말줄임 */
+.notam-table th:nth-child(1), .notam-td-cat { width: 62px; }
+.notam-table th:nth-child(2), .notam-td-loc { width: 44px; }
+.notam-table th:nth-child(4), .notam-td-alt { width: 66px; }
+.notam-table th:nth-child(5), .notam-td-state { width: 78px; }
+.notam-table thead th {
+  text-align: left; padding: 8px 6px; font-size: 12px; font-weight: 800; color: var(--text-2);
+  background: var(--bg-3); border-bottom: 1px solid var(--stroke-2);
+}
+.notam-th-state { text-align: right; }
+.notam-row { border-bottom: 1px solid var(--stroke-2); cursor: pointer; }
+.notam-row:hover { background: var(--level-gray-bg); }
+/* 키보드 포커스 가시화(접근성): 목록 행·공항탭 카드 */
+.notam-row:focus-visible, .notam-tab-card:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.notam-td-cat { padding: 9px 6px; }
+.notam-td-cat span { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; vertical-align: middle; }
+.notam-td-loc { padding: 9px 6px; font-weight: 700; }
+/* 목록→지도 핵심 동작 — 어포던스 확보 위해 살짝 키움 + 호버 강조(감사 Sev2). */
+.notam-locate {
+  display: inline-flex; align-items: center; justify-content: center; margin-top: 4px;
+  padding: 3px 5px; border: 1px solid var(--accent); border-radius: 5px; background: var(--bg-1);
+  color: var(--accent); cursor: pointer;
+}
+.notam-locate:hover { background: color-mix(in srgb, var(--accent) 10%, var(--bg-1)); border-color: var(--accent); }
+/* 안전 핵심 값: 흐리게 금지 — 요약/고도는 최소 --text-2, ≥11px (spec 접근성 2) */
+.notam-td-sum { padding: 9px 6px; overflow: hidden; }
+.notam-sum-text { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 유효기간: NOTAM 최우선 정보라 흐리게 두지 않음(--text-2, 11px) */
+.notam-sum-valid { margin-top: 2px; font-size: 11px; color: var(--text-2); font-weight: 600; font-family: Consolas, monospace; white-space: nowrap; }
+
+.notam-locfilter { display: flex; align-items: center; gap: 8px; padding: 8px 0 4px; border-top: 1px solid var(--stroke-2); }
+.notam-locfilter-label { font-size: 11px; font-weight: 800; color: var(--text-3); }
+.notam-locfilter-select { flex: 1; min-width: 0; padding: 5px 8px; font-size: 12px; border: 1px solid var(--stroke-1); border-radius: 4px; background: var(--bg-1); color: var(--text-1); }
+.notam-td-alt { padding: 9px 6px; color: var(--text-2); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.notam-td-state { padding: 9px 6px; text-align: right; white-space: nowrap; }
+.notam-chev { vertical-align: middle; margin-left: 4px; color: var(--text-3); transition: transform 0.15s; }
+.notam-chev.is-open { transform: rotate(180deg); }
+.notam-raw-row td { padding: 0 6px 10px; }
+/* 펼침: 요약 전문(잘리지 않고 전체) + 원문 접기 */
+.notam-full-sum { padding: 4px 2px 6px; font-size: 13px; color: var(--text-1); font-weight: 600; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+.notam-raw-details > summary { cursor: pointer; color: var(--accent); font-size: 12px; font-weight: 700; list-style: none; padding: 2px 0; }
+.notam-raw-details > summary::-webkit-details-marker { display: none; }
+.notam-raw {
+  margin: 0; padding: 8px 10px; background: var(--bg-2); border: 1px solid var(--stroke-2); border-radius: 4px;
+  font-size: 12px; color: var(--text-2); white-space: pre-wrap; word-break: break-word; font-family: Consolas, monospace;
+}
+
+.notam-foot { padding: 10px 0 2px; font-size: 12px; color: var(--text-2); }
+.notam-more { border: none; background: none; color: var(--accent); font-weight: 700; cursor: pointer; padding: 0; }
+
+/* 공항 패널 NOTAM 탭(surface B) */
+.notam-tab { display: flex; flex-direction: column; gap: 8px; }
+.notam-tab-card { padding: 10px 12px; border-radius: 4px; background: var(--bg-2); border: 1px solid var(--stroke-2); cursor: pointer; }
+.notam-tab-card:hover { background: var(--bg-3); }
+.notam-tab-card-head { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.notam-tab-cat { font-weight: 800; }
+.notam-tab-card-head .notam-ts { margin-left: auto; }
+/* 요약(무슨 NOTAM인가)이 핵심 스캔 대상 — 헤더 바로 아래·굵게·--text-1 (감사 Sev3). */
+.notam-tab-sum { font-size: 13px; color: var(--text-1); font-weight: 700; line-height: 1.35; margin-bottom: 6px; }
+.notam-tab-valid { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-1); font-weight: 600; font-family: Consolas, monospace; margin-bottom: 4px; }
+.notam-tab-valid-lbl { font-family: var(--font-base, sans-serif); font-size: 10px; font-weight: 800; color: #fff; background: var(--accent); padding: 1px 5px; border-radius: 3px; }
+/* id·고도: 보조 정보로 카드 아래. 고도는 안전값이라 --text-2 유지(더 흐리게 금지, spec 접근성2). */
+.notam-tab-meta { display: flex; gap: 8px; font-size: 12px; color: var(--text-2); font-weight: 600; font-family: Consolas, monospace; margin-bottom: 5px; }
+.notam-tab-more { font-size: 12px; color: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 3px; }
+
+/* 겹침 팝업(지도) — notamPopupHtml 구조 */
+.notam-pop { min-width: 260px; font-family: var(--font-base, sans-serif); }
+.notam-pop-sum { white-space: normal; word-break: break-word; }
+.notam-pop-head { font-size: 12px; font-weight: 800; color: var(--text-1); margin-bottom: 6px; }
+.notam-pop-row { padding: 5px 0; border-top: 1px solid var(--stroke-2); }
+.notam-pop-row:first-child { border-top: none; }
+.notam-pop-cat { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-size: 12px; margin-right: 6px; color: var(--text-1); }
+.notam-pop-cat-ic { flex: none; color: var(--text-2); }
+.notam-pop-id { font-size: 11px; color: var(--text-2); font-family: Consolas, monospace; }
+.notam-pop-ts { float: right; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 3px; }
+.notam-pop-sum { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+.notam-pop-valid { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-size: 12px; color: var(--text-1); font-weight: 600; font-family: Consolas, monospace; }
+.notam-pop-valid-lbl { font-family: var(--font-base, sans-serif); font-size: 10px; font-weight: 800; color: #fff; background: var(--accent); padding: 1px 5px; border-radius: 3px; }
+.notam-pop-more { border: none; background: none; color: var(--accent); font-weight: 700; cursor: pointer; padding: 6px 0 0; font-size: 12px; }
+.notam-pop-rawwrap { margin-top: 4px; }
+.notam-pop-rawwrap > summary { cursor: pointer; color: var(--accent); font-size: 11px; font-weight: 700; list-style: none; }
+.notam-pop-rawwrap > summary::-webkit-details-marker { display: none; }
+.notam-pop-raw { margin: 4px 0 0; padding: 6px 8px; background: var(--bg-2); border: 1px solid var(--stroke-2); border-radius: 4px; font-size: 11px; color: var(--text-2); white-space: pre-wrap; word-break: break-word; font-family: Consolas, monospace; max-height: 160px; overflow: auto; }

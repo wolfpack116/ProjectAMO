@@ -1,0 +1,88 @@
+/* 검색 팔레트 — 토큰 단일 소스, Pretendard 상속, 그림자 약하게(헌법 §3·§5). */
+.search-palette-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200; /* 사이드바(100)·모바일 시트(130) 위 */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12vh 16px 16px;
+  background: rgba(15, 23, 42, 0.32);
+}
+
+.search-palette {
+  width: min(640px, 92vw);
+  background: var(--bg-1);
+  border: 1px solid var(--stroke-2);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.16);
+  overflow: hidden;
+}
+
+.search-palette-head {
+  padding: var(--space-m);
+  border-bottom: 1px solid var(--stroke-2);
+}
+
+/* Fluent SearchBox는 기본 너비가 카드를 안 채움 → specificity로 Griffel을 이겨 100% 강제. */
+.search-palette .search-palette-head > * {
+  width: 100%;
+  max-width: 100%;
+}
+
+.search-palette-results {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-xs);
+  max-height: 52vh;
+  overflow-y: auto;
+}
+
+.search-palette-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-m);
+  padding: var(--space-mnudge) var(--space-m);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-1);
+  font-size: var(--fs-300);
+  text-align: left;
+  cursor: pointer;
+}
+
+.search-palette-row.is-active {
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-1));
+}
+
+.search-palette-label {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 타입 꼬리표: 중립색 메타데이터(색=의미 규칙상 의미색 아님). */
+.search-palette-type {
+  flex: 0 0 auto;
+  font-size: var(--fs-200);
+  font-weight: var(--fw-medium);
+  color: var(--text-3);
+  background: var(--bg-3);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+}
+
+.search-palette-empty {
+  padding: var(--space-m);
+  color: var(--text-3);
+  font-size: var(--fs-300);
+}
+
+@media (max-width: 719px) {
+  .search-palette-backdrop { padding: 8vh 12px 12px; }
+  .search-palette { width: 96vw; }
+}

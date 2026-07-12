@@ -16,27 +16,7 @@ function combineFilter(baseFilter, extraFilter) {
   return extraFilter ? ['all', baseFilter, extraFilter] : baseFilter
 }
 
-function ensureFirTickIcon(map, imageId, color, direction = 'outer') {
-  if (map.hasImage(imageId)) {
-    return
-  }
-
-  const size = 18
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-
-  const context = canvas.getContext('2d')
-  context.strokeStyle = color
-  context.lineWidth = 2
-  context.lineCap = 'butt'
-  context.beginPath()
-  context.moveTo(size / 2, size / 2)
-  context.lineTo(size / 2, direction === 'inner' ? size - 2 : 2)
-  context.stroke()
-
-  map.addImage(imageId, context.getImageData(0, 0, size, size))
-}
+// FIR 경계 틱은 symbol이 아니라 지오메트리로 렌더한다(스크롤 후 틱 이탈 방지). useFirTickOverlay 참조.
 
 function ensureIconImages(map, layer) {
   if (!layer.iconImageByProperty) {
@@ -109,20 +89,37 @@ function addFirLabelLayer(map, layer, labelLayerId, role, textOffset, visibility
   })
 }
 
-function addSectorLabelLayer(map, layer, visibility) {
+function addPolygonLabelLayer(map, layer, visibility) {
   if (!layer.labelLayerId || map.getLayer(layer.labelLayerId)) {
     return
   }
+
+  // labelTextField(완전한 MapLibre 표현식)이 있으면 그대로 사용 — 구역별 한글 카테고리명·코드·고도밴드
+  // 조합처럼 커스텀 포맷이 필요한 경우. 없으면 기존 primary/secondary 필드 조합, 그마저 없으면 sector 기본값.
+  const textField = layer.labelTextField
+    ?? (layer.labelPrimaryField
+      ? [
+          'format',
+          ['get', layer.labelPrimaryField],
+          { 'font-scale': 1.1 },
+          ...(layer.labelSecondaryField ? ['\n', {}, ['get', layer.labelSecondaryField], { 'font-scale': 0.8 }] : []),
+        ]
+      : ['coalesce', ['get', 'displayName'], ['get', 'name']])
+
+  // 밀집 폴리곤(제한/금지/위험구역)은 NOTAM 구역 라벨과 같은 디클러터 방식(minzoom + 겹치면 생략).
+  // 나머지(sector, TMA)는 기존처럼 항상 표시.
+  const strict = layer.labelAllowOverlap === false
 
   map.addLayer({
     id: layer.labelLayerId,
     type: 'symbol',
     source: layer.sourceId,
     slot: 'top',
+    minzoom: layer.labelMinzoom ?? 0,
     filter: POLYGON_FILTER,
     layout: {
       visibility,
-      'text-field': ['coalesce', ['get', 'displayName'], ['get', 'name']],
+      'text-field': textField,
       'text-size': [
         'interpolate',
         ['linear'],
@@ -135,8 +132,9 @@ function addSectorLabelLayer(map, layer, visibility) {
         14,
       ],
       'text-font': ['Noto Sans CJK JP Bold'],
-      'text-allow-overlap': true,
-      'text-ignore-placement': true,
+      'text-allow-overlap': !strict,
+      'text-ignore-placement': !strict,
+      'text-optional': strict,
       'text-max-width': 10,
     },
     paint: {
@@ -185,19 +183,41 @@ function addPointLayer(map, layer, visibility) {
 
     iconMatch.push(fallbackImage)
 
+    // iconAllowOverlap:false면 겹치는 아이콘을 자동 생략(충돌 감지) → 줌아웃할수록 듬성듬성.
+    // 미지정 레이어는 기존 동작(항상 표시) 유지. pointMinzoom으로 아주 넓은 줌에선 숨김.
+    const iconOverlap = layer.iconAllowOverlap ?? true
+    // inlineLabelField가 있으면 아이콘과 글자를 같은 심볼로(별도 라벨 레이어와 충돌 방지).
+    // 글자는 text-optional이라 아이콘이 항상 우선, 자리 있을 때만 이름 표시. pointLabelMinzoom부터 노출.
+    const inlineLabel = layer.inlineLabelField
     map.addLayer({
       id: layer.pointLayerId,
       type: 'symbol',
       source: layer.sourceId,
       slot: 'top',
+      minzoom: layer.pointMinzoom ?? 0,
       filter: POINT_FILTER,
       layout: {
         visibility,
         'icon-image': iconMatch,
         'icon-size': layer.iconSize ?? 1,
-        'icon-allow-overlap': true,
-        'icon-ignore-placement': true,
+        'icon-allow-overlap': iconOverlap,
+        'icon-ignore-placement': iconOverlap,
+        ...(inlineLabel ? {
+          'text-field': ['step', ['zoom'], '', layer.pointLabelMinzoom ?? 0, ['get', inlineLabel]],
+          'text-font': ['Noto Sans CJK JP Bold'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 11, 12],
+          'text-anchor': 'top',
+          'text-offset': [0, 0.7],
+          'text-optional': true,
+        } : {}),
       },
+      ...(inlineLabel ? {
+        paint: {
+          'text-color': layer.color,
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 1.5,
+        },
+      } : {}),
     })
     return
   }
@@ -235,11 +255,16 @@ function addPointLabelLayer(map, layer, visibility) {
     return
   }
 
+  // 밀집 레이어(해외 웨이포인트 등)는 pointLabelAllowOverlap:false로 겹치면 생략(디클러터).
+  // pointLabelMinzoom으로 일정 줌 이상에서만 라벨 표시. 미지정 레이어는 기존 동작(0, 항상 표시) 유지.
+  const declutter = layer.pointLabelAllowOverlap === false
+
   map.addLayer({
     id: layer.pointLabelLayerId,
     type: 'symbol',
     source: layer.sourceId,
     slot: 'top',
+    minzoom: layer.pointLabelMinzoom ?? 0,
     filter: POINT_FILTER,
     layout: {
       visibility,
@@ -258,8 +283,9 @@ function addPointLabelLayer(map, layer, visibility) {
       'text-font': ['Noto Sans CJK JP Bold'],
       'text-anchor': 'top',
       'text-offset': [0, 0.75],
-      'text-allow-overlap': true,
-      'text-ignore-placement': true,
+      'text-allow-overlap': !declutter,
+      'text-ignore-placement': !declutter,
+      'text-optional': declutter,
     },
     paint: {
       'text-color': layer.color,
@@ -331,20 +357,14 @@ function movePointLayersToTop(map) {
 
 export function addAviationWfsLayers(map) {
   AVIATION_WFS_LAYERS.forEach((layer) => {
-    if (layer.tickIconId) {
-      ensureFirTickIcon(map, layer.tickIconId, layer.color)
-    }
-
-    if (layer.innerTickIconId) {
-      ensureFirTickIcon(map, layer.innerTickIconId, layer.color, 'inner')
-    }
-
     ensureIconImages(map, layer)
 
     if (!map.getSource(layer.sourceId)) {
       map.addSource(layer.sourceId, {
         type: 'geojson',
         data: layer.dataUrl,
+        // 데이터 출처 표기(레이어 켜졌을 때만 Mapbox attribution에 노출). VAT-Spy FIR = CC-BY-SA-4.0.
+        ...(layer.attribution ? { attribution: layer.attribution } : {}),
       })
     }
 
@@ -403,6 +423,7 @@ export function addAviationWfsLayers(map) {
           'line-color': layer.color,
           'line-width': layer.lineWidth,
           'line-opacity': layer.lineOpacity,
+          ...(layer.lineDasharray ? { 'line-dasharray': layer.lineDasharray } : {}),
         },
         layout: {
           visibility,
@@ -412,55 +433,7 @@ export function addAviationWfsLayers(map) {
 
     addRouteLabelLayer(map, layer, visibility)
 
-    if (layer.tickLayerId && !map.getLayer(layer.tickLayerId)) {
-      map.addLayer({
-        id: layer.tickLayerId,
-        type: 'symbol',
-        source: layer.sourceId,
-        slot: 'top',
-        filter: roleFilter('incheon-fir-boundary', LINE_FILTER),
-        layout: {
-          visibility,
-          'symbol-placement': 'line',
-          'symbol-spacing': layer.tickSpacing,
-          'icon-image': layer.tickIconId,
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
-          'icon-keep-upright': false,
-          'icon-rotation-alignment': 'map',
-        },
-        paint: {
-          'icon-opacity': layer.lineOpacity,
-        },
-      })
-    }
-
-    layer.neighborBoundaries?.forEach((boundary) => {
-      if (map.getLayer(boundary.tickLayerId)) {
-        return
-      }
-
-      map.addLayer({
-        id: boundary.tickLayerId,
-        type: 'symbol',
-        source: layer.sourceId,
-        slot: 'top',
-        filter: ['all', ['==', ['get', 'role'], 'inner-boundary'], ['==', ['get', 'neighbor'], boundary.id], LINE_FILTER],
-        layout: {
-          visibility,
-          'symbol-placement': 'line',
-          'symbol-spacing': layer.innerTickSpacing,
-          'icon-image': layer.innerTickIconId,
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
-          'icon-keep-upright': false,
-          'icon-rotation-alignment': 'map',
-        },
-        paint: {
-          'icon-opacity': layer.lineOpacity,
-        },
-      })
-    })
+    // FIR 경계 틱은 useFirTickOverlay가 지오메트리(wfs-fir-ticks line 레이어)로 렌더한다.
 
     if (layer.externalLabelLayerId) {
       addFirLabelLayer(map, layer, layer.externalLabelLayerId, 'external-label', [0, 0], visibility)
@@ -470,7 +443,7 @@ export function addAviationWfsLayers(map) {
       addFirLabelLayer(map, layer, layer.internalLabelLayerId, 'internal-label', [0, 0], visibility)
     }
 
-    addSectorLabelLayer(map, layer, visibility)
+    addPolygonLabelLayer(map, layer, visibility)
   })
 
   movePointLayersToTop(map)

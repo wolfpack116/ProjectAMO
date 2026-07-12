@@ -5,10 +5,29 @@
   background: rgba(255, 255, 255, 0.97);
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14), 0 2px 4px rgba(0, 0, 0, 0.08);
-  border: 2px solid #94a3b8; /* color overridden by inline borderColor */
+  border: 2px solid var(--text-3); /* color overridden by inline borderColor */
   pointer-events: none;
-  font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-family: var(--app-font, system-ui, sans-serif);
   overflow: hidden;
+  transform-origin: bottom center;
+  animation: airport-tooltip-in 140ms ease-out;
+}
+
+@keyframes airport-tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .airport-tooltip {
+    animation: none;
+  }
 }
 
 /* ── Header ── */
@@ -22,7 +41,7 @@
 .airport-tooltip-icao {
   font-size: 17px;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-1);
   letter-spacing: 0.8px;
 }
 
@@ -35,7 +54,7 @@
 .airport-tooltip-name {
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-3);
   padding: 0 13px 10px;
   white-space: nowrap;
   overflow: hidden;
@@ -67,13 +86,13 @@
   flex-shrink: 0;
   width: 36px;
   font-size: 15px;
-  color: #475569;
+  color: var(--text-2);
   font-weight: 700;
 }
 
 .airport-tooltip-value {
   font-size: 13px;
-  color: #1e293b;
+  color: var(--text-1);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -86,6 +105,6 @@
 
 .airport-tooltip-time {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--text-3);
   font-weight: 500;
 }
