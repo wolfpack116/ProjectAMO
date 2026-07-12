@@ -1,58 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
-import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 import { MAP_CONFIG, BASEMAP_OPTIONS } from '../map/mapConfig.js'
-
-const DRAW_STYLES = [
-  {
-    id: 'sb-poly-fill-inactive',
-    type: 'fill',
-    filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'false']],
-    paint: { 'fill-opacity': 0 },
-  },
-  {
-    id: 'sb-poly-fill-active',
-    type: 'fill',
-    filter: ['all', ['==', '$type', 'Polygon'], ['==', 'active', 'true']],
-    paint: { 'fill-color': '#2563eb', 'fill-opacity': 0.3 },
-  },
-  {
-    id: 'sb-poly-stroke',
-    type: 'line',
-    filter: ['==', '$type', 'Polygon'],
-    paint: { 'line-color': '#2563eb', 'line-width': 2, 'line-join': 'round' },
-  },
-]
-
-const PREVIEW_SRC = 'sb-preview'
-
-function setPreview(map, verts, mousePos) {
-  const src = map.getSource(PREVIEW_SRC)
-  if (!src) return
-  const features = []
-  const coords = mousePos ? [...verts, mousePos] : [...verts]
-  if (coords.length >= 2) {
-    features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: coords }, properties: {} })
-  }
-  for (const v of verts) {
-    features.push({ type: 'Feature', geometry: { type: 'Point', coordinates: v }, properties: {} })
-  }
-  src.setData({ type: 'FeatureCollection', features })
-}
+import { usePolygonDraw } from '../custom-area/usePolygonDraw.js'
 
 export default function SandboxPage() {
   const containerRef = useRef(null)
-  const mapRef = useRef(null)
-  const drawRef = useRef(null)
-  const isDrawingRef = useRef(false)
-  const vertsRef = useRef([])
-  const mousePosRef = useRef(null)
-  const [drawing, setDrawing] = useState(false)
-  const [vertCount, setVertCount] = useState(0)
-  const [polyCount, setPolyCount] = useState(0)
-  const [hasSelection, setHasSelection] = useState(false)
+  const [map, setMap] = useState(null)
   const [coordInput, setCoordInput] = useState({ lat: '', lng: '' })
   const [coordError, setCoordError] = useState('')
   const [error, setError] = useState(null)
@@ -65,7 +20,7 @@ export default function SandboxPage() {
     }
 
     mapboxgl.accessToken = token
-    const map = new mapboxgl.Map({
+    const nextMap = new mapboxgl.Map({
       container: containerRef.current,
       style: BASEMAP_OPTIONS[0].style,
       center: MAP_CONFIG.center,
@@ -74,140 +29,26 @@ export default function SandboxPage() {
       maxZoom: MAP_CONFIG.maxZoom,
       maxBounds: MAP_CONFIG.maxBounds,
     })
-    mapRef.current = map
-
-    const draw = new MapboxDraw({ displayControlsDefault: false, styles: DRAW_STYLES })
-    map.addControl(draw)
-    drawRef.current = draw
-
-    map.on('load', () => {
-      map.addSource(PREVIEW_SRC, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
-      map.addLayer({
-        id: 'sb-preview-line',
-        type: 'line',
-        source: PREVIEW_SRC,
-        filter: ['==', '$type', 'LineString'],
-        paint: { 'line-color': '#3b82f6', 'line-width': 2, 'line-dasharray': [4, 2] },
-      })
-      map.addLayer({
-        id: 'sb-preview-points',
-        type: 'circle',
-        source: PREVIEW_SRC,
-        filter: ['==', '$type', 'Point'],
-        paint: { 'circle-radius': 5, 'circle-color': '#fff', 'circle-stroke-width': 2, 'circle-stroke-color': '#3b82f6' },
-      })
-    })
-
-    function finalize() {
-      const verts = vertsRef.current
-      if (verts.length < 3) return
-      draw.add({
-        type: 'Feature',
-        geometry: { type: 'Polygon', coordinates: [[...verts, verts[0]]] },
-        properties: {},
-      })
-      vertsRef.current = []
-      mousePosRef.current = null
-      isDrawingRef.current = false
-      setDrawing(false)
-      setVertCount(0)
-      setPolyCount(draw.getAll().features.length)
-      map.getCanvas().style.cursor = ''
-      map.doubleClickZoom.enable()
-      setPreview(map, [], null)
-    }
-
-    map.on('click', (e) => {
-      if (!isDrawingRef.current) return
-      const { lng, lat } = e.lngLat
-      const verts = vertsRef.current
-
-      // 더블클릭 닫기 (click 이벤트가 detail=2로 두 번째 클릭으로 옴)
-      if (e.originalEvent.detail >= 2) {
-        if (verts.length >= 3) finalize()
-        return
-      }
-
-      // 첫 번째 점 클릭 시 닫기 (15px 이내)
-      if (verts.length >= 3) {
-        const fp = map.project(verts[0])
-        const cp = map.project([lng, lat])
-        if (Math.hypot(fp.x - cp.x, fp.y - cp.y) < 15) {
-          finalize()
-          return
-        }
-      }
-
-      verts.push([lng, lat])
-      setVertCount(verts.length)
-      setPreview(map, verts, mousePosRef.current)
-    })
-
-    map.on('draw.create', () => setPolyCount(draw.getAll().features.length))
-    map.on('draw.delete', () => { setPolyCount(draw.getAll().features.length); setHasSelection(false) })
-    map.on('draw.selectionchange', (e) => setHasSelection(e.features.length > 0))
-
-    map.on('mousemove', (e) => {
-      if (!isDrawingRef.current) return
-      mousePosRef.current = [e.lngLat.lng, e.lngLat.lat]
-      setPreview(map, vertsRef.current, mousePosRef.current)
-    })
+    setMap(nextMap)
 
     return () => {
-      map.remove()
-      mapRef.current = null
-      drawRef.current = null
+      nextMap.remove()
+      setMap(null)
     }
   }, [])
 
-  function handleStart() {
-    const map = mapRef.current
-    if (!map) return
-    vertsRef.current = []
-    mousePosRef.current = null
-    isDrawingRef.current = true
-    setDrawing(true)
-    setVertCount(0)
-    map.getCanvas().style.cursor = 'crosshair'
-    map.doubleClickZoom.disable()
-  }
-
-  function handleCancel() {
-    const map = mapRef.current
-    if (!map) return
-    vertsRef.current = []
-    mousePosRef.current = null
-    isDrawingRef.current = false
-    setDrawing(false)
-    setVertCount(0)
-    map.getCanvas().style.cursor = ''
-    map.doubleClickZoom.enable()
-    setPreview(map, [], null)
-  }
-
-  function handleUndo() {
-    const map = mapRef.current
-    if (!map || !isDrawingRef.current || vertsRef.current.length === 0) return
-    vertsRef.current.pop()
-    setVertCount(vertsRef.current.length)
-    setPreview(map, vertsRef.current, mousePosRef.current)
-  }
-
-  function handleDeleteSelected() {
-    const draw = drawRef.current
-    if (!draw) return
-    draw.trash()
-    setPolyCount(draw.getAll().features.length)
-    setHasSelection(false)
-  }
-
-  function handleDeleteAll() {
-    const draw = drawRef.current
-    if (!draw) return
-    draw.deleteAll()
-    setPolyCount(0)
-    setHasSelection(false)
-  }
+  const {
+    drawing,
+    vertCount,
+    polyCount,
+    hasSelection,
+    handleStart,
+    handleCancel,
+    handleUndo,
+    handleDeleteSelected,
+    handleDeleteAll,
+    addVertex,
+  } = usePolygonDraw(map)
 
   function handleCoordAdd(e) {
     e.preventDefault()
@@ -222,11 +63,7 @@ export default function SandboxPage() {
       return
     }
     setCoordError('')
-    const map = mapRef.current
-    if (!map) return
-    vertsRef.current.push([lng, lat])
-    setVertCount(vertsRef.current.length)
-    setPreview(map, vertsRef.current, mousePosRef.current)
+    addVertex(lng, lat)
     setCoordInput({ lat: '', lng: '' })
   }
 
