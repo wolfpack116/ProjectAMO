@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Check } from 'lucide-react'
-import { Button, Input, makeStyles, mergeClasses } from '../../shared/ui/fluent.js'
+import { Button, Dropdown, Input, Option, makeStyles, mergeClasses } from '../../shared/ui/fluent.js'
 import { COLOR_OPTIONS } from './usePolygonDraw.js'
+import { COORD_FORMAT_OPTIONS, COORD_PLACEHOLDER, parseCoordinate } from './coordFormat.js'
 
 const useStyles = makeStyles({
   panel: {
@@ -12,7 +13,7 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     gap: 'var(--space-s)',
-    width: '220px',
+    width: '280px',
     padding: 'var(--space-m)',
     border: '1px solid var(--stroke-2)',
     borderRadius: 'var(--radius-lg)',
@@ -68,7 +69,12 @@ const useStyles = makeStyles({
     flexShrink: 0,
   },
   coordInput: {
-    width: '110px',
+    width: '160px',
+  },
+  coordSelect: {
+    width: '160px',
+    minWidth: '160px',
+    maxWidth: '160px',
   },
   coordError: {
     fontSize: 'var(--fs-100)',
@@ -108,24 +114,27 @@ function CustomAreaOverlay({
   addVertex, setColor, onClose,
 }) {
   const s = useStyles()
+  const [coordFormat, setCoordFormat] = useState('dd')
   const [coordInput, setCoordInput] = useState({ lat: '', lng: '' })
   const [coordError, setCoordError] = useState('')
 
+  function handleFormatChange(value) {
+    setCoordFormat(value)
+    setCoordInput({ lat: '', lng: '' })
+    setCoordError('')
+  }
+
   function handleCoordAdd(e) {
     e.preventDefault()
-    const lat = parseFloat(coordInput.lat)
-    const lng = parseFloat(coordInput.lng)
-    if (isNaN(lat) || lat < -90 || lat > 90) {
-      setCoordError('위도는 -90 ~ 90 사이 숫자여야 합니다.')
-      return
+    try {
+      const lat = parseCoordinate(coordInput.lat, coordFormat, 'lat')
+      const lng = parseCoordinate(coordInput.lng, coordFormat, 'lng')
+      setCoordError('')
+      addVertex(lng, lat)
+      setCoordInput({ lat: '', lng: '' })
+    } catch (err) {
+      setCoordError(err.message)
     }
-    if (isNaN(lng) || lng < -180 || lng > 180) {
-      setCoordError('경도는 -180 ~ 180 사이 숫자여야 합니다.')
-      return
-    }
-    setCoordError('')
-    addVertex(lng, lat)
-    setCoordInput({ lat: '', lng: '' })
   }
 
   return (
@@ -180,12 +189,25 @@ function CustomAreaOverlay({
           <form className={s.coordSection} onSubmit={handleCoordAdd}>
             <span className={s.coordTitle}>좌표 직접 입력</span>
             <label className={s.coordRow}>
+              <span className={s.coordLabel}>형식</span>
+              <Dropdown
+                className={s.coordSelect}
+                value={COORD_FORMAT_OPTIONS.find((opt) => opt.value === coordFormat)?.label}
+                selectedOptions={[coordFormat]}
+                onOptionSelect={(_, d) => handleFormatChange(d.optionValue)}
+              >
+                {COORD_FORMAT_OPTIONS.map((opt) => (
+                  <Option key={opt.value} value={opt.value}>{opt.label}</Option>
+                ))}
+              </Dropdown>
+            </label>
+            <label className={s.coordRow}>
               <span className={s.coordLabel}>위도</span>
               <Input
                 className={s.coordInput}
-                type="number"
-                step="any"
-                placeholder="예: 37.5"
+                type={coordFormat === 'dd' ? 'number' : 'text'}
+                step={coordFormat === 'dd' ? 'any' : undefined}
+                placeholder={COORD_PLACEHOLDER[coordFormat].lat}
                 value={coordInput.lat}
                 onChange={(e) => setCoordInput((p) => ({ ...p, lat: e.target.value }))}
               />
@@ -194,9 +216,9 @@ function CustomAreaOverlay({
               <span className={s.coordLabel}>경도</span>
               <Input
                 className={s.coordInput}
-                type="number"
-                step="any"
-                placeholder="예: 126.9"
+                type={coordFormat === 'dd' ? 'number' : 'text'}
+                step={coordFormat === 'dd' ? 'any' : undefined}
+                placeholder={COORD_PLACEHOLDER[coordFormat].lng}
                 value={coordInput.lng}
                 onChange={(e) => setCoordInput((p) => ({ ...p, lng: e.target.value }))}
               />
