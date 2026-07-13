@@ -76,7 +76,7 @@ function setPreview(map, verts, mousePos, color) {
  * Reusable polygon-drawing controller for an existing Mapbox map instance.
  * Does not create or own the map; the caller is responsible for the map lifecycle.
  */
-export function usePolygonDraw(map) {
+export function usePolygonDraw(map, { panelOpen, onFeatureSelect } = {}) {
   const drawRef = useRef(null)
   const isDrawingRef = useRef(false)
   const vertsRef = useRef([])
@@ -88,11 +88,21 @@ export function usePolygonDraw(map) {
   // ref: 이벤트 핸들러(useEffect 클로저, [map]에만 의존)가 항상 최신 색을 읽기 위함.
   // state: 색상 스와치 UI가 선택 표시를 리렌더하기 위함. vertsRef/mousePosRef와 같은 패턴.
   const selectedColorRef = useRef(DEFAULT_COLOR)
+  // ref: onFeatureSelect도 같은 이유로 ref에 최신값만 동기화한다 — [map] 이펙트의 deps에
+  // 콜백을 직접 넣으면 호출부가 매 렌더 새 함수를 넘길 때마다 draw 컨트롤이 재구축된다.
+  const onFeatureSelectRef = useRef(onFeatureSelect)
   const [drawing, setDrawing] = useState(false)
   const [vertCount, setVertCount] = useState(0)
   const [polyCount, setPolyCount] = useState(0)
   const [hasSelection, setHasSelection] = useState(false)
   const [selectedColor, setSelectedColorState] = useState(DEFAULT_COLOR)
+  // 이미 그려진, 현재 선택된 폴리곤의 실제 색 — 새로 그릴 때 쓸 기본색인 selectedColor와는
+  // 별개 개념이라 상태를 분리한다.
+  const [selectedFeatureColor, setSelectedFeatureColor] = useState(null)
+
+  useEffect(() => {
+    onFeatureSelectRef.current = onFeatureSelect
+  }, [onFeatureSelect])
 
   useEffect(() => {
     if (!map) return undefined
@@ -181,8 +191,18 @@ export function usePolygonDraw(map) {
     }
 
     function onDrawCreate() { setPolyCount(draw.getAll().features.length) }
-    function onDrawDelete() { setPolyCount(draw.getAll().features.length); setHasSelection(false) }
-    function onDrawSelectionChange(e) { setHasSelection(e.features.length > 0) }
+    function onDrawDelete() {
+      setPolyCount(draw.getAll().features.length)
+      setHasSelection(false)
+      setSelectedFeatureColor(null)
+    }
+    function onDrawSelectionChange(e) {
+      const selected = e.features.length > 0
+      setHasSelection(selected)
+      setSelectedFeatureColor(selected ? (e.features[0].properties?.color || DEFAULT_COLOR) : null)
+      // 지도 위 폴리곤을 클릭해 선택되면(다른 탭을 보는 중이어도) 패널을 열도록 알린다.
+      if (selected) onFeatureSelectRef.current?.()
+    }
 
     function onMouseMove(e) {
       if (!isDrawingRef.current) return
@@ -228,6 +248,13 @@ export function usePolygonDraw(map) {
     }
   }, [map])
 
+  // 패널이 닫히거나(X버튼) 다른 탭으로 이동해도 완성된 폴리곤은 지도에 남아야 하지만,
+  // 아직 마감(더블클릭)하지 않은 미완성 점들은 패널 없이는 이어 그릴 수 없으므로 취소한다.
+  useEffect(() => {
+    if (!panelOpen && isDrawingRef.current) handleCancel()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [panelOpen])
+
   function handleStart() {
     if (!map) return
     vertsRef.current = []
@@ -264,6 +291,21 @@ export function usePolygonDraw(map) {
     draw.trash()
     setPolyCount(draw.getAll().features.length)
     setHasSelection(false)
+    setSelectedFeatureColor(null)
+  }
+
+  // setFeatureProperty는 store.render()를 직접 호출하지 않아 지도에 즉시 반영되지 않을 수
+  // 있으므로, 이미 draw.add()가 렌더를 보장하는 "같은 id로 다시 add" 경로를 재사용한다
+  // (finalize()가 새 폴리곤을 추가할 때 쓰는 것과 같은 API).
+  function handleChangeSelectedColor(color) {
+    const draw = drawRef.current
+    if (!draw) return
+    const selected = draw.getSelected()
+    if (!selected.features.length) return
+    selected.features.forEach((feature) => {
+      draw.add({ ...feature, properties: { ...feature.properties, color } })
+    })
+    setSelectedFeatureColor(color)
   }
 
   function handleDeleteAll() {
@@ -294,11 +336,13 @@ export function usePolygonDraw(map) {
     polyCount,
     hasSelection,
     selectedColor,
+    selectedFeatureColor,
     handleStart,
     handleCancel,
     handleUndo,
     handleDeleteSelected,
     handleDeleteAll,
+    handleChangeSelectedColor,
     addVertex,
     setColor,
   }

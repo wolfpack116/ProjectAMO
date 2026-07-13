@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { Button, Input, makeStyles, mergeClasses } from '../../shared/ui/fluent.js'
-import { useCustomAreaOverlay } from './useCustomAreaOverlay.js'
 import { COLOR_OPTIONS } from './usePolygonDraw.js'
 
 const useStyles = makeStyles({
@@ -103,13 +102,12 @@ const useStyles = makeStyles({
   },
 })
 
-function CustomAreaOverlay({ mapRef, isStyleReady, onClose }) {
+function CustomAreaOverlay({
+  drawing, vertCount, polyCount, hasSelection, selectedColor, selectedFeatureColor,
+  handleStart, handleCancel, handleUndo, handleDeleteSelected, handleDeleteAll, handleChangeSelectedColor,
+  addVertex, setColor, onClose,
+}) {
   const s = useStyles()
-  const {
-    drawing, vertCount, polyCount, hasSelection, selectedColor,
-    handleStart, handleCancel, handleUndo, handleDeleteSelected, handleDeleteAll,
-    addVertex, setColor,
-  } = useCustomAreaOverlay(mapRef, isStyleReady)
   const [coordInput, setCoordInput] = useState({ lat: '', lng: '' })
   const [coordError, setCoordError] = useState('')
 
@@ -141,7 +139,30 @@ function CustomAreaOverlay({ mapRef, isStyleReady, onClose }) {
         <>
           <Button appearance="primary" onClick={handleStart}>구역 그리기 시작</Button>
           {hasSelection && (
-            <Button appearance="secondary" onClick={handleDeleteSelected}>선택 구역 삭제</Button>
+            <>
+              <Button appearance="secondary" onClick={handleDeleteSelected}>선택 구역 삭제</Button>
+              <div className={s.colorSection}>
+                <span className={s.coordTitle}>선택 구역 색상 변경</span>
+                <div className={s.colorGrid} role="group" aria-label="선택 구역 색상 변경">
+                  {COLOR_OPTIONS.map((opt) => {
+                    const isSelected = selectedFeatureColor === opt.value
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        className={mergeClasses(s.colorSwatch, isSelected && s.colorSwatchSelected)}
+                        style={{ backgroundColor: opt.value }}
+                        aria-label={opt.label}
+                        aria-pressed={isSelected}
+                        onClick={() => handleChangeSelectedColor(opt.value)}
+                      >
+                        {isSelected && <Check size={14} color={opt.checkColor} />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </>
           )}
           {polyCount > 0 && (
             <Button appearance="secondary" onClick={handleDeleteAll}>전체 구역 삭제 ({polyCount})</Button>
