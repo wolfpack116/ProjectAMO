@@ -1,5 +1,8 @@
-import { Button, makeStyles } from '../../shared/ui/fluent.js'
+import { useState } from 'react'
+import { Check } from 'lucide-react'
+import { Button, Input, makeStyles, mergeClasses } from '../../shared/ui/fluent.js'
 import { useCustomAreaOverlay } from './useCustomAreaOverlay.js'
+import { COLOR_OPTIONS } from './usePolygonDraw.js'
 
 const useStyles = makeStyles({
   panel: {
@@ -39,18 +42,93 @@ const useStyles = makeStyles({
     fontSize: 'var(--fs-200)',
     color: 'var(--text-2)',
   },
-  row: {
+  coordSection: {
     display: 'flex',
+    flexDirection: 'column',
     gap: 'var(--space-xs)',
+    marginTop: 'var(--space-xxs)',
+    padding: 'var(--space-s)',
+    border: '1px solid var(--stroke-2)',
+    borderRadius: 'var(--radius-md)',
+    background: 'var(--bg-2)',
+  },
+  coordTitle: {
+    fontSize: 'var(--fs-200)',
+    fontWeight: 'var(--fw-semibold)',
+    color: 'var(--text-2)',
+  },
+  coordRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 'var(--space-xs)',
+  },
+  coordLabel: {
+    fontSize: 'var(--fs-200)',
+    color: 'var(--text-2)',
+    flexShrink: 0,
+  },
+  coordInput: {
+    width: '110px',
+  },
+  coordError: {
+    fontSize: 'var(--fs-100)',
+    color: 'var(--level-red)',
+  },
+  colorSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-xs)',
+    marginTop: 'var(--space-xxs)',
+  },
+  colorGrid: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 'var(--space-xs)',
+  },
+  colorSwatch: {
+    width: '26px',
+    height: '26px',
+    borderRadius: 'var(--radius-circular)',
+    border: '2px solid transparent',
+    padding: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  },
+  colorSwatchSelected: {
+    border: '2px solid var(--text-1)',
+    boxShadow: '0 0 0 2px var(--bg-1)',
   },
 })
 
 function CustomAreaOverlay({ mapRef, isStyleReady, onClose }) {
   const s = useStyles()
   const {
-    drawing, vertCount, polyCount, hasSelection,
+    drawing, vertCount, polyCount, hasSelection, selectedColor,
     handleStart, handleCancel, handleUndo, handleDeleteSelected, handleDeleteAll,
+    addVertex, setColor,
   } = useCustomAreaOverlay(mapRef, isStyleReady)
+  const [coordInput, setCoordInput] = useState({ lat: '', lng: '' })
+  const [coordError, setCoordError] = useState('')
+
+  function handleCoordAdd(e) {
+    e.preventDefault()
+    const lat = parseFloat(coordInput.lat)
+    const lng = parseFloat(coordInput.lng)
+    if (isNaN(lat) || lat < -90 || lat > 90) {
+      setCoordError('위도는 -90 ~ 90 사이 숫자여야 합니다.')
+      return
+    }
+    if (isNaN(lng) || lng < -180 || lng > 180) {
+      setCoordError('경도는 -180 ~ 180 사이 숫자여야 합니다.')
+      return
+    }
+    setCoordError('')
+    addVertex(lng, lat)
+    setCoordInput({ lat: '', lng: '' })
+  }
 
   return (
     <div className={s.panel} aria-label="임의 구역 설정">
@@ -74,10 +152,58 @@ function CustomAreaOverlay({ mapRef, isStyleReady, onClose }) {
         </>
       ) : (
         <>
-          <span className={s.status}>{vertCount}개 점 찍음 · 지도를 클릭해 점을 추가하세요</span>
-          <div className={s.row}>
-            <Button appearance="secondary" onClick={handleCancel}>취소</Button>
-            <Button appearance="secondary" disabled={vertCount === 0} onClick={handleUndo}>마지막 점 취소</Button>
+          <Button appearance="secondary" onClick={handleCancel}>그리기 취소</Button>
+          <Button appearance="secondary" disabled={vertCount === 0} onClick={handleUndo}>마지막 점 취소</Button>
+          <span className={s.status}>{vertCount}개 점 찍음</span>
+
+          <form className={s.coordSection} onSubmit={handleCoordAdd}>
+            <span className={s.coordTitle}>좌표 직접 입력</span>
+            <label className={s.coordRow}>
+              <span className={s.coordLabel}>위도</span>
+              <Input
+                className={s.coordInput}
+                type="number"
+                step="any"
+                placeholder="예: 37.5"
+                value={coordInput.lat}
+                onChange={(e) => setCoordInput((p) => ({ ...p, lat: e.target.value }))}
+              />
+            </label>
+            <label className={s.coordRow}>
+              <span className={s.coordLabel}>경도</span>
+              <Input
+                className={s.coordInput}
+                type="number"
+                step="any"
+                placeholder="예: 126.9"
+                value={coordInput.lng}
+                onChange={(e) => setCoordInput((p) => ({ ...p, lng: e.target.value }))}
+              />
+            </label>
+            {coordError && <span className={s.coordError}>{coordError}</span>}
+            <Button type="submit" appearance="primary">점 추가</Button>
+          </form>
+
+          <div className={s.colorSection}>
+            <span className={s.coordTitle}>그리기 색상</span>
+            <div className={s.colorGrid} role="group" aria-label="그리기 색상 선택">
+              {COLOR_OPTIONS.map((opt) => {
+                const isSelected = selectedColor === opt.value
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    className={mergeClasses(s.colorSwatch, isSelected && s.colorSwatchSelected)}
+                    style={{ backgroundColor: opt.value }}
+                    aria-label={opt.label}
+                    aria-pressed={isSelected}
+                    onClick={() => setColor(opt.value)}
+                  >
+                    {isSelected && <Check size={14} color={opt.checkColor} />}
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </>
       )}
